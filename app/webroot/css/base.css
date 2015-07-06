@@ -1,0 +1,138 @@
+@charset "UTF-8";
+
+/* <共通> **************************************************/
+
+body {
+	font-size: 14px;
+	font-family: "Century Gothic", "MS PGothic", "ヒラギノ角ゴPro W3", "Hiragino Sans GB W3", sans-serif;
+	color: #333;
+}
+
+table, tr, td {
+	font-size: 14px;
+	color: #333;
+}
+
+input.groovybutton {
+	font-size: 16px;
+	font-weight: bold;
+	color: #FFF;
+	width: 180px;
+	height: 28px;
+	/*background-color: #0086E0;*/
+	border-style: solid;
+        text-align:center;
+	/*border-color: #5081E9;*/
+	border-width: 3px;
+        /* グラデーションを加える */
+        background-color: #3699D0;
+        background: -moz-linear-gradient(top, #56B9F0, #3699D0); /* Mozilla */
+        background: -webkit-gradient(linear, left top, left bottom, from(#56B9F0), to(#3699D0)); /* Webkit */
+
+        /* 1pxのラインを加える */
+        border: 1px solid #02659C;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7),
+                    inset 1px 0 0 rgba(255, 255, 255, 0.3),
+                    inset -1px 0 0 rgba(255, 255, 255, 0.3),
+                    inset 0 -1px 0 rgba(255, 255, 255, 0.2);
+        
+}
+
+.buttonframe {
+	width: 760px;
+	border: 0px;
+	background-color: #efefef;
+	padding: 5px 5px 5px 5px;
+	text-align: center;
+}
+
+.footer {
+	font-family: "Century Gothic", "MS PGothic", "ヒラギノ角ゴPro W3", "Hiragino Sans GB W3", sans-serif;
+	font-size: 9px;
+	color: #000;
+	text-align: center;
+}
+
+.rbroundbox {
+	background: url("/mobile_station/serverside/img/nt.gif") repeat;
+}
+
+.rbtop div {
+	background: url("/mobile_station/serverside/img/tl.gif") no-repeat top left;
+}
+
+.rbtop {
+	background: url("/mobile_station/serverside/img/tr.gif") no-repeat top right;
+}
+
+.rbbot div {
+	background: url("/mobile_station/serverside/img/bl.gif") no-repeat bottom left;
+}
+
+.rbbot {
+	background: url("/mobile_station/serverside/img/br.gif") no-repeat bottom right;
+}
+
+.rbroundboxc {
+	background: url("/mobile_station/serverside/img/ntc.gif") repeat;
+}
+
+.rbtopc div {
+	background: url("/mobile_station/serverside/img/tlc.gif") no-repeat top left;
+}
+
+.rbtopc {
+	background: url("/mobile_station/serverside/img/trc.gif") no-repeat top right;
+}
+
+.rbbotc div {
+	background: url("/mobile_station/serverside/img/blc.gif") no-repeat bottom left;
+}
+
+.rbbotc {
+	background: url("/mobile_station/serverside/img/brc.gif") no-repeat bottom right;
+}
+
+.rbtop div, .rbtopc div, .rbtop, .rbtopc, .rbbot div, .rbbotc div, .rbbot, .rbbotc {
+	width: 100%;
+	height: 7px;
+	font-size: 1px;
+}
+
+.rbcontent {
+	margin: 0 7px;
+	font-size: 14pt;
+	color: #ffffff;
+}
+
+.rbroundbox, .rbroundboxc {
+	width: 100%;
+	margin: 1em auto;
+}
+
+.rbcontentc {
+	margin: 0 7px;
+	font-size: 14pt;
+	color: #333;
+        text-align: left;
+}
+
+.fadebox {
+	width: 600px;
+	border: 3px solid #999;
+	background-color: #666;
+	padding: 5px 5px 5px 5px;
+	text-align: center;
+	color: #FFF;
+}
+
+/* </共通> *************************************************/
+
+/* <プライバシーポリシー> ******************************************/
+
+.indented {
+	padding-left: 25pt;
+	padding-right: 25pt;
+}
+
+/* </プライバシーポリシー> *****************************************/

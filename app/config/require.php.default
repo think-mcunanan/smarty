@@ -1,0 +1,14 @@
+<?php
+
+//-- パース設定 --//
+define('FAIL_REDIRECT', 'http://www.mobilestation.jp/');
+define('MAIN_PATH',     'http://192.168.11.67/mobile_station_dev/serverside/');
+
+//-- メールサーバー --//
+define('MAILSERVER_PORT', '25');
+define('MAILSERVER_ADDRESS', '192.168.88.253');
+
+define('MOBASUTE_PATH_LOCAL', '/var/www/webyan-sipss3/');
+define('MOBASUTE_PATH', 'http://192.168.11.67/webyan-sipss3/');
+
+?>

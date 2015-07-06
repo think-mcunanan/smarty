@@ -1,0 +1,64 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>{$title_for_layout}</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+{literal}
+
+<script language="javascript">
+
+function goLite(FRM,BTN)
+{
+   window.document.forms[FRM].elements[BTN].style.color = "#222222";
+   window.document.forms[FRM].elements[BTN].style.backgroundColor = "#FFDDFF";
+   window.document.forms[FRM].elements[BTN].style.borderColor = "#0000CC";
+}
+
+function goDim(FRM,BTN)
+{
+   window.document.forms[FRM].elements[BTN].style.color = "#444444";
+   window.document.forms[FRM].elements[BTN].style.backgroundColor = "#FFEEFF";
+   window.document.forms[FRM].elements[BTN].style.borderColor = "#666666";
+}
+</script>
+{/literal}
+</head>
+<body bgcolor='#EFEFEF' topmargin='0' MARGINHEIGHT='0'>
+
+<table border='0' width='800' bgcolor='#FFFFFF' align='center' cellpadding="0" cellspacing="0">
+	<tr>
+		<td rowspan='2'>{if $logo_image != ""} <img border='0' align='left' src="{$logo_image}" /> {else} <font size='5' align='left'>{$title_for_layout}</font> {/if} <br />
+		</td>
+		<td valign='top' align='right'>{if $logoutpath} <a href='{$html->url($logoutpath)}'> <img border='0' src='{$html->url('../img/logout.gif')}' /> </a> {/if}</td>
+	</tr>
+	<tr>
+		<td valign='bottom' align='right'><img border='0' src='{$html->url('../img/onlineyoyaku.jpg')}' /></td>
+	</tr>
+	<tr>
+		<td height='2' bgcolor='#AAAAAA' colspan='2'></td>
+	</tr>
+	<tr>
+		<td colspan='2'><br />
+		{if $top_message}
+		<center>
+		<p>{$top_message}</p>
+		</center>
+		{/if} {$content_for_layout} <br />
+		</td>
+	</tr>
+	<tr>
+		<td height='1' bgcolor='#999999' colspan='2'></td>
+	</tr>
+	{if $privacypath}
+	<tr>
+		<td align='right' colspan="2"><font size='2'><img border='0' src="{$html->url('../img/arrow.gif')}" /><a target='_blank' href='{$html->url($privacypath)}'>プラィバシーポリシー</a></font></td>
+	</tr>
+	{/if}
+	<tr style="height: 120px;">
+		<td align="center" colspan="2"><img src="{$html->url('../img/logo_footer.gif')}" width="106" height="53"><br />
+		<font size="-2">&copy; THINK INC. 2010-, All Rights Reserved.</font></td>
+	</tr>
+</table>
+
+</body>
+</html>

@@ -1,0 +1,52 @@
+<div align="center">
+<table width="814">
+	<tr>
+		<td align=left height="90">
+		<p><img src="{$html->url('../img/logo_header.gif')}" height="89" width="347"></p>
+		</td>
+	</tr>
+	<tr>
+		<td width="460">
+		<form name='YkLoginForm' action="{$form_action}" method="post">
+		<table width="460" height="333">
+			<tr>
+				<td background="{$html->url('../img/login/bg_01.gif')}" style="background-repeat: no-repeat" width="460" height="333" valign="center">
+				<p><br>
+				<font face="MS PGOTHIC" size="3" color="#ffffff"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <font size="+2"> <strong>ログイン</strong> </font>
+				<hr align="middle" width="390" size="1" color="#ffffff">
+				<br>
+				<center>ユーザー名 &nbsp;&nbsp;&nbsp;&nbsp;<input name="username" type="text" value="" size="30" /></p>
+				<br>
+				<p>パスワード &nbsp;&nbsp; &nbsp; <input name="password" type="text" value="" size="30" /></p>
+				</center>
+				<!-- パスワードリマインダが実装されていないのでコメントアウト
+				<div align="right"><A HREF="url" target="_blank"> <font size="-1">*パスワードを忘れた方はこちらまで</font> </A>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;</div>
+				-->
+				</font>
+				<hr align="center" width="390" size="1" color="#ffffff">
+				<br>
+				<div align="right"><input type="image" name="login" src="{$html->url('../img/login/button_login.gif')}" />&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;</div>
+				<br>
+
+		</table>
+		</form>
+		</td>
+		<td width="10"></td>
+		<td width="309">
+		<table width="309" height="333">
+			<tr>
+				<td background="{$html->url('../img/login/bg_02.gif')}" style="background-repeat: no-repeat" width="309" height="333" valign="middle" align="center"><font face="MS PGOTHIC" size="3" color="#ffffff"> <strong>新規登録は、下記のアドレスに<br />
+				空メールを送信してください。</strong> </font> <br>
+				<br>
+				<br>
+				<a href='mailto:{$salonmail}'>{$salonmail}</a><br>
+				<br>
+				<br>
+				</td>
+			</tr>
+		</table>
+		</td>
+	</tr>
+</table>
+<p>&nbsp;</p>
+</div>

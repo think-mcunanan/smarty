@@ -1,0 +1,104 @@
+{literal}
+<style type="text/css">
+.wrapper {
+	font-size: 14px;
+	font-family: "Century Gothic", "MS PGothic", "ヒラギノ角ゴPro W3", "Hiragino Sans GB W3", sans-serif;
+	color: #333;
+}
+
+table,tr,td {
+	font-size: 14px;
+	font-family: "Century Gothic", "MS PGothic", "ヒラギノ角ゴPro W3", "Hiragino Sans GB W3", sans-serif;
+	color: #333;
+}
+
+input.groovybutton {
+	font-size: 16px;
+	font-family: "Century Gothic", "MS PGothic", "ヒラギノ角ゴPro W3", "Hiragino Sans GB W3", sans-serif;
+	font-weight: bold;
+	color: #FFF;
+	width: 150px;
+	height: 28px;
+	background-color: #b6e000;
+	border-style: solid;
+	border-color: #c3e950;
+	border-width: 3px;
+}
+
+/* height and width stuff */
+p {
+	width: 760px;
+	border: 1px solid #aaaaaa;
+	background-color: #efefef;
+	padding: 5px 5px 5px 5px;
+	text-align: center;
+}
+
+.buttonframe {
+	width: 760px;
+	border: 0px;
+	background-color: #efefef;
+	padding: 5px 5px 5px 5px;
+	text-align: center;
+}
+
+.footer {
+	font-family: "Century Gothic", "MS PGothic", "ヒラギノ角ゴPro W3", "Hiragino Sans GB W3", sans-serif;
+	font-size: 9px;
+	color: #000;
+	text-align: center;
+}
+</style>
+{/literal}
+
+<div class="wrapper">
+<form name='YkRegForm' action="{$form_action}" method="post">
+<center>
+<table border='0' cellpadding='6'>
+	<tr>
+		<td align='right' width='150'>名前<font color='red'>*</font>：</td>
+		<td align='left'><input type='text' name='r_name' value='{$name}' size='16' maxlength='50' /></td>
+	</tr>
+
+	<tr>
+		<td align='right' valign='top'>メールアドレス：</td>
+		<td align='left' valign='top'><font size='4'><b>{$email}</b></font></td>
+	</tr>
+
+	<tr>
+		<td align='right'>電話番号<font color='red'>*</font>：</td>
+		<td align='left'><input type='text' name='r_phone' value='{$phone}' size='16' maxlength='20' istyle='4' format='N' mode='numeric' /></td>
+	</tr>
+
+	<tr>
+		<td align='right'>性別：</td>
+		<td align='left'><select name="r_sex">
+			{html_options options=$sex_list selected=$sex}
+		</select></td>
+	</tr>
+
+	<tr>
+		<td align='right'>誕生日：</td>
+		<td align='left'><input type='text' name='r_year' value='{$year}' size='5' maxlength='4' istyle='4' format='N' mode='numeric' />年 <input type='text' name='r_month' value='{$month}' size='3' maxlength='2' istyle='4' format='N' mode='numeric' />月 <input type='text' name='r_day' value='{$day}' size='3' maxlength='2' istyle='4' format='N' mode='numeric' />日</td>
+	</tr>
+
+	<tr>
+		<td align='right' valign='top'>パスワード更新：</td>
+		<td align='left'><input type='password' name='r_password1' value='' size='16' maxlength='50' /><br />
+		<input type='password' name='r_password2' value='' size='16' maxlength='50' />（確認）</td>
+	</tr>
+
+	<tr>
+		<td align='right' valign='top'>DMメール受信：</td>
+		<td align='left'><input type='checkbox' name='r_mailkubun' value='1' {if $mailkubun== 1}checked='checked' {/if} />
+
+	</tr>
+
+</table>
+<br />
+<br />
+<div class='buttonframe'><input type="submit" name="p_cancel" class="groovybutton" value="キャンセル" title="" onMouseOver="goLite(this.form.name,this.name)" onMouseOut="goDim(this.form.name,this.name)"> &nbsp; <input type="submit" name="p_reg" class="groovybutton" value="登録" title="" onMouseOver="goLite(this.form.name,this.name)" onMouseOut="goDim(this.form.name,this.name)"></div>
+
+</center>
+</form>
+</div>

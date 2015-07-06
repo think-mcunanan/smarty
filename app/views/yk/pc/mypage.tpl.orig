@@ -1,0 +1,176 @@
+{litaral}
+<style type="text/css">
+.wrapper {
+	font-size: 14px;
+	font-family: "Century Gothic", "MS PGothic", "ヒラギノ角ゴPro W3", "Hiragino Sans GB W3", sans-serif;
+	color: #333;
+}
+
+input.groovybutton {
+	font-size: 16px;
+	font-family: "Century Gothic", "MS PGothic", "ヒラギノ角ゴPro W3", "Hiragino Sans GB W3", sans-serif;
+	font-weight: bold;
+	color: #FFF;
+	width: 150px;
+	height: 28px;
+	background-color: #b6e000;
+	border-style: solid;
+	border-color: #c3e950;
+	border-width: 3px;
+}
+
+.rbroundbox {
+	background: url(/mobile_station/serverside/yk/../img/nt.gif) repeat;
+}
+
+.rbtop div {
+	background: url(/mobile_station/serverside/yk/../img/tl.gif) no-repeat top left;
+}
+
+.rbtop {
+	background: url(/mobile_station/serverside/yk/../img/tr.gif) no-repeat top right;
+}
+
+.rbbot div {
+	background: url(/mobile_station/serverside/yk/../img/bl.gif) no-repeat bottom left;
+}
+
+.rbbot {
+	background: url(/mobile_station/serverside/yk/../img/br.gif) no-repeat bottom right;
+}
+
+.rbroundboxc {
+	background: url(/mobile_station/serverside/yk/../img/ntc.gif) repeat;
+}
+
+.rbtopc div {
+	background: url(/mobile_station/serverside/yk/../img/tlc.gif) no-repeat top left;
+}
+
+.rbtopc {
+	background: url(/mobile_station/serverside/yk/../img/trc.gif) no-repeat top right;
+}
+
+.rbbotc div {
+	background: url(/mobile_station/serverside/yk/../img/blc.gif) no-repeat bottom left;
+}
+
+.rbbotc {
+	background: url(/mobile_station/serverside/yk/../img/brc.gif) no-repeat bottom right;
+}
+
+/* height and width stuff */
+.rbtop div,.rbtopc div,.rbtop,.rbtopc,.rbbot div,.rbbotc div,.rbbot,.rbbotc {
+	width: 100%;
+	height: 7px;
+	font-family: "Century Gothic", "MS PGothic", "ヒラギノ角ゴPro W3", "Hiragino Sans GB W3", sans-serif;
+	font-size: 1px;
+}
+
+.rbcontent {
+	margin: 0 7px;
+	font-family: "Century Gothic", "MS PGothic", "ヒラギノ角ゴPro W3", "Hiragino Sans GB W3", sans-serif;
+	font-size: 14pt;
+	color: #ffffff;
+}
+
+.rbroundbox,.rbroundboxc {
+	width: 100%;
+	margin: 1em auto;
+}
+
+.rbcontentc {
+	margin: 0 7px;
+	font-family: "Century Gothic", "MS PGothic", "ヒラギノ角ゴPro W3", "Hiragino Sans GB W3", sans-serif;
+	font-size: 14pt;
+	color: #999;
+}
+
+p {
+	width: 760px;
+	border: 1px solid #aaaaaa;
+	background-color: #efefef;
+	padding: 5px 5px 5px 5px;
+	text-align: center;
+}
+
+.fadebox {
+	width: 600px;
+	border: 3px solid #999;
+	background-color: #666;
+	padding: 5px 5px 5px 5px;
+	text-align: center;
+	font-family: "Century Gothic", "MS PGothic", "Hiragino Sans GB W3", sans-serif;
+	color: #FFF;
+}
+
+.buttonframe {
+	width: 760px;
+	border: 0px;
+	background-color: #efefef;
+	padding: 5px 5px 5px 5px;
+	text-align: center;
+}
+
+.footer {
+	font-family: "Century Gothic", "MS PGothic", "ヒラギノ角ゴPro W3", "Hiragino Sans GB W3", sans-serif;
+	font-size: 9px;
+	color: #000;
+	text-align: center;
+}
+</style>
+{/litaral}
+
+<div class="wrapper">
+<center>
+<table border='0' width='620' cellpadding='6'>
+	<tr>
+		<td width='300' valign='top'>
+		<div class="rbroundboxc">
+		<div class="rbtopc">
+		<div></div>
+		</div>
+		<div class="rbcontentc"><font size='5'><b>前回</b></font> <br>
+		<br>
+		{if $prevdate} {if $prevstname} <b>店舗：</b>{$prevstname}<br>
+		{/if} <b>来店日：</b> {$prevdate}<br>
+		<b>担当者：</b> {$prevstaff}<br>
+		{else} <b>来店日：</b> なし<br>
+		{/if}</div>
+		<!-- /rbcontent -->
+		<div class="rbbotc">
+		<div></div>
+		</div>
+		</div>
+		<!-- /rbroundbox --></td>
+		<td width='20'>&nbsp;</td>
+		<td width='300' valign='top'>
+
+		<div class="rbroundboxc">
+		<div class="rbtopc">
+		<div></div>
+		</div>
+		<div class="rbcontentc"><font size='5'><b>次回</b></font> <br>
+		<br>
+		{if $nextdate} {if $nextstname} <b>店舗：</b> {$nextstname}<br>
+		{/if} <b>来店日：</b> {$nextdate}<br>
+		<b>時間：</b> {$nexttime}<br>
+		<b>担当者：</b> {$nextstaff}<br>
+		{else} <b>来店日：</b> なし {/if}</div>
+		<!-- /rbcontent -->
+		<div class="rbbotc">
+		<div></div>
+		</div>
+		</div>
+		<!-- /rbroundbox --></td>
+	</tr>
+</table>
+{if $points1 || $points2}
+<div class='fadebox'>{$points1}{$points2}</div>
+{/if} <br>
+<form name='YkMyPageForm' action="{$form_action}" method="post">
+<div class='buttonframe'>{if $cancelb == 1} <input type="submit" name="p_delete" class="groovybutton" value="予約をキャンセル" title="" onMouseOver="goLite(this.form.name,this.name)" onMouseOut="goDim(this.form.name,this.name)"> {elseif $cancelb == 3} （{$cancellim}時間以内にウェブでキャンセルできません）<br>
+{else} <input type="submit" name="p_new" class="groovybutton" value="新規予約を登録" title="" onMouseOver="goLite(this.form.name,this.name)" onMouseOut="goDim(this.form.name,this.name)"> {/if} &nbsp; <input type="submit" name="p_info" class="groovybutton" value="会員情報を更新" title="" onMouseOver="goLite(this.form.name,this.name)" onMouseOut="goDim(this.form.name,this.name)"></div>
+</form>
+</center>
+</div>
