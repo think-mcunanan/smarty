@@ -28,7 +28,7 @@ class ServersController extends WebServicesController
                                 'StaffShift', 'Shift', 'SubService','StoreTransaction',
                                 'StaffAssignToStore', 'StoreSettings', 'StoreTransactionColors',
                                 'BreakTime', 'FinishedShift', 'StoreHoliday', 'YoyakuMessage',
-                                'YoyakuStaffServiceTime','YoyakuNext','Stafftype',
+                                'YoyakuStaffServiceTime','YoyakuNext','Stafftype', 'Syscode', //Update by MarvinC 2015-06-24
         
         );
 
@@ -1288,6 +1288,8 @@ class ServersController extends WebServicesController
                                         'GCODE'            => 'xsd:int',
                                         'YOYAKU'           => 'xsd:int',
                                         'STARTTIME'        => 'xsd:string',
+                                        'SERVICESNAME'     => 'xsd:string', //Update by MarvinC - Added param for syscode
+                                        'YOYAKU_STATUS'     => 'xsd:string', //Update by MarvinC - Added param for syscode
                                         'INCOMPLETE'       => 'xsd:int',
                                         'UKETSUKESTAFFNAME'=> 'xsd:string',
                                         'details'          => 'tns:_storeTransactionDetailInformation',
@@ -5176,7 +5178,12 @@ class ServersController extends WebServicesController
                        product.PRODUCTNAME,
                        jikaiyoyaku.TRANSCODE, 
                        staff.STAFFNAME,
-                       yoyaku.UKETSUKEDATE, yoyaku.UKETSUKESTAFF, yoyaku.CANCEL, staff2.staffname as UKETSUKESTAFFNAME                        
+                       yoyaku.UKETSUKEDATE, yoyaku.UKETSUKESTAFF, yoyaku.CANCEL, staff2.staffname as UKETSUKESTAFFNAME,
+                       #---------------------------------------------------------------------------------
+                        #Added By MarvinC - 2015-07-06
+                        YND.YOYAKU_STATUS,
+                        YND.NEXTCODE
+                        #---------------------------------------------------------------------------------
                 FROM store_transaction as transaction
                     LEFT JOIN store_transaction_details as details ON
                         transaction.TRANSCODE = details.TRANSCODE AND
@@ -5201,6 +5208,12 @@ class ServersController extends WebServicesController
                         AND details.TRANTYPE = 1
                     LEFT JOIN services as services ON
                         services.GDCODE = service.GDCODE
+                    #---------------------------------------------------------------------------------
+                    #Added By MarvinC - 2015-07-06
+                    LEFT JOIN yoyaku_next_details as YND 
+                        ON YND.NEXTCODE = details.TRANSCODE 
+                        AND if(YND.syscode = 0 and YND.yoyaku_status = 2, YND.syscode = 0,YND.syscode = services.syscode) 
+                    #---------------------------------------------------------------------------------
                     LEFT JOIN store_products as product ON
                         product.PRODUCTCODE = details.GCODE
                         AND details.TRANTYPE = 2
@@ -5547,6 +5560,13 @@ class ServersController extends WebServicesController
                 QUANTITY, UNITPRICE, PRICE, ZEIKUBUN, KASANPOINT1, KASANPOINT2,
                 KASANPOINT3, STAFFCODE, STAFFCODESIMEI, TEMPSTATUS, STARTTIME, ENDTIME";
 
+        #------------------------------------------------------------------------------------------------------------------------
+        # ADDED BY MARVINC - 2015-06-22
+        # For Updating Next Reservation
+        #------------------------------------------------------------------------------------------------------------------------
+        $gdcode = Array();
+        #------------------------------------------------------------------------------------------------------------------------
+        
         //-- トランザクション細部を通したループ (Loops through transaction details)
         //$starttime = $param['YOYAKUTIME'];
         //$endtime = "";
@@ -5556,6 +5576,12 @@ class ServersController extends WebServicesController
             //$old_date_format = strtotime('+'.$totalminutes.' minutes', strtotime($starttime));
             //$endtime = date("H:i", $old_date_format);
             
+            #---------------------------------------------------------------------------------------
+            #UPDATE BY MARVINC - 2015-06-19
+            #---------------------------------------------------------------------------------------
+            $gdcode[$i] = $param['details'][$i]["GDCODE"];
+            #---------------------------------------------------------------------------------------
+                        
             $val = "";
             $val = "'" . $param['TRANSCODE']                  . "', " . $param['KEYNO']                         . ",
                      " . $param['details'][$i]['ROWNO']       . " , " . $param['STORECODE']                     . ",
@@ -5566,7 +5592,7 @@ class ServersController extends WebServicesController
                      " . $param['details'][$i]['POINTKASAN2'] . " , " . $param['details'][$i]['POINTKASAN3']    . ",
                      " . $param['details'][$i]['STAFFCODE']   . " , " . $param['details'][$i]['STAFFCODESIMEI'] . ",
                      " . $param['TEMPSTATUS'].", '".$param['details'][$i]['STARTTIME']."', 
-                         '".$param['details'][$i]['ENDTIME']."'";
+                     '".$param['details'][$i]['ENDTIME']."'";
 
             $dtlsql[$i] = "REPLACE INTO store_transaction_details (".$fld.") VALUES(".$val.")";
 
@@ -5578,7 +5604,7 @@ class ServersController extends WebServicesController
             $sqlctr++;
         }
         
-        if(!is_null($param['BEFORE_TRANSCODE'])){
+        if(!is_null($param['BEFORE_TRANSCODE']) || $param['YOYAKU_STATUS'] == 2){
         	//$sql = "UPDATE yoyaku_next SET YOYAKU_STATUS = 2 ,NEXTCODE = '" .$param['TRANSCODE']."' WHERE TRANSCODE ='". $param['BEFORE_TRANSCODE']."'";     
         	//$sql = "UPDATE yoyaku_next SET CHANGEFLG = CASE WHEN NEXTCODE IS NULL AND CHANGEFLG = 0 THEN 0 ELSE 1 END, YOYAKU_STATUS = 2 ,NEXTCODE = '" .$param['TRANSCODE']."' WHERE TRANSCODE ='". $param['BEFORE_TRANSCODE']."'";
         	$sql = "UPDATE yoyaku_next 
@@ -5586,9 +5612,58 @@ class ServersController extends WebServicesController
         	        YOYAKU_STATUS = 2 ,
         	        FIRST_YOYAKUDATE = CASE WHEN FIRST_YOYAKUDATE IS NULL THEN '". $param['TRANSDATE']."' ELSE FIRST_YOYAKUDATE END,
         	        NEXTCODE = '" .$param['TRANSCODE']."' WHERE TRANSCODE ='". $param['BEFORE_TRANSCODE']."'";
-        	//-- 挿入または更新トランザクション (Insert or Update transaction)
-            $retQuery[$sqlctr] = $this->StoreTransaction->query($sql);
-            $sqlctr++;	
+                //-- 挿入または更新トランザクション (Insert or Update transaction)
+                $retQuery[$sqlctr] = $this->StoreTransaction->query($sql);
+                $sqlctr++;
+                
+                #------------------------------------------------------------------------------------------------------------------------
+                # ADDED BY MARVINC - 2015-06-22
+                # For Updating Next Reservation
+                #------------------------------------------------------------------------------------------------------------------------
+                $gdcodelist = implode(",",array_unique($gdcode));
+                $this->Syscode->set_company_database($storeinfo['dbname'], $this->Syscode);
+                $sql = "select SYSCODE, GDCODE from services where GDCODE in (".$gdcodelist.") and DELFLG is null group by SYSCODE order by SYSCODE";
+                $newsyscodes = $this->Syscode->query($sql);
+                
+                $x = 0;
+                foreach ($newsyscodes as $item){
+                    $newsyscode[$x] = $item["services"]["SYSCODE"];
+                    $x++;
+                }
+
+                $syscodes = trim(implode(",",array_unique($newsyscode)),",");
+                
+                if ($param['YOYAKU_STATUS'] == 2){
+                    $sql = "UPDATE yoyaku_next_details
+                            SET CHANGEFLG = CASE WHEN NEXTCODE IS NULL AND CHANGEFLG = 0 THEN 0 ELSE 1 END, 
+                            YOYAKU_STATUS = 2,
+                            FIRST_YOYAKUDATE = CASE WHEN FIRST_YOYAKUDATE IS NULL THEN '". $param['TRANSDATE']."' ELSE FIRST_YOYAKUDATE END,
+                            NEXTCODE = '" .$param['TRANSCODE']."' WHERE NEXTCODE ='".$param['TRANSCODE']."' OR NEXTCODE = '". $param['BEFORE_TRANSCODE']."'";
+                }else{
+                    #check if the service is existing
+                    $this->Syscode->set_company_database($storeinfo['dbname'], $this->Syscode);
+                    $sql = "select SYSCODE from yoyaku_next_details where transcode = '". $param['BEFORE_TRANSCODE']."' and syscode in (".$syscodes.") and nextcode is null";
+                    $exists = $this->Syscode->query($sql);
+
+                    if(empty($exists)){
+                        #get the staff incharge
+                        $sql = "INSERT INTO yoyaku_next_details 
+                                SELECT TRANSCODE, MAX(ROWNO) + 1, 2, 0, '".$param['TRANSCODE']."', STAFFCODE_INCHARGE, STAFFCODE_INCHARGE,  '". $param['TRANSDATE']."', 0, null, null, CURRENT_DATE()
+                                FROM yoyaku_next_details YND
+                                WHERE TRANSCODE = '". $param['BEFORE_TRANSCODE']."' LIMIT 1";
+                    }else{
+                        $sql = "UPDATE yoyaku_next_details
+                            SET CHANGEFLG = CASE WHEN NEXTCODE IS NULL AND CHANGEFLG = 0 THEN 0 ELSE 1 END, 
+                            YOYAKU_STATUS = 2,
+                            FIRST_YOYAKUDATE = CASE WHEN FIRST_YOYAKUDATE IS NULL THEN '". $param['TRANSDATE']."' ELSE FIRST_YOYAKUDATE END,
+                            NEXTCODE = '".$param['TRANSCODE']."' WHERE TRANSCODE = '". $param['BEFORE_TRANSCODE']."' 
+                            AND SYSCODE IN (".$syscodes.") AND YOYAKU_STATUS < 2";
+                    }
+                }
+                
+                $retQuery[$sqlctr] = $this->StoreTransaction->query($sql);
+                $sqlctr++;	
+
         }    
         $SqlInsertRejiMarketing = "";
         //===========================================================================================================
@@ -5743,11 +5818,18 @@ class ServersController extends WebServicesController
         
         $del_jkisql = "UPDATE yoyaku_next SET CHANGEFLG = 2,YOYAKU_STATUS = 0
                        WHERE NEXTCODE = '" . $transcode . "'";
+        #-----------------------------------------------------------------------------------------------------
+        #Added by MarvinC - 2015-06-18
+        #-----------------------------------------------------------------------------------------------------
+        $del_jkisql_details = "UPDATE yoyaku_next_details SET CHANGEFLG = 2,YOYAKU_STATUS = 0
+                       WHERE NEXTCODE = '" . $transcode . "'";
+        #-----------------------------------------------------------------------------------------------------
 
         //-- DELETE TRANSACTION & TRANSACTION DETAILS
         $this->StoreTransaction->query($del_sql);
         $this->StoreTransaction->query($del_dtlsql);
         $this->StoreTransaction->query($del_jkisql);
+        $this->StoreTransaction->query($del_jkisql_details);
         //----------------------------------------------------------------------------------------
         //Mark reji marketing records as deleted
         //----------------------------------------------------------------------------------------
@@ -6553,8 +6635,9 @@ class ServersController extends WebServicesController
 
 
          $sql = "select
-               yoyaku_next.*,
-		       transaction.*,
+                       yoyaku_next.*,
+                       servicessys.servicesname,
+		       		   transaction.*,
                        details.*,
                        customer.*,
                        service.*,
@@ -6583,19 +6666,26 @@ class ServersController extends WebServicesController
                             staff.email,
                             staff.`password`,
                             staff.create_comm_flag,
-                            staff.BLOG_URL from yoyaku_next
-                    INNER JOIN store_transaction as transaction ON
+                            staff.BLOG_URL 
+                    FROM yoyaku_next
+                    INNER JOIN store_transaction as transaction use index (primary) ON
                         yoyaku_next.TRANSCODE = transaction.TRANSCODE
-                    LEFT JOIN store_transaction_details as details ON
+                    LEFT JOIN store_transaction_details as details use index (primary) ON
                         transaction.TRANSCODE = details.TRANSCODE AND
                         transaction.KEYNO = details.KEYNO
-                    LEFT JOIN customer as customer ON
+                    LEFT JOIN customer as customer use index (primary) ON
                         transaction.CCODE = customer.CCODE
                     LEFT JOIN store_services as service ON
                         service.GCODE = details.GCODE
                         AND details.TRANTYPE = 1
                     LEFT JOIN services as services ON
                         services.GDCODE = service.GDCODE
+                    LEFT JOIN servicessys 
+                        ON servicessys.syscode = services.syscode
+                    JOIN yoyaku_next_details YND
+                        On YND.transcode = details.transcode
+                        AND YND.rowno = details.rowno
+                        AND YND.yoyaku_status = 1
                     LEFT JOIN howknows_thestore as howknows_thestore
                         ON howknows_thestore.howknowscode = customer.howknowscode
                     LEFT JOIN store_products as product ON
@@ -6604,7 +6694,7 @@ class ServersController extends WebServicesController
                         AND details.STORECODE = product.STORECODE
                     LEFT JOIN staff as staff ON
                         details.STAFFCODE = staff.STAFFCODE
-                WHERE transaction.DELFLG IS NULL AND details.DELFLG IS NULL AND yoyaku_next.yoyaku_status = 1
+                WHERE transaction.DELFLG IS NULL AND details.DELFLG IS NULL #AND yoyaku_next.yoyaku_status = 1
                     " . $trantype1 . $condition . "
                 ORDER BY transaction.transdate,transaction.TRANSCODE, details.ROWNO";
 
@@ -6612,7 +6702,7 @@ class ServersController extends WebServicesController
         $data = $this->MiscFunction->ParseJikaiYoyakuTransactionData($this, $v, null);
         $ret = array();
         $ret['records']      = $data;
-        $ret['record_count'] = count($data);
+        $ret['record_count'] = count($v);
 
         if (count($data) > 0) {
             $ret['checked_times'] = $data[0]['checked_times'];
@@ -7578,6 +7668,7 @@ function wsGetYoyakuAllowTransToStore($sessionid,$storecode) {
         //===================================================================================
  }
 //</editor-fold>
+ 
  
 }//end class ServersController
 

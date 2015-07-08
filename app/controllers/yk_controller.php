@@ -44,7 +44,8 @@ class YkController extends AppController {
             'YoyakuMessage',
             'YoyakuStaffServiceTime',
             'Storetype',
-            'Stafftype'
+            'Stafftype',
+            'Syscode' //Added by MarvinC 2015-07-03
             );
             var $components = array(
             'KeitaiSession',

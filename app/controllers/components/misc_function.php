@@ -240,10 +240,11 @@ class MiscFunctionComponent extends Object
             //$flagcond = ($detail_staff !== (int)$arrData[$i]['details']['STAFFCODE']);
             //if ($transcode !== $arrData[$i]['transaction']['TRANSCODE']) {
             //if ($detail_staff !== (int)$arrData[$i]['details']['STAFFCODE']) {
+                        
             if ($flagcond) {
                 $ctr++;
                 $dtl = 0;
-                $transcode                    = $arrData[$i]['transaction']['TRANSCODE'];
+                $transcode = $arrData[$i]['transaction']['TRANSCODE'];
                 $detail_staff = $arrData[$i]['details']['STAFFCODE'];                
                 
                 $arrList[$ctr]['TRANSCODE']   = $arrData[$i]['transaction']['TRANSCODE'];
@@ -254,7 +255,7 @@ class MiscFunctionComponent extends Object
                 $arrList[$ctr]['STARTTIME'] = substr($arrData[$i]['transaction']['STARTTIME'], 0, 5);
               
                 $arrList[$ctr]['ENDTIME']     = substr($arrData[$i]['transaction']['ENDTIME'], 0, 5);
-                                
+                                                
                 $arrList[$ctr]['CCODE']       = $arrData[$i]['transaction']['CCODE'];
                 $arrList[$ctr]['CNUMBER']     = $arrData[$i]['customer']['CNUMBER'];
                 $arrList[$ctr]['CSTORECODE']  = $arrData[$i]['customer']['CSTORECODE'];
@@ -524,15 +525,27 @@ class MiscFunctionComponent extends Object
                     //--------------------------------------------------------------------------------------------
                     $arrList[$ctr]['details'][$dtl]['TRANSCODE']        = $transd_data['details']['TRANSCODE'];
                     $arrList[$ctr]['details'][$dtl]['STARTTIME']        = $transd_data['details']['STARTTIME'];
-                    $arrList[$ctr]['details'][$dtl]['ENDTIME']        = $transd_data['details']['ENDTIME'];
+                    $arrList[$ctr]['details'][$dtl]['ENDTIME']          = $transd_data['details']['ENDTIME'];
                     //--------------------------------------------------------------------------------------------
-                    $arrList[$ctr]['details'][$dtl]['SYSCODE']        = $transd_data['services']['SYSCODE'];
-                    //--------------------------------------------------------------------------------------------
+                    $arrList[$ctr]['details'][$dtl]['SYSCODE']          = $transd_data['services']['SYSCODE'];
                     $dtl++;
                     //--------------------------------------------------------------------------------------------
                 }//end if                    
-            }//end for            
+            }//end for 
+            
+            #-----------------------------------------------------------------------------------------------------
+            #Added by MarvinC - 2015-06-18
+            #-----------------------------------------------------------------------------------------------------
+             $arrList[$ctr]['SERVICESNAME'] .= $arrData[$i]['servicessys']['servicesname'] . ",";
+            #-----------------------------------------------------------------------------------------------------
         }//end for
+        
+//        #-----------------------------------------------------------------------------------------------------
+//        #Added by MarvinC - 2015-06-18
+//        #-----------------------------------------------------------------------------------------------------
+//        $arrList[$ctr]['SERVICESNAME'] = rtrim($servicesname,",");
+//        $servicesname = "";
+//        #-----------------------------------------------------------------------------------------------------
         $arrList[0]['checked_times'] = $checked_times;
         //-------------------------------------------------------------------------------------------------------
         return $arrList;
@@ -575,7 +588,7 @@ class MiscFunctionComponent extends Object
             if ($flagcond) {
                 $ctr++;
                 $dtl = 0;
-                $transcode                    = $arrData[$i]['transaction']['TRANSCODE'];
+                $transcode = $arrData[$i]['transaction']['TRANSCODE'];
                 $detail_staff = $arrData[$i]['details']['STAFFCODE'];                
                 
                 $arrList[$ctr]['TRANSCODE']   = $arrData[$i]['transaction']['TRANSCODE'];
@@ -583,10 +596,8 @@ class MiscFunctionComponent extends Object
                 $arrList[$ctr]['STORECODE']   = $arrData[$i]['transaction']['STORECODE'];
                 $arrList[$ctr]['IDNO']        = $arrData[$i]['transaction']['IDNO'];
                 $arrList[$ctr]['TRANSDATE']   = $arrData[$i]['transaction']['TRANSDATE'];
-                $arrList[$ctr]['STARTTIME'] = substr($arrData[$i]['transaction']['STARTTIME'], 0, 5);
-              
+                $arrList[$ctr]['STARTTIME']   = substr($arrData[$i]['transaction']['STARTTIME'], 0, 5);
                 $arrList[$ctr]['ENDTIME']     = substr($arrData[$i]['transaction']['ENDTIME'], 0, 5);
-                                
                 $arrList[$ctr]['CCODE']       = $arrData[$i]['transaction']['CCODE'];
                 $arrList[$ctr]['INCOMPLETE']  = $arrData[$i]['transaction']['INCOMPLETE'];
                 $arrList[$ctr]['CNUMBER']     = $arrData[$i]['customer']['CNUMBER'];
@@ -619,6 +630,13 @@ class MiscFunctionComponent extends Object
                 $arrList[$ctr]['YOYAKU']    = $arrData[$i]['transaction']['YOYAKU'];
                 $arrList[$ctr]['HOWKNOWSCODE']    = $arrData[$i]['howknows_thestore']['HOWKNOWSCODE'];
                 $arrList[$ctr]['HOWKNOWS']    = $arrData[$i]['howknows_thestore']['HOWKNOWS'];
+                #------------------------------------------------------------------------------------------------------------------------
+                # ADDED BY MARVINC - 2015-06-22
+                # For Updating Next Reservation
+                #------------------------------------------------------------------------------------------------------------------------
+                $arrList[$ctr]['YOYAKU_STATUS'] = $arrData[$i]['YND']['YOYAKU_STATUS']; 
+                #------------------------------------------------------------------------------------------------------------------------
+                
                 
                 /////////////////////////////////////////////////////////////////////
                 $arrList[$ctr]['YOYAKUTIME'] = substr($arrData[$i]['details']['STARTTIME'], 0, 5); //substr($arrData[$i]['transaction']['STARTTIME'], 0, 5);
@@ -703,7 +721,17 @@ class MiscFunctionComponent extends Object
                 $arrList[$ctr]['UKETSUKESTAFF'] = @$arrData[$i]['yoyaku']['UKETSUKESTAFF'];
                 $arrList[$ctr]['UKETSUKESTAFFNAME'] = @$arrData[$i]['staff2']['UKETSUKESTAFFNAME'];
                 $arrList[$ctr]['CANCEL'] = @$arrData[$i]['yoyaku']['CANCEL'];
-                $arrList[$ctr]['BEFORE_TRANSCODE'] = @$arrData[$i]['jikaiyoyaku']['TRANSCODE'];
+                
+                #---------------------------------------------------------------------------------------------
+                #Added by MarvinC - 2015-07-01
+                #---------------------------------------------------------------------------------------------
+                if($arrData[$i]['YND']['YOYAKU_STATUS'] == 2){
+                    $arrList[$ctr]['BEFORE_TRANSCODE'] = @$arrData[$i]['YND']['NEXTCODE'];
+                }else{
+                    $arrList[$ctr]['BEFORE_TRANSCODE'] = @$arrData[$i]['jikaiyoyaku']['TRANSCODE'];
+                }
+                
+                
 
                 $position_confirmed = false;
                 while (!$position_confirmed) {
@@ -923,6 +951,11 @@ class MiscFunctionComponent extends Object
                 $arrList[$ctrTrans]['CSTORECODE']      = $trans['customer']['CSTORECODE'];
                 $arrList[$ctrTrans]['HOWKNOWSCODE']    = $trans['howknows_thestore']['HOWKNOWSCODE'];
                 $arrList[$ctrTrans]['HOWKNOWS']        = $trans['howknows_thestore']['HOWKNOWS'];
+                #---------------------------------------------------------------------------------------------
+                #Added by MarvinC - 2015-06-18
+                #---------------------------------------------------------------------------------------------
+                $arrList[$ctrTrans]['YOYAKU_STATUS']  = $trans['YND']['YOYAKU_STATUS'];
+                #---------------------------------------------------------------------------------------------
                 //==========================================================================================
                 // Get Yoyaku Time
                 //------------------------------------------------------------------------------------------
