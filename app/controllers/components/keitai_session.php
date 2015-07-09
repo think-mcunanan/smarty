@@ -1161,6 +1161,33 @@ class KeitaiSessionComponent extends Object
     }
 
     /**
+     * 新規登録情報と重複した顧客の顧客番号を取得する
+     *
+     * @param $controller コントローラ
+     * @param $storeCode 店舗番号
+     * @param $tel 電話番号
+     * @param $dbname データベース名
+     */
+    function GetDuplicateCustomerCNumber(&$controller, $storeCode, $cnumber,$cname, $dbname) {
+ 
+        $controller->Customer->set_company_database($dbname, $controller->Customer);
+        $query =
+            "SELECT DISTINCT customer.CCODE " .
+            "FROM customer " .
+            "WHERE customer.DELFLG IS NULL AND customer.CNUMBER = '{$cnumber}' and customer.CNAME LIKE '{$cname}%'";
+            
+        $customerRecords = $controller->Customer->query($query);
+
+        // 取得結果が0件の場合、nullをリターンする
+        if (count($customerRecords) == 0) { return null; }
+
+        // 取得結果の1件目をリターンする(最新の顧客情報)
+        return $customerRecords[0]["customer"]["CCODE"];
+    }
+    
+    
+
+    /**
      * 新規予約を書き込む
      * Writes New Yoyaku
      * @param controller &$controller

@@ -558,11 +558,14 @@ class YkController extends AppController {
 
                 if($session_info['carrier'] == "docomo_old") {
                     $t_name  = mb_convert_encoding($this->params['form']['r_name'], "UTF-8", "Shift_JIS");
+                    $t_name_1 = mb_substr(trim($t_name),0,1,"Shift_JIS");
                 }
                 else {
                     $t_name  = $this->params['form']['r_name'];
+                    $t_name_1 = mb_substr(trim($t_name),0,1,"UTF-8");
                 }
                 $t_phone = $this->KeitaiSession->Numeric($this->params['form']['r_phone']);
+                $t_cnumber = $this->KeitaiSession->Numeric($this->params['form']['r_kaiin_no']); //大文字を小文字に。
 
                 if($this->params['form']['p_reg'] && strlen($t_name) > 0 && strlen($t_phone) > 0) {
 
@@ -624,15 +627,28 @@ class YkController extends AppController {
                     if ($session_info["y_status"] == 8) {
                         // 新規登録の場合
                         // 電話番号を条件として、重複した顧客の顧客番号を取得する
+                        //もし顧客番号が登録されている場合は、そちらを優先する！
+                        $duplicateCustomerCCode = null;
+                        if(!empty($this->params['form']['r_kaiin_no'])){
+                            $duplicateCustomerCCode = $this->KeitaiSession->GetDuplicateCustomerCNumber(
+                            $this,
+                            $session_info['storecode'],
+                            $t_cnumber,
+                            $t_name_1,
+                            $session_info["dbname"]
+                            );
+                        }
+                        //見つからなければ通常の電話番号検索
+                        if(isset($duplicateCustomerCCode) == false){
                         $duplicateCustomerCCode = $this->KeitaiSession->GetDuplicateCustomerCCode(
                         $this,
                         $session_info['storecode'],
                         $t_phone,
                         $session_info["dbname"]
                         );
-
-                        if ($duplicateCustomerCCode) {
-                            // 重複した顧客が見つかった場合、重複した顧客のメールアドレスを上書きする・・・大丈夫かこれ
+                        }
+                        if (isset($duplicateCustomerCCode)) {
+                            // 重複した顧客が見つかった場合、重複した顧客にデータを上書きする・・・大丈夫かこれ
                             $session_info["ccode"] = $duplicateCustomerCCode;
                             $t_name = null;
                             $t_phone = null;
@@ -702,6 +718,7 @@ class YkController extends AppController {
 
                 if($session_info['y_status'] == 8) {
                     // 新規顧客 //
+                    $showcnumber = 1;
                     $emailaddress  = $session_info['y_staff']; //3つめがメアド
 
                     if($failed_submit) {
@@ -735,6 +752,7 @@ class YkController extends AppController {
                 }
                 else {
                     // 顧客情報更新 //
+                    $showcnumber = 0;
 
                     // 顧客情報を取り込む
                     $customer_info = $this->KeitaiSession->GetCustomerInfo($this,
@@ -811,6 +829,7 @@ class YkController extends AppController {
                 $this->set('year',        $year);
                 $this->set('month',       $month);
                 $this->set('day',         $day);
+                $this->set('showcnumber', $showcnumber); //showflg
                 $this->set('mailkubun',   $mailkubun);
                 $this->set('companyid',$session_info['companyid']); //cid
                 $this->set('storecode',$session_info['storecode']); //scd
