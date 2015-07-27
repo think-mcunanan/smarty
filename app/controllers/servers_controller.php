@@ -5604,6 +5604,25 @@ class ServersController extends WebServicesController
             $sqlctr++;
         }
         
+        #------------------------------------------------------------------------------------------------------------------------
+        # ADDED BY MARVINC - 2015-07-27
+        # For Updating Next Reservation
+        #------------------------------------------------------------------------------------------------------------------------
+        $gdcodelist = implode(",",array_unique($gdcode));
+                $this->Syscode->set_company_database($storeinfo['dbname'], $this->Syscode);
+                $sql = "select SYSCODE, GDCODE from services where GDCODE in (".$gdcodelist.") and DELFLG is null group by SYSCODE order by SYSCODE";
+                $newsyscodes = $this->Syscode->query($sql);
+                
+                $x = 0;
+                foreach ($newsyscodes as $item){
+                    $newsyscode[$x] = $item["services"]["SYSCODE"];
+                    $x++;
+                }
+
+        $syscodes = trim(implode(",",array_unique($newsyscode)),",");
+        #------------------------------------------------------------------------------------------------------------------------
+        
+        
         if(!is_null($param['BEFORE_TRANSCODE']) || $param['YOYAKU_STATUS'] == 2){
         	//$sql = "UPDATE yoyaku_next SET YOYAKU_STATUS = 2 ,NEXTCODE = '" .$param['TRANSCODE']."' WHERE TRANSCODE ='". $param['BEFORE_TRANSCODE']."'";     
         	//$sql = "UPDATE yoyaku_next SET CHANGEFLG = CASE WHEN NEXTCODE IS NULL AND CHANGEFLG = 0 THEN 0 ELSE 1 END, YOYAKU_STATUS = 2 ,NEXTCODE = '" .$param['TRANSCODE']."' WHERE TRANSCODE ='". $param['BEFORE_TRANSCODE']."'";
@@ -5620,19 +5639,6 @@ class ServersController extends WebServicesController
                 # ADDED BY MARVINC - 2015-06-22
                 # For Updating Next Reservation
                 #------------------------------------------------------------------------------------------------------------------------
-                $gdcodelist = implode(",",array_unique($gdcode));
-                $this->Syscode->set_company_database($storeinfo['dbname'], $this->Syscode);
-                $sql = "select SYSCODE, GDCODE from services where GDCODE in (".$gdcodelist.") and DELFLG is null group by SYSCODE order by SYSCODE";
-                $newsyscodes = $this->Syscode->query($sql);
-                
-                $x = 0;
-                foreach ($newsyscodes as $item){
-                    $newsyscode[$x] = $item["services"]["SYSCODE"];
-                    $x++;
-                }
-
-                $syscodes = trim(implode(",",array_unique($newsyscode)),",");
-                
                 if ($param['YOYAKU_STATUS'] == 2){
                     $sql = "UPDATE yoyaku_next_details
                             SET CHANGEFLG = CASE WHEN NEXTCODE IS NULL AND CHANGEFLG = 0 THEN 0 ELSE 1 END, 
@@ -5713,7 +5719,8 @@ class ServersController extends WebServicesController
             //-- Deletes customer mail reservation
             $del_mailsql = "DELETE FROM customer_mail_reservation
                     WHERE STORECODE = ".$param['STORECODE']." AND CCODE = '".$param['CCODE']."'
-                        AND TRANSDATE < '".$param['TRANSDATE']."'";
+                        AND TRANSDATE < '".$param['TRANSDATE']."'
+                        AND SYSCODE IN(".$syscodes.")";
             $this->StoreTransaction->query($del_mailsql);
         } else {
             $this->StoreTransaction->rollback();    //-- トランザクションをロールバック (Rollback Transactions)
