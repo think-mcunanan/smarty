@@ -1109,15 +1109,19 @@ class KeitaiSessionComponent extends Object
         $controller->Customer->set_company_database($dbname, $controller->Customer);
         $controller->CustomerTotal->set_company_database($dbname, $controller->CustomerTotal);
         $v = $controller->Customer->find('all', array(
-                 'conditions' => array('Customer.ccode' => $ccode)  ));
+                 'conditions' => array('Customer.ccode' => $ccode)
+            ));
+        
+        $query = "select sum(POINTTOTAL1) as POINTTOTAL1 ,sum(pointtotal2) as POINTTOTAL2 from customertotal where ccode = ? and delflg is null";
+        $total = $controller->CustomerTotal->query($query,array($ccode));
 
         if (empty($v)) {
             return false;
         }
 
         $arrReturn = $v[0]['Customer'];
-        $arrReturn['points1'] = $v[0]['CustomerTotal']['POINTTOTAL1'];
-        $arrReturn['points2'] = $v[0]['CustomerTotal']['POINTTOTAL2'];
+        $arrReturn['points1'] = $total[0][0]['POINTTOTAL1'];
+        $arrReturn['points2'] = $total[0][0]['POINTTOTAL2'];
         $arrReturn['dbname']  = $dbname;
         return $arrReturn;
     }
