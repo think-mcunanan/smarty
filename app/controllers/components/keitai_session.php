@@ -1112,7 +1112,7 @@ class KeitaiSessionComponent extends Object
                  'conditions' => array('Customer.ccode' => $ccode)
             ));
         
-        $query = "select sum(POINTTOTAL1) as POINTTOTAL1 ,sum(pointtotal2) as POINTTOTAL2 from customertotal where ccode = ? and delflg is null";
+        $query = "select sum(POINTTOTAL1) as POINTTOTAL1 ,sum(pointtotal2) as POINTTOTAL2 from customertotal where ccode = ? and delflg is null group by ccode";
         $total = $controller->CustomerTotal->query($query,array($ccode));
 
         if (empty($v)) {
