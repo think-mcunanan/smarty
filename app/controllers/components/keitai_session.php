@@ -2605,7 +2605,13 @@ class KeitaiSessionComponent extends Object
 
         // 次回予約テーブルに反映
         $controller->StoreTransaction->query("UPDATE yoyaku_next SET CHANGEFLG = 2,YOYAKU_STATUS = 0 WHERE NEXTCODE = '{$transcode}'");
-
+        
+        #-----------------------------------------------------------------------------------------------------------------------------------------
+        # UPDATED BY: MARVINC - 2015-08-10
+        #-----------------------------------------------------------------------------------------------------------------------------------------
+        $controller->StoreTransaction->query("UPDATE yoyaku_next_details SET CHANGEFLG = 2,YOYAKU_STATUS = 0 WHERE NEXTCODE = '{$transcode}'");
+        #-----------------------------------------------------------------------------------------------------------------------------------------
+        
         return true;
     }
 
