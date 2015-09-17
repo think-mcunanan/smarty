@@ -386,6 +386,12 @@ class DboMysql extends DboMysqlBase {
 
 		$this->_useAlias = (bool)version_compare(mysql_get_server_info($this->connection), "4.1", ">=");
 
+		//remove STRICT_TRANS_TABLES
+		//Override connection sql_mode
+		//By: Marvin Seron <marvin@think-ahead.jp>
+		//Date Updated: 2015-09-17
+		$this->_execute('SET sql_mode="NO_ENGINE_SUBSTITUTION";');
+		
 		return $this->connected;
 	}
 /**

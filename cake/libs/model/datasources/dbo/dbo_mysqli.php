@@ -81,6 +81,13 @@ class DboMysqli extends DboMysqlBase {
 		if (!empty($config['encoding'])) {
 			$this->setEncoding($config['encoding']);
 		}
+		
+		//remove STRICT_TRANS_TABLES
+		//Override connection sql_mode
+		//By: Marvin Seron <marvin@think-ahead.jp>
+		//Date Updated: 2015-09-17
+		$this->_execute('SET sql_mode="NO_ENGINE_SUBSTITUTION";');
+	
 		return $this->connected;
 	}
 /**
