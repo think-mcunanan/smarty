@@ -9,6 +9,12 @@
         <td align='right' valign='top'>メールアドレス：</td>
         <td align='left' valign='top'><font size='4'><b>{$email}</b></font></td>
     </tr>
+    {if $showcnumber== 1}
+    <tr>
+        <td align='right' width='150'>会員No（10桁）<br/>分かる場合のみ入力<font color='red'></font>：</td>
+        <td align='left'><input type='text' name='r_kaiin_no' value='{$kaiin_no}' size='16' maxlength='10' /></td>
+    </tr> 
+    {/if}
     <tr>
         <td align='right'>電話番号(携帯)<font color='red'>*</font>：</td>
         <td align='left'><input type='text' name='r_phone' value='{$phone}' size='16' maxlength='20' /></td>
