@@ -5826,12 +5826,17 @@ class ServersController extends WebServicesController
 
         if ($error <> "true") {
             $this->StoreTransaction->commit();      //-- トランザクションをコミット (Commit Transactions)
+            #------------------------------------------------------------------------------------------------------------------------
+            # ADDED BY MARVINC - 2015-07-27
+            # Note: Add condition for syscode
+            #------------------------------------------------------------------------------------------------------------------------
             //-- Deletes customer mail reservation
             $del_mailsql = "DELETE FROM customer_mail_reservation
                     WHERE STORECODE = ".$param['STORECODE']." AND CCODE = '".$param['CCODE']."'
                         AND TRANSDATE < '".$param['TRANSDATE']."'
-                        AND SYSCODE IN(".$syscodes.")";
+                        AND SYSCODE IN(".$syscodes.")"; 
             $this->StoreTransaction->query($del_mailsql);
+            #------------------------------------------------------------------------------------------------------------------------
         } else {
             $this->StoreTransaction->rollback();    //-- トランザクションをロールバック (Rollback Transactions)
             //$this->_soap_server->fault(1, '', ROLLBACK_MSG);
