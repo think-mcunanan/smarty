@@ -54,6 +54,36 @@ class DboMysqli extends DboMysqlBase {
 		'port' => '3306',
 		'connect' => 'mysqli_connect'
 	);
+        
+        /**
+        * Get DB Host (Dynamic)
+        * @author Marvin Seron <marvin@thinnk-ahead.jp>
+        * @datecreated 2015-10-02 19:16
+        * 
+        * @param string $dbname - database nae
+        * @param tinyint $slave - slave flag
+        * @return array - return object
+        */
+        function getdbhost($config) {
+            $link = mysql_connect($config['host'], $config['login'], $config['password']);
+            if (!$link) {
+                die('Could not connect: ' . mysql_error());
+            }
+            mysql_select_db("sipssbeauty_server", $link) or die(mysql_error());
+            $sql = "SELECT dbhostmaster AS dbhost, dbhostuser, dbhostpasswd
+                    FROM company
+                    WHERE dbname = '".$config['database']."'
+                        AND delflg IS NULL";
+            $res = mysql_query($sql, $link);
+            while ($row = mysql_fetch_assoc($res)) {  
+                $retval = $row;
+                break;
+            }  
+            mysql_close($link);
+            unset($link);
+            return $retval;
+        }
+    
 /**
  * Connects to the database using options in the given configuration array.
  *
@@ -62,7 +92,26 @@ class DboMysqli extends DboMysqlBase {
 	function connect() {
 		$config = $this->config;
 		$this->connected = false;
-
+                        //----------------------------------------------------------
+                        // Get DB Host (Dynamic)
+                        //----------------------------------------------------------
+                        if ($config['database'] == "sipssbeauty_server" || $config['database'] == "sipssbeauty_schema") {
+                            //print_r("yes");
+                            $dbhostip = $config['host'];
+                            $dbhostuser = $config['login'];
+                            $dbhostpasswd = $config['password'];
+                        } else {
+                            //Get DB Host Info
+                            $dbhostrecord = $this->getdbhost($config);
+                            //print_r($dbhostrecord);
+                            //validate host record
+                            if ($dbhostrecord != null) {
+                                $dbhostip = $dbhostrecord["dbhost"];
+                                $dbhostuser = $dbhostrecord["dbhostuser"];
+                                $dbhostpasswd = $dbhostrecord["dbhostpasswd"];
+                            }
+                        }
+                        //----------------------------------------------------------                    
 		if (is_numeric($config['port'])) {
 			$config['socket'] = null;
 		} else {
