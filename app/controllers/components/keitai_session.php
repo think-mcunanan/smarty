@@ -1109,19 +1109,15 @@ class KeitaiSessionComponent extends Object
         $controller->Customer->set_company_database($dbname, $controller->Customer);
         $controller->CustomerTotal->set_company_database($dbname, $controller->CustomerTotal);
         $v = $controller->Customer->find('all', array(
-                 'conditions' => array('Customer.ccode' => $ccode)
-            ));
-        
-        $query = "select sum(POINTTOTAL1) as POINTTOTAL1 ,sum(pointtotal2) as POINTTOTAL2 from customertotal where ccode = ? and delflg is null group by ccode;";
-        $total = $controller->CustomerTotal->query($query,array($ccode));
+                 'conditions' => array('Customer.ccode' => $ccode)  ));
 
         if (empty($v)) {
             return false;
         }
 
         $arrReturn = $v[0]['Customer'];
-        $arrReturn['points1'] = $total[0][0]['POINTTOTAL1'];
-        $arrReturn['points2'] = $total[0][0]['POINTTOTAL2'];
+        $arrReturn['points1'] = $v[0]['CustomerTotal']['POINTTOTAL1'];
+        $arrReturn['points2'] = $v[0]['CustomerTotal']['POINTTOTAL2'];
         $arrReturn['dbname']  = $dbname;
         return $arrReturn;
     }
@@ -1163,33 +1159,6 @@ class KeitaiSessionComponent extends Object
         // 取得結果の1件目をリターンする(最新の顧客情報)
         return $customerRecords[0]["customer"]["CCODE"];
     }
-
-    /**
-     * 新規登録情報と重複した顧客の顧客番号を取得する
-     *
-     * @param $controller コントローラ
-     * @param $storeCode 店舗番号
-     * @param $tel 電話番号
-     * @param $dbname データベース名
-     */
-    function GetDuplicateCustomerCNumber(&$controller, $storeCode, $cnumber,$cname, $dbname) {
- 
-        $controller->Customer->set_company_database($dbname, $controller->Customer);
-        $query =
-            "SELECT DISTINCT customer.CCODE " .
-            "FROM customer " .
-            "WHERE customer.DELFLG IS NULL AND customer.CNUMBER = '{$cnumber}' and customer.CNAME LIKE '{$cname}%'";
-            
-        $customerRecords = $controller->Customer->query($query);
-
-        // 取得結果が0件の場合、nullをリターンする
-        if (count($customerRecords) == 0) { return null; }
-
-        // 取得結果の1件目をリターンする(最新の顧客情報)
-        return $customerRecords[0]["customer"]["CCODE"];
-    }
-    
-    
 
     /**
      * 新規予約を書き込む
@@ -1617,10 +1586,13 @@ class KeitaiSessionComponent extends Object
                     LEFT JOIN staff as Staff ON StaffAssignToStore.STAFFCODE = Staff.STAFFCODE
                     LEFT JOIN store as Store ON Staff.STORECODE = Store.STORECODE
                     LEFT JOIN (SELECT *
-                               FROM staffrowshistory as StaffRowsHistory
-                               WHERE StaffRowsHistory.STORECODE = ".$session_info['storecode']."
-                                  AND StaffRowsHistory.DATECHANGE <= '".$sel_date."'
-                               ORDER BY StaffRowsHistory.DATECHANGE DESC
+                               FROM(SELECT *
+                                    FROM staffrowshistory as StaffRowsHistory
+                                    WHERE StaffRowsHistory.STORECODE = ".$session_info['storecode']."
+                                       AND StaffRowsHistory.DATECHANGE <= '".$sel_date."'
+                                    ORDER BY StaffRowsHistory.DATECHANGE DESC
+                                    ) as TMPTBL 
+                                GROUP BY staffcode
                                ) as StaffRowsHistory ON StaffRowsHistory.STAFFCODE = Staff.STAFFCODE
                     /* LEFT JOIN store_settings as Settings
                         ON Settings.STORECODE = StaffAssignToStore.STORECODE
@@ -2605,13 +2577,7 @@ class KeitaiSessionComponent extends Object
 
         // 次回予約テーブルに反映
         $controller->StoreTransaction->query("UPDATE yoyaku_next SET CHANGEFLG = 2,YOYAKU_STATUS = 0 WHERE NEXTCODE = '{$transcode}'");
-        
-        #-----------------------------------------------------------------------------------------------------------------------------------------
-        # UPDATED BY: MARVINC - 2015-08-10
-        #-----------------------------------------------------------------------------------------------------------------------------------------
-        $controller->StoreTransaction->query("UPDATE yoyaku_next_details SET CHANGEFLG = 2,YOYAKU_STATUS = 0 WHERE NEXTCODE = '{$transcode}'");
-        #-----------------------------------------------------------------------------------------------------------------------------------------
-        
+
         return true;
     }
 

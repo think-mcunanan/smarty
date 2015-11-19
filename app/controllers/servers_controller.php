@@ -2564,10 +2564,13 @@ class ServersController extends WebServicesController
                     LEFT JOIN staff as Staff ON StaffAssignToStore.STAFFCODE = Staff.STAFFCODE
                     LEFT JOIN store as Store ON Staff.STORECODE = Store.STORECODE
                     LEFT JOIN (SELECT *
-                               FROM staffrowshistory as StaffRowsHistory
-                               WHERE StaffRowsHistory.STORECODE = " . $param['STORECODE'] . "
-                                  AND StaffRowsHistory.DATECHANGE <= '" . $param['date'] . "'
-                               ORDER BY StaffRowsHistory.DATECHANGE DESC
+                               FROM(SELECT *
+                                    FROM staffrowshistory as StaffRowsHistory
+                                    WHERE StaffRowsHistory.STORECODE = " . $param['STORECODE'] ."
+                                       AND StaffRowsHistory.DATECHANGE <= '". $param['date'] ."'
+                                    ORDER BY StaffRowsHistory.DATECHANGE DESC
+                                    ) as TMPTBL 
+                                GROUP BY TMPTBL.staffcode
                                ) as StaffRowsHistory ON StaffRowsHistory.STAFFCODE = Staff.STAFFCODE
                     LEFT JOIN store_settings as Settings
                         ON Settings.STORECODE = StaffAssignToStore.STORECODE
