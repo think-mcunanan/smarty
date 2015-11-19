@@ -132,6 +132,15 @@ class ServersController extends WebServicesController
                                                   'staffcode'      => 'xsd:int',
                                                   'stafftypecodes' => 'xsd:string'),
                             'output'     => array('return'         => 'xsd:boolean')),
+
+        
+                     //- ############################################################
+                     'wsUpdateStaffDisplayGyoshukubun' => array(
+                            'doc'        => 'UpdateStaffYoyakuView',
+                            'input'      => array('sessionid'      => 'xsd:string',
+                                                  'staffcode'      => 'xsd:int',
+                                                  'stafftypecodes' => 'xsd:string'),
+                            'output'     => array('return'         => 'xsd:boolean')),
                      //- ############################################################
 
 
@@ -785,6 +794,7 @@ class ServersController extends WebServicesController
                                         'SYSCODES'         => 'xsd:string',
                                         'STAFFTYPES'       => 'xsd:string',
                                         'STAFFTYPECODES'   => 'xsd:string',
+                                        'STAFFVIEWS'       => 'xsd:string', //UPDATE by SHIMIZU 20150906
                                         'transaction'      => 'tns:return_storeTransactionInformation',
                                         'breaktime'        => 'tns:return_breakTimeInformation',
                                         'shift'            => 'tns:return_staffShiftInformation')),
@@ -2477,18 +2487,31 @@ class ServersController extends WebServicesController
             $ctr = 0;
             foreach ($ret['records'] AS $rec) {
                 $staffsycodes = "";
-                $Sql = "SELECT syscode 
+                $staffviewcodes = "";
+                $Sql = "SELECT syscode,YOYAKU_VIEW
                         FROM stafftype 
                         WHERE delflg IS NULL 
                             AND staffcode = ".$rec["STAFFCODE"];
                 $rs = $this->Staff->query($Sql);
                 if (count($rs) > 0) {
                     foreach ($rs AS $da) {
-                        if ($staffsycodes != "") $staffsycodes .= " ";
+                        if ($staffsycodes != ""){
+                            $staffsycodes .= " ";                    
+                        }
                         $staffsycodes .= $da["stafftype"]["syscode"];
+                        
+                        if ($staffviewcodes != ""){
+                            $staffviewcodes .= " ";          
+                        }
+                        if($da["stafftype"]["YOYAKU_VIEW"] == 1)
+                        {
+                            $staffviewcodes .= $da["stafftype"]["syscode"];
+                        }
+                        
                     }//end foreach
                 }//end if
                 $rec["SYSCODES"] = $staffsycodes;
+                $rec["STAFFVIEWS"] = $staffviewcodes;
                 $ret['records'][$ctr] = $rec;
                 $ctr++;
             }//end foreach
@@ -2558,7 +2581,8 @@ class ServersController extends WebServicesController
                       if(Staff.STAFFCODE = 0,  StaffAssignToStore.WEBYAN_DISPLAY, 0)) as WEBYAN_DISPLAY,
                     IFNULL(StaffRowsHistory.PHONEROWS, ".DEFAULT_PHONEROWS.") as PHONEROWS,
                     IFNULL(StaffRowsHistory.ROWS, ".DEFAULT_ROWS.") as ROWS,
-                    CONVERT(tblstafftypes.STAFFTYPES USING UTF8) AS STAFFTYPES
+                    CONVERT(tblstafftypes.STAFFTYPES USING UTF8) AS STAFFTYPES,
+                    CONVERT(tblstafftypes.STAFFVIEWS USING UTF8) AS STAFFVIEWS
                 FROM staff_assign_to_store as StaffAssignToStore 
                     ".$JoinStaffType." 
                     LEFT JOIN staff as Staff ON StaffAssignToStore.STAFFCODE = Staff.STAFFCODE
@@ -2583,7 +2607,8 @@ class ServersController extends WebServicesController
                         ON Holiday.STAFFCODE = Staff.STAFFCODE
                             AND Holiday.YMD = '" . $param['date'] . "' 
                     LEFT JOIN (
-                               SELECT STAFFCODE, GROUP_CONCAT(syscode SEPARATOR ',') AS STAFFTYPES
+                               SELECT STAFFCODE, GROUP_CONCAT(syscode SEPARATOR ',') AS STAFFTYPES,
+                               ifnull(GROUP_CONCAT(case when YOYAKU_VIEW = 1 then syscode end),'') AS STAFFVIEWS
                                FROM stafftype
                                WHERE delflg IS NULL 
                                GROUP BY staffcode
@@ -2630,6 +2655,7 @@ class ServersController extends WebServicesController
             $v[$i]['StaffAssignToStore']['ROWS']       = $v[$i][0]['ROWS'];
             $v[$i]['StaffAssignToStore']['PHONEROWS']  = $v[$i][0]['PHONEROWS'];
             $v[$i]['StaffAssignToStore']['STAFFTYPES']  = $v[$i][0]['STAFFTYPES'];
+            $v[$i]['StaffAssignToStore']['STAFFVIEWS']  = $v[$i][0]['STAFFVIEWS'];
         }//end for
 
         $ret = array();
@@ -2851,6 +2877,85 @@ class ServersController extends WebServicesController
     }
 
 
+    /*
+     * スタッフの表示業種区分をアップデートする機能
+     * Updates the display flags for a Staff gyoshukubun( syscode view)
+     * shimizu 20150318
+     * @param string $sessionid
+     * @param int $staffcode
+     * @param string $stafftypecodes
+     * @return boolean 
+     */
+    function wsUpdateStaffDisplayGyoshukubun($sessionid, $staffcode, $stafftypecodes) {
+        //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
+       //=======================================================================
+        // Verify Session and Get DB name
+        //-----------------------------------------------------------------------
+         $storeinfo = $this->YoyakuSession->Check($this);
+        //-----------------------------------------------------------------------
+        if ($storeinfo == false) {
+            $this->_soap_server->fault(1, '', INVALID_SESSION);
+            return;
+        }// End If
+        //-----------------------------------------------------------------------
+        $this->Staff->set_company_database($storeinfo['dbname'], $this->Staff);
+        //=======================================================================
+        // Mark delflg of staff
+        //-----------------------------------------------------------------------
+        $Sql_delflg = 'UPDATE stafftype
+                       SET YOYAKU_VIEW = 0
+                       WHERE STAFFCODE = '.$staffcode;
+        //-----------------------------------------------------------------------
+        $this->Staff->query($Sql_delflg);
+        //=======================================================================
+        // Check StaffType of Staff
+        //-----------------------------------------------------------------------
+        // BEAUTY , 1
+        //-----------------------------------------------------------------------
+        $val = "";
+        if (strstr($stafftypecodes,'1') != ''){
+            $val = "(".$staffcode.", 1),";
+        } //End If
+        //-----------------------------------------------------------------------
+        // NAIL , 2
+        //-----------------------------------------------------------------------
+        if (strstr($stafftypecodes,'2') != ''){
+            $val .= " (".$staffcode.", 2),";
+        } //End If
+        //-----------------------------------------------------------------------
+        // Matsu , 3
+        //-----------------------------------------------------------------------
+        if (strstr($stafftypecodes,'3') != ''){
+            $val .= " (".$staffcode.", 3),";
+        }
+        //-----------------------------------------------------------------------
+        // ESTE , 4
+        //-----------------------------------------------------------------------
+        if (strstr($stafftypecodes,'4') != ''){
+            $val .= " (".$staffcode.", 4),";
+        } //End If
+        //=======================================================================
+        if ($val != '') {
+            //-------------------------------------------------------------------
+            $val = substr($val, 0, strlen($val)-1);
+            //-------------------------------------------------------------------
+            $Sql = "INSERT INTO stafftype (staffcode,syscode)
+                VALUES ".$val.
+                " ON DUPLICATE KEY UPDATE YOYAKU_VIEW = 1";
+            //-------------------------------------------------------------------
+            $this->Staff->query($Sql);
+            //-------------------------------------------------------------------
+            return true;
+            //-------------------------------------------------------------------
+        }else {
+            //-------------------------------------------------------------------
+            return False;
+            //-------------------------------------------------------------------
+        } //End If
+        //=======================================================================
+    } // End Function
+    
+    
     /**
      * スタッフのフラグをアップデートする機能
      * Updates the display flags for a Staff
@@ -3008,7 +3113,8 @@ class ServersController extends WebServicesController
         //----------------------------------------------------------------------------------------------------
         $arr_stafftypes = null;
         $Sql = "SELECT STAFFCODE, 
-                       CONVERT(group_concat(syscode SEPARATOR ',') USING UTF8) AS STAFFTYPES
+                       CONVERT(group_concat(syscode SEPARATOR ',') USING UTF8) AS STAFFTYPES,
+                       ifnull(GROUP_CONCAT(case when YOYAKU_VIEW = 1 then syscode end),'') AS STAFFVIEWS
                 FROM stafftype
                 WHERE delflg IS NULL 
                 GROUP BY staffcode";
@@ -3020,7 +3126,9 @@ class ServersController extends WebServicesController
             //------------------------------------------------------------------------------------------------
             foreach ($rs_stafftypes AS $rec) {
                 $arr_stafftypes[] = array("STAFFCODE" => $rec['stafftype']['STAFFCODE'],
-                                          "STAFFTYPES" => $rec[0]['STAFFTYPES']);
+                                          "STAFFTYPES" => $rec[0]['STAFFTYPES'],
+                                          "STAFFVIEWS" => $rec[0]['STAFFVIEWS']
+                    );
             }//end foreach
             //------------------------------------------------------------------------------------------------
         }//end if
@@ -3042,11 +3150,13 @@ class ServersController extends WebServicesController
                 foreach ($arr_stafftypes AS $sdata) {
                     if ((int)$sdata['STAFFCODE'] === (int)$arrStaff[$i]['StaffAssignToStore']['STAFFCODE']) {
                         $stafftypes = $sdata['STAFFTYPES'];
+                        $staffviews = $sdata['STAFFVIEWS'];
                         break;
                     }//end if
                 }//end foreach
             }//end if
             $arrStaffShift[$i]['STAFFTYPES'] = $stafftypes;
+            $arrStaffShift[$i]['STAFFVIEWS'] = $staffviews;
             //-----------------------------------------------------------------------------------
             $arrStaffShift[$i]['year']       = $param['year'];
             $arrStaffShift[$i]['month']      = $param['month'];
@@ -5215,8 +5325,7 @@ class ServersController extends WebServicesController
                     #---------------------------------------------------------------------------------
                     #Added By MarvinC - 2015-07-06
                     LEFT JOIN yoyaku_next_details as YND 
-                        ON YND.NEXTCODE = details.TRANSCODE
-                        AND YND.ROWNO = details.ROWNO
+                        ON YND.NEXTCODE = details.TRANSCODE 
                         AND if(YND.syscode = 0 and YND.yoyaku_status = 2, YND.syscode = 0,YND.syscode = services.syscode) 
                     #---------------------------------------------------------------------------------
                     LEFT JOIN store_products as product ON
@@ -5609,6 +5718,25 @@ class ServersController extends WebServicesController
             $sqlctr++;
         }
         
+        #------------------------------------------------------------------------------------------------------------------------
+        # ADDED BY MARVINC - 2015-07-27
+        # For Updating Next Reservation
+        #------------------------------------------------------------------------------------------------------------------------
+        $gdcodelist = implode(",",array_unique($gdcode));
+                $this->Syscode->set_company_database($storeinfo['dbname'], $this->Syscode);
+                $sql = "select SYSCODE, GDCODE from services where GDCODE in (".$gdcodelist.") and DELFLG is null group by SYSCODE order by SYSCODE";
+                $newsyscodes = $this->Syscode->query($sql);
+                
+                $x = 0;
+                foreach ($newsyscodes as $item){
+                    $newsyscode[$x] = $item["services"]["SYSCODE"];
+                    $x++;
+                }
+
+        $syscodes = trim(implode(",",array_unique($newsyscode)),",");
+        #------------------------------------------------------------------------------------------------------------------------
+        
+        
         if(!is_null($param['BEFORE_TRANSCODE']) || $param['YOYAKU_STATUS'] == 2){
         	//$sql = "UPDATE yoyaku_next SET YOYAKU_STATUS = 2 ,NEXTCODE = '" .$param['TRANSCODE']."' WHERE TRANSCODE ='". $param['BEFORE_TRANSCODE']."'";     
         	//$sql = "UPDATE yoyaku_next SET CHANGEFLG = CASE WHEN NEXTCODE IS NULL AND CHANGEFLG = 0 THEN 0 ELSE 1 END, YOYAKU_STATUS = 2 ,NEXTCODE = '" .$param['TRANSCODE']."' WHERE TRANSCODE ='". $param['BEFORE_TRANSCODE']."'";
@@ -5625,19 +5753,6 @@ class ServersController extends WebServicesController
                 # ADDED BY MARVINC - 2015-06-22
                 # For Updating Next Reservation
                 #------------------------------------------------------------------------------------------------------------------------
-                $gdcodelist = implode(",",array_unique($gdcode));
-                $this->Syscode->set_company_database($storeinfo['dbname'], $this->Syscode);
-                $sql = "select SYSCODE, GDCODE from services where GDCODE in (".$gdcodelist.") and DELFLG is null group by SYSCODE order by SYSCODE";
-                $newsyscodes = $this->Syscode->query($sql);
-                
-                $x = 0;
-                foreach ($newsyscodes as $item){
-                    $newsyscode[$x] = $item["services"]["SYSCODE"];
-                    $x++;
-                }
-
-                $syscodes = trim(implode(",",array_unique($newsyscode)),",");
-                
                 if ($param['YOYAKU_STATUS'] == 2){
                     $sql = "UPDATE yoyaku_next_details
                             SET CHANGEFLG = CASE WHEN NEXTCODE IS NULL AND CHANGEFLG = 0 THEN 0 ELSE 1 END, 
@@ -5715,17 +5830,35 @@ class ServersController extends WebServicesController
 
         if ($error <> "true") {
             $this->StoreTransaction->commit();      //-- トランザクションをコミット (Commit Transactions)
+            #------------------------------------------------------------------------------------------------------------------------
+            # ADDED BY MARVINC - 2015-07-27
+            # Note: Add condition for syscode
+            #------------------------------------------------------------------------------------------------------------------------
             //-- Deletes customer mail reservation
-            $del_mailsql = "DELETE FROM customer_mail_reservation
-                    WHERE STORECODE = ".$param['STORECODE']." AND CCODE = '".$param['CCODE']."'
-                        AND TRANSDATE < '".$param['TRANSDATE']."'";
+            $del_mailsql = "DELETE CMRD FROM customer_mail_reservation_details CMRD
+                            WHERE CMRD.STORECODE = ".$param['STORECODE']." AND CMRD.CCODE = '".$param['CCODE']."'
+                                AND CMRD.TRANSDATE < '".$param['TRANSDATE']."'
+                                AND CMRD.SYSCODE IN(".$syscodes.")"; 
             $this->StoreTransaction->query($del_mailsql);
+            
+            $del_mailsql_d = "DELETE CMR FROM customer_mail_reservation CMR
+                              WHERE STORECODE = ".$param['STORECODE']." AND CCODE = '".$param['CCODE']."'
+                                    AND TRANSDATE < '".$param['TRANSDATE']."'
+                                    AND NOT EXISTS(
+                                                    SELECT NULL
+                                                    FROM customer_mail_reservation_details CMRD
+                                                    WHERE CMRD.transcode = CMR.transcode
+                                                   )"; 
+            $this->StoreTransaction->query($del_mailsql_d);
+            $this->StoreTransaction->commit();
+            #------------------------------------------------------------------------------------------------------------------------
         } else {
             $this->StoreTransaction->rollback();    //-- トランザクションをロールバック (Rollback Transactions)
             //$this->_soap_server->fault(1, '', ROLLBACK_MSG);
         }
         //---------------------------------------------------------------------------
 
+        //$ret['CCODE']     = $del_mailsql; //$param['CCODE'];
         $ret['CCODE']     = $param['CCODE'];
         $ret['CNUMBER']   = $param['CNUMBER'];
         $ret['TRANSCODE'] = $param['TRANSCODE'];
@@ -6642,7 +6775,7 @@ class ServersController extends WebServicesController
          $sql = "select
                        yoyaku_next.*,
                        servicessys.servicesname,
-		       transaction.*,
+		       		   transaction.*,
                        details.*,
                        customer.*,
                        service.*,
@@ -6707,7 +6840,7 @@ class ServersController extends WebServicesController
         $data = $this->MiscFunction->ParseJikaiYoyakuTransactionData($this, $v, null);
         $ret = array();
         $ret['records']      = $data;
-        $ret['record_count'] = count($v);
+        $ret['record_count'] = count($data); //count($v) -> count($data)
 
         if (count($data) > 0) {
             $ret['checked_times'] = $data[0]['checked_times'];
