@@ -6840,7 +6840,12 @@ class ServersController extends WebServicesController
         $data = $this->MiscFunction->ParseJikaiYoyakuTransactionData($this, $v, null);
         $ret = array();
         $ret['records']      = $data;
-        $ret['record_count'] = count($data); //count($v) -> count($data)
+        if (count($v) > 0){
+            $ret['record_count'] = count($data);
+        }else{
+            $ret['record_count'] = 0;
+        }
+        
 
         if (count($data) > 0) {
             $ret['checked_times'] = $data[0]['checked_times'];
