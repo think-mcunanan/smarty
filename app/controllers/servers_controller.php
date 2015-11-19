@@ -5155,7 +5155,7 @@ class ServersController extends WebServicesController
             $order_trantype = " details.TRANTYPE, ";
         }//end if
         //---------------------------------------------------------------------------------------------------------------------
-        $sql = "SELECT tbld.min_staffcode, tbld.max_staffcode,
+        $sql = "SELECT DISTINCT tbld.min_staffcode, tbld.max_staffcode,
                         transaction.TRANSCODE, transaction.KEYNO, transaction.STORECODE, transaction.STARTTIME, 
                         transaction.IDNO, transaction.TRANSDATE, transaction.YOYAKUTIME, transaction.STARTSERVICETIME, 
                         transaction.ENDTIME, transaction.CCODE, transaction.REGULARCUSTOMER, 
@@ -5234,7 +5234,7 @@ class ServersController extends WebServicesController
                            details.ROWNO, 
                            details.STAFFCODE, 
                            transaction.PRIORITYTYPE,
-                    transaction.TRANSCODE, " . $order_trantype . " details.ROWNO";        
+                           transaction.TRANSCODE, " . $order_trantype . " details.ROWNO";
         //---------------------------------------------------------------------------------------------------------------------
         $v = $this->StoreTransaction->query($sql);
         //---------------------------------------------------------------------------------------------------------------------
@@ -6522,7 +6522,7 @@ class ServersController extends WebServicesController
             " " .
             "FROM store_transaction s_t " .
             " " .
-            "LEFT JOIN yoyaku_next y_n " .
+            "LEFT JOIN yoyaku_next_details y_n " .
             "ON s_t.TRANSCODE = y_n.NEXTCODE " .
             " " .
             "JOIN staff s " .
@@ -6540,7 +6540,7 @@ class ServersController extends WebServicesController
             "    y_d.CANCEL = 0 " .
             "  ) " .
             "{$whereQuery} " .
-            " " .
+            " GROUP BY  s_t.transcode " .
             "ORDER BY " .
             "  s_t.STORECODE, " .
             "  s_t.TRANSDATE, " .
@@ -6639,7 +6639,7 @@ class ServersController extends WebServicesController
          $sql = "select
                        yoyaku_next.*,
                        servicessys.servicesname,
-		       		   transaction.*,
+		       transaction.*,
                        details.*,
                        customer.*,
                        service.*,
