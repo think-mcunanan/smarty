@@ -52,7 +52,7 @@
                     ★迷惑メール防止のための設定をしている場合は、下記ドメインを許可する設定を行ってください｡
                 </div>
 
-                <FORM action="" method="post"><FONT size="2"><INPUT type="text" value="@bmy.jp" size="19"></FONT></FORM>
+                <FORM action="" method="post"><FONT size="2"><INPUT type="text" value="{php} echo '@'.EMAIL_DOMAIN; {/php}" size="19"></FONT></FORM>
                 <br />
                 </td>
             </tr>
