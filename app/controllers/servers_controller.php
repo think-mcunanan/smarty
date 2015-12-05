@@ -643,6 +643,18 @@ class ServersController extends WebServicesController
                                               'uketsukestaff' => 'xsd:int'),
                             'output' => array('return'     => 'xsd:boolean')),
                      //- ############################################################
+        
+                     //--------------------------------------------------------------
+                     // GET STORE EMAIL DOMAIN
+                     // Added by: MarvinC - 2015-12-05 14:34
+                     //--------------------------------------------------------------
+                      'wsGetMailDomain' => array(
+                            'doc'    => 'wsGetMailDomain',
+                            'input'  => array('sessionid'  => 'xsd:string',
+                                              'companyid'  => 'xsd:int',
+                                              'storecode'  => 'xsd:int'),
+                            'output' => array('return'     => 'xsd:string')),
+                     //- ############################################################
                 );
 
 
@@ -1576,7 +1588,7 @@ class ServersController extends WebServicesController
             } else {
                 $arrReturn['hasHonbu'] = 0;
             }
-
+            
             //-- 新規セッションを作成する (Create a New Session) --
             $arrReturn['sessionid'] = $this->YoyakuSession->Create($this, $arrReturn['storecode'], $arrReturn['companyid']);
 
@@ -1584,6 +1596,7 @@ class ServersController extends WebServicesController
             $store_rec = $this->Store->find('all', array('conditions' => array('storecode' => $arrReturn['storecode'])));
             $arrReturn['storename'] = $store_rec[0]['Store']['STORENAME'];
             $arrReturn['storemail'] = $store_rec[0]['Store']['mail'];
+            
 
             //-- 会社データベースを設定する (Set the Company Database)
             $this->StoreSettings->set_company_database($arrReturn['dbname'], $this->StoreSettings);
@@ -6775,7 +6788,7 @@ class ServersController extends WebServicesController
          $sql = "select
                        yoyaku_next.*,
                        servicessys.servicesname,
-		       		   transaction.*,
+		       transaction.*,
                        details.*,
                        customer.*,
                        service.*,
@@ -7812,6 +7825,41 @@ function wsGetYoyakuAllowTransToStore($sessionid,$storecode) {
  }
 //</editor-fold>
  
+ 
+ //<editor-fold defaultstate="collapsed" desc="wsGetMailDomain">
+    /**
+     * @author MCUNANAN :mcunanan@think-ahead.jp
+     * Date: 2015-12-05 14:34
+     * @uses Get Mail Domain
+     * @param type $sessionid
+     * @param type $companyid
+     * @param type $storecode
+     */
+ function wsGetMailDomain($sessionid,$companyid,$storecode) {
+     
+     //-------------------------------------------------------------------------------------------
+        $storeinfo = $this->YoyakuSession->Check($this);
+        //-------------------------------------------------------------------------------------------
+        if ($storeinfo == false) {
+            $this->_soap_server->fault(1, '', INVALID_SESSION);
+            return;
+        }//end if
+        
+        #-------------------------------------------------------------------
+        # ADDED BY: MARVINC - 2015-12-05 14:34
+        #-------------------------------------------------------------------
+        $Sql = "SELECT WSA.storeid 
+                FROM sipssbeauty_server.webyan_store_accounts WSA
+                WHERE WSA.companyid = ".$companyid." 
+                    AND WSA.storecode = ".$storecode;
+        $emailadd = $this->Store->query($Sql);
+        $arrReturn = $emailadd[0]["WSA"]["storeid"]. "@". EMAIL_DOMAIN;
+        #-------------------------------------------------------------------
+        //===================================================================================
+        return $arrReturn;
+        //===================================================================================
+ }
+//</editor-fold>
  
 }//end class ServersController
 
