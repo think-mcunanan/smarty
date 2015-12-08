@@ -6888,11 +6888,22 @@ class ServersController extends WebServicesController
         $this->YoyakuNext->set_company_database($storeinfo['dbname'], $this->YoyakuNext);
 
         //-- 顧客を削除フラグを設定 (Set Start flag on yoyaku_next)
-        $this->YoyakuNext->set('TRANSCODE', $transcode);
-        $this->YoyakuNext->set('YOYAKU_STATUS', "0");
+        # REMOVE BY MARVINC - 2015-12-08 16:54
+        #$this->YoyakuNext->set('TRANSCODE', $transcode);
+        #$this->YoyakuNext->set('YOYAKU_STATUS', "0");
         //$data = array("YOYAKU_STATUS" => "0");
-        $this->YoyakuNext->save();
+        #$this->YoyakuNext->save();
         //$this->YoyakuNext->delete($transcode);
+        #----------------------------------------------------------------------
+        # ADDED BY: MARVINC - 2015-12-08 16:54
+        #----------------------------------------------------------------------
+        $sql = "UPDATE yoyaku_next YN 
+                LEFT JOIN yoyaku_next_details YND
+                ON YND.transcode = YN.transcode
+                SET YN.yoyaku_status = 0, YND.yoyaku_status = 0
+                WHERE YN.transcode = '".$transcode."'";
+        $this->YoyakuNext->query($sql);
+        #----------------------------------------------------------------------        
 
         if($changeyoyaku == true){
             $sql = "UPDATE store_transaction as tran SET NEXTCOMINGDATE = ( SELECT * FROM (
@@ -6911,12 +6922,12 @@ class ServersController extends WebServicesController
                                                           body,
                                                           sendflg,
                                                           updatedate)
-											SELECT trans.storecode,
+                                                   SELECT trans.storecode,
                                                           trans.ccode,
                                                           trans.transcode,
                                                           trans.transdate,
                                                           DATE_ADD( (SELECT IFNULL(trans.TRANSDATE,NOW())  FROM store_transaction as trans where trans.TRANSCODE ='".$transcode."' AND trans.DELFLG IS NULL 
-			), INTERVAL (SELECT IFNULL(OPTIONVALUES,60)  FROM store_settings WHERE STORECODE ='".$storecode."' AND OPTIONNAME = 'CardYotei' ) DAY) as senddate,
+                                                          ), INTERVAL (SELECT IFNULL(OPTIONVALUES,60)  FROM store_settings WHERE STORECODE ='".$storecode."' AND OPTIONNAME = 'CardYotei' ) DAY) as senddate,
                                                           ifnull(mail.title,\"\") as title,
                                                           ifnull(mail.body,\"\") as body,
                                                           0 as sendflg,
