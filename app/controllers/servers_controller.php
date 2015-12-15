@@ -5781,7 +5781,7 @@ class ServersController extends WebServicesController
                     if(empty($exists)){
                         #get the staff incharge
                         $sql = "INSERT INTO yoyaku_next_details 
-                                SELECT TRANSCODE, MAX(ROWNO) + 1, 2, 0, '".$param['TRANSCODE']."', STAFFCODE_INCHARGE, STAFFCODE_INCHARGE,  '". $param['TRANSDATE']."', 0, null, null, CURRENT_DATE()
+                                SELECT TRANSCODE, MAX(ROWNO) + 1, 2, 0, '".$param['TRANSCODE']."', STAFFCODE_INCHARGE, STAFFCODE_INCHARGE,  '". $param['TRANSDATE']."', 0, null, CURRENT_DATE()
                                 FROM yoyaku_next_details YND
                                 WHERE TRANSCODE = '". $param['BEFORE_TRANSCODE']."' LIMIT 1";
                     }else{
