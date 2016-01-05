@@ -655,7 +655,18 @@ class ServersController extends WebServicesController
                                               'storecode'  => 'xsd:int'),
                             'output' => array('return'     => 'xsd:string')),
                      //- ############################################################
-                );
+                     
+        
+                     //--------------------------------------------------------------
+                     // GET POWERS SETTINGS
+                     // Added by: MarvinC - 2015-12-28 16:35
+                     //--------------------------------------------------------------
+                      'wsGetReturningCustomerCountAll' => array(
+                            'doc'    => 'wsGetReturningCustomerCountAll',
+                            'input'  => array('sessionid'  => 'xsd:string'),
+                            'output' => array('return'     => 'xsd:int'))
+                     //- ############################################################
+                     );
 
 
     //-- Complexタイプの参照 (Complex Type Definitions)
@@ -5281,7 +5292,7 @@ class ServersController extends WebServicesController
             $order_trantype = " details.TRANTYPE, ";
         }//end if
         //---------------------------------------------------------------------------------------------------------------------
-        $sql = "SELECT DISTINCT tbld.min_staffcode, tbld.max_staffcode,
+        $sql = "SELECT  tbld.min_staffcode, tbld.max_staffcode,
                         transaction.TRANSCODE, transaction.KEYNO, transaction.STORECODE, transaction.STARTTIME, 
                         transaction.IDNO, transaction.TRANSDATE, transaction.YOYAKUTIME, transaction.STARTSERVICETIME, 
                         transaction.ENDTIME, transaction.CCODE, transaction.REGULARCUSTOMER, 
@@ -5354,6 +5365,7 @@ class ServersController extends WebServicesController
                 WHERE transaction.DELFLG IS NULL
                     AND details.DELFLG IS NULL
                     " . $trantype1 . $condition . " 
+                GROUP BY transaction.transcode, details.rowno
                 ORDER BY " . $misc_order . " transaction.TRANSCODE, 
                            details.STARTTIME, 
                            details.ROWNO, 
@@ -5486,20 +5498,22 @@ class ServersController extends WebServicesController
 
         //-- TRANSCODEとTRANSDATEの日付をチェックします (Check date on TRANSCODE and TRANSDATE)
         if (ereg_replace("-","", $param['TRANSDATE']) <> substr($param['TRANSCODE'],9,8)) {
-            $del_sql = "DELETE FROM store_transaction
-                        WHERE TRANSCODE = '" . $param['TRANSCODE'] . "'";
+            if ($param['TRANSCODE'] <> ""){
+                $del_sql = "DELETE FROM store_transaction
+                            WHERE TRANSCODE = '" . $param['TRANSCODE'] . "'";
 
-            $del_dtlsql = "DELETE FROM store_transaction_details
-                           WHERE TRANSCODE = '" . $param['TRANSCODE'] . "'";
+                $del_dtlsql = "DELETE FROM store_transaction_details
+                               WHERE TRANSCODE = '" . $param['TRANSCODE'] . "'";
 
-            //-- 削除古いトランザクションおよびトランザクション細部 (Delete old transaction & transaction details)
-            $retQuery[$sqlctr] = $this->StoreTransaction->query($del_sql);
-            $sqlctr++;
-            $retQuery[$sqlctr] = $this->StoreTransaction->query($del_dtlsql);
-            $sqlctr++;
-            unset($param['TRANSCODE']);
-        }
-
+                //-- 削除古いトランザクションおよびトランザクション細部 (Delete old transaction & transaction details)
+                $retQuery[$sqlctr] = $this->StoreTransaction->query($del_sql);
+                $sqlctr++;
+                $retQuery[$sqlctr] = $this->StoreTransaction->query($del_dtlsql);
+                $sqlctr++;
+            }
+                unset($param['TRANSCODE']);
+            }
+        
         //$param['TEMPSTATUS']  = 4;
         //$param['YOYAKU']      = 1;
         $param['HASSERVICES'] = 1;
@@ -5559,7 +5573,7 @@ class ServersController extends WebServicesController
             $param['TRANSCODE']  = $this->MiscFunction->GenerateTranscode($subparam);
             $param['IDNO']       = $tmp_data[0][0]['IDNO'];
             $param['KEYNO']      = 1;
-
+            
             //-------------------------------------------------------------
             $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
             $sql_regular = "select REGULAR from customer where ccode ='".$param['CCODE']."'";
@@ -5674,7 +5688,7 @@ class ServersController extends WebServicesController
         //-- 挿入または更新トランザクション (Insert or Update transaction)
         $retQuery[$sqlctr] = $this->StoreTransaction->query($sql);
         $sqlctr++;
-
+        
         $del_dtlsql = "DELETE
                        FROM store_transaction_details
                        WHERE TRANSCODE = '" . $param['TRANSCODE'] . "'";
@@ -5702,34 +5716,32 @@ class ServersController extends WebServicesController
             //$totalminutes = $param['details'][$i]['MENUTIME'];
             //$old_date_format = strtotime('+'.$totalminutes.' minutes', strtotime($starttime));
             //$endtime = date("H:i", $old_date_format);
-            
-            #---------------------------------------------------------------------------------------
-            #UPDATE BY MARVINC - 2015-06-19
-            #---------------------------------------------------------------------------------------
-            $gdcode[$i] = $param['details'][$i]["GDCODE"];
-            #---------------------------------------------------------------------------------------
-                        
-            $val = "";
-            $val = "'" . $param['TRANSCODE']                  . "', " . $param['KEYNO']                         . ",
-                     " . $param['details'][$i]['ROWNO']       . " , " . $param['STORECODE']                     . ",
-                    '" . $param['TRANSDATE']                  . "', " . $param['details'][$i]['GCODE']          . ",
-                     " . $param['TRANTYPE']                   . " , " . $param['QUANTITY']                      . ",
-                     " . $param['details'][$i]['PRICE']       . " , " . $param['details'][$i]['PRICE']          . ",
-                     " . $param['details'][$i]['ZEIKUBUN']    . " , " . $param['details'][$i]['POINTKASAN1']    . ",
-                     " . $param['details'][$i]['POINTKASAN2'] . " , " . $param['details'][$i]['POINTKASAN3']    . ",
-                     " . $param['details'][$i]['STAFFCODE']   . " , " . $param['details'][$i]['STAFFCODESIMEI'] . ",
-                     " . $param['TEMPSTATUS'].", '".$param['details'][$i]['STARTTIME']."', 
-                     '".$param['details'][$i]['ENDTIME']."'";
+                #---------------------------------------------------------------------------------------
+                #UPDATE BY MARVINC - 2015-06-19
+                #---------------------------------------------------------------------------------------
+                $gdcode[$i] = $param['details'][$i]["GDCODE"];
+                #---------------------------------------------------------------------------------------
+                $val = "";
+                $val = "'" . $param['TRANSCODE']                  . "', " . $param['KEYNO']                         . ",
+                         " . $param['details'][$i]['ROWNO']       . " , " . $param['STORECODE']                     . ",
+                        '" . $param['TRANSDATE']                  . "', " . $param['details'][$i]['GCODE']          . ",
+                         " . $param['TRANTYPE']                   . " , " . $param['QUANTITY']                      . ",
+                         " . $param['details'][$i]['PRICE']       . " , " . $param['details'][$i]['PRICE']          . ",
+                         " . $param['details'][$i]['ZEIKUBUN']    . " , " . $param['details'][$i]['POINTKASAN1']    . ",
+                         " . $param['details'][$i]['POINTKASAN2'] . " , " . $param['details'][$i]['POINTKASAN3']    . ",
+                         " . $param['details'][$i]['STAFFCODE']   . " , " . $param['details'][$i]['STAFFCODESIMEI'] . ",
+                         " . $param['TEMPSTATUS'].", '".$param['details'][$i]['STARTTIME']."', 
+                         '".$param['details'][$i]['ENDTIME']."'";
 
-            $dtlsql[$i] = "REPLACE INTO store_transaction_details (".$fld.") VALUES(".$val.")";
+                $dtlsql[$i] = "REPLACE INTO store_transaction_details (".$fld.") VALUES(".$val.")";
 
-            //-- 新しいトランザクション細部挿入 (Insert new transaction detail)
-            $retQuery[$sqlctr] = $this->StoreTransaction->query($dtlsql[$i]);
-            
-            //$starttime = $endtime;
-            
-            $sqlctr++;
-        }
+                //-- 新しいトランザクション細部挿入 (Insert new transaction detail)
+                $retQuery[$sqlctr] = $this->StoreTransaction->query($dtlsql[$i]);
+
+                //$starttime = $endtime;
+
+                $sqlctr++;
+            }
         
         #------------------------------------------------------------------------------------------------------------------------
         # ADDED BY MARVINC - 2015-07-27
@@ -5750,7 +5762,7 @@ class ServersController extends WebServicesController
         #------------------------------------------------------------------------------------------------------------------------
         
         
-        if(!is_null($param['BEFORE_TRANSCODE']) || $param['YOYAKU_STATUS'] == 2){
+        if(trim($param['BEFORE_TRANSCODE']) <> "" || $param['YOYAKU_STATUS'] == 2){
         	//$sql = "UPDATE yoyaku_next SET YOYAKU_STATUS = 2 ,NEXTCODE = '" .$param['TRANSCODE']."' WHERE TRANSCODE ='". $param['BEFORE_TRANSCODE']."'";     
         	//$sql = "UPDATE yoyaku_next SET CHANGEFLG = CASE WHEN NEXTCODE IS NULL AND CHANGEFLG = 0 THEN 0 ELSE 1 END, YOYAKU_STATUS = 2 ,NEXTCODE = '" .$param['TRANSCODE']."' WHERE TRANSCODE ='". $param['BEFORE_TRANSCODE']."'";
         	$sql = "UPDATE yoyaku_next 
@@ -5773,30 +5785,44 @@ class ServersController extends WebServicesController
                             FIRST_YOYAKUDATE = CASE WHEN FIRST_YOYAKUDATE IS NULL THEN '". $param['TRANSDATE']."' ELSE FIRST_YOYAKUDATE END,
                             NEXTCODE = '" .$param['TRANSCODE']."' WHERE NEXTCODE ='".$param['TRANSCODE']."' OR NEXTCODE = '". $param['BEFORE_TRANSCODE']."'";
                 }else{
-                    #check if the service is existing
-                    $this->Syscode->set_company_database($storeinfo['dbname'], $this->Syscode);
-                    $sql = "select SYSCODE from yoyaku_next_details where transcode = '". $param['BEFORE_TRANSCODE']."' and syscode in (".$syscodes.") and nextcode is null";
-                    $exists = $this->Syscode->query($sql);
+                    
+                    #Update by: MarvinC - 2016-01-14 15:07
+                    #Check Powers Flag
+                    if($this->MiscFunction->GetReturningCustomerCountAll($this) == 1){
+                        #check if the service is existing
+                        $this->Syscode->set_company_database($storeinfo['dbname'], $this->Syscode);
+                        //$sql = "select SYSCODE from yoyaku_next_details where transcode = '". $param['BEFORE_TRANSCODE']."' and syscode in (".$syscodes.") and nextcode is null";
+                        $sql = "select SYSCODE from yoyaku_next_details where transcode = '". $param['BEFORE_TRANSCODE']."' and syscode in (".$syscodes.") and yoyaku_status = 1";
+                        $exists = $this->Syscode->query($sql);
 
-                    if(empty($exists)){
-                        #get the staff incharge
-                        $sql = "INSERT INTO yoyaku_next_details 
-                                SELECT TRANSCODE, MAX(ROWNO) + 1, 2, 0, '".$param['TRANSCODE']."', STAFFCODE_INCHARGE, STAFFCODE_INCHARGE,  '". $param['TRANSDATE']."', 0, null, CURRENT_DATE()
-                                FROM yoyaku_next_details YND
-                                WHERE TRANSCODE = '". $param['BEFORE_TRANSCODE']."' LIMIT 1";
+                        if(empty($exists)){
+                            #get the staff incharge
+                            $sql = "INSERT INTO yoyaku_next_details 
+                                    SELECT TRANSCODE, MAX(ROWNO) + 1, 2, 0, '".$param['TRANSCODE']."', STAFFCODE_INCHARGE, STAFFCODE_INCHARGE,  '". $param['TRANSDATE']."', 0, null, CURRENT_DATE()
+                                    FROM yoyaku_next_details YND
+                                    WHERE TRANSCODE = '". $param['BEFORE_TRANSCODE']."' LIMIT 1";
+                        }else{
+                            $sql = "UPDATE yoyaku_next_details
+                                    SET CHANGEFLG = CASE WHEN NEXTCODE IS NULL AND CHANGEFLG = 0 THEN 0 ELSE 1 END, 
+                                    YOYAKU_STATUS = 2,
+                                    FIRST_YOYAKUDATE = CASE WHEN FIRST_YOYAKUDATE IS NULL THEN '". $param['TRANSDATE']."' ELSE FIRST_YOYAKUDATE END,
+                                    NEXTCODE = '".$param['TRANSCODE']."' WHERE TRANSCODE = '". $param['BEFORE_TRANSCODE']."' 
+                                    AND SYSCODE IN (".$syscodes.") AND YOYAKU_STATUS < 2";
+                        }
                     }else{
                         $sql = "UPDATE yoyaku_next_details
-                            SET CHANGEFLG = CASE WHEN NEXTCODE IS NULL AND CHANGEFLG = 0 THEN 0 ELSE 1 END, 
-                            YOYAKU_STATUS = 2,
-                            FIRST_YOYAKUDATE = CASE WHEN FIRST_YOYAKUDATE IS NULL THEN '". $param['TRANSDATE']."' ELSE FIRST_YOYAKUDATE END,
-                            NEXTCODE = '".$param['TRANSCODE']."' WHERE TRANSCODE = '". $param['BEFORE_TRANSCODE']."' 
-                            AND SYSCODE IN (".$syscodes.") AND YOYAKU_STATUS < 2";
+                                    SET CHANGEFLG = CASE WHEN NEXTCODE IS NULL AND CHANGEFLG = 0 THEN 0 ELSE 1 END, 
+                                    YOYAKU_STATUS = 2,
+                                    FIRST_YOYAKUDATE = CASE WHEN FIRST_YOYAKUDATE IS NULL THEN '". $param['TRANSDATE']."' ELSE FIRST_YOYAKUDATE END,
+                                    NEXTCODE = '".$param['TRANSCODE']."' WHERE TRANSCODE = '". $param['BEFORE_TRANSCODE']."' 
+                                    AND YOYAKU_STATUS < 2";
                     }
+                    #----------------------------------------------------------------------------------------------------------------------
                 }
                 
                 $retQuery[$sqlctr] = $this->StoreTransaction->query($sql);
                 $sqlctr++;	
-
+                
         }    
         $SqlInsertRejiMarketing = "";
         //===========================================================================================================
@@ -5848,10 +5874,17 @@ class ServersController extends WebServicesController
             # Note: Add condition for syscode
             #------------------------------------------------------------------------------------------------------------------------
             //-- Deletes customer mail reservation
-            $del_mailsql = "DELETE CMRD FROM customer_mail_reservation_details CMRD
-                            WHERE CMRD.STORECODE = ".$param['STORECODE']." AND CMRD.CCODE = '".$param['CCODE']."'
-                                AND CMRD.TRANSDATE < '".$param['TRANSDATE']."'
-                                AND CMRD.SYSCODE IN(".$syscodes.")"; 
+            #Check Powers Flag
+            if($this->MiscFunction->GetReturningCustomerCountAll($this) == 1){
+                $del_mailsql = "DELETE CMRD FROM customer_mail_reservation_details CMRD
+                                WHERE CMRD.STORECODE = ".$param['STORECODE']." AND CMRD.CCODE = '".$param['CCODE']."'
+                                    AND CMRD.TRANSDATE < '".$param['TRANSDATE']."'
+                                    AND CMRD.SYSCODE IN(".$syscodes.")"; 
+            }else{
+                $del_mailsql = "DELETE CMRD FROM customer_mail_reservation_details CMRD
+                                WHERE CMRD.STORECODE = ".$param['STORECODE']." AND CMRD.CCODE = '".$param['CCODE']."'
+                                    AND CMRD.TRANSDATE < '".$param['TRANSDATE']."'"; 
+            }
             $this->StoreTransaction->query($del_mailsql);
             
             $del_mailsql_d = "DELETE CMR FROM customer_mail_reservation CMR
@@ -5871,7 +5904,7 @@ class ServersController extends WebServicesController
         }
         //---------------------------------------------------------------------------
 
-        //$ret['CCODE']     = $del_mailsql; //$param['CCODE'];
+        //$ret['CCODE'] = $this->MiscFunction->GetReturningCustomerCountAll($this);
         $ret['CCODE']     = $param['CCODE'];
         $ret['CNUMBER']   = $param['CNUMBER'];
         $ret['TRANSCODE'] = $param['TRANSCODE'];
@@ -6901,7 +6934,7 @@ class ServersController extends WebServicesController
                 LEFT JOIN yoyaku_next_details YND
                 ON YND.transcode = YN.transcode
                 SET YN.yoyaku_status = 0, YND.yoyaku_status = 0
-                WHERE YN.transcode = '".$transcode."'";
+                WHERE YN.transcode = '".$transcode."' and YND.yoyaku_status  = 1";
         $this->YoyakuNext->query($sql);
         #----------------------------------------------------------------------        
 
@@ -7869,6 +7902,20 @@ function wsGetYoyakuAllowTransToStore($sessionid,$storecode) {
         //===================================================================================
         return $arrReturn;
         //===================================================================================
+ }
+//</editor-fold>
+ 
+ //<editor-fold defaultstate="collapsed" desc="wsGetReturningCustomerCountAll">
+    /**
+     * @author MCUNANAN :mcunanan@think-ahead.jp
+     * Date: 2015-12-05 14:34
+     * @uses Get Mail Domain
+     * @param type $sessionid
+     * @param type $companyid
+     * @param type $storecode
+     */
+ function wsGetReturningCustomerCountAll($sessionid) {
+        return $this->MiscFunction->GetReturningCustomerCountAll($this);
  }
 //</editor-fold>
  

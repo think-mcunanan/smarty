@@ -1368,6 +1368,43 @@ class MiscFunctionComponent extends Object
         $item = "{$itemLine}\n{$item}{$itemLine}";
         return $item;
     }
-
+    
+    
+    //<editor-fold defaultstate="collapsed" desc="GetReturningCustomerCountAll">
+    /**
+     * @author MCUNANAN :mcunanan@think-ahead.jp
+     * Date: 2015-12-05 14:34
+     * @uses Get Mail Domain
+     * @param type $sessionid
+     * @param type $companyid
+     * @param type $storecode
+     */
+ function GetReturningCustomerCountAll(&$controller, $dbname) {
+     
+        //-------------------------------------------------------------------------------------------
+        $storeinfo = $controller->YoyakuSession->Check($controller);
+        //-------------------------------------------------------------------------------------------
+        if ($storeinfo == false) {
+            $controller->_soap_server->fault(1, '', INVALID_SESSION);
+            return;
+        }//end if
+        #-------------------------------------------------------------------
+        # ADDED BY: MARVINC - 2015-12-28 16:34
+        #-------------------------------------------------------------------
+        $Sql = "SELECT 
+                IFNULL((SELECT returningcustomercountall
+                FROM sipssbeauty_server.company 
+                WHERE company.dbname = '{$storeinfo['dbname']}'
+                LIMIT 1),0) as returningcustomercountall";
+        $data = $controller->Store->query($Sql);
+        $arrReturn = $data[0][0]["returningcustomercountall"];
+        #-------------------------------------------------------------------
+        //===================================================================================
+        return $arrReturn;
+        //===================================================================================
+ }
+//</editor-fold>
+    
+    
 }
 ?>
