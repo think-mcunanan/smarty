@@ -385,6 +385,7 @@ class MiscFunctionComponent extends Object
 	                        break;
                         }
                     }
+                    break;
                 }
                 
                 $checked_times[$staffcode][$prioritytype][$priority][] = array("starttime" => $starttime_c,
@@ -746,6 +747,7 @@ class MiscFunctionComponent extends Object
 	                        break;
                         }
                     }
+                    break;
                 }
                 
                 $checked_times[$staffcode][$prioritytype][$priority][] = array("starttime" => $starttime_c,
@@ -1121,7 +1123,7 @@ class MiscFunctionComponent extends Object
     function CheckTransactionConflict(&$controller, $param) {
 
         $staff     = $controller->wsSearchAvailableStaff($sessionid, $param);
-        $arrData   = $controller->wsSearchStoreTransaction($sessionid, $param);
+        // $arrData   = $controller->wsSearchStoreTransaction($sessionid, $param);
         $rows      = $staff['records'][0]['ROWS'];
         $phonerows = $staff['records'][0]['PHONEROWS'];
         $ctr       = -1;
@@ -1157,6 +1159,7 @@ class MiscFunctionComponent extends Object
                     break;
                 }
             }
+            break;
         }
 
         $ret = array();
