@@ -385,7 +385,6 @@ class MiscFunctionComponent extends Object
 	                        break;
                         }
                     }
-                    break;
                 }
                 
                 $checked_times[$staffcode][$prioritytype][$priority][] = array("starttime" => $starttime_c,
@@ -747,7 +746,7 @@ class MiscFunctionComponent extends Object
 	                        break;
                         }
                     }
-                    break;
+                    if ($param['onsave'] == 1) { break; }
                 }
                 
                 $checked_times[$staffcode][$prioritytype][$priority][] = array("starttime" => $starttime_c,
@@ -1159,7 +1158,6 @@ class MiscFunctionComponent extends Object
                     break;
                 }
             }
-            break;
         }
 
         $ret = array();

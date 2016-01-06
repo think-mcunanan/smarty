@@ -2595,7 +2595,8 @@ class ServersController extends WebServicesController
                                                                       AND storecode = ".$param['STORECODE'].") ";            
         }//end if else
         //----------------------------------------------------------------------------------------------------------------------------
-        $sql = "SELECT DISTINCT  
+        $sql = "/*wsSearchAvailableStaff*/
+                SELECT DISTINCT  
                     StaffAssignToStore.STAFFCODE,
                     Staff.STORECODE,
                     Staff.STAFFNAME,
@@ -2612,7 +2613,8 @@ class ServersController extends WebServicesController
                     LEFT JOIN staff as Staff ON StaffAssignToStore.STAFFCODE = Staff.STAFFCODE
                     LEFT JOIN store as Store ON Staff.STORECODE = Store.STORECODE
                     LEFT JOIN (SELECT *
-                               FROM(SELECT *
+                               FROM(
+                               SELECT *
                                     FROM staffrowshistory as StaffRowsHistory
                                     WHERE StaffRowsHistory.STORECODE = " . $param['STORECODE'] ."
                                        AND StaffRowsHistory.DATECHANGE <= '". $param['date'] ."'
@@ -5292,7 +5294,8 @@ class ServersController extends WebServicesController
             $order_trantype = " details.TRANTYPE, ";
         }//end if
         //---------------------------------------------------------------------------------------------------------------------
-        $sql = "SELECT  tbld.min_staffcode, tbld.max_staffcode,
+        $sql = "/*wsSearchStoreTransaction 1*/
+                SELECT  tbld.min_staffcode, tbld.max_staffcode,
                         transaction.TRANSCODE, transaction.KEYNO, transaction.STORECODE, transaction.STARTTIME, 
                         transaction.IDNO, transaction.TRANSDATE, transaction.YOYAKUTIME, transaction.STARTSERVICETIME, 
                         transaction.ENDTIME, transaction.CCODE, transaction.REGULARCUSTOMER, 
@@ -5348,7 +5351,7 @@ class ServersController extends WebServicesController
                         services.GDCODE = service.GDCODE
                     #---------------------------------------------------------------------------------
                     #Added By MarvinC - 2015-07-06
-                    LEFT JOIN yoyaku_next_details as YND 
+                    LEFT JOIN yoyaku_next_details as YND USE INDEX (NEXTCODE)
                         ON YND.NEXTCODE = details.TRANSCODE 
                         AND if(YND.syscode = 0 and YND.yoyaku_status = 2, YND.syscode = 0,YND.syscode = services.syscode) 
                     #---------------------------------------------------------------------------------
@@ -5373,12 +5376,14 @@ class ServersController extends WebServicesController
                            transaction.PRIORITYTYPE,
                            transaction.TRANSCODE, " . $order_trantype . " details.ROWNO";
         //---------------------------------------------------------------------------------------------------------------------
+        
         $v = $this->StoreTransaction->query($sql);
         //---------------------------------------------------------------------------------------------------------------------
         $subparam['dbname']    = $storeinfo['dbname'];
         $subparam['date']      = $param['date'];
         $subparam['STORECODE'] = $param['STORECODE'];
         $subparam['ignoreSessionCheck'] = 1;
+        $subparam['onsave'] = $param['onsave'];
         //---------------------------------------------------------------------------------------------------------------------
         $data = $this->MiscFunction->ParseTransactionData($this, $v, $subparam);
         //---------------------------------------------------------------------------------------------------------------------
@@ -5387,7 +5392,8 @@ class ServersController extends WebServicesController
                     //---------------------------------------------------------------------------------------------------------
                     $GetDataMarketing = array();
                     //---------------------------------------------------------------------------------------------------------
-                    $Sql_RejiMarketing = "SELECT tblresult.*
+                    $Sql_RejiMarketing = "/*wsSearchStoreTransaction 2*/
+                                        SELECT tblresult.*
                                          FROM (
                                                 select drejimarketing.*, drejimarketing.MARKETINGID as MARKETINGIDNO, 
                                                     concat(marketing.marketingdesc, if(marketing_entry.remarks <> '' 
@@ -5467,7 +5473,7 @@ class ServersController extends WebServicesController
             $subparam['STAFFCODE']    = $param['STAFFCODE'];
             $subparam['PRIORITYTYPE'] = $param['PRIORITYTYPE'];
             $subparam['NOTTRANSCODE'] = $param['TRANSCODE'];
-
+            $subparam['onsave'] = 1;
             $reply = $this->MiscFunction->CheckTransactionConflict($this, $subparam);
 
             if ($reply['response'] == 'CONFLICT') {
@@ -5495,7 +5501,6 @@ class ServersController extends WebServicesController
         $this->StoreTransaction->begin();
         $sqlctr = 0;
         //---------------------------------------------------------------------------
-
         //-- TRANSCODEとTRANSDATEの日付をチェックします (Check date on TRANSCODE and TRANSDATE)
         if (ereg_replace("-","", $param['TRANSDATE']) <> substr($param['TRANSCODE'],9,8)) {
             if ($param['TRANSCODE'] <> ""){
@@ -5910,7 +5915,6 @@ class ServersController extends WebServicesController
         $ret['TRANSCODE'] = $param['TRANSCODE'];
         $ret['KEYNO']     = $param['KEYNO'];
         $ret['IDNO']      = $param['IDNO'];
-
         return $ret;
     }
 
