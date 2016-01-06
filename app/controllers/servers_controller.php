@@ -5387,48 +5387,50 @@ class ServersController extends WebServicesController
         //---------------------------------------------------------------------------------------------------------------------
         $data = $this->MiscFunction->ParseTransactionData($this, $v, $subparam);
         //---------------------------------------------------------------------------------------------------------------------
-        if (count($data) > 0) {
-            for ($ctr = 0; $ctr < count($data); $ctr++) {
-                    //---------------------------------------------------------------------------------------------------------
-                    $GetDataMarketing = array();
-                    //---------------------------------------------------------------------------------------------------------
-                    $Sql_RejiMarketing = "/*wsSearchStoreTransaction 2*/
-                                        SELECT tblresult.*
-                                         FROM (
-                                                select drejimarketing.*, drejimarketing.MARKETINGID as MARKETINGIDNO, 
-                                                    concat(marketing.marketingdesc, if(marketing_entry.remarks <> '' 
-                                                                                    and marketing_entry.remarks is not null,
-                                                    concat(' [', marketing_entry.remarks, ']'), '')) as MARKETINGDESC, 
-                                                    staff.STAFFNAME
-                                                from drejimarketing 
-                                                    left join marketing_entry on drejimarketing.MARKETINGID = marketing_entry.marketingidno
-                                                left join marketing on marketing_entry.MARKETINGID = marketing.MARKETINGID
-                                                left join staff on staff.STAFFCODE = drejimarketing.STAFFCODE and staff.DELFLG is null
-                                                where drejimarketing.DELFLG is null 
-                                                    and drejimarketing.transcode = '".$data[$ctr]['TRANSCODE']."' 
-                                                    and drejimarketing.keyno = ".$data[$ctr]['KEYNO']."
-                                              ) tblresult";
-                    //---------------------------------------------------------------------------------------------------------
-                    $GetDataMarketing = $this->StoreTransaction->query($Sql_RejiMarketing);
-                    //---------------------------------------------------------------------------------------------------------
-                    $data[$ctr]['rejimarketing'] = $GetDataMarketing;
-                    //---------------------------------------------------------------------------------------------------------
-            }//end for
-            //-----------------------------------------------------------------------------------------------------------------
-        }//end if
-        //---------------------------------------------------------------------------------------------------------------------
-        $arr_reji_marketing = array();
-        $ctr = 0;
-        $trans_ctr = 0;
-        foreach ($data as $arr_reji) {
-           $arr_reji_marketing = array();
-           foreach ($arr_reji['rejimarketing'] as $arr_marketing) {
-                $arr_reji_marketing[$ctr] = $arr_marketing['tblresult'];
-                $ctr++;
-           }//end foreach
-           $data[$trans_ctr]['rejimarketing'] = $arr_reji_marketing;
-           $trans_ctr++;
-        }//end foreach 
+        if ($param['onsave'] != 1){
+            if (count($data) > 0) {
+                for ($ctr = 0; $ctr < count($data); $ctr++) {
+                        //---------------------------------------------------------------------------------------------------------
+                        $GetDataMarketing = array();
+                        //---------------------------------------------------------------------------------------------------------
+                        $Sql_RejiMarketing = "/*wsSearchStoreTransaction 2*/
+                                            SELECT tblresult.*
+                                             FROM (
+                                                    select drejimarketing.*, drejimarketing.MARKETINGID as MARKETINGIDNO, 
+                                                        concat(marketing.marketingdesc, if(marketing_entry.remarks <> '' 
+                                                                                        and marketing_entry.remarks is not null,
+                                                        concat(' [', marketing_entry.remarks, ']'), '')) as MARKETINGDESC, 
+                                                        staff.STAFFNAME
+                                                    from drejimarketing 
+                                                        left join marketing_entry on drejimarketing.MARKETINGID = marketing_entry.marketingidno
+                                                    left join marketing on marketing_entry.MARKETINGID = marketing.MARKETINGID
+                                                    left join staff on staff.STAFFCODE = drejimarketing.STAFFCODE and staff.DELFLG is null
+                                                    where drejimarketing.DELFLG is null 
+                                                        and drejimarketing.transcode = '".$data[$ctr]['TRANSCODE']."' 
+                                                        and drejimarketing.keyno = ".$data[$ctr]['KEYNO']."
+                                                  ) tblresult";
+                        //---------------------------------------------------------------------------------------------------------
+                        $GetDataMarketing = $this->StoreTransaction->query($Sql_RejiMarketing);
+                        //---------------------------------------------------------------------------------------------------------
+                        $data[$ctr]['rejimarketing'] = $GetDataMarketing;
+                        //---------------------------------------------------------------------------------------------------------
+                }//end for
+                //-----------------------------------------------------------------------------------------------------------------
+            }//end if
+            //---------------------------------------------------------------------------------------------------------------------
+            $arr_reji_marketing = array();
+            $ctr = 0;
+            $trans_ctr = 0;
+            foreach ($data as $arr_reji) {
+               $arr_reji_marketing = array();
+               foreach ($arr_reji['rejimarketing'] as $arr_marketing) {
+                    $arr_reji_marketing[$ctr] = $arr_marketing['tblresult'];
+                    $ctr++;
+               }//end foreach
+               $data[$trans_ctr]['rejimarketing'] = $arr_reji_marketing;
+               $trans_ctr++;
+            }//end foreach
+        } 
         //---------------------------------------------------------------------------------------------------------------------
         $ret = array();
         $ret['records']      = $data;
@@ -5501,12 +5503,14 @@ class ServersController extends WebServicesController
         $this->StoreTransaction->begin();
         $sqlctr = 0;
         //---------------------------------------------------------------------------
+        fopen("logfile.txt");
+        $txtLog = "";
         //-- TRANSCODEとTRANSDATEの日付をチェックします (Check date on TRANSCODE and TRANSDATE)
         if (ereg_replace("-","", $param['TRANSDATE']) <> substr($param['TRANSCODE'],9,8)) {
             if ($param['TRANSCODE'] <> ""){
                 $del_sql = "DELETE FROM store_transaction
                             WHERE TRANSCODE = '" . $param['TRANSCODE'] . "'";
-
+                $txtLog = $del_sql . " /n ";
                 $del_dtlsql = "DELETE FROM store_transaction_details
                                WHERE TRANSCODE = '" . $param['TRANSCODE'] . "'";
 
@@ -5915,6 +5919,8 @@ class ServersController extends WebServicesController
         $ret['TRANSCODE'] = $param['TRANSCODE'];
         $ret['KEYNO']     = $param['KEYNO'];
         $ret['IDNO']      = $param['IDNO'];
+        fwrite("logfile.txt", $txtLog);
+        fclose("logfile.txt");
         return $ret;
     }
 
