@@ -637,6 +637,44 @@ class MiscFunctionComponent extends Object
                 $arrList[$ctr]['YOYAKU_STATUS'] = $arrData[$i]['YND']['YOYAKU_STATUS']; 
                 #------------------------------------------------------------------------------------------------------------------------
                 
+                /*----------------------------------------------------------------------------------------------------------------------*/
+                /*add by albert 2015-10-30 BM connection information -------------------------------------------------------------------*/
+                /*----------------------------------------------------------------------------------------------------------------------*/
+                $arrList[$ctr]['route']                 = $arrData[$i]['bmtble']['route']; 
+                $arrList[$ctr]['reservation_system']    = $arrData[$i]['bmtble']['reservation_system']; 
+                $arrList[$ctr]['reserve_date']          = $arrData[$i]['bmtble']['reserve_date']; 
+                $arrList[$ctr]['reserve_code']          = $arrData[$i]['bmtble']['reserve_code']; 
+                $arrList[$ctr]['v_date']                = $arrData[$i]['bmtble']['v_date']; 
+                $arrList[$ctr]['start_time']            = $arrData[$i]['bmtble']['start_time']; 
+                $arrList[$ctr]['end_time']              = $arrData[$i]['bmtble']['end_time']; 
+                $arrList[$ctr]['coupon_info']           = $arrData[$i]['bmtble']['coupon_info']; 
+                $arrList[$ctr]['comment']               = $arrData[$i]['bmtble']['comment']; 
+                $arrList[$ctr]['shop_comment']          = $arrData[$i]['bmtble']['shop_comment']; 
+                $arrList[$ctr]['next_coming_comment']   = $arrData[$i]['bmtble']['next_coming_comment']; 
+                $arrList[$ctr]['demand']                = $arrData[$i]['bmtble']['demand']; 
+                $arrList[$ctr]['site_customer_id']      = $arrData[$i]['bmtble']['site_customer_id']; 
+                $arrList[$ctr]['bmPrice']               = $arrData[$i]['bmtble']['bmPrice']; 
+                $arrList[$ctr]['nomination_fee']        = $arrData[$i]['bmtble']['nomination_fee']; 
+                $arrList[$ctr]['bmTprice']              = $arrData[$i]['bmtble']['bmTprice']; 
+                $arrList[$ctr]['use_point']             = $arrData[$i]['bmtble']['use_point']; 
+                $arrList[$ctr]['grant_point']           = $arrData[$i]['bmtble']['grant_point']; 
+                $arrList[$ctr]['visit_num']             = $arrData[$i]['bmtble']['visit_num']; 
+                $arrList[$ctr]['firstname']             = $arrData[$i]['bmtble']['firstname'];  
+                $arrList[$ctr]['lastname']              = $arrData[$i]['bmtble']['lastname'];  
+                $arrList[$ctr]['bmsex']                 = $arrData[$i]['bmtble']['bmsex'];   
+                $arrList[$ctr]['knfirstname']           = $arrData[$i]['bmtble']['knfirstname']; 
+                $arrList[$ctr]['knlastname']            = $arrData[$i]['bmtble']['knlastname'];  
+                $arrList[$ctr]['bmtel']                 = $arrData[$i]['bmtble']['bmtel']; 
+                $arrList[$ctr]['bmzip']                 = $arrData[$i]['bmtble']['bmzip'];  
+                $arrList[$ctr]['bmaddress']             = $arrData[$i]['bmtble']['bmaddress']; 
+                $arrList[$ctr]['bmmail']                = $arrData[$i]['bmtble']['bmmail']; 
+                $arrList[$ctr]['menu_info']             = $arrData[$i]['bmtble']['menu_info']; 
+                $arrList[$ctr]['origination']           = $arrData[$i]['transaction']['origination']; 
+                $arrList[$ctr]['bmstaff']               = $arrData[$i]['bmtble']['bmstaff']; 
+                $arrList[$ctr]['secondnote']            = $arrData[$i]['str_bm_notes']['secondnote']; 
+                /*----------------------------------------------------------------------------------------------------------------------*/
+                /*add by albert 2015-10-30 BM connection information -------------------------------------------------------------------*/
+                /*----------------------------------------------------------------------------------------------------------------------*/
                 
                 /////////////////////////////////////////////////////////////////////
                 $arrList[$ctr]['YOYAKUTIME'] = substr($arrData[$i]['details']['STARTTIME'], 0, 5); //substr($arrData[$i]['transaction']['STARTTIME'], 0, 5);

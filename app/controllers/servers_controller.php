@@ -644,6 +644,69 @@ class ServersController extends WebServicesController
                             'output' => array('return'     => 'xsd:boolean')),
                      //- ############################################################
         
+                     //==============================================================
+                     //customer search listing for Ingtegration
+                     //by albert 2015-11-18
+                     //--------------------------------------------------------------
+                      'wsGetCustomerList' => array(
+                            'doc'    => 'GetCustomerListing',
+                            'input'  => array('sessionid'   => 'xsd:string',
+                                              'storecode'   => 'xsd:int',
+                                              'datefr'      => 'xsd:string',
+                                              'dateto'      => 'xsd:string',
+                                              'firstdate'   => 'xsd:boolean',
+                                              'pageindex'   => 'xsd:int',
+                                              'filename1'   => 'xsd:string',
+                                              'allstoreflg' => 'xsd:int',
+                                              'basecode'    => 'xsd:string'),
+                            'output' => array('return'      => 'tns:return_storeCustomerListing')),
+        
+                            'wsCustomerMergeSave' => array(
+                            'doc'    => 'saveCustomerMerging',
+                            'input'  => array('sessionid'   => 'xsd:string',
+                                              'strcode'     => 'xsd:int',
+                                              'fromccode'   => 'xsd:string',
+                                              'toccode'     => 'xsd:string',
+                                              'companyid'   => 'xsd:int',
+                                              'param'       => 'customerInformation'),
+                            'output' => array('return'      => 'xsd:int')),
+        
+                      'wsGetReservation' => array(
+                            'doc'    => 'GetReservation',
+                            'input'  => array('sessionid'   => 'xsd:string',
+                                              'storecode'   => 'xsd:int',
+                                              'origination' => 'xsd:int',  
+                                              'datefr'      => 'xsd:string',
+                                              'dateto'      => 'xsd:string',
+                                              'pageno'      => 'xsd:int',
+                                              'ascsort'     => 'xsd:int',
+                                              'colsort'     => 'xsd:int'),
+                            'output' => array('return'      => 'tns:return_storeReservationListing')),
+        
+        
+                      'wsGetReservationCounter' => array(
+                            'doc'    => 'GetReservationCounter',
+                            'input'  => array('sessionid'   => 'xsd:string',
+                                              'storecode'   => 'xsd:int',
+                                              'datefr'      => 'xsd:string',
+                                              'dateto'      => 'xsd:string'),
+                            'output' => array('return'      => 'tns:return_storeReservationCounter')),
+        
+        
+                      'wsUpdateTransaction2' => array(
+                            'doc'    => 'updatetransaction2',
+                            'input'  => array('sessionid'   => 'xsd:string',
+                                              'transcode'   => 'xsd:string',
+                                              'keyno'       => 'xsd:int',  
+                                              'alreadyread' => 'xsd:int',
+                                              'syscode'     => 'xsd:int'),
+                            'output' => array('return'      => 'xsd:int')),
+        
+                     //--------------------------------------------------------------
+                     //customer search listing for Ingtegration
+                     //by albert 2015-11-18
+                     //==============================================================
+        
                      //--------------------------------------------------------------
                      // GET STORE EMAIL DOMAIN
                      // Added by: MarvinC - 2015-12-05 14:34
@@ -667,7 +730,6 @@ class ServersController extends WebServicesController
                             'output' => array('return'     => 'xsd:int'))
                      //- ############################################################
                      );
-
 
     //-- Complexタイプの参照 (Complex Type Definitions)
     var $complexTypes = array(// LOGIN ----------------------------------------------
@@ -763,6 +825,19 @@ class ServersController extends WebServicesController
                                         'FIRSTDATE'     => 'xsd:string',
                                         'LASTSTAFFCODE' => 'xsd:int',
                                         'LASTSTAFFNAME' => 'xsd:string',
+                                    /*--------------------------------------------*/
+                                    /* add by albert for bm connection 2015-11-05 */
+                                    /*--------------------------------------------*/
+                                        'BLOODTYPE'      => 'xsd:string', 
+                                        'BMCODE'         => 'xsd:string', 
+                                        'MEMBER_CODE'    => 'xsd:string', 
+                                        'SMOKING'        => 'xsd:int', 
+                                        'DMKUBUN'        => 'xsd:int', 
+                                        'JOBINDUSTRYCODE'=> 'xsd:int', 
+                                        'JOBINDUSTRY'    => 'xsd:string', 
+                                    /*--------------------------------------------*/
+                                    /* add by albert for bm connection 2015-11-05 */
+                                    /*--------------------------------------------*/
                                         'FULLADDRESS'   => 'xsd:string')),
                              '_customerInformation' => array(
                                         'array' => 'customerInformation'),
@@ -1322,11 +1397,49 @@ class ServersController extends WebServicesController
                                         'YOYAKU'           => 'xsd:int',
                                         'STARTTIME'        => 'xsd:string',
                                         'SERVICESNAME'     => 'xsd:string', //Update by MarvinC - Added param for syscode
-                                        'YOYAKU_STATUS'     => 'xsd:string', //Update by MarvinC - Added param for syscode
+                                        'YOYAKU_STATUS'    => 'xsd:string', //Update by MarvinC - Added param for syscode
                                         'INCOMPLETE'       => 'xsd:int',
                                         'UKETSUKESTAFFNAME'=> 'xsd:string',
-                                        'details'          => 'tns:_storeTransactionDetailInformation',
-                                        'rejimarketing'    => 'tns:_rejiMarketingInformation')),
+                                    /*--------------------------------------------*/
+                                    /* add by albert for bm connection 2015-10-29 */
+                                    /*--------------------------------------------*/
+                                        'route'            => 'xsd:string', 
+                                        'reservation_system'=> 'xsd:string', 
+                                        'reserve_date'      => 'xsd:string', 
+                                        'reserve_code'      => 'xsd:string', 
+                                        'v_date'            => 'xsd:string', 
+                                        'start_time'        => 'xsd:string', 
+                                        'end_time'          => 'xsd:string', 
+                                        'coupon_info'       => 'xsd:string', 
+                                        'comment'           => 'xsd:string', 
+                                        'shop_comment'      => 'xsd:string', 
+                                        'next_coming_comment'   => 'xsd:string', 
+                                        'demand'            => 'xsd:string', 
+                                        'site_customer_id'  => 'xsd:string', 
+                                        'bmPrice'           => 'xsd:int', 
+                                        'nomination_fee'    => 'xsd:int', 
+                                        'bmTprice'          => 'xsd:int', 
+                                        'use_point'         => 'xsd:int', 
+                                        'grant_point'       => 'xsd:int', 
+                                        'visit_num'         => 'xsd:int', 
+                                        'firstname'         => 'xsd:string', 
+                                        'lastname'          => 'xsd:string', 
+                                        'bmsex'             => 'xsd:int', 
+                                        'knfirstname'       => 'xsd:string', 
+                                        'knlastname'        => 'xsd:string', 
+                                        'bmtel'             => 'xsd:string', 
+                                        'bmzip'             => 'xsd:string',  
+                                        'bmaddress'         => 'xsd:string', 
+                                        'bmmail'            => 'xsd:string',
+                                        'menu_info'         => 'xsd:string',
+                                        'origination'       => 'xsd:int',
+                                        'bmstaff'           => 'xsd:string',
+                                        'secondnote'        => 'xsd:string',
+                                    /*--------------------------------------------*/
+                                    /* add by albert for bm connection 2015-10-29 */
+                                    /*--------------------------------------------*/
+                                        'details'           => 'tns:_storeTransactionDetailInformation',
+                                        'rejimarketing'     => 'tns:_rejiMarketingInformation')),
                              '_storeTransactionInformation' => array(
                                         'array' => 'storeTransactionInformation'),
                              'return_storeTransactionInformation' => array('struct' => array(
@@ -1552,8 +1665,655 @@ class ServersController extends WebServicesController
                                     'tostorecode'    => 'xsd:int',
                                     'tostorename'    => 'xsd:string')),
                              '_YoyakuAllowTransToStore' => array (
-                                    'array'     =>   'YoyakuAllowTransToStore'),       
+                                    'array'     =>   'YoyakuAllowTransToStore'),  
+        
+        
+        
+                            //==============================================================
+                            //customer search listing for Integration
+                            //by albert 2015-11-18
+                            //--------------------------------------------------------------
+                            'storeCustomerListing' => array('struct' => array(
+                                        'ccode'         => 'xsd:string',
+                                        'cnumber'       => 'xsd:string',
+                                        'cname'         => 'xsd:string',
+                                        'cnamekana'     => 'xsd:string',
+                                        'sex'           => 'xsd:string',
+                                        'tel1'          => 'xsd:string',
+                                        'tel2'          => 'xsd:string',
+                                        'birthdate'     => 'xsd:string',
+                                        'christian_era' => 'xsd:string',
+                                        'mailaddress1'  => 'xsd:string',
+                                        'mailaddress2'  => 'xsd:string',
+                                        'zipcode1'      => 'xsd:string',
+                                        'address1'      => 'xsd:string',
+                                        'mansionmei'    => 'xsd:string',
+                                        'cstorecode'    => 'xsd:string',
+                                        'firstdate'     => 'xsd:string',
+                                        'lastdate'      => 'xsd:string',
+                                        'storename'     => 'xsd:string')),
+                            '_storeCustomerListing' => array(
+                                        'array' => 'storeCustomerListing'),
+                            'return_storeCustomerListing' => array('struct' => array(
+                                        'records'      => 'tns:_storeCustomerListing',
+                                        'record_count' => 'xsd:int',
+                                        'totalrecords'  => 'xsd:string')),
+        
+                            'storeReservationListing'   => array('struct' => array(
+                                        'transdate'     => 'xsd:string',
+                                        'starttime'     => 'xsd:string',
+                                        'cname'         => 'xsd:string',
+                                        'staffname'     => 'xsd:string',
+                                        'reservationdt' => 'xsd:string',
+                                        'reservationtm' => 'xsd:string',
+                                        'transstat'     => 'xsd:string',
+                                        'alreadyread'   => 'xsd:int',
+                                        'keyno'         => 'xsd:int',
+                                        'transcode'     => 'xsd:string',
+                                        'route'         => 'xsd:string',
+                                        'syscode'      => 'xsd:string')),
+                            '_storeReservationListing'  => array(
+                                        'array' => 'storeReservationListing'),
+                            'return_storeReservationListing' => array('struct' => array(
+                                        'records'       => 'tns:_storeReservationListing',
+                                        'cntAll'        => 'xsd:int',
+                                        'cntAllUnRead'  => 'xsd:int',
+                                        'cntB'          => 'xsd:int',
+                                        'cntUnReadB'    => 'xsd:int',
+                                        'cntN'          => 'xsd:int',
+                                        'cntUnReadN'    => 'xsd:int',
+                                        'cntM'          => 'xsd:int',
+                                        'cntUnReadM'    => 'xsd:int',
+                                        'cntE'          => 'xsd:int',
+                                        'cntUnReadE'    => 'xsd:int',
+                                        'cntBM'         => 'xsd:int',
+                                        'cntUnReadBM'   => 'xsd:int')),
+        
+                            
+                            'storeReservationCounter'   => array('struct' => array(
+                                        'cntAll'        => 'xsd:int',
+                                        'cntAllUnRead'  => 'xsd:int',
+                                        'cntB'          => 'xsd:int',
+                                        'cntUnReadB'    => 'xsd:int',
+                                        'cntN'          => 'xsd:int',
+                                        'cntUnReadN'    => 'xsd:int',
+                                        'cntM'          => 'xsd:int',
+                                        'cntUnReadM'    => 'xsd:int',
+                                        'cntE'          => 'xsd:int',
+                                        'cntUnReadE'    => 'xsd:int',
+                                        'cntBM'         => 'xsd:int',
+                                        'cntUnReadBM'   => 'xsd:int')),
+                            '_storeReservationCounter'  => array(
+                                        'array' => 'storeReservationCounter'),
+                            'return_storeReservationCounter' => array('struct' => array(
+                                        'records'       => 'tns:_storeReservationCounter')),
+                            //--------------------------------------------------------------
+                            //customer search listing for Integration
+                            //by albert 2015-11-18
+                            //==============================================================
+        
                          );
+    
+    
+    
+// wsGetCustomerList  ------------------------------------------------------------------------------------------------------------------------
+/* author : Albert 2015-11-18
+ * Customer Listing posible for merging
+ * @param array $param
+ * @return customerlistinginfo
+ */
+ function wsGetCustomerList($sessionid, $storecode, $datefr, $dateto, $firstdate, $pageindex, $filename1, $allstoreflg, $basecode){
+
+    //===================================================================================
+    //(Verify Session and Get DB name)
+    //-----------------------------------------------------------------------------------
+    $storeinfo = $this->YoyakuSession->Check($this);
+    if ($storeinfo == false) {
+       $this->_soap_server->fault(1, '', INVALID_SESSION);
+        return;
+    } 
+    $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
+    //===================================================================================
+    
+    $strcond = "";
+    if ($allstoreflg == 0){
+        $strcond = " and cstorecode = " . $storecode;
+    }else{
+        $strcond = " and cstorecode > 0 ";
+    }
+    
+    $firstdatecond = "";
+    if ($firstdate == true){
+        $firstdatecond = " and firstdate between '" . $datefr . "' and '" . $dateto . "'";
+    }
+
+    //===================================================================================
+    // Get GetCustomerList Data
+    //-----------------------------------------------------------------------------------
+    $totalrec = "select count(ccode)
+                 from customer
+                 where delflg is null and ccode <> '" . $basecode . "'" . $strcond .  $filename1 . $firstdatecond;
+    
+    $Sql = "select ccode, cnumber, cname, cnamekana, sex, tel1, tel2, birthdate, christian_era, 
+                     mailaddress1, mailaddress2, zipcode1, address1, mansionmei, cstorecode, firstdate, lastdate,
+                     ($totalrec) as totalrecords
+            from
+                    (select ccode, cnumber, cname, cnamekana, sex, tel1, tel2, birthdate, christian_era, 
+                            mailaddress1, mailaddress2, zipcode1, address1, mansionmei, cstorecode, firstdate, lastdate
+                    from customer
+                    where delflg is null and ccode <> '" . $basecode . "'" . $strcond . $filename1 . $firstdatecond . "
+                    order by cnamekana, firstdate 
+                    limit " . ($pageindex * 50) . ", 50) tblresult"; 
+    //-----------------------------------------------------------------------------------
+    $GetData = $this->Customer->query($Sql);
+    //===================================================================================
+    $arr_cust = $this->ParseDataToObjectArray($GetData, 'tblresult');
+    //===================================================================================
+    $ret = array();
+    $ret['totalrecords'] = $GetData[0][0]["totalrecords"];
+    $ret['records']      = $arr_cust;
+    $ret['record_count'] = count($arr_cust);
+    //=================================================================================================================
+    return $ret;
+    //=================================================================================================================
+}
+
+
+// wsCustomerMergeSave -----------------------------------------------------------------------------------------------------------------------
+/* author : Albert 2015-11-24
+ * Customer merging
+ * @param array $param
+ * @return customerlistinginfo
+ */
+ function wsCustomerMergeSave($sessionid, $strcode, $fromccode, $toccode, $companyid, $params){
+                                             
+        //===================================================================================
+        //(Verify Session and Get DB name)
+        //-----------------------------------------------------------------------------------
+        $storeinfo = $this->YoyakuSession->Check($this);
+        if ($storeinfo == false) {
+           $this->_soap_server->fault(1, '', INVALID_SESSION);
+            return;
+        }
+        $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
+        //===================================================================================
+        
+        $Sql = "Select cstorecode from customer where ccode = '" . $toccode . "'";
+        $GetData = $this->Customer->query($Sql);
+        
+        $newstorecode = 0;
+        if (count($GetData) > 0) {
+            $newstorecode = $GetData[0]["customer"]["cstorecode"];
+        }else{
+            return false;
+        }
+        if($newstorecode == 0){
+            return false;
+        }
+      
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        //set old customer CNUMBER to NULL to remove the Duplicate entry -----------------------------------------------------------------------------------
+        $Sql = "update customer set cnumber = null where ccode = '" . $fromccode . "'";
+        $GetData = $this->Customer->query($Sql);
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        //get the addition information for customer --------------------------------------------------------------------------------------------------------
+        $Sql = "Select STAFF_INCHARGE_SELECTED, AGERANGE, REFERRALRELATIONCODE, INTRODUCETYPE, STOREDATE, CHRISTIAN_ERA  from customer where ccode = '" . $fromccode . "'";
+        $GetData = $this->Customer->query($Sql);
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        //undating of new customer information in customer table -------------------------------------------------------------------------------------------
+        $Sql = "update customer
+                set CNUMBER = '" . $params['CNUMBER'] . "',
+                    CNAME = '". $params['CNAME'] ."',
+                    CNAMEKANA = '". $params['CNAMEKANA'] ."',
+                    MEMBER_CODE = '". $params['MEMBER_CODE'] ."',
+                    SEX = ". $params['SEX'] .",
+                    SMOKING = ". $params['SMOKING'] .",
+                    REGULAR = ". $params['REGULAR'] .",
+                    TEL1 = '". $params['TEL1'] ."',
+                    TEL2 = '". $params['TEL2'] ."',
+                    MAILADDRESS1 = '". $params['MAILADDRESS1'] ."',
+                    MAILADDRESS2 = '". $params['MAILADDRESS2'] ."',
+                    ZIPCODE1 = '". $params['ZIPCODE1'] ."',
+                    KEN1 = '". $params['KEN1'] ."',
+                    SITYO1 = '". $params['SITYO1'] ."',
+                    MANSIONMEI = '". $params['MANSIONMEI'] ."',
+                    ADDRESS1 = '". $params['ADDRESS1'] ."',
+                    BIRTHDATE = '". $params['BIRTHDATE'] ."',
+                    MEMBERSCATEGORY = ". $params['MEMBERSCATEGORY'] .",
+                    DMKUBUN = ". $params['DMKUBUN'] .",    
+                    MAILKUBUN = ". $params['MAILKUBUN'] .",
+                    BLOODTYPE = '". $params['BLOODTYPE'] ."',
+                    JOBINDUSTRYCODE = ". $params['JOBINDUSTRYCODE'] .",
+                    HOWKNOWSCODE = ". $params['HOWKNOWSCODE'] .",
+                        
+                    CHRISTIAN_ERA = ". $GetData[0]["customer"]['CHRISTIAN_ERA'] .",
+                    INTRODUCETYPE = ". $GetData[0]["customer"]["INTRODUCETYPE"] .",
+                    STOREDATE = '". $GetData[0]["customer"]["STOREDATE"] ."',
+                    REFERRALRELATIONCODE = ". $GetData[0]["customer"]["REFERRALRELATIONCODE"] .",
+                    AGERANGE = ". $GetData[0]["customer"]["AGERANGE"] .",
+                    STAFF_INCHARGE_SELECTED = ". $GetData[0]["customer"]["STAFF_INCHARGE_SELECTED"] ."
+                where ccode = '". $toccode ."'";
+        
+        //print_r($Sql); die();
+        $GetData = $this->Customer->query($Sql);
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        //update ccode for the following table -------------------------------------------------------------------------------------------------------------
+        $tablename = Array("store_transaction", "bm_reservation", "credit_trans", "coupon_trans", "customer_mails", "store_transaction_apsales", "store_transaction_item",
+                           "yoyaku_message", "ks_yoyaku");
+	for ($ctr = 0; $ctr < count($tablename); $ctr++) {
+            $GetData = "";
+            if ($ctr == 0) { // disable the trigger first to preserved transaction data 
+                $Sql = "Update dbsettings set dbvalue = 1 where dbset = 'DISABLE_TRIGGER'";
+                $GetData = $this->Customer->query($Sql);
+                
+                $GetData = "";
+                $Sql = "Update store_transaction set cname = '" . $params['CNAME'] . "'  where ccode = '" . $toccode . "'";
+                $GetData = $this->Customer->query($Sql);
+                
+                $GetData = "";
+                $Sql = "Update store_transaction set ccode = '" . $toccode . "', cname = '" . $params['CNAME'] . "'  where ccode = '" . $fromccode . "'";
+                $GetData = $this->Customer->query($Sql);
+                
+                // enable trigger
+                $GetData = "";
+                $Sql = "Update dbsettings set dbvalue = 0 where dbset = 'DISABLE_TRIGGER'";
+                $GetData = $this->Customer->query($Sql);
+                
+            }elseif ($ctr == 1){ //update ccode to bm_reservation
+                $Sql = "Update bm_reservation set ccode = '" . $toccode . "', site_customer_id = '" . $params['BMCODE'] . "',
+                                                  mail =  '" . $params['MAILADDRESS1'] . "',  
+                                                  zipcode =  '" . $params['ZIPCODE1'] . "', tel =  '" . $params['TEL1'] . "', 
+                                                  sex =  " . (($params['SEX'] == 1) ? 0 : 1) . "
+                        where ccode = '" . $fromccode . "'";
+                $GetData = $this->Customer->query($Sql);
+                
+            }else{//update ccode for the following table
+                $Sql = "Update ".$tablename[$ctr]." set ccode = '" . $toccode . "' where ccode = '" .$fromccode . "'";
+                $GetData = $this->Customer->query($Sql);
+            }        
+            
+	}
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        //update dcustomerinfo table for new customer code -------------------------------------------------------------------------------------------------
+        $GetData = "";
+        $Sql = "Insert IGNORE into dcustomerinfo(ccode, ITEMCODE,ITEMLISTCODE, `STORECODE`,`DELFLG` )
+			Select '" . $toccode . "', custinfo.ITEMCODE,ITEMLISTCODE, '" . $newstorecode . "', custinfo.DELFLG
+			from dcustomerinfo custinfo
+			where custinfo.ccode = '" . $fromccode . "'";
+	$GetData = $this->Customer->query($Sql);
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        //update customer relation table for new customer code ---------------------------------------------------------------------------------------------
+        $GetData = "";
+        $Sql = "Insert IGNORE into `customer_relation`(ccode, TORELATIONCCODE, RELATIONCODE, STORECODE, REMARKS, DELFLG )
+			Select '" . $toccode . "', relation.TORELATIONCCODE, relation.RELATIONCODE, '" . $newstorecode . "', relation.REMARKS, relation.DELFLG
+			from customer_relation relation
+			where relation.ccode = '" . $fromccode . "'";
+	$GetData = $this->Customer->query($Sql);
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        //update customer total table for new customer code ------------------------------------------------------------------------------------------------
+        $GetData = "";
+        $Sql = "Insert into customertotal(storecode, ccode, pointtotal1, pointtotal2)
+                 Select '" . $newstorecode . "', '" . $toccode . "', custot.pointtotal1, custot.pointtotal2
+                     from customertotal custot
+                    where custot.ccode =  '" . $fromccode . "'
+             on duplicate key update customertotal.pointtotal1 = customertotal.pointtotal1 + custot.pointtotal1,
+                customertotal.pointtotal2 = customertotal.pointtotal2 + custot.pointtotal2";
+	$GetData = $this->Customer->query($Sql);
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        //update customer total table for old customer code set the delflug --------------------------------------------------------------------------------
+        $GetData = "";
+        $Sql = "Update customertotal set delflg = now() where ccode = '" . $fromccode . "'";
+	$GetData = $this->Customer->query($Sql);
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        //update customer anniversary table for new customer code ------------------------------------------------------------------------------------------
+        $GetData = "";
+        $Sql = "Insert into customer_anniversary(ccode, anniversarycode, anniversarydate, storecode)
+			Select '" . $toccode . "', custanni.anniversarycode, custanni.anniversarydate, '" . $newstorecode . "'
+			from customer_anniversary custanni
+			where custanni.ccode = '" . $fromccode . "'
+			On Duplicate Key Update customer_anniversary.ANNIVERSARYDATE= custanni.anniversarydate,
+			customer_anniversary.storecode = custanni.storecode";
+	$GetData = $this->Customer->query($Sql);
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        //update customer anniversary table for old customer code set the delflug --------------------------------------------------------------------------
+        $GetData = "";
+        $Sql = "Update customer_anniversary set delflg = now() where ccode = '" . $fromccode . "'";
+	$GetData = $this->Customer->query($Sql);
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        //update customer free memo table for new customer code --------------------------------------------------------------------------------------------
+        $GetData = "";
+        $Sql = "Insert into freememo(ccode, memocode, `memo`)
+			Select '" . $toccode . "', custmemo.memocode, custmemo.memo
+			from freememo custmemo
+			where custmemo.ccode = '" . $fromccode . "'
+			On Duplicate Key Update freememo.memo = custmemo.memo";
+	$GetData = $this->Customer->query($Sql);
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        //update customer free memo table for old customer code set the delflug ----------------------------------------------------------------------------
+        $GetData = "";
+        $Sql = "Update freememo set delflg = now() where ccode = '" . $fromccode . "'";
+	$GetData = $this->Customer->query($Sql);
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        //add memo to the current customer that the old customer was merge ---------------------------------------------------------------------------------
+        $GetData = "";
+        $Sql = "Insert into freememo(ccode, memocode, `memo`) 
+                       Values('" . $toccode . "', f_get_memocode('" . $toccode . "'), 
+	 	concat((select cnumber from customer where ccode = '" . $fromccode . "'), '-この顧客は別の顧客に統合されました。', now()))";
+	$GetData = $this->Customer->query($Sql);
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        //update customer relation torelation code for new customer code -----------------------------------------------------------------------------------
+        $GetData = "";
+        $Sql = "Update customer_relation set TORELATIONCCODE = '" . $toccode . "' where TORELATIONCCODE = '" . $fromccode . "'";
+	$GetData = $this->Customer->query($Sql);
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        //update referralcode for new customer code -------------------------------------------------------------------------------------------------
+        $GetData = "";
+        $Sql = "Update customer set REFERRALCODE = '" . $toccode . "' where introducetype = 2 and REFERRALCODE = '" . $fromccode . "'";
+	$GetData = $this->Customer->query($Sql);
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        //update store transaction free customer referral code for new customer code -----------------------------------------------------------------------
+        $GetData = "";
+        $Sql = "Update store_transaction tr
+                Set tr.referralcode = '" . $toccode . "'
+                where tr.delflg is null and convert(substring(tr.ccode, 4), signed) = 0
+                      and tr.tempstatus = 0 and tr.introducetype = 2 and tr.referralcode = '" . $fromccode . "'";
+        $GetData = $this->Customer->query($Sql);
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        //update delflug of customer to be merge -----------------------------------------------------------------------------------------------------------
+        $GetData = "";
+        $Sql = "update customer SET DELFLG = NOW() where ccode = '" . $fromccode . "'";
+        $GetData = $this->Customer->query($Sql);
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        //insert data into dcustomermerge table ------------------------------------------------------------------------------------------------------------
+        $GetData = "";
+        $Sql = "Insert into dcustomermerge(ccodeold, ccodenew, updatedate) 
+                       Values('" . $fromccode . "', '" . $toccode . "', now())";
+	$GetData = $this->Customer->query($Sql);
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        //update note copy of the comment ------------------------------------------------------------------------------------------------------------------
+        $GetData = "";
+        $Sql = "update customer as cust1, (SELECT CAUTIONMEMO FROM customer where ccode = '" . $fromccode . "') as cust2
+                       set cust1.CAUTIONMEMO = concat(cust1.CAUTIONMEMO,' ', cust2.CAUTIONMEMO)
+                where cust1.ccode = '" . $toccode . "'";
+	$GetData = $this->Customer->query($Sql);
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+ 
+        return $newstorecode;
+}
+
+
+// wsGetReservationCounter -----------------------------------------------------------------------------------------------------------------------
+/* author : Albert 2015-12-16
+ * Get Reservation
+ * @param array $param
+ * @return reservation listing info counter
+ */
+ function wsGetReservationCounter($sessionid, $strcode, $datefr, $dateto){
+             
+    //===================================================================================
+    //(Verify Session and Get DB name)
+    //-----------------------------------------------------------------------------------
+    $storeinfo = $this->YoyakuSession->Check($this);
+    if ($storeinfo == false) {
+       $this->_soap_server->fault(1, '', INVALID_SESSION);
+        return;
+    }
+    $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
+    //===================================================================================
+
+    if ($dateto !== ""){
+        $datatransdate = " and str_hdr.transdate between '" . $datefr . "' and '" . $dateto . "' ";
+    }else{
+        $datatransdate = " and str_hdr.transdate = '" . $datefr . "' ";
+    }
+    
+    $datastrcode = "";
+    if ($strcode > 0){
+        $datastrcode = " and str_hdr.storecode = " . $strcode;
+    }
+    
+    //count all reservation -------------------------------------------------------------------------------------------
+    $sql = "select cntAllUnRead, cntUnReadB, cntUnReadN, cntUnReadM, cntUnReadE, cntUnReadBM
+			from (select count(DISTINCT if(alreadyread = 0, transcode, null)) as cntAllUnRead,
+                                     count(DISTINCT if(alreadyread = 0 and syscode = 1,transcode, null)) as cntUnReadB,
+                                     count(DISTINCT if(alreadyread = 0 and syscode = 2,transcode, null)) as cntUnReadN,
+                                     count(DISTINCT if(alreadyread = 0 and syscode = 3,transcode, null)) as cntUnReadM,
+                                     count(DISTINCT if(alreadyread = 0 and syscode = 4,transcode, null)) as cntUnReadE,
+                                     count(DISTINCT if(alreadyread = 0 and syscode = -2,transcode, null)) as cntUnReadBM
+				from
+					(select str_hdr.transcode, ifnull(str_trans2.alreadyread, 0) as alreadyread, svr.syscode
+					from store_transaction as str_hdr
+							join store_transaction_details as str_dtl on str_hdr.transcode = str_dtl.transcode and str_hdr.keyno = str_dtl.keyno
+							left join store_services as str_svr on str_dtl.gcode = str_svr.gcode
+							left join services as svr on str_svr.gdcode = svr.gdcode
+							left join yoyaku_details as yk_dtl on str_hdr.transcode = yk_dtl.transcode
+							left join staff as stff on str_hdr.staffcode = stff.staffcode
+							left join store_transaction2 as str_trans2 on str_hdr.transcode = str_trans2.transcode and str_hdr.keyno = str_trans2.keyno and svr.syscode = str_trans2.syscode
+					where str_hdr.delflg is null and str_hdr.yoyaku <> 0 " . $datastrcode . $datatransdate . "
+                                        group by svr.syscode, str_dtl.transcode
+					order by str_hdr.transdate, str_hdr.starttime
+				) as tbllist) as tblecount";
+    
+    
+    //===================================================================================
+    $GetData = $this->Customer->query($sql);
+    $arr_reservation = $this->ParseDataToObjectArray($GetData, 'tblecount');
+    //===================================================================================
+    $ret = array();
+    $ret['records'] = $arr_reservation;
+    //=================================================================================================================
+    
+    return $ret;
+    //===================================================================================
+}
+
+
+// wsGetReservation -----------------------------------------------------------------------------------------------------------------------
+/* author : Albert 2015-12-02
+ * Get Reservation
+ * @param array $param
+ * @return reservationlistinginfo
+ */
+ function wsGetReservation($sessionid, $strcode, $origination, $datefr, $dateto, $pageno, $ascsort, $colsort){
+             
+    //===================================================================================
+    //(Verify Session and Get DB name)
+    //-----------------------------------------------------------------------------------
+    $storeinfo = $this->YoyakuSession->Check($this);
+    if ($storeinfo == false) {
+       $this->_soap_server->fault(1, '', INVALID_SESSION);
+        return;
+    }
+    $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
+    //===================================================================================
+    
+    $sorting  = " desc ";
+    if ($ascsort == 1) {
+        $sorting  = " desc ";
+    }else{
+        $sorting  = " asc ";
+    }
+    
+    $orderby = " transdate " . $sorting . ", starttime desc ";
+    if ($colsort == 0){
+        $orderby = " alreadyread " . $sorting . ", transdate desc, starttime desc ";
+    }elseif ($colsort == 1){
+        $orderby = " reservationdt " . $sorting . ", transdate desc, starttime desc ";
+    }elseif ($colsort == 2){
+        $orderby = " transdate " . $sorting . ", starttime desc ";
+    }elseif ($colsort == 3){
+        $orderby = " cname " . $sorting . ", transdate desc, starttime desc ";
+    }elseif ($colsort == 4){
+        $orderby = " staffname " . $sorting . ", transdate desc, starttime desc ";
+    }elseif ($colsort == 5){
+        $orderby = " transstat " . $sorting . ", transdate desc, starttime desc ";
+    }elseif ($colsort == 6){
+        $orderby = " route " . $sorting . ", transdate desc, starttime desc ";
+    }
+    
+    $datastrcode = "";
+    if ($strcode > 0){
+        $datastrcode = " and str_hdr.storecode = " . $strcode;
+    }
+    
+    if ($dateto !== ""){
+        $datatransdate = " and str_hdr.transdate between '" . $datefr . "' and '" . $dateto . "' ";
+    }else{
+        $datatransdate = " and str_hdr.transdate = '" . $datefr . "' ";
+    }
+    
+    $dataoriginate = "";
+    if ($origination == 7){
+        //$dataoriginate = " and str_hdr.origination = 7 ";
+        $dataoriginate = " and svr.syscode = -2 ";
+    }elseif ($origination == 0){
+        $dataoriginate = "";
+    }else{
+        $dataoriginate = " and svr.syscode = " . $origination;
+    }
+
+    //main query ------------------------------------------------------------------------------------------------------
+    $sql = "select transcode, keyno, transdate, starttime, reservationdt, reservationtm, cname, staffname, transstat, route, alreadyread, syscode
+            from
+                (select str_hdr.transcode, str_hdr.keyno, DATE_FORMAT(str_hdr.transdate, '%Y年%m月%d日') as transdate, 
+                        if(ifnull(str_hdr.starttime, '') <> '', DATE_FORMAT(str_hdr.starttime, '%H:%i'), '') as starttime,
+                        if(ifnull(yk_dtl.updatedate, '') <> '', DATE_FORMAT(yk_dtl.updatedate, '%Y年%m月%d日'), '') as reservationdt,
+                        if(ifnull(str_hdr.YOYAKUTIME, '') <> '', DATE_FORMAT(str_hdr.YOYAKUTIME, '%H:%i'), '') as reservationtm,
+                        str_hdr.cname, stff.staffname, if(yk_dtl.cancel = 0, '取得', 'キャンセル') as transstat,
+                        if(str_hdr.origination = 7 and svr.syscode = -2, 'BM', 'もばすて') as route, ifnull(str_trans2.alreadyread, 0) as alreadyread, svr.syscode
+                        #GROUP_CONCAT(DISTINCT svr.syscode) as syscode
+                from store_transaction as str_hdr
+                        left join store_transaction_details as str_dtl on str_hdr.transcode = str_dtl.transcode and str_hdr.keyno = str_dtl.keyno
+                        left join store_services as str_svr on str_dtl.gcode = str_svr.gcode
+                        left join services as svr on str_svr.gdcode = svr.gdcode
+                        left join yoyaku_details as yk_dtl on str_hdr.transcode = yk_dtl.transcode
+                        left join staff as stff on str_dtl.staffcode = stff.staffcode
+                        left join store_transaction2 as str_trans2 on str_hdr.transcode = str_trans2.transcode and str_hdr.keyno = str_trans2.keyno and svr.syscode = str_trans2.syscode
+                where str_hdr.delflg is null and str_dtl.delflg is null and str_hdr.yoyaku <> 0 " . $datastrcode . $datatransdate . $dataoriginate . "
+                group by transcode, syscode
+                order by " . $orderby . " , transcode
+            limit " . ($pageno * 50) . ", 50) as tbllist";
+   //print_r($sql); die();
+    //===================================================================================
+	$GetData = $this->Customer->query($sql);
+	$arr_reservation = $this->ParseDataToObjectArray($GetData, 'tbllist');
+	//===================================================================================
+    $ret = array();
+    $ret['records'] = $arr_reservation;
+    //=================================================================================================================
+    
+    //count all reservation -------------------------------------------------------------------------------------------
+    $sql = "select count(DISTINCT transcode) as cntAll,
+			 count(DISTINCT if(alreadyread = 0, transcode, null)) as cntAllUnRead,
+			 count(DISTINCT if(syscode = 1, transcode, null)) as cntB,
+			 count(DISTINCT if(alreadyread = 0 and syscode = 1,transcode, null)) as cntUnReadB,
+			 count(DISTINCT if(syscode = 2, transcode, null)) as cntN,
+			 count(DISTINCT if(alreadyread = 0 and syscode = 2,transcode, null)) as cntUnReadN,
+			 count(DISTINCT if(syscode = 3, transcode, null)) as cntM,
+			 count(DISTINCT if(alreadyread = 0 and syscode = 3,transcode, null)) as cntUnReadM,
+			 count(DISTINCT if(syscode = 4, transcode, null)) as cntE,
+			 count(DISTINCT if(alreadyread = 0 and syscode = 4,transcode, null)) as cntUnReadE,
+			 count(DISTINCT if(syscode = -2, transcode, null)) as cntBM,
+			 count(DISTINCT if(alreadyread = 0 and syscode = -2,transcode, null)) as cntUnReadBM
+            from
+                (select str_hdr.transcode,
+                        ifnull(str_trans2.alreadyread, 0) as alreadyread,
+                        svr.syscode
+                from store_transaction as str_hdr
+                        left join store_transaction_details as str_dtl on str_hdr.transcode = str_dtl.transcode and str_hdr.keyno = str_dtl.keyno
+                        left join store_services as str_svr on str_dtl.gcode = str_svr.gcode
+                        left join services as svr on str_svr.gdcode = svr.gdcode
+                        left join yoyaku_details as yk_dtl on str_hdr.transcode = yk_dtl.transcode
+                        left join staff as stff on str_hdr.staffcode = stff.staffcode
+                        left join store_transaction2 as str_trans2 on str_hdr.transcode = str_trans2.transcode and str_hdr.keyno = str_trans2.keyno and svr.syscode = str_trans2.syscode
+                where str_hdr.delflg is null and str_hdr.yoyaku <> 0 " . $datastrcode . $datatransdate . "
+                order by str_hdr.transdate, str_hdr.starttime
+            ) as tbllist";
+    
+    //===================================================================================
+    $GetData = $this->Customer->query($sql);
+    //===================================================================================
+    $ret['cntAll']      = $GetData[0][0]['cntAll'];
+    $ret['cntAllUnRead']= $GetData[0][0]['cntAllUnRead'];
+    $ret['cntB']        = $GetData[0][0]['cntB'];
+    $ret['cntUnReadB']  = $GetData[0][0]['cntUnReadB'];
+    $ret['cntN']        = $GetData[0][0]['cntN'];
+    $ret['cntUnReadN']  = $GetData[0][0]['cntUnReadN'];
+    $ret['cntM']        = $GetData[0][0]['cntM'];
+    $ret['cntUnReadM']  = $GetData[0][0]['cntUnReadM'];
+    $ret['cntE']        = $GetData[0][0]['cntE'];
+    $ret['cntUnReadE']  = $GetData[0][0]['cntUnReadE'];
+    $ret['cntBM']       = $GetData[0][0]['cntBM'];
+    $ret['cntUnReadBM'] = $GetData[0][0]['cntUnReadBM'];
+    //=================================================================================================================
+    
+    return $ret;
+    //=================================================================================================================
+}
+
+
+// wsUpdateTransaction2 --------------------------------------------------------------------------------------------------------------------
+/* author : Albert 2015-12-02
+ * Update Transaction2
+ * @param array $param
+ * @return update transaction 2
+ */
+ function wsUpdateTransaction2($sessionid, $transcode, $keyno, $read, $syscode){
+    //===================================================================================
+    //(Verify Session and Get DB name)
+    //-----------------------------------------------------------------------------------
+    $storeinfo = $this->YoyakuSession->Check($this);
+    if ($storeinfo == false) {
+       $this->_soap_server->fault(1, '', INVALID_SESSION);
+        return;
+    }
+    $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
+    //===================================================================================
+    
+    $sql = "insert into store_transaction2(transcode, keyno, alreadyread, syscode)
+                                    values('" . $transcode . "', " . $keyno . ", " . $read . ", " . $syscode . ")
+			On Duplicate Key Update alreadyread = ". $read;
+    $GetData = $this->Customer->query($sql);
+    //===================================================================================
+    return true;    
+    //===================================================================================
+ }
 
 
     // LOGIN / LOGOUT FUNCTIONS -----------------------------------------------------
@@ -1887,7 +2647,9 @@ class ServersController extends WebServicesController
                         'SEX', 'ZIPCODE1', 'KEN1', 'SITYO1', 'MANSIONMEI', 'SI1', 'REGULAR',
                         'TYO1', 'ADDRESS1', 'ADDRESS1_1', 'TEL1', 'TEL2', 'BIRTHDATE', 'MEMBERSCATEGORY',
                         'CHRISTIAN_ERA', 'MAILADDRESS1', 'MAILADDRESS2', 'MAILKUBUN', 'FIRSTDATE',
-                        'HOWKNOWSCODE');
+                        'HOWKNOWSCODE',
+                        'BLOODTYPE', 'MEMBER_CODE', 'SMOKING', 'DMKUBUN', 'JOBINDUSTRYCODE' //add by albert 2105-10-27 --> customer integration information
+                        );
 
         if (!in_array($param['orderby'], $fields)) {
             $param['orderby'] = "CNAME";    //$this->Customer->primaryKey
@@ -1912,7 +2674,7 @@ class ServersController extends WebServicesController
                                                     'fields'     => $fields,
                                                     'order'      => array($param['orderby'])));
         }
-
+        
         $ret = array();
         $ret['records']      = set::extract($v, '{n}.Customer');
         $ret['record_count'] = $this->Customer->find('count', array('conditions' => $criteria));
@@ -1996,6 +2758,48 @@ class ServersController extends WebServicesController
             }// End foreach ($ret['records'] as $rec)
         }// End if (count($ret['records']) > 0) 
         //---------------------------------------------------------------------------
+        
+        //---------------------------------------------------------------------------
+        // by albert 2015-10-27 for BM connection -------------------------------
+        //---------------------------------------------------------------------------
+        if (count($ret['records']) > 0) { //check and get BMCODE if the customer have BM record
+            $ctr = 0;
+            foreach($ret['records'] as $data) {
+                $BMCustID['BMCODE'] = "";
+                $Sql = "select distinct site_customer_id as BMCODE
+                        from bm_reservation 
+                        where ccode = '".$data['CCODE']."'";
+                $GetData = $this->Customer->query($Sql);
+                if (count($GetData) > 0) {
+                     $BMCustID['BMCODE'] = $GetData[0]['bm_reservation']['BMCODE'];
+                }
+                $ret['records'][$ctr] = array_merge($data, $BMCustID);
+                $ctr++;
+            }
+        }
+        if (count($ret['records']) > 0) { //get jobindustry description
+            $ctr = 0;
+            
+            foreach($ret['records'] as $data) {
+                $JobInd['JOBINDUSTRY'] = "なし";
+                if ($data['JOBINDUSTRYCODE'] > 0){
+                    $Sql = "select jobindustry
+                            from job_industry
+                            where delflg is null and jobindustrycode = ".$data['JOBINDUSTRYCODE'];
+                    $GetData = $this->Customer->query($Sql);
+                    if (count($GetData) > 0) {
+                         $JobInd['JOBINDUSTRY'] = $GetData[0]['job_industry']['jobindustry'];
+                    }
+                }
+                $ret['records'][$ctr] = array_merge($data, $JobInd);
+                $ctr++;
+            }
+        }
+        //---------------------------------------------------------------------------
+        // add by albert 2015-10-27 for BM connection -------------------------------
+        //---------------------------------------------------------------------------
+        
+        //print_r($ret); die();
        return $ret;
        //---------------------------------------------------------------------------
     }//end function
@@ -5322,8 +6126,20 @@ class ServersController extends WebServicesController
                        #---------------------------------------------------------------------------------
                         #Added By MarvinC - 2015-07-06
                         YND.YOYAKU_STATUS,
-                        YND.NEXTCODE
+                        YND.NEXTCODE,
                         #---------------------------------------------------------------------------------
+                        
+                        /* add by albert for bm connection 2015-10-29 */
+                        bmtble.route, bmtble.reservation_system, bmtble.reserve_date, bmtble.reserve_code,
+                        bmtble.date as v_date, bmtble.start as start_time , bmtble.end as end_time, bmtble.coupon_info,
+                        bmtble.comment, bmtble.shop_comment, bmtble.next_coming_comment, bmtble.demand, bmtble.site_customer_id,
+                        bmtble.price as bmPrice, bmtble.nomination_fee, bmtble.total_price as bmTprice, bmtble.use_point, 
+                        bmtble.grant_point, bmtble.visit_num, bmtble.name_sei as firstname, bmtble.name_kn_sei as lastname,
+                        bmtble.sex as bmsex, bmtble.name_mei as knfirstname, bmtble.name_kn_mei as knlastname, bmtble.tel as bmtel,
+			bmtble.zipcode as bmzip, bmtble.address as bmaddress, bmtble.mail as bmmail, bmtble.menu_info, 
+                        transaction.origination, bmtble.staffname as bmstaff, str_bm_notes.secondnote as secondnote
+                        /* add by albert for bm connection 2015-10-29 */
+                            
                 FROM store_transaction as transaction
                     LEFT JOIN store_transaction_details as details ON
                         transaction.TRANSCODE = details.TRANSCODE AND
@@ -5365,6 +6181,31 @@ class ServersController extends WebServicesController
                         yoyaku.TRANSCODE = details.TRANSCODE
                     LEFT JOIN staff as staff2 ON 
                         yoyaku.uketsukestaff = staff2.staffcode
+                        
+                    /* add by albert for bm connection 2015-10-29 */
+                    left join store_transaction_second_notes as str_bm_notes on 
+                        transaction.transcode = str_bm_notes.transcode and transaction.keyno = str_bm_notes.keyno
+                    
+                    left join (select bm_reservation.route, bm_reservation.reservation_system, 
+                                      bm_reservation.reserve_date, bm_reservation.reserve_code,
+                                      bm_reservation.date, bm_reservation.start, bm_reservation.end,
+                                      bm_reservation.coupon_info, bm_reservation.comment, 
+                                      bm_reservation.shop_comment, bm_reservation.site_customer_id, 
+                                      bm_reservation.demand, bm_reservation.next_coming_comment,
+                                      bm_reservation.price, bm_reservation.nomination_fee,
+                                      bm_reservation.total_price, bm_reservation.use_point,
+                                      bm_reservation.grant_point, bm_reservation.visit_num, 
+                                      bm_reservation.name_sei, bm_reservation.name_kn_sei, bm_reservation.sex,  
+                                      bm_reservation.name_mei, bm_reservation.name_kn_mei, bm_reservation.tel,
+                                      bm_reservation.zipcode, bm_reservation.address, bm_reservation.mail,
+                                      stf.staffname, bm_reservation.menu_info, bm_reservation.transcode, bm_reservation.ccode 
+                               from bm_reservation
+                                      left join staff as stf ON bm_reservation.site_stylist_id = stf.STAFFCODE)
+                                                                as bmtble on bmtble.transcode = transaction.TRANSCODE
+                                                                and bmtble.ccode = transaction.ccode
+                                                                
+                     /*add by albert for bm connection 2015-10-29 */
+                        
                 WHERE transaction.DELFLG IS NULL
                     AND details.DELFLG IS NULL
                     " . $trantype1 . $condition . " 
@@ -5460,7 +6301,7 @@ class ServersController extends WebServicesController
             $this->_soap_server->fault(1, '', INVALID_SESSION);
             return;
         }
-
+        
         $param['PRIORITYTYPE'] = substr($param['PRIORITYTYPE'],0,1);
 
         $subparam['ignoreSessionCheck'] = 1;
@@ -5513,16 +6354,17 @@ class ServersController extends WebServicesController
                 $txtLog = $del_sql . " /n ";
                 $del_dtlsql = "DELETE FROM store_transaction_details
                                WHERE TRANSCODE = '" . $param['TRANSCODE'] . "'";
-
+            
                 //-- 削除古いトランザクションおよびトランザクション細部 (Delete old transaction & transaction details)
                 $retQuery[$sqlctr] = $this->StoreTransaction->query($del_sql);
                 $sqlctr++;
                 $retQuery[$sqlctr] = $this->StoreTransaction->query($del_dtlsql);
                 $sqlctr++;
-            }
+                $oldTransCode = $param['TRANSCODE'];
                 unset($param['TRANSCODE']);
             }
-        
+        }
+
         //$param['TEMPSTATUS']  = 4;
         //$param['YOYAKU']      = 1;
         $param['HASSERVICES'] = 1;
@@ -5865,6 +6707,33 @@ class ServersController extends WebServicesController
             $retQuery[$sqlctr] = $this->StoreTransaction->query($sql);
             $sqlctr++;
         }
+             
+        //-----------------------------------------------------------------------------------------------------------------
+        //add by albert for BM second notes information 2015-12-01 --------------------------------------------------------
+        if (!is_null($param['secondnote'])){
+            //delete old record for second notes
+            $GetData = "";
+            $Sql = "delete from store_transaction_second_notes where transcode = '" . $oldTransCode . "'";
+            $GetData = $this->StoreTransaction->query($Sql);
+            
+            //add new record for second notes
+            $GetData = "";
+            $Sql = "insert into store_transaction_second_notes (transcode, keyno, secondnote)
+                                                        values ('" . $param['TRANSCODE'] . "', " . $param['KEYNO'] . ", '" . $param['secondnote'] . "')
+                    on duplicate key update secondnote = '" . $param['secondnote'] . "'";
+            $GetData = $this->StoreTransaction->query($Sql);
+        }
+        //-----------------------------------------------------------------------------------------------------------------
+        
+        //-----------------------------------------------------------------------------------------------------------------
+        //add by albert to BM Table to a new transcode 2015-12-23 --------------------------------------------------------
+        $GetData = "";
+        $Sql = "update bm_reservation
+                       set transcode = '" . $param['TRANSCODE'] . "'
+                where transcode = '" . $oldTransCode . "'";
+        $GetData = $this->StoreTransaction->query($Sql);
+        //-----------------------------------------------------------------------------------------------------------------
+        
         //---------------------------------------------------------------------------
         //-- エラーのためのチェック (Checks if there are errors on all cued queries)
         $error = "false";
@@ -6619,7 +7488,6 @@ class ServersController extends WebServicesController
         return $ret;
         }
     
-    
     /**
      * Get Staff Menu Service Time
      * Date Created: 2011-07-08 M
@@ -6896,13 +7764,14 @@ class ServersController extends WebServicesController
         $data = $this->MiscFunction->ParseJikaiYoyakuTransactionData($this, $v, null);
         $ret = array();
         $ret['records']      = $data;
+  
+        $ret['record_count'] = count($data); //count($v) -> count($data)
         if (count($v) > 0){
             $ret['record_count'] = count($data);
         }else{
             $ret['record_count'] = 0;
         }
-        
-
+       
         if (count($data) > 0) {
             $ret['checked_times'] = $data[0]['checked_times'];
         }
@@ -7098,6 +7967,7 @@ class ServersController extends WebServicesController
             }//end foreach
             //---------------------------------------------------------------------------------------
         }//end if
+        
         //-------------------------------------------------------------------------------------------
         return $arr_object;
         //-------------------------------------------------------------------------------------------
