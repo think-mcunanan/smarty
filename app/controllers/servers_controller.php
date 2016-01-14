@@ -2997,6 +2997,29 @@ class ServersController extends WebServicesController
             $param['CCODE']   = sprintf("%03s%07s", $param['CSTORECODE'], $param['CID']);
             $mode = "insert";
             $param['CREATEDFROMCODE'] = 3;
+            
+            #-----------------------------------------------------------------------------------------------
+            # Added by: MarvinC - 2016-01-14 15:29
+            #-----------------------------------------------------------------------------------------------
+            # GET THE MAILKUBUN AND DMKUBUN SETTINGS FROM TENPO
+            #-----------------------------------------------------------------------------------------------
+            $sql = "SELECT optionname, optionvalues
+                    FROM store_settings
+                    WHERE optionname IN ('EmailIssue', 'MailIssue')
+                    AND storecode = {$param['CSTORECODE']}";
+
+            $result = $this->StoreTransaction->query($sql);
+
+            if (count($result) > 0){
+                foreach ($result as $val){
+                    if($val["store_settings"]["optionname"] == "EmailIssue"){
+                        $param["MAILKUBUN"] = ($val["store_settings"]["optionvalues"] == "True") ? 1 : 0;
+                    }elseif($val["store_settings"]["optionname"] == "MailIssue"){
+                        $param["DMKUBUN"] = ($val["store_settings"]["optionvalues"] == "True") ? 1 : 0;
+                    }
+                }
+            }
+            #-----------------------------------------------------------------------------------------------
         }
 
         //----------------------------------------------------------------------------
@@ -6344,14 +6367,12 @@ class ServersController extends WebServicesController
         $this->StoreTransaction->begin();
         $sqlctr = 0;
         //---------------------------------------------------------------------------
-        fopen("logfile.txt");
-        $txtLog = "";
         //-- TRANSCODEとTRANSDATEの日付をチェックします (Check date on TRANSCODE and TRANSDATE)
         if (ereg_replace("-","", $param['TRANSDATE']) <> substr($param['TRANSCODE'],9,8)) {
             if ($param['TRANSCODE'] <> ""){
                 $del_sql = "DELETE FROM store_transaction
                             WHERE TRANSCODE = '" . $param['TRANSCODE'] . "'";
-                $txtLog = $del_sql . " /n ";
+                
                 $del_dtlsql = "DELETE FROM store_transaction_details
                                WHERE TRANSCODE = '" . $param['TRANSCODE'] . "'";
             
@@ -6461,7 +6482,7 @@ class ServersController extends WebServicesController
             $criteria[] = $tmp;
 
             $v = $this->StoreSettings->find('all', array('conditions' => $criteria));
-
+            
             foreach ($v as $itm) {
                 switch ($itm['StoreSettings']['OPTIONNAME']) {
                     case 'Tax':
@@ -6698,7 +6719,7 @@ class ServersController extends WebServicesController
         //===========================================================================================================
 
         // 履歴を詳細に記録する場合
-        if (!is_null($param['UKETSUKEDATE'], $param['UKETSUKESTAFF'])) {
+        if (!is_null($param['UKETSUKEDATE'], $param['UKETSUKESTAFF']) && (trim($param['UKETSUKEDATE']) != "" && trim($param['UKETSUKESTAFF']) != "")) {
             $sql = "INSERT INTO yoyaku_details(TRANSCODE, UKETSUKEDATE, UKETSUKESTAFF)
                     VALUES('{$param['TRANSCODE']}', '{$param['UKETSUKEDATE']}', {$param['UKETSUKESTAFF']})
                     ON DUPLICATE KEY UPDATE UKETSUKEDATE = '{$param['UKETSUKEDATE']}', UKETSUKESTAFF = {$param['UKETSUKESTAFF']}";
@@ -6782,14 +6803,15 @@ class ServersController extends WebServicesController
         }
         //---------------------------------------------------------------------------
 
-        //$ret['CCODE'] = $this->MiscFunction->GetReturningCustomerCountAll($this);
+        //$ret['CCODE'] = $log;
         $ret['CCODE']     = $param['CCODE'];
         $ret['CNUMBER']   = $param['CNUMBER'];
         $ret['TRANSCODE'] = $param['TRANSCODE'];
         $ret['KEYNO']     = $param['KEYNO'];
         $ret['IDNO']      = $param['IDNO'];
-        fwrite("logfile.txt", $txtLog);
-        fclose("logfile.txt");
+        
+        //file_put_contents('../controllers/log_'.date("j.n.Y").'.txt', $log, FILE_APPEND);
+        
         return $ret;
     }
 
