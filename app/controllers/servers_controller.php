@@ -2937,7 +2937,7 @@ class ServersController extends WebServicesController
                 WHERE  transaction.tempstatus = 0
                         AND transaction.ccode = '".$ccode."'
                         AND transaction.delflg IS NULL
-                GROUP BY transaction.transcode, transaction.keyno, details.trantype, details.gcode
+                GROUP BY transaction.transcode, transaction.keyno, details.trantype, details.rowno
                 ORDER BY transaction.transdate DESC, transaction.idno, details.trantype, details.rowno"; 
         //----------------------------------------------------------------------------------------------------------------- 
         $customer_history = $this->StoreTransaction->query($sql);
