@@ -729,6 +729,7 @@ class ServersController extends WebServicesController
                             'input'  => array('sessionid'  => 'xsd:string'),
                             'output' => array('return'     => 'xsd:int'))
                      //- ############################################################
+        
                      );
 
     //-- Complexタイプの参照 (Complex Type Definitions)
@@ -1624,6 +1625,7 @@ class ServersController extends WebServicesController
                                         'UKETSUKESTAFFNAME' => 'xsd:string',
                                         'CANCEL'            => 'xsd:int',
                                         'YOYAKUNEXTFLG'     => 'xsd:int',
+                                        'ORIGINATION'       => 'xsd:int', //add by albert 2016-01-27
                                         'TEMPSTATUS'        => 'xsd:int',
                                  )),
                              '_yoyakuDetailsInformation' => array(
@@ -1753,8 +1755,7 @@ class ServersController extends WebServicesController
                             //==============================================================
         
                          );
-    
-    
+
     
 // wsGetCustomerList  ------------------------------------------------------------------------------------------------------------------------
 /* author : Albert 2015-11-18
@@ -1863,10 +1864,25 @@ class ServersController extends WebServicesController
         $GetData = $this->Customer->query($Sql);
         //--------------------------------------------------------------------------------------------------------------------------------------------------
         
+        $cnumnew = "null";
+        if ($params['CNUMBER'] <> ""){
+            $cnumnew = "'" . $params['CNUMBER'] . "'";
+        }
+        
+        $newbdate =  "null";
+        if ($params['BIRTHDATE']  <> ""){
+            $newbdate = "'" . $params['BIRTHDATE'] . "'";
+        }
+        
+        $newstrdate = "null";
+        if ($GetData[0]["customer"]["STOREDATE"]  <> ""){
+            $newstrdate = "'" . $GetData[0]["customer"]["STOREDATE"] . "'";
+        }
+        
         //--------------------------------------------------------------------------------------------------------------------------------------------------
         //undating of new customer information in customer table -------------------------------------------------------------------------------------------
         $Sql = "update customer
-                set CNUMBER = '" . $params['CNUMBER'] . "',
+                set CNUMBER = " . $cnumnew . ",
                     CNAME = '". $params['CNAME'] ."',
                     CNAMEKANA = '". $params['CNAMEKANA'] ."',
                     MEMBER_CODE = '". $params['MEMBER_CODE'] ."',
@@ -1882,7 +1898,7 @@ class ServersController extends WebServicesController
                     SITYO1 = '". $params['SITYO1'] ."',
                     MANSIONMEI = '". $params['MANSIONMEI'] ."',
                     ADDRESS1 = '". $params['ADDRESS1'] ."',
-                    BIRTHDATE = '". $params['BIRTHDATE'] ."',
+                    BIRTHDATE = ". $newbdate .",
                     MEMBERSCATEGORY = ". $params['MEMBERSCATEGORY'] .",
                     DMKUBUN = ". $params['DMKUBUN'] .",    
                     MAILKUBUN = ". $params['MAILKUBUN'] .",
@@ -1892,7 +1908,7 @@ class ServersController extends WebServicesController
                         
                     CHRISTIAN_ERA = ". $GetData[0]["customer"]['CHRISTIAN_ERA'] .",
                     INTRODUCETYPE = ". $GetData[0]["customer"]["INTRODUCETYPE"] .",
-                    STOREDATE = '". $GetData[0]["customer"]["STOREDATE"] ."',
+                    STOREDATE = ". $newstrdate .",
                     REFERRALRELATIONCODE = ". $GetData[0]["customer"]["REFERRALRELATIONCODE"] .",
                     AGERANGE = ". $GetData[0]["customer"]["AGERANGE"] .",
                     STAFF_INCHARGE_SELECTED = ". $GetData[0]["customer"]["STAFF_INCHARGE_SELECTED"] ."
@@ -2117,17 +2133,31 @@ class ServersController extends WebServicesController
                                      count(DISTINCT if(alreadyread = 0 and syscode = 4,transcode, null)) as cntUnReadE,
                                      count(DISTINCT if(alreadyread = 0 and syscode = -2,transcode, null)) as cntUnReadBM
 				from
-					(select str_hdr.transcode, ifnull(str_trans2.alreadyread, 0) as alreadyread, svr.syscode
+					(select concat(str_hdr.transcode,'1') as transcode, ifnull(str_trans2.alreadyread, 0) as alreadyread, svr.syscode
 					from store_transaction as str_hdr
 							join store_transaction_details as str_dtl on str_hdr.transcode = str_dtl.transcode and str_hdr.keyno = str_dtl.keyno
 							left join store_services as str_svr on str_dtl.gcode = str_svr.gcode
 							left join services as svr on str_svr.gdcode = svr.gdcode
 							left join yoyaku_details as yk_dtl on str_hdr.transcode = yk_dtl.transcode
 							left join staff as stff on str_hdr.staffcode = stff.staffcode
-							left join store_transaction2 as str_trans2 on str_hdr.transcode = str_trans2.transcode and str_hdr.keyno = str_trans2.keyno and svr.syscode = str_trans2.syscode
-					where str_hdr.delflg is null and str_hdr.yoyaku <> 0 and (str_hdr.tempstatus = 5 or str_hdr.tempstatus = 6) " . $datastrcode . $datatransdate . "
+							left join store_transaction2_details as str_trans2 on str_hdr.transcode = str_trans2.transcode and str_hdr.keyno = str_trans2.keyno and svr.syscode = str_trans2.syscode
+					where str_hdr.yoyaku <> 0 and (str_hdr.tempstatus = 5 or str_hdr.tempstatus = 6) " . $datastrcode . $datatransdate . "
                                         group by svr.syscode, str_dtl.transcode
-					order by str_hdr.transdate, str_hdr.starttime
+					#order by str_hdr.transdate, str_hdr.starttime
+                                        
+                                        union all
+                                        
+                                        select concat(str_hdr.transcode,'2') as transcode, ifnull(str_trans2.alreadyread, 0) as alreadyread, svr.syscode
+					from store_transaction as str_hdr
+							join store_transaction_details as str_dtl on str_hdr.transcode = str_dtl.transcode and str_hdr.keyno = str_dtl.keyno
+							left join store_services as str_svr on str_dtl.gcode = str_svr.gcode
+							left join services as svr on str_svr.gdcode = svr.gdcode
+							left join yoyaku_details as yk_dtl on str_hdr.transcode = yk_dtl.transcode
+							left join staff as stff on str_hdr.staffcode = stff.staffcode
+							left join store_transaction2_details as str_trans2 on str_hdr.transcode = str_trans2.transcode and str_hdr.keyno = str_trans2.keyno and svr.syscode = str_trans2.syscode
+					where str_hdr.delflg is not null and str_hdr.yoyaku <> 0 and (str_hdr.tempstatus = 5 or str_hdr.tempstatus = 6) " . $datastrcode . $datatransdate . "
+                                        group by svr.syscode, str_dtl.transcode
+                                        
 				) as tbllist) as tblecount";
     
     //print_r($sql); die();
@@ -2210,13 +2240,16 @@ class ServersController extends WebServicesController
 
     //main query ------------------------------------------------------------------------------------------------------
     $sql = "select transcode, keyno, transdate, starttime, reservationdt, reservationtm, cname, staffname, transstat, route, alreadyread, syscode
+            from 
+            
+            (select transcode, keyno, transdate, starttime, reservationdt, reservationtm, cname, staffname, transstat, route, alreadyread, syscode
             from
                 (select str_hdr.transcode, str_hdr.keyno, DATE_FORMAT(str_hdr.transdate, '%Y年%m月%d日') as transdate, 
-                        if(ifnull(str_hdr.starttime, '') <> '', DATE_FORMAT(str_hdr.starttime, '%H:%i'), '') as starttime,
+                        if(ifnull(str_trans2_hdr.datetimecreated, '') <> '', DATE_FORMAT(str_trans2_hdr.datetimecreated, '%Y年%m月%d日 %H:%i'), '') as starttime,
                         if(ifnull(yk_dtl.updatedate, '') <> '', DATE_FORMAT(yk_dtl.updatedate, '%Y年%m月%d日'), '') as reservationdt,
                         if(ifnull(str_hdr.YOYAKUTIME, '') <> '', DATE_FORMAT(str_hdr.YOYAKUTIME, '%H:%i'), '') as reservationtm,
-                        str_hdr.cname, stff.staffname, if(yk_dtl.cancel = 0, '取得', 'キャンセル') as transstat,
-                        if(str_hdr.origination = 7 and svr.syscode = -2, 'BM', 'もばすて') as route, ifnull(str_trans2.alreadyread, 0) as alreadyread, svr.syscode
+                        str_hdr.cname, stff.staffname, '予約' as transstat, #if(yk_dtl.cancel = 0, '予約', 'キャンセル') as transstat,
+                        if(str_hdr.origination = 7 and svr.syscode = -2, '連携', 'もばすて') as route, ifnull(str_trans2.alreadyread, 0) as alreadyread, svr.syscode
                         #GROUP_CONCAT(DISTINCT svr.syscode) as syscode
                 from store_transaction as str_hdr
                         left join store_transaction_details as str_dtl on str_hdr.transcode = str_dtl.transcode and str_hdr.keyno = str_dtl.keyno
@@ -2224,11 +2257,39 @@ class ServersController extends WebServicesController
                         left join services as svr on str_svr.gdcode = svr.gdcode
                         left join yoyaku_details as yk_dtl on str_hdr.transcode = yk_dtl.transcode
                         left join staff as stff on str_dtl.staffcode = stff.staffcode
-                        left join store_transaction2 as str_trans2 on str_hdr.transcode = str_trans2.transcode and str_hdr.keyno = str_trans2.keyno and svr.syscode = str_trans2.syscode
-                where str_hdr.delflg is null and str_dtl.delflg is null and str_hdr.yoyaku <> 0 and (str_hdr.tempstatus = 5 or str_hdr.tempstatus = 6) " . $datastrcode . $datatransdate . $dataoriginate . "
+                        left join store_transaction2 as str_trans2_hdr on str_hdr.transcode = str_trans2_hdr.transcode and str_hdr.keyno = str_trans2_hdr.keyno
+                        left join store_transaction2_details as str_trans2 on str_hdr.transcode = str_trans2.transcode and str_hdr.keyno = str_trans2.keyno and svr.syscode = str_trans2.syscode
+                where str_hdr.yoyaku <> 0 and (str_hdr.tempstatus = 5 or str_hdr.tempstatus = 6) " . $datastrcode . $datatransdate . $dataoriginate . "
                 group by transcode, syscode
-                order by " . $orderby . " , transcode
-            limit " . ($pageno * 50) . ", 50) as tbllist";
+                #order by " . $orderby . " , transcode
+            limit " . ($pageno * 50) . ", 50) as tbllist
+            
+            union all
+            
+            select transcode, keyno, transdate, starttime, reservationdt, reservationtm, cname, staffname, transstat, route, alreadyread, syscode
+            from
+                (select str_hdr.transcode, str_hdr.keyno, DATE_FORMAT(str_hdr.transdate, '%Y年%m月%d日') as transdate, 
+                        if(ifnull(str_hdr.updatedate, '') <> '', DATE_FORMAT(str_hdr.updatedate, '%Y年%m月%d日 %H:%i'), '') as starttime,
+                        if(ifnull(yk_dtl.updatedate, '') <> '', DATE_FORMAT(yk_dtl.updatedate, '%Y年%m月%d日'), '') as reservationdt,
+                        if(ifnull(str_hdr.YOYAKUTIME, '') <> '', DATE_FORMAT(str_hdr.YOYAKUTIME, '%H:%i'), '') as reservationtm,
+                        str_hdr.cname, stff.staffname, 'キャンセル' as transstat, #if(yk_dtl.cancel = 0, '予約', 'キャンセル') as transstat,
+                        if(str_hdr.origination = 7 and svr.syscode = -2, '連携', 'もばすて') as route, ifnull(str_trans2.alreadyread, 0) as alreadyread, svr.syscode
+                        #GROUP_CONCAT(DISTINCT svr.syscode) as syscode
+                from store_transaction as str_hdr
+                        left join store_transaction_details as str_dtl on str_hdr.transcode = str_dtl.transcode and str_hdr.keyno = str_dtl.keyno
+                        left join store_services as str_svr on str_dtl.gcode = str_svr.gcode
+                        left join services as svr on str_svr.gdcode = svr.gdcode
+                        left join yoyaku_details as yk_dtl on str_hdr.transcode = yk_dtl.transcode
+                        left join staff as stff on str_dtl.staffcode = stff.staffcode
+                        left join store_transaction2 as str_trans2_hdr on str_hdr.transcode = str_trans2_hdr.transcode and str_hdr.keyno = str_trans2_hdr.keyno
+                        left join store_transaction2_details as str_trans2 on str_hdr.transcode = str_trans2.transcode and str_hdr.keyno = str_trans2.keyno and svr.syscode = str_trans2.syscode
+                where str_hdr.delflg is not null and str_hdr.yoyaku <> 0 and (str_hdr.tempstatus = 5 or str_hdr.tempstatus = 6) " . $datastrcode . $datatransdate . $dataoriginate . "
+                group by transcode, syscode
+                #order by " . $orderby . " , transcode
+            limit " . ($pageno * 50) . ", 50) as tbllist) as tbllist order by " . $orderby . " , transcode";
+    
+    
+    
    //print_r($sql); die();
     //===================================================================================
 	$GetData = $this->Customer->query($sql);
@@ -2261,11 +2322,11 @@ class ServersController extends WebServicesController
                         left join services as svr on str_svr.gdcode = svr.gdcode
                         left join yoyaku_details as yk_dtl on str_hdr.transcode = yk_dtl.transcode
                         left join staff as stff on str_hdr.staffcode = stff.staffcode
-                        left join store_transaction2 as str_trans2 on str_hdr.transcode = str_trans2.transcode and str_hdr.keyno = str_trans2.keyno and svr.syscode = str_trans2.syscode
-                where str_hdr.delflg is null and str_hdr.yoyaku <> 0 and (str_hdr.tempstatus = 5 or str_hdr.tempstatus = 6) " . $datastrcode . $datatransdate . "
+                        left join store_transaction2_details as str_trans2 on str_hdr.transcode = str_trans2.transcode and str_hdr.keyno = str_trans2.keyno and svr.syscode = str_trans2.syscode
+                where str_hdr.yoyaku <> 0 and (str_hdr.tempstatus = 5 or str_hdr.tempstatus = 6) " . $datastrcode . $datatransdate . "
                 order by str_hdr.transdate, str_hdr.starttime
             ) as tbllist";
-    
+    //print_r($sql); die();
     //===================================================================================
     $GetData = $this->Customer->query($sql);
     //===================================================================================
@@ -2282,6 +2343,53 @@ class ServersController extends WebServicesController
     $ret['cntBM']       = $GetData[0][0]['cntBM'];
     $ret['cntUnReadBM'] = $GetData[0][0]['cntUnReadBM'];
     //=================================================================================================================
+    
+    //count all cancel reservation ------------------------------------------------------------------------------------
+    $sql = "select count(DISTINCT transcode) as cntAll,
+			 count(DISTINCT if(alreadyread = 0, transcode, null)) as cntAllUnRead,
+			 count(DISTINCT if(syscode = 1, transcode, null)) as cntB,
+			 count(DISTINCT if(alreadyread = 0 and syscode = 1,transcode, null)) as cntUnReadB,
+			 count(DISTINCT if(syscode = 2, transcode, null)) as cntN,
+			 count(DISTINCT if(alreadyread = 0 and syscode = 2,transcode, null)) as cntUnReadN,
+			 count(DISTINCT if(syscode = 3, transcode, null)) as cntM,
+			 count(DISTINCT if(alreadyread = 0 and syscode = 3,transcode, null)) as cntUnReadM,
+			 count(DISTINCT if(syscode = 4, transcode, null)) as cntE,
+			 count(DISTINCT if(alreadyread = 0 and syscode = 4,transcode, null)) as cntUnReadE,
+			 count(DISTINCT if(syscode = -2, transcode, null)) as cntBM,
+			 count(DISTINCT if(alreadyread = 0 and syscode = -2,transcode, null)) as cntUnReadBM
+            from
+                (select str_hdr.transcode,
+                        ifnull(str_trans2.alreadyread, 0) as alreadyread,
+                        svr.syscode
+                from store_transaction as str_hdr
+                        left join store_transaction_details as str_dtl on str_hdr.transcode = str_dtl.transcode and str_hdr.keyno = str_dtl.keyno
+                        left join store_services as str_svr on str_dtl.gcode = str_svr.gcode
+                        left join services as svr on str_svr.gdcode = svr.gdcode
+                        left join yoyaku_details as yk_dtl on str_hdr.transcode = yk_dtl.transcode
+                        left join staff as stff on str_hdr.staffcode = stff.staffcode
+                        left join store_transaction2_details as str_trans2 on str_hdr.transcode = str_trans2.transcode and str_hdr.keyno = str_trans2.keyno and svr.syscode = str_trans2.syscode
+                where str_hdr.delflg is not null and str_hdr.yoyaku <> 0 and (str_hdr.tempstatus = 5 or str_hdr.tempstatus = 6) " . $datastrcode . $datatransdate . "
+                order by str_hdr.transdate, str_hdr.starttime
+            ) as tbllist";
+   // print_r($sql); die();
+    //===================================================================================
+    $GetData = $this->Customer->query($sql);
+    //===================================================================================
+    $ret['cntAll']      += $GetData[0][0]['cntAll'];
+    $ret['cntAllUnRead']+= $GetData[0][0]['cntAllUnRead'];
+    $ret['cntB']        += $GetData[0][0]['cntB'];
+    $ret['cntUnReadB']  += $GetData[0][0]['cntUnReadB'];
+    $ret['cntN']        += $GetData[0][0]['cntN'];
+    $ret['cntUnReadN']  += $GetData[0][0]['cntUnReadN'];
+    $ret['cntM']        += $GetData[0][0]['cntM'];
+    $ret['cntUnReadM']  += $GetData[0][0]['cntUnReadM'];
+    $ret['cntE']        += $GetData[0][0]['cntE'];
+    $ret['cntUnReadE']  += $GetData[0][0]['cntUnReadE'];
+    $ret['cntBM']       += $GetData[0][0]['cntBM'];
+    $ret['cntUnReadBM'] += $GetData[0][0]['cntUnReadBM'];
+    //=================================================================================================================
+    
+    //print_r($ret['cntAll'] ); die();
     
     return $ret;
     //=================================================================================================================
@@ -2306,7 +2414,7 @@ class ServersController extends WebServicesController
     $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
     //===================================================================================
     
-    $sql = "insert into store_transaction2(transcode, keyno, alreadyread, syscode)
+    $sql = "insert into store_transaction2_details(transcode, keyno, alreadyread, syscode)
                                     values('" . $transcode . "', " . $keyno . ", " . $read . ", " . $syscode . ")
 			On Duplicate Key Update alreadyread = ". $read;
     $GetData = $this->Customer->query($sql);
@@ -6154,7 +6262,7 @@ class ServersController extends WebServicesController
                         
                         /* add by albert for bm connection 2015-10-29 */
                         bmtble.route, bmtble.reservation_system, bmtble.reserve_date, bmtble.reserve_code,
-                        bmtble.date as v_date, bmtble.start as start_time , bmtble.end as end_time, bmtble.coupon_info,
+                        bmtble.date as v_date, bmtble.start as start_time, bmtble.end as end_time, bmtble.coupon_info,
                         bmtble.comment, bmtble.shop_comment, bmtble.next_coming_comment, bmtble.demand, bmtble.site_customer_id,
                         bmtble.price as bmPrice, bmtble.nomination_fee, bmtble.total_price as bmTprice, bmtble.use_point, 
                         bmtble.grant_point, bmtble.visit_num, bmtble.name_sei as firstname, bmtble.name_kn_sei as lastname,
@@ -6211,7 +6319,7 @@ class ServersController extends WebServicesController
                     
                     left join (select bm_reservation.route, bm_reservation.reservation_system, 
                                       bm_reservation.reserve_date, bm_reservation.reserve_code,
-                                      bm_reservation.date, bm_reservation.start, bm_reservation.end,
+                                      bm_reservation.date, TIME_FORMAT(bm_reservation.start, '%H:%i') as start, TIME_FORMAT(bm_reservation.end, '%H:%i') as end,
                                       bm_reservation.coupon_info, bm_reservation.comment, 
                                       bm_reservation.shop_comment, bm_reservation.site_customer_id, 
                                       bm_reservation.demand, bm_reservation.next_coming_comment,
@@ -6538,10 +6646,16 @@ class ServersController extends WebServicesController
                             AND KEYNO = ".$param['KEYNO'];     
             //-------------------------------------------------------------------------
         } else {
+            
+            //===============================================================================================
+            //Add by Albert 2016-01-20                                           ----------------------------
+            //redmine 1037                                                       ----------------------------
+            //-----------------------------------------------------------------------------------------------
+            
             $fields = "TRANSCODE, KEYNO, STORECODE, IDNO, TRANSDATE, YOYAKUTIME,
                    ENDTIME, CCODE, REGULARCUSTOMER, KYAKUKUBUN, RATETAX, ZEIOPTION,
                    SOGOKEIOPTION, CNAME, APT_COLOR, NOTES, PRIORITY, STAFFCODE,
-                   YOYAKU, CUST_TELNO, HASSERVICES, TEMPSTATUS, PRIORITYTYPE, SEX";
+                   YOYAKU, CUST_TELNO, HASSERVICES, TEMPSTATUS, PRIORITYTYPE, SEX, ORIGINATION ";
             $values = "'" . $param['TRANSCODE']      . "', " . $param['KEYNO']      . " ,
                         " . $param['STORECODE']      . " , " . $param['IDNO']       . " ,
                     '" . $param['TRANSDATE']      . "','" . $param['YOYAKUTIME'] . "',
@@ -6553,8 +6667,11 @@ class ServersController extends WebServicesController
                         " . $param['PRIORITY']       . " , " . $param['STAFFCODE']  . " ,
                         " . $param['YOYAKU']         . " ,'" . $param['CUST_TELNO'] . "',
                         " . $param['HASSERVICES']    . " , " . $param['TEMPSTATUS'] . " ,
-                        " . $param['PRIORITYTYPE']   . " , " . $param['SEX'];
+                        " . $param['PRIORITYTYPE']   . " , " . $param['SEX'] . " , " . $param['origination'];
             $sql = "REPLACE INTO store_transaction (".$fields.") VALUES(".$values.")";
+            
+            //===============================================================================================
+            
         }//end ifelse
         
         //-- 挿入または更新トランザクション (Insert or Update transaction)
@@ -7600,6 +7717,7 @@ class ServersController extends WebServicesController
             "  u_s.STAFFNAME UKETSUKESTAFFNAME, " .
             "  y_d.CANCEL, " .
             "  (CASE WHEN y_n.NEXTCODE IS NOT NULL AND y_n.YOYAKU_STATUS = 2 THEN 1 ELSE 0 END) as YOYAKUNEXTFLG, ".
+            " s_t.ORIGINATION, " .
             "  s_t.TEMPSTATUS ".
             " " .
             "FROM store_transaction s_t " .
@@ -7651,6 +7769,7 @@ class ServersController extends WebServicesController
             $result["UKETSUKESTAFFNAME"] = $row["u_s"]["UKETSUKESTAFFNAME"];
             $result["CANCEL"]            = $row["y_d"]["CANCEL"];
             $result["YOYAKUNEXTFLG"]     = $row[0]["YOYAKUNEXTFLG"];
+            $result["ORIGINATION"]       = $row["s_t"]["ORIGINATION"];
             $result["TEMPSTATUS"]        = $row["s_t"]["TEMPSTATUS"];
             $results["records"][]        = $result;
         }
