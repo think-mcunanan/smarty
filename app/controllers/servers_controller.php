@@ -2141,7 +2141,7 @@ class ServersController extends WebServicesController
 							left join yoyaku_details as yk_dtl on str_hdr.transcode = yk_dtl.transcode
 							left join staff as stff on str_hdr.staffcode = stff.staffcode
 							left join store_transaction2_details as str_trans2 on str_hdr.transcode = str_trans2.transcode and str_hdr.keyno = str_trans2.keyno and svr.syscode = str_trans2.syscode
-					where str_hdr.yoyaku <> 0 and (str_hdr.tempstatus = 5 or str_hdr.tempstatus = 6) " . $datastrcode . $datatransdate . "
+					where str_hdr.origination in (1,2,7) /*str_hdr.yoyaku <> 0 and (str_hdr.tempstatus = 5 or str_hdr.tempstatus = 6)*/ " . $datastrcode . $datatransdate . "
                                         group by svr.syscode, str_dtl.transcode
 					#order by str_hdr.transdate, str_hdr.starttime
                                         
@@ -2155,7 +2155,7 @@ class ServersController extends WebServicesController
 							left join yoyaku_details as yk_dtl on str_hdr.transcode = yk_dtl.transcode
 							left join staff as stff on str_hdr.staffcode = stff.staffcode
 							left join store_transaction2_details as str_trans2 on str_hdr.transcode = str_trans2.transcode and str_hdr.keyno = str_trans2.keyno and svr.syscode = str_trans2.syscode
-					where str_hdr.delflg is not null and str_hdr.yoyaku <> 0 and (str_hdr.tempstatus = 5 or str_hdr.tempstatus = 6) " . $datastrcode . $datatransdate . "
+					where str_hdr.delflg is not null and str_hdr.origination in (1,2,7) /*str_hdr.yoyaku <> 0 and (str_hdr.tempstatus = 5 or str_hdr.tempstatus = 6)*/ " . $datastrcode . $datatransdate . "
                                         group by svr.syscode, str_dtl.transcode
                                         
 				) as tbllist) as tblecount";
@@ -2259,7 +2259,7 @@ class ServersController extends WebServicesController
                         left join staff as stff on str_dtl.staffcode = stff.staffcode
                         left join store_transaction2 as str_trans2_hdr on str_hdr.transcode = str_trans2_hdr.transcode and str_hdr.keyno = str_trans2_hdr.keyno
                         left join store_transaction2_details as str_trans2 on str_hdr.transcode = str_trans2.transcode and str_hdr.keyno = str_trans2.keyno and svr.syscode = str_trans2.syscode
-                where str_hdr.yoyaku <> 0 and (str_hdr.tempstatus = 5 or str_hdr.tempstatus = 6) " . $datastrcode . $datatransdate . $dataoriginate . "
+                where str_hdr.origination in (1,2,7) /*str_hdr.yoyaku <> 0 and (str_hdr.tempstatus = 5 or str_hdr.tempstatus = 6)*/ " . $datastrcode . $datatransdate . $dataoriginate . "
                 group by transcode, syscode
                 #order by " . $orderby . " , transcode
             limit " . ($pageno * 50) . ", 50) as tbllist
@@ -2283,7 +2283,7 @@ class ServersController extends WebServicesController
                         left join staff as stff on str_dtl.staffcode = stff.staffcode
                         left join store_transaction2 as str_trans2_hdr on str_hdr.transcode = str_trans2_hdr.transcode and str_hdr.keyno = str_trans2_hdr.keyno
                         left join store_transaction2_details as str_trans2 on str_hdr.transcode = str_trans2.transcode and str_hdr.keyno = str_trans2.keyno and svr.syscode = str_trans2.syscode
-                where str_hdr.delflg is not null and str_hdr.yoyaku <> 0 and (str_hdr.tempstatus = 5 or str_hdr.tempstatus = 6) " . $datastrcode . $datatransdate . $dataoriginate . "
+                where str_hdr.delflg is not null and str_hdr.origination in (1,2,7) /*str_hdr.yoyaku <> 0 and (str_hdr.tempstatus = 5 or str_hdr.tempstatus = 6)*/ " . $datastrcode . $datatransdate . $dataoriginate . "
                 group by transcode, syscode
                 #order by " . $orderby . " , transcode
             limit " . ($pageno * 50) . ", 50) as tbllist) as tbllist order by " . $orderby . " , transcode";
@@ -2323,7 +2323,7 @@ class ServersController extends WebServicesController
                         left join yoyaku_details as yk_dtl on str_hdr.transcode = yk_dtl.transcode
                         left join staff as stff on str_hdr.staffcode = stff.staffcode
                         left join store_transaction2_details as str_trans2 on str_hdr.transcode = str_trans2.transcode and str_hdr.keyno = str_trans2.keyno and svr.syscode = str_trans2.syscode
-                where str_hdr.yoyaku <> 0 and (str_hdr.tempstatus = 5 or str_hdr.tempstatus = 6) " . $datastrcode . $datatransdate . "
+                where str_hdr.origination in (1,2,7) /*str_hdr.yoyaku <> 0 and (str_hdr.tempstatus = 5 or str_hdr.tempstatus = 6)*/ " . $datastrcode . $datatransdate . "
                 order by str_hdr.transdate, str_hdr.starttime
             ) as tbllist";
     //print_r($sql); die();
