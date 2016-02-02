@@ -6265,8 +6265,8 @@ class ServersController extends WebServicesController
                         bmtble.date as v_date, bmtble.start as start_time, bmtble.end as end_time, bmtble.coupon_info,
                         bmtble.comment, bmtble.shop_comment, bmtble.next_coming_comment, bmtble.demand, bmtble.site_customer_id,
                         bmtble.price as bmPrice, bmtble.nomination_fee, bmtble.total_price as bmTprice, bmtble.use_point, 
-                        bmtble.grant_point, bmtble.visit_num, bmtble.name_sei as firstname, bmtble.name_kn_sei as lastname,
-                        bmtble.sex as bmsex, bmtble.name_mei as knfirstname, bmtble.name_kn_mei as knlastname, bmtble.tel as bmtel,
+                        bmtble.grant_point, bmtble.visit_num, bmtble.name_sei as firstname, bmtble.name_mei as lastname,
+                        bmtble.sex as bmsex, bmtble.name_kn_sei as knfirstname, bmtble.name_kn_mei as knlastname, bmtble.tel as bmtel,
 			bmtble.zipcode as bmzip, bmtble.address as bmaddress, bmtble.mail as bmmail, bmtble.menu_info, 
                         transaction.origination, bmtble.staffname as bmstaff, str_bm_notes.secondnote as secondnote
                         /* add by albert for bm connection 2015-10-29 */
