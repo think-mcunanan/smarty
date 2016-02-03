@@ -2368,7 +2368,7 @@ class ServersController extends WebServicesController
                         left join yoyaku_details as yk_dtl on str_hdr.transcode = yk_dtl.transcode
                         left join staff as stff on str_hdr.staffcode = stff.staffcode
                         left join store_transaction2_details as str_trans2 on str_hdr.transcode = str_trans2.transcode and str_hdr.keyno = str_trans2.keyno and svr.syscode = str_trans2.syscode
-                where str_hdr.delflg is not null and str_hdr.yoyaku <> 0 and (str_hdr.tempstatus = 5 or str_hdr.tempstatus = 6) " . $datastrcode . $datatransdate . "
+                where str_hdr.delflg is not null and str_hdr.origination in (1,2,7) /*str_hdr.yoyaku <> 0 and (str_hdr.tempstatus = 5 or str_hdr.tempstatus = 6)*/ " . $datastrcode . $datatransdate . "
                 order by str_hdr.transdate, str_hdr.starttime
             ) as tbllist";
    // print_r($sql); die();
