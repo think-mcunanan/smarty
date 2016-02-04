@@ -2123,7 +2123,7 @@ class ServersController extends WebServicesController
     if ($strcode > 0){
         $datastrcode = " and str_hdr.storecode = " . $strcode;
     }
-    
+    //Bug: 1135 - Added By: MarvinC - Don't show servince if store dont have the industry (Beaty, Nail, Matsuke, Este)
     //count all reservation -------------------------------------------------------------------------------------------
     $sql = "select cntAllUnRead, cntUnReadB, cntUnReadN, cntUnReadM, cntUnReadE, cntUnReadBM
 			from (select count(DISTINCT if(alreadyread = 0, transcode, null)) as cntAllUnRead,
@@ -2158,7 +2158,10 @@ class ServersController extends WebServicesController
 					where str_hdr.delflg is not null and str_hdr.origination in (1,2,7) /*str_hdr.yoyaku <> 0 and (str_hdr.tempstatus = 5 or str_hdr.tempstatus = 6)*/ " . $datastrcode . $datatransdate . "
                                         group by svr.syscode, str_dtl.transcode
                                         
-				) as tbllist) as tblecount";
+				) as tbllist
+                                where syscode in (select syscode from storetype where delflg is null and storecode = {$strcode}) or syscode = -2
+            ) as tblecount
+                                ";
     
     //print_r($sql); die();
     //===================================================================================
@@ -2237,11 +2240,11 @@ class ServersController extends WebServicesController
     }else{
         $dataoriginate = " and svr.syscode = " . $origination;
     }
-
+    
+    //Bug: 1135 - Added By: MarvinC - Don't show servince if store dont have the industry (Beaty, Nail, Matsuke, Este)
     //main query ------------------------------------------------------------------------------------------------------
     $sql = "select transcode, keyno, transdate, starttime, reservationdt, reservationtm, cname, staffname, transstat, route, alreadyread, syscode
             from 
-            
             (select transcode, keyno, transdate, starttime, reservationdt, reservationtm, cname, staffname, transstat, route, alreadyread, syscode
             from
                 (select str_hdr.transcode, str_hdr.keyno, DATE_FORMAT(str_hdr.transdate, '%Y年%m月%d日') as transdate, 
@@ -2261,8 +2264,7 @@ class ServersController extends WebServicesController
                         left join store_transaction2_details as str_trans2 on str_hdr.transcode = str_trans2.transcode and str_hdr.keyno = str_trans2.keyno and svr.syscode = str_trans2.syscode
                 where str_hdr.origination in (1,2,7) /*str_hdr.yoyaku <> 0 and (str_hdr.tempstatus = 5 or str_hdr.tempstatus = 6)*/ " . $datastrcode . $datatransdate . $dataoriginate . "
                 group by transcode, syscode
-                #order by " . $orderby . " , transcode
-            limit " . ($pageno * 50) . ", 50) as tbllist
+            ) as tbllist
             
             union all
             
@@ -2285,11 +2287,12 @@ class ServersController extends WebServicesController
                         left join store_transaction2_details as str_trans2 on str_hdr.transcode = str_trans2.transcode and str_hdr.keyno = str_trans2.keyno and svr.syscode = str_trans2.syscode
                 where str_hdr.delflg is not null and str_hdr.origination in (1,2,7) /*str_hdr.yoyaku <> 0 and (str_hdr.tempstatus = 5 or str_hdr.tempstatus = 6)*/ " . $datastrcode . $datatransdate . $dataoriginate . "
                 group by transcode, syscode
-                #order by " . $orderby . " , transcode
-            limit " . ($pageno * 50) . ", 50) as tbllist) as tbllist order by " . $orderby . " , transcode";
-    
-    
-    
+                ) as tbllist
+            ) as tbllist 
+            where syscode in (select syscode from storetype where delflg is null and storecode = {$strcode}) or syscode = -2
+            order by " . $orderby . " , transcode
+            limit " . ($pageno * 50) . ", 50" ;
+   
    //print_r($sql); die();
     //===================================================================================
 	$GetData = $this->Customer->query($sql);
@@ -2299,6 +2302,7 @@ class ServersController extends WebServicesController
     $ret['records'] = $arr_reservation;
     //=================================================================================================================
     
+    //Bug: 1135 - Added By: MarvinC - Don't show servince if store dont have the industry (Beaty, Nail, Matsuke, Este)
     //count all reservation -------------------------------------------------------------------------------------------
     $sql = "select count(DISTINCT transcode) as cntAll,
 			 count(DISTINCT if(alreadyread = 0, transcode, null)) as cntAllUnRead,
@@ -2325,7 +2329,8 @@ class ServersController extends WebServicesController
                         left join store_transaction2_details as str_trans2 on str_hdr.transcode = str_trans2.transcode and str_hdr.keyno = str_trans2.keyno and svr.syscode = str_trans2.syscode
                 where str_hdr.origination in (1,2,7) /*str_hdr.yoyaku <> 0 and (str_hdr.tempstatus = 5 or str_hdr.tempstatus = 6)*/ " . $datastrcode . $datatransdate . "
                 order by str_hdr.transdate, str_hdr.starttime
-            ) as tbllist";
+            ) as tbllist
+            where syscode in (select syscode from storetype where delflg is null and storecode = {$strcode}) or syscode = -2";
     //print_r($sql); die();
     //===================================================================================
     $GetData = $this->Customer->query($sql);
@@ -2344,6 +2349,7 @@ class ServersController extends WebServicesController
     $ret['cntUnReadBM'] = $GetData[0][0]['cntUnReadBM'];
     //=================================================================================================================
     
+    //Bug: 1135 - Added By: MarvinC - Don't show servince if store dont have the industry (Beaty, Nail, Matsuke, Este)
     //count all cancel reservation ------------------------------------------------------------------------------------
     $sql = "select count(DISTINCT transcode) as cntAll,
 			 count(DISTINCT if(alreadyread = 0, transcode, null)) as cntAllUnRead,
@@ -2370,7 +2376,8 @@ class ServersController extends WebServicesController
                         left join store_transaction2_details as str_trans2 on str_hdr.transcode = str_trans2.transcode and str_hdr.keyno = str_trans2.keyno and svr.syscode = str_trans2.syscode
                 where str_hdr.delflg is not null and str_hdr.origination in (1,2,7) /*str_hdr.yoyaku <> 0 and (str_hdr.tempstatus = 5 or str_hdr.tempstatus = 6)*/ " . $datastrcode . $datatransdate . "
                 order by str_hdr.transdate, str_hdr.starttime
-            ) as tbllist";
+            ) as tbllist
+            where syscode in (select syscode from storetype where delflg is null and storecode = {$strcode}) or syscode = -2";
    // print_r($sql); die();
     //===================================================================================
     $GetData = $this->Customer->query($sql);
@@ -6192,10 +6199,14 @@ class ServersController extends WebServicesController
         $this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction);
         //---------------------------------------------------------------------------------------------------------------------
         $condition = "";
+        $storecond = "";
         $trantype1 = " AND details.TRANTYPE = 1 ";
         //---------------------------------------------------------------------------------------------------------------------
         if ($param['STORECODE'] <> 0) {
             $condition .= " AND transaction.STORECODE = " . $param['STORECODE'];
+            //Bug: 1135 - Added By: MarvinC - Don't show servince if store dont have the industry (Beaty, Nail, Matsuke, Este)
+            $storecond = " AND (services.syscode in (select syscode from storetype where delflg is null
+                           AND storecode = {$param['STORECODE']}) or services.syscode = -2) ";
         }
         //---------------------------------------------------------------------------------------------------------------------
         if ($param['date'] <> "") {
@@ -6339,7 +6350,7 @@ class ServersController extends WebServicesController
                         
                 WHERE transaction.DELFLG IS NULL
                     AND details.DELFLG IS NULL
-                    " . $trantype1 . $condition . " 
+                    " . $trantype1 . $condition . $storecond. "
                 GROUP BY transaction.transcode, details.rowno
                 ORDER BY " . $misc_order . " transaction.TRANSCODE, 
                            details.STARTTIME, 
