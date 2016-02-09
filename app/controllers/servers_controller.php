@@ -7928,6 +7928,7 @@ class ServersController extends WebServicesController
                         details.STAFFCODE = staff.STAFFCODE
                 WHERE transaction.DELFLG IS NULL AND details.DELFLG IS NULL #AND yoyaku_next.yoyaku_status = 1
                     " . $trantype1 . $condition . "
+                GROUP BY transaction.TRANSCODE, details.ROWNO
                 ORDER BY transaction.transdate,transaction.TRANSCODE, details.ROWNO";
 
         $v = $this->StoreTransaction->query($sql);
