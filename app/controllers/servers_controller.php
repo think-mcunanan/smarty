@@ -1854,8 +1854,8 @@ class ServersController extends WebServicesController
       
         //--------------------------------------------------------------------------------------------------------------------------------------------------
         //set old customer CNUMBER to NULL to remove the Duplicate entry -----------------------------------------------------------------------------------
-        $Sql = "update customer set cnumber = null where ccode = '" . $fromccode . "'";
-        $GetData = $this->Customer->query($Sql);
+//        $Sql = "update customer set cnumber = null where ccode = '" . $fromccode . "'";
+//        $GetData = $this->Customer->query($Sql);
         //--------------------------------------------------------------------------------------------------------------------------------------------------
         
         //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1882,7 +1882,7 @@ class ServersController extends WebServicesController
         //--------------------------------------------------------------------------------------------------------------------------------------------------
         //undating of new customer information in customer table -------------------------------------------------------------------------------------------
         $Sql = "update customer
-                set CNUMBER = " . $cnumnew . ",
+                set /*CNUMBER = " . $cnumnew . ",*/
                     CNAME = '". $params['CNAME'] ."',
                     CNAMEKANA = '". $params['CNAMEKANA'] ."',
                     MEMBER_CODE = '". $params['MEMBER_CODE'] ."',
