@@ -5654,6 +5654,7 @@ class ServersController extends WebServicesController
         $tmp .= "OPTIONNAME = 'MODIFYING_MAIL' OR ";
         $tmp .= "OPTIONNAME = 'YOYAKU_DRAGDROP_TIMEINTERVAL' OR ";
         $tmp .= "OPTIONNAME = 'HIDE_RAITEN' OR ";
+//        $tmp .= "OPTIONNAME = 'SHIFTFREE_YOYAKU' OR "; //シフト登録無しでもスタッフをフリーで予約
         $tmp .= "OPTIONNAME = 'OKOTOWARI_TIME')";
         
         $criteria[] = $tmp;
@@ -6467,7 +6468,7 @@ class ServersController extends WebServicesController
         $subparam['ignoreSessionCheck'] = 1;
         $subparam['dbname'] = $storeinfo['dbname'];
 
-        //-- 取引が闘争を無視するかどうかチェックします (Checks if transaction will ignore conflicts or not)
+        //-- transactionの衝突を無視するかどうかチェックします (Checks if transaction will ignore conflicts or not)
         if ($param['ignoreConflict'] == 0) {
             $subparam['STARTTIME']    = $param['YOYAKUTIME'];
             $subparam['ENDTIME']      = $param['ENDTIME'];
@@ -6505,14 +6506,21 @@ class ServersController extends WebServicesController
         $sqlctr = 0;
         //---------------------------------------------------------------------------
         //-- TRANSCODEとTRANSDATEの日付をチェックします (Check date on TRANSCODE and TRANSDATE)
-        if (ereg_replace("-","", $param['TRANSDATE']) <> substr($param['TRANSCODE'],9,8)) {
+        
+        //仕様変更20160225-shimizu 日付変更時にtranscode-keynoを変更せず、店舗変更時のみ変更します。
+        //if (ereg_replace("-","", $param['TRANSDATE']) <> substr($param['TRANSCODE'],9,8)) {
+        //削除は　サーバーのみの変更で済ますためtranscodeのstorecode利用。出来れば変更前店舗コードを取得
+        if (intval($param['STORECODE']) <> intval(substr($param['TRANSCODE'],0,7))) {
             if ($param['TRANSCODE'] <> ""){
-                $del_sql = "DELETE FROM store_transaction
-                            WHERE TRANSCODE = '" . $param['TRANSCODE'] . "'";
+//              $del_sql = "DELETE FROM store_transaction
+//                            WHERE TRANSCODE = '" . $param['TRANSCODE'] . "'";
+//              $del_dtlsql = "DELETE FROM store_transaction_details
+//                               WHERE TRANSCODE = '" . $param['TRANSCODE'] . "'";
+                $del_sql = "UPDATE store_transaction set delflg = now()
+                            WHERE TRANSCODE = '" . $param['TRANSCODE'] . "'  and delflg is not null;";
+                $del_dtlsql = "UPDATE store_transaction_details set delflg = now()
+                               WHERE TRANSCODE = '" . $param['TRANSCODE'] . "' and delflg is not null;";
                 
-                $del_dtlsql = "DELETE FROM store_transaction_details
-                               WHERE TRANSCODE = '" . $param['TRANSCODE'] . "'";
-            
                 //-- 削除古いトランザクションおよびトランザクション細部 (Delete old transaction & transaction details)
                 $retQuery[$sqlctr] = $this->StoreTransaction->query($del_sql);
                 $sqlctr++;
@@ -6869,12 +6877,25 @@ class ServersController extends WebServicesController
             $sql = "INSERT INTO yoyaku_details(TRANSCODE, UKETSUKEDATE, UKETSUKESTAFF)
                     VALUES('{$param['TRANSCODE']}', '{$param['UKETSUKEDATE']}', {$param['UKETSUKESTAFF']})
                     ON DUPLICATE KEY UPDATE UKETSUKEDATE = '{$param['UKETSUKEDATE']}', UKETSUKESTAFF = {$param['UKETSUKESTAFF']}";
-
+                    
             //-- 挿入または更新トランザクション (Insert or Update transaction)
             $retQuery[$sqlctr] = $this->StoreTransaction->query($sql);
-            $sqlctr++;
+            $sqlctr++;   
+
         }
-             
+        else{ //if(trim($param['UKETSUKESTAFF']) == "") {
+            $uketsukedate = date('Y-m-d'); //詳細に記録しないケースで初回受付日はサーバー日時を使用、受付スタッフは常にフリー
+              $sql = "INSERT INTO yoyaku_details(TRANSCODE, UKETSUKEDATE, UKETSUKESTAFF)
+                    VALUES('{$param['TRANSCODE']}', '{$uketsukedate}', 0)
+                    ON DUPLICATE KEY UPDATE UKETSUKEDATE = '{$uketsukedate}', UKETSUKESTAFF = 0";
+                    
+            //-- 挿入または更新トランザクション (Insert or Update transaction)
+            $retQuery[$sqlctr] = $this->StoreTransaction->query($sql);
+            $sqlctr++;   
+
+        }
+         
+
         //-----------------------------------------------------------------------------------------------------------------
         //add by albert for BM second notes information 2015-12-01 --------------------------------------------------------
         if (!is_null($param['secondnote'])){
