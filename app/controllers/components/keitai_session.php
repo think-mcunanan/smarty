@@ -1981,13 +1981,14 @@ class KeitaiSessionComponent extends Object
         $time_arr_reserves_yoyaku = array();
         $time_arr = array(); //・・・reset????
         
-        //スタッフの各列の合計を算出
+        //スタッフの各列の合計を算出 //スタッフの予約列数で制御する場合
         foreach($time_arr_reserves_staff as $key => $staff){
             for($i=0; $i <= (23*4)+3; $i++){
                 if($key > 0){
                     $time_arr_reserves[$i] += intval($staff[$i]);
                 }elseif($key == 0){
-                    $time_arr_reserves[$i] += intval($time_arr_free[$i]);
+                    //枠数計算条件変更：20160301
+                    $time_arr_reserves[$i] += intval($staff[$i]);//intval($time_arr_free[$i]);
                 }
                 if($key == $session_info['y_staff']){
                     $time_arr[$i] += $staff[$i];
@@ -1995,7 +1996,7 @@ class KeitaiSessionComponent extends Object
             }
         }
         
-        //予約者数の算出
+        //予約者数の算出 //同時間帯最大予約人数
         foreach($time_arr_reserves_staff_yoyaku as $key => $staff){
             for($i=0; $i <= (23*4)+3; $i++){
                 $time_arr_reserves_yoyaku[$i] += intval($staff[$i]);
