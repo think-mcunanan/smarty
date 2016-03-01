@@ -6347,23 +6347,82 @@ class ServersController extends WebServicesController
                     left join store_transaction_second_notes as str_bm_notes on 
                         transaction.transcode = str_bm_notes.transcode and transaction.keyno = str_bm_notes.keyno
                     
-                    left join (select bm_reservation.route, bm_reservation.reservation_system, 
-                                      bm_reservation.reserve_date, bm_reservation.reserve_code,
-                                      bm_reservation.date, TIME_FORMAT(bm_reservation.start, '%H:%i') as start, TIME_FORMAT(bm_reservation.end, '%H:%i') as end,
-                                      bm_reservation.coupon_info, bm_reservation.comment, 
-                                      bm_reservation.shop_comment, bm_reservation.site_customer_id, 
-                                      bm_reservation.demand, bm_reservation.next_coming_comment,
-                                      bm_reservation.price, bm_reservation.nomination_fee,
-                                      bm_reservation.total_price, bm_reservation.use_point,
-                                      bm_reservation.grant_point, bm_reservation.visit_num, 
-                                      bm_reservation.name_sei, bm_reservation.name_kn_sei, bm_reservation.sex,  
-                                      bm_reservation.name_mei, bm_reservation.name_kn_mei, bm_reservation.tel,
-                                      bm_reservation.zipcode, bm_reservation.address, bm_reservation.mail,
-                                      stf.staffname, bm_reservation.menu_info, bm_reservation.transcode, bm_reservation.ccode 
-                               from bm_reservation
-                                      left join staff as stf ON bm_reservation.site_stylist_id = stf.STAFFCODE)
-                                                                as bmtble on bmtble.transcode = transaction.TRANSCODE
-                                                                and bmtble.ccode = transaction.ccode
+                    left join (select 7 as origination, 
+                                        bm_reservation.route, 
+                                        bm_reservation.reservation_system, 
+                                        bm_reservation.reserve_date, 
+                                        bm_reservation.reserve_code,
+                                        bm_reservation.date,
+                                        TIME_FORMAT(bm_reservation.start, '%H:%i') as start, 
+                                        TIME_FORMAT(bm_reservation.end, '%H:%i') as end,
+                                        bm_reservation.coupon_info, 
+                                        bm_reservation.comment, 
+                                        bm_reservation.shop_comment, 
+                                        bm_reservation.site_customer_id, 
+                                        bm_reservation.demand, 
+                                        bm_reservation.next_coming_comment,
+                                        bm_reservation.price, 
+                                        bm_reservation.nomination_fee,
+                                        bm_reservation.total_price, 
+                                        bm_reservation.use_point,
+                                        bm_reservation.grant_point, 
+                                        bm_reservation.visit_num, 
+                                        bm_reservation.name_sei, 
+                                        bm_reservation.name_kn_sei, 
+                                        bm_reservation.sex,  
+                                        bm_reservation.name_mei, 
+                                        bm_reservation.name_kn_mei, 
+                                        bm_reservation.tel,
+                                        bm_reservation.zipcode, 
+                                        bm_reservation.address, 
+                                        bm_reservation.mail,
+                                        stf.staffname, 
+                                        bm_reservation.menu_info, 
+                                        bm_reservation.transcode, 
+                                        bm_reservation.ccode 
+                              from bm_reservation
+                                        left join staff as stf ON bm_reservation.site_stylist_id = stf.STAFFCODE
+                                        
+                            UNION ALL
+                            
+                              select 8 as origination, 
+                                        '' as route,  
+                                        '' as reservation_system,  
+                                        date_format(rvRes.datecreated, '%Y-%m-%d %H:%i') as reserve_date,  
+                                        rvRes.alliance_reserve_id as reserve_code, 
+                                        date_format(rvRes.start_datetime, '%Y-%m-%d %H:%i') as date,  
+                                        rvRes.minutes as start,  
+                                        if(rvRes.is_use_coupon = 1, '使用', 'なし') as end, 
+                                        rvRes.coupon_name as coupon_info,   
+                                        rvRes.customer_note as comment,  
+                                        if(rvRes.is_use_hairstyle = 1, '選択', 'なし') as shop_comment,    
+                                        rvRes.alliance_customer_id as site_customer_id,  
+                                        rvRes.hairstyle_image_url as demand,   
+                                        if(rvRes.is_new_reserve = 1, '初めて', '過去に予約済み、または不明') as next_coming_comment, 
+                                        0 as price,  
+                                        0 as nomination_fee,   
+                                        0 as total_price,   
+                                        0 as use_point, 
+                                        0 as grant_point,   
+                                        0 as visit_num,  
+                                        rvRes.customer_name as name_sei,    
+                                        rvRes.hairstyle_name as name_kn_sei,   
+                                        0  as sex,   
+                                        '' as name_mei,   
+                                        '' as name_kn_mei,   
+                                        rvRes.customer_tel as tel, 
+                                        '' as zipcode,  
+                                        rvRes.introducer_customer_id as address,   
+                                        rvRes.customer_email as mail, 
+                                        stf.staffname, 
+                                        (select group_concat(menuname SEPARATOR '>%') from rv_reservation_menu where rv_reservation_menu.alliance_reserve_id = rvRes.alliance_reserve_id and rvRes.delflg is null) as menu_info,  
+                                        rvKey.transcode,   
+                                        '' as ccode 
+                            from rv_reservation_key as rvKey
+                                        join rv_reservation as rvRes on rvKey.alliance_reserve_id = rvRes.alliance_reserve_id
+                                        left join staff as stf ON rvRes.staff_id = stf.STAFFCODE
+                            where rvRes.delflg is null
+                              ) as bmtble on bmtble.transcode = transaction.TRANSCODE and bmtble.origination = transaction.origination
                                                                 
                      /*add by albert for bm connection 2015-10-29 */
                         
@@ -6380,6 +6439,8 @@ class ServersController extends WebServicesController
         //---------------------------------------------------------------------------------------------------------------------
         
         $v = $this->StoreTransaction->query($sql);
+        
+//        print_r($sql); die();
         //---------------------------------------------------------------------------------------------------------------------
         $subparam['dbname']    = $storeinfo['dbname'];
         $subparam['date']      = $param['date'];
