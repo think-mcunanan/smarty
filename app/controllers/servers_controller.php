@@ -1756,6 +1756,14 @@ class ServersController extends WebServicesController
     $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
     //===================================================================================
     
+    if (strlen($storecode) == 3) {
+        $tmpccode = $storecode . "0000000";
+    }elseif (strlen($storecode) == 2) {
+        $tmpccode = "0" . $storecode . "0000000";
+    }elseif (strlen($storecode) == 1) {
+        $tmpccode = "00" . $storecode . "0000000";
+    }
+    
     $strcond = "";
     if ($allstoreflg == 0){
         $strcond = " and cstorecode = " . $storecode;
@@ -1773,7 +1781,7 @@ class ServersController extends WebServicesController
     //-----------------------------------------------------------------------------------
     $totalrec = "select count(ccode)
                  from customer
-                 where delflg is null and ccode <> '" . $basecode . "'" . $strcond .  $filename1 . $firstdatecond;
+                 where delflg is null and ccode <> '" . $tmpccode . "' and ccode <> '" . $basecode . "'" . $strcond .  $filename1 . $firstdatecond;
     
     $Sql = "select ccode, cnumber, cname, cnamekana, sex, tel1, tel2, birthdate, christian_era, 
                      mailaddress1, mailaddress2, zipcode1, address1, mansionmei, cstorecode, firstdate, lastdate,
@@ -1782,7 +1790,7 @@ class ServersController extends WebServicesController
                     (select ccode, cnumber, cname, cnamekana, sex, tel1, tel2, birthdate, christian_era, 
                             mailaddress1, mailaddress2, zipcode1, address1, mansionmei, cstorecode, firstdate, lastdate
                     from customer
-                    where delflg is null and ccode <> '" . $basecode . "'" . $strcond . $filename1 . $firstdatecond . "
+                    where delflg is null and ccode <> '" . $tmpccode . "' and ccode <> '" . $basecode . "'" . $strcond . $filename1 . $firstdatecond . "
                     order by cnamekana, firstdate 
                     limit " . ($pageindex * 50) . ", 50) tblresult"; 
     //-----------------------------------------------------------------------------------
@@ -2111,23 +2119,39 @@ class ServersController extends WebServicesController
                            count(if(origination = 1 or origination = 2, transcode, null)) as wrkr
                     from (
 
-                            select str_hdr.transcode, str_hdr.origination, ifnull(str_trans2.read, 0) as yread
+                            select str_hdr.transcode, str_hdr.origination, ifnull(str_trans2_hdr.read, 0) as yread
                             from store_transaction as str_hdr
                                     join store_transaction_details as str_dtl on str_hdr.transcode = str_dtl.transcode and str_hdr.keyno = str_dtl.keyno
                                     left join store_services as str_svr on str_dtl.gcode = str_svr.gcode
                                     left join services as svr on str_svr.gdcode = svr.gdcode
                                     left join yoyaku_details as yk_dtl on str_hdr.transcode = yk_dtl.transcode
                                     left join staff as stff on str_hdr.staffcode = stff.staffcode
-                                    left join stafftype on stafftype.staffcode = stff.staffcode and stafftype.delflg is null
-                                    join storetype on storetype.syscode = stafftype.syscode and storetype.delflg is null and storetype.storecode = {$strcode}
-                                    left join store_transaction2 as str_trans2 on str_hdr.transcode = str_trans2.transcode and str_hdr.keyno = str_trans2.keyno 
+                                    join stafftype on stafftype.staffcode = stff.staffcode and stafftype.delflg is null or str_dtl.staffcode = 0
+                                    join storetype on storetype.delflg is null and storetype.storecode = str_hdr.storecode
+                                    left join store_transaction2 as str_trans2_hdr on str_hdr.transcode = str_trans2_hdr.transcode and str_hdr.keyno = str_trans2_hdr.keyno
                             where str_hdr.origination in (1,2,7,8) " . $datastrcode . $datatransdate . " 
+                            group by str_hdr.transcode
+                            
+                        union all
+                        
+                            select str_hdr.transcode, str_hdr.origination, ifnull(str_trans2_hdr.read, 0) as yread
+                            from store_transaction as str_hdr
+                                    join store_transaction_details as str_dtl on str_hdr.transcode = str_dtl.transcode and str_hdr.keyno = str_dtl.keyno
+                                    left join store_services as str_svr on str_dtl.gcode = str_svr.gcode
+                                    left join services as svr on str_svr.gdcode = svr.gdcode
+                                    left join yoyaku_details as yk_dtl on str_hdr.transcode = yk_dtl.transcode
+                                    left join staff as stff on str_hdr.staffcode = stff.staffcode
+                                    join stafftype on stafftype.staffcode = stff.staffcode and stafftype.delflg is null or str_dtl.staffcode = 0
+                                    join storetype on storetype.delflg is null and storetype.storecode = str_hdr.storecode
+                                    left join store_transaction2 as str_trans2_hdr on str_hdr.transcode = str_trans2_hdr.transcode and str_hdr.keyno = str_trans2_hdr.keyno
+                            where str_hdr.delflg is not null and str_hdr.origination in (1,2,7,8) " . $datastrcode . $datatransdate . " 
                             group by str_hdr.transcode
 
                     ) tmptbl where yread = 0
                     
             ) as tblecount
                                 ";
+//    print_r($sql);die();
     //===================================================================================
     $GetData = $this->Customer->query($sql);
     $arr_reservation = $this->ParseDataToObjectArray($GetData, 'tblecount');
@@ -2247,8 +2271,8 @@ class ServersController extends WebServicesController
                                                     left join services as svr on str_svr.gdcode = svr.gdcode
                                                     left join yoyaku_details as yk_dtl on str_hdr.transcode = yk_dtl.transcode
                                                     left join staff as stff on str_dtl.staffcode = stff.staffcode
-                                                    left join stafftype on stafftype.staffcode = stff.staffcode and stafftype.delflg is null
-                                                    join storetype on storetype.syscode = stafftype.syscode and storetype.delflg is null and storetype.storecode = {$strcode}
+                                                    join stafftype on stafftype.staffcode = stff.staffcode and stafftype.delflg is null or str_dtl.staffcode = 0
+                                                    join storetype on storetype.delflg is null and storetype.storecode = str_hdr.storecode
                                                     left join store_transaction2 as str_trans2_hdr on str_hdr.transcode = str_trans2_hdr.transcode and str_hdr.keyno = str_trans2_hdr.keyno
                     where " . $dataoriginate . $datastrcode . $datatransdate . $sysCon . "
                     group by transcode
@@ -2268,8 +2292,8 @@ class ServersController extends WebServicesController
                                                     left join services as svr on str_svr.gdcode = svr.gdcode
                                                     left join yoyaku_details as yk_dtl on str_hdr.transcode = yk_dtl.transcode
                                                     left join staff as stff on str_dtl.staffcode = stff.staffcode
-                                                    left join stafftype on stafftype.staffcode = stff.staffcode and stafftype.delflg is null
-                                                    join storetype on storetype.syscode = stafftype.syscode and storetype.delflg is null and storetype.storecode = {$strcode}
+                                                    join stafftype on stafftype.staffcode = stff.staffcode and stafftype.delflg is null or str_dtl.staffcode = 0
+                                                    join storetype on storetype.delflg is null and storetype.storecode = str_hdr.storecode
                                                     left join store_transaction2 as str_trans2_hdr on str_hdr.transcode = str_trans2_hdr.transcode and str_hdr.keyno = str_trans2_hdr.keyno
                     where str_hdr.delflg is not null and " . $dataoriginate . $datastrcode . $datatransdate . $sysCon . "
                     group by transcode
@@ -2283,6 +2307,7 @@ class ServersController extends WebServicesController
             order by recctr desc " . $orderby . ", transcode desc, gnc
             limit  " . $curRec . "," . $maxRec . " 
                         ) tbllist ";
+//    print_r($sql); die();
     //===================================================================================
     $GetData = $this->Customer->query($sql);
     $arr_reservation = $this->ParseDataToObjectArray($GetData, 'tbllist');
@@ -2315,7 +2340,7 @@ class ServersController extends WebServicesController
     
     $sql = "insert into store_transaction2(transcode, keyno, `read`, datetimecreated)
                                     values('" . $transcode . "', " . $keyno . ", " . $read . ", now())
-			On Duplicate Key Update `read` = ". $read . ", datetimecreated = now()";
+			On Duplicate Key Update `read` = ". $read ;
    
     $GetData = $this->Customer->query($sql);
     //===================================================================================
