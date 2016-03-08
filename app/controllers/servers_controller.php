@@ -6483,9 +6483,9 @@ class ServersController extends WebServicesController
 //              $del_dtlsql = "DELETE FROM store_transaction_details
 //                               WHERE TRANSCODE = '" . $param['TRANSCODE'] . "'";
                 $del_sql = "UPDATE store_transaction set delflg = now()
-                            WHERE TRANSCODE = '" . $param['TRANSCODE'] . "'  and delflg is not null;";
+                            WHERE TRANSCODE = '" . $param['TRANSCODE'] . "'  and delflg is null;";
                 $del_dtlsql = "UPDATE store_transaction_details set delflg = now()
-                               WHERE TRANSCODE = '" . $param['TRANSCODE'] . "' and delflg is not null;";
+                               WHERE TRANSCODE = '" . $param['TRANSCODE'] . "' and delflg is null;";
                 
                 //-- 削除古いトランザクションおよびトランザクション細部 (Delete old transaction & transaction details)
                 $retQuery[$sqlctr] = $this->StoreTransaction->query($del_sql);
