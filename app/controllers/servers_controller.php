@@ -5554,7 +5554,6 @@ class ServersController extends WebServicesController
         $tmp .= "OPTIONNAME = 'MODIFYING_MAIL' OR ";
         $tmp .= "OPTIONNAME = 'YOYAKU_DRAGDROP_TIMEINTERVAL' OR ";
         $tmp .= "OPTIONNAME = 'HIDE_RAITEN' OR ";
-//        $tmp .= "OPTIONNAME = 'SHIFTFREE_YOYAKU' OR "; //シフト登録無しでもスタッフをフリーで予約
         $tmp .= "OPTIONNAME = 'OKOTOWARI_TIME')";
         
         $criteria[] = $tmp;
@@ -6549,13 +6548,30 @@ class ServersController extends WebServicesController
                                             '". $param['TRANSDATE'] ."') as IDNO"; //$storeinfo['storecode']
             $tmp_data = $this->StoreTransaction->query($sql_idno);
 
-            $subparam['storecode'] =  $param['STORECODE'];  //$storeinfo['storecode'];
-            $subparam['date']      = ereg_replace("-","", $param['TRANSDATE']);
-            $subparam['idno']      = $tmp_data[0][0]['IDNO'];
+            $idno = $tmp_data[0][0]['IDNO'];
+            $roop = true;
+            while($roop) {
+                $subparam['storecode'] =  $param['STORECODE'];  //$storeinfo['storecode'];
+                $subparam['date']      = ereg_replace("-","", $param['TRANSDATE']);
+                $subparam['idno']      = $idno;
 
-            $param['TRANSCODE']  = $this->MiscFunction->GenerateTranscode($subparam);
-            $param['IDNO']       = $tmp_data[0][0]['IDNO'];
+            //存在する場合、idnoに＋1をして再チェックを繰り返す add 20160308
+            $temptranscode = $this->MiscFunction->GenerateTranscode($subparam);
+            $checksql = "select transcode from store_transaction where transcode = '{$temptranscode}' limit 1";
+            $tmp_data = $this->StoreTransaction->query($checksql);
+            
+            if( count($tmp_data) == 0)//重複がなければ
+                {
+                    $roop = false;//ループを抜ける
+                }else{
+                    $idno++;
+                }
+            }
+            
+            $param['TRANSCODE']  = $temptranscode;
+            $param['IDNO']       = $idno;
             $param['KEYNO']      = 1;
+            
             
             //-------------------------------------------------------------
             $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
@@ -6607,7 +6623,7 @@ class ServersController extends WebServicesController
                         break;
                 }
             }
-        }
+        }// if empty transcode 
 
         $s = "'";
         //-----------------------------------------------------------------------------
