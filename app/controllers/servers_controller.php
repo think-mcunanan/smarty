@@ -751,6 +751,8 @@ class ServersController extends WebServicesController
                                         'YOYAKU_HYOU_CLOSE_TIME' => 'xsd:int',
                                         'YOYAKU_OPEN_TIME_SATSUN'  => 'xsd:int',
                                         'YOYAKU_CLOSE_TIME_SATSUN' => 'xsd:int',
+                                        'UPPER_LIMIT'         => 'xsd:int',
+                                        'UPPER_LIMIT_OP'      => 'xsd:string',
                                         'OPEN_TIME'         => 'xsd:int',
                                         'CLOSE_TIME'        => 'xsd:int',
                                         'storemail'         => 'xsd:string',
@@ -2101,11 +2103,15 @@ class ServersController extends WebServicesController
     $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
     //===================================================================================
 
+    //rule change 
+    /*
     if ($dateto !== ""){
         $datatransdate = " and str_hdr.transdate between '" . $datefr . "' and '" . $dateto . "' ";
     }else{
         $datatransdate = " and str_hdr.transdate = '" . $datefr . "' ";
     }
+     */
+    $datatransdate = ' and str_hdr.transdate >= date(now()) ';
     
     $datastrcode = "";
     if ($strcode > 0){
@@ -2131,22 +2137,6 @@ class ServersController extends WebServicesController
                                     left join store_transaction2 as str_trans2_hdr on str_hdr.transcode = str_trans2_hdr.transcode and str_hdr.keyno = str_trans2_hdr.keyno
                             where str_hdr.origination in (1,2,7,8) " . $datastrcode . $datatransdate . " 
                             group by str_hdr.transcode
-                            
-                        union all
-                        
-                            select str_hdr.transcode, str_hdr.origination, ifnull(str_trans2_hdr.read, 0) as yread
-                            from store_transaction as str_hdr
-                                    join store_transaction_details as str_dtl on str_hdr.transcode = str_dtl.transcode and str_hdr.keyno = str_dtl.keyno
-                                    left join store_services as str_svr on str_dtl.gcode = str_svr.gcode
-                                    left join services as svr on str_svr.gdcode = svr.gdcode
-                                    left join yoyaku_details as yk_dtl on str_hdr.transcode = yk_dtl.transcode
-                                    left join staff as stff on str_hdr.staffcode = stff.staffcode
-                                    join stafftype on stafftype.staffcode = stff.staffcode and stafftype.delflg is null or str_dtl.staffcode = 0
-                                    join storetype on storetype.delflg is null and storetype.storecode = str_hdr.storecode
-                                    left join store_transaction2 as str_trans2_hdr on str_hdr.transcode = str_trans2_hdr.transcode and str_hdr.keyno = str_trans2_hdr.keyno
-                            where str_hdr.delflg is not null and str_hdr.origination in (1,2,7,8) " . $datastrcode . $datatransdate . " 
-                            group by str_hdr.transcode
-
                     ) tmptbl where yread = 0
                     
             ) as tblecount
@@ -2262,7 +2252,8 @@ class ServersController extends WebServicesController
                                                     if(ifnull(str_trans2_hdr.datetimecreated, '') <> '', DATE_FORMAT(str_trans2_hdr.datetimecreated, '%Y年%m月%d日 %H:%i'), '') as starttime,
                                                     if(ifnull(yk_dtl.updatedate, '') <> '', DATE_FORMAT(yk_dtl.updatedate, '%Y年%m月%d日'), '') as reservationdt,
                                                     if(ifnull(str_hdr.YOYAKUTIME, '') <> '', DATE_FORMAT(str_hdr.YOYAKUTIME, '%H:%i'), '') as reservationtm,
-                                                    str_hdr.cname, stff.staffname, '予約' as transstat, 
+                                                    str_hdr.cname, stff.staffname, 
+                                                    case when str_hdr.delflg is not null then 'キャンセル' else '予約' end as transstat, 
                                                     if(str_hdr.origination = 7 or str_hdr.origination = 8, '連携', 'もばすて') as route, ifnull(str_trans2_hdr.read, 0) as alreadyread, 
                                                     group_concat(distinct svr.syscode) as syscode, str_hdr.origination
                     from store_transaction as str_hdr
@@ -2276,28 +2267,6 @@ class ServersController extends WebServicesController
                                                     left join store_transaction2 as str_trans2_hdr on str_hdr.transcode = str_trans2_hdr.transcode and str_hdr.keyno = str_trans2_hdr.keyno
                     where " . $dataoriginate . $datastrcode . $datatransdate . $sysCon . "
                     group by transcode
-
-                union all
-
-                    select 1 as gnc, str_hdr.transcode, str_hdr.keyno, DATE_FORMAT(str_hdr.transdate, '%Y年%m月%d日') as transdate, 
-                                                    if(ifnull(str_trans2_hdr.datetimecreated, '') <> '', DATE_FORMAT(str_trans2_hdr.datetimecreated, '%Y年%m月%d日 %H:%i'), '') as starttime,
-                                                    if(ifnull(yk_dtl.updatedate, '') <> '', DATE_FORMAT(yk_dtl.updatedate, '%Y年%m月%d日'), '') as reservationdt,
-                                                    if(ifnull(str_hdr.YOYAKUTIME, '') <> '', DATE_FORMAT(str_hdr.YOYAKUTIME, '%H:%i'), '') as reservationtm,
-                                                    str_hdr.cname, stff.staffname, 'キャンセル' as transstat, 
-                                                    if(str_hdr.origination = 7 or str_hdr.origination = 8, '連携', 'もばすて') as route, ifnull(str_trans2_hdr.read, 0) as alreadyread, 
-                                                    group_concat(distinct svr.syscode) as syscode, str_hdr.origination
-                    from store_transaction as str_hdr
-                                                    left join store_transaction_details as str_dtl on str_hdr.transcode = str_dtl.transcode and str_hdr.keyno = str_dtl.keyno
-                                                    left join store_services as str_svr on str_dtl.gcode = str_svr.gcode
-                                                    left join services as svr on str_svr.gdcode = svr.gdcode
-                                                    left join yoyaku_details as yk_dtl on str_hdr.transcode = yk_dtl.transcode
-                                                    left join staff as stff on str_dtl.staffcode = stff.staffcode
-                                                    join stafftype on stafftype.staffcode = stff.staffcode and stafftype.delflg is null or str_dtl.staffcode = 0
-                                                    join storetype on storetype.delflg is null and storetype.storecode = str_hdr.storecode
-                                                    left join store_transaction2 as str_trans2_hdr on str_hdr.transcode = str_trans2_hdr.transcode and str_hdr.keyno = str_trans2_hdr.keyno
-                    where str_hdr.delflg is not null and " . $dataoriginate . $datastrcode . $datatransdate . $sysCon . "
-                    group by transcode
-                    
                 ) as tmptbl 
 
             union all 
@@ -2415,6 +2384,10 @@ class ServersController extends WebServicesController
             $tmp .= "OPTIONNAME  = 'YoyakuStart_satsun' OR ";
             $tmp .= "OPTIONNAME  = 'YoyakuEnd_satsun' OR ";
             //--------------------------------------------
+            //期限表示用
+            $tmp .= "OPTIONNAME = 'YoyakuUpperLimit' OR ";
+            $tmp .= "OPTIONNAME = 'YoyakuUpperLimitOption' OR ";
+            //--------------------------------------------
             $tmp .= "OPTIONNAME  = 'YoyakuStart' OR ";
             $tmp .= "OPTIONNAME  = 'YoyakuEnd')";
 
@@ -2453,6 +2426,15 @@ class ServersController extends WebServicesController
                     case 'YoyakuEnd':
                         $arrReturn['YOYAKU_CLOSE_TIME'] = $itm['StoreSettings']['OPTIONVALUEI'];
                         break;
+                    //-------------------------------------------------------------------------------
+                    case 'YoyakuUpperLimit':
+                        $arrReturn['UPPER_LIMIT'] = $itm['StoreSettings']['OPTIONVALUEI'];
+                        break;
+                    case 'YoyakuUpperLimitOption':
+                        $arrReturn['UPPER_LIMIT_OP'] = $itm['StoreSettings']['OPTIONVALUES'];
+                        break;
+                  
+                    
                 }
             }
 
