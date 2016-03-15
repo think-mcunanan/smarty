@@ -1796,7 +1796,6 @@ class ServersController extends WebServicesController
                     where delflg is null and ccode <> '" . $tmpccode . "' and ccode <> '" . $basecode . "'" . $strcond . $filename1 . $firstdatecond . "
                     order by cnamekana, firstdate 
                     limit " . ($pageindex * 50) . ", 50) tblresult"; 
-//    print_r($Sql); die();
     //-----------------------------------------------------------------------------------
     $GetData = $this->Customer->query($Sql);
     //===================================================================================
@@ -1906,7 +1905,6 @@ class ServersController extends WebServicesController
                     STAFF_INCHARGE_SELECTED = ". $GetData[0]["customer"]["STAFF_INCHARGE_SELECTED"] ."
                 where ccode = '". $toccode ."'";
         
-        //print_r($Sql); die();
         $GetData = $this->Customer->query($Sql);
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2151,7 +2149,6 @@ class ServersController extends WebServicesController
                     
             ) as tblecount
                                 ";
-//    print_r($sql);die();
     //===================================================================================
     $GetData = $this->Customer->query($sql);
     $arr_reservation = $this->ParseDataToObjectArray($GetData, 'tblecount');
@@ -2286,7 +2283,6 @@ class ServersController extends WebServicesController
             order by recctr desc " . $orderby . ", transcode desc, gnc
             limit  " . $curRec . "," . $maxRec . " 
                         ) tbllist ";
-//    print_r($sql); die();
     //===================================================================================
     $GetData = $this->Customer->query($sql);
     $arr_reservation = $this->ParseDataToObjectArray($GetData, 'tbllist');
@@ -2747,7 +2743,6 @@ class ServersController extends WebServicesController
             //-----------------------------------------------------------------------
         }//end if
         //---------------------------------------------------------------------------
-        //print_r($ret); die();
         // Add last tantou staff code and last tantou staff name
         // Added By: Marvin marvin@think-ahead.jp
         // Date Added: 2012-08-17
@@ -2840,7 +2835,6 @@ class ServersController extends WebServicesController
         // add by albert 2015-10-27 for BM connection -------------------------------
         //---------------------------------------------------------------------------
         
-//        print_r($ret); die();
        return $ret;
        //---------------------------------------------------------------------------
     }//end function
@@ -3369,8 +3363,7 @@ class ServersController extends WebServicesController
           $v[$i]['Staff']['YOYAKU_DISPLAY'] = $v[$i]['StaffRowsHistory'][0]['SHOWINCALENDAR'];
           }
          * ************************************************************************** */
-         //print_r($v); die();
-
+         
         $ret = array();
         $ret['records'] = set::extract($v, '{n}.Staff');
         $ret['record_count'] = $this->Staff->find('count', array('conditions' => $criteria_top,
@@ -3408,8 +3401,6 @@ class ServersController extends WebServicesController
                 $ctr++;
             }//end foreach
         }//end if
-        //print_r($ret['records']); 
-        //die();
         return $ret;
     }
 
@@ -4961,7 +4952,6 @@ class ServersController extends WebServicesController
             $c = $this->StoreService->query('SELECT count(*) as ctr FROM (' . $sql . ') as tmp');
             $ret['record_count'] = $c[0][0]['ctr'];
         }
-//print_r($ret); die();
         return $ret;
     }
 
@@ -6349,10 +6339,8 @@ class ServersController extends WebServicesController
                            transaction.PRIORITYTYPE,
                            transaction.TRANSCODE, " . $order_trantype . " details.ROWNO";
         //---------------------------------------------------------------------------------------------------------------------
-//        print_r($sql); die();        
         $v = $this->StoreTransaction->query($sql);
         
-//        print_r($sql); die();
         //---------------------------------------------------------------------------------------------------------------------
         $subparam['dbname']    = $storeinfo['dbname'];
         $subparam['date']      = $param['date'];
@@ -8266,7 +8254,6 @@ class ServersController extends WebServicesController
         $ret['records']      = $arr_howknows;
         $ret['record_count'] = count($arr_howknows);
         //-------------------------------------------------------------------------------------------
-        //print_r($ret); die();
         return $ret;
         //-------------------------------------------------------------------------------------------
     }//end function
@@ -8622,8 +8609,6 @@ class ServersController extends WebServicesController
         //-------------------------------------------------------------------------------------------
         $arr_okotowari = $this->ParseDataToObjectArray($GetData, 'tblresult');
         //-------------------------------------------------------------------------------------------
-        //print_r($arr_okotowari);
-        //die();
         //$ret = array();
         //$ret['records']      = $arr_okotowari;
         //$ret['record_count'] = count($arr_okotowari);
