@@ -838,7 +838,8 @@ class ServersController extends WebServicesController
                                         'SMOKING'        => 'xsd:int', 
                                         'DMKUBUN'        => 'xsd:int', 
                                         'JOBINDUSTRYCODE'=> 'xsd:int', 
-                                        'JOBINDUSTRY'    => 'xsd:string', 
+                                        'JOBINDUSTRY'    => 'xsd:string',
+                                        'CREATEDFROMCODE'    => 'xsd:int',
                                     /*--------------------------------------------*/
                                     /* add by albert for bm connection 2015-11-05 */
                                     /*--------------------------------------------*/
@@ -1795,6 +1796,7 @@ class ServersController extends WebServicesController
                     where delflg is null and ccode <> '" . $tmpccode . "' and ccode <> '" . $basecode . "'" . $strcond . $filename1 . $firstdatecond . "
                     order by cnamekana, firstdate 
                     limit " . ($pageindex * 50) . ", 50) tblresult"; 
+//    print_r($Sql); die();
     //-----------------------------------------------------------------------------------
     $GetData = $this->Customer->query($Sql);
     //===================================================================================
@@ -1948,6 +1950,14 @@ class ServersController extends WebServicesController
         //--------------------------------------------------------------------------------------------------------------------------------------------------
         
         //--------------------------------------------------------------------------------------------------------------------------------------------------
+        //update reservia customer table -------------------------------------------------------------------------------------------------------------------
+        $GetData = "";
+        $Sql = "update rv_customer set ccode = '" . $toccode . "'
+                where ccode = '" . $fromccode . "'";
+	$GetData = $this->Customer->query($Sql);
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
         //update dcustomerinfo table for new customer code -------------------------------------------------------------------------------------------------
         $GetData = "";
         $Sql = "Insert IGNORE into dcustomerinfo(ccode, ITEMCODE,ITEMLISTCODE, `STORECODE`,`DELFLG` )
@@ -2079,7 +2089,7 @@ class ServersController extends WebServicesController
                 where cust1.ccode = '" . $toccode . "'";
 	$GetData = $this->Customer->query($Sql);
         //--------------------------------------------------------------------------------------------------------------------------------------------------
- 
+        
         return $newstorecode;
 }
 
@@ -2663,7 +2673,7 @@ class ServersController extends WebServicesController
                         'TYO1', 'ADDRESS1', 'ADDRESS1_1', 'TEL1', 'TEL2', 'BIRTHDATE', 'MEMBERSCATEGORY',
                         'CHRISTIAN_ERA', 'MAILADDRESS1', 'MAILADDRESS2', 'MAILKUBUN', 'FIRSTDATE',
                         'HOWKNOWSCODE',
-                        'BLOODTYPE', 'MEMBER_CODE', 'SMOKING', 'DMKUBUN', 'JOBINDUSTRYCODE' //add by albert 2105-10-27 --> customer integration information
+                        'BLOODTYPE', 'MEMBER_CODE', 'SMOKING', 'DMKUBUN', 'JOBINDUSTRYCODE', 'CREATEDFROMCODE' //add by albert 2105-10-27 --> customer integration information
                         );
 
         if (!in_array($param['orderby'], $fields)) {
@@ -2693,6 +2703,7 @@ class ServersController extends WebServicesController
         $ret = array();
         $ret['records']      = set::extract($v, '{n}.Customer');
         $ret['record_count'] = $this->Customer->find('count', array('conditions' => $criteria));
+        
         //---------------------------------------------------------------------------
         //Get How Knows The Store data records and merge
         //---------------------------------------------------------------------------
@@ -2736,6 +2747,7 @@ class ServersController extends WebServicesController
             //-----------------------------------------------------------------------
         }//end if
         //---------------------------------------------------------------------------
+        //print_r($ret); die();
         // Add last tantou staff code and last tantou staff name
         // Added By: Marvin marvin@think-ahead.jp
         // Date Added: 2012-08-17
@@ -2760,6 +2772,7 @@ class ServersController extends WebServicesController
         // Updated By: Homer Pasamba 2013/02/05
         // Comment: Set Customer Full Address
         //---------------------------------------------------------------------------
+        
         if (count($ret['records']) > 0) {
             $ctr = 0;
             foreach ($ret['records'] as $rec) {
@@ -2781,17 +2794,30 @@ class ServersController extends WebServicesController
             $ctr = 0;
             foreach($ret['records'] as $data) {
                 $BMCustID['BMCODE'] = "";
-                $Sql = "select distinct site_customer_id as BMCODE
-                        from bm_reservation 
-                        where ccode = '".$data['CCODE']."'";
-                $GetData = $this->Customer->query($Sql);
-                if (count($GetData) > 0) {
-                     $BMCustID['BMCODE'] = $GetData[0]['bm_reservation']['BMCODE'];
+                
+                if ($data['CREATEDFROMCODE'] == 7) {
+                    $Sql = "select distinct site_customer_id as BMCODE
+                            from bm_reservation 
+                            where ccode = '".$data['CCODE']."'";
+                    $GetData = $this->Customer->query($Sql);
+                    if (count($GetData) > 0) {
+                         $BMCustID['BMCODE'] = $GetData[0]['bm_reservation']['BMCODE'];
+                    }
+                }else if ($data['CREATEDFROMCODE'] == 8) {
+                    $Sql = "select distinct alliance_customer_id as BMCODE
+                            from rv_customer 
+                            where ccode = '".$data['CCODE']."'";
+                    $GetData = $this->Customer->query($Sql);
+                    if (count($GetData) > 0) {
+                         $BMCustID['BMCODE'] = $GetData[0]['rv_customer']['BMCODE'];
+                    }                    
                 }
+                    
                 $ret['records'][$ctr] = array_merge($data, $BMCustID);
                 $ctr++;
             }
         }
+        
         if (count($ret['records']) > 0) { //get jobindustry description
             $ctr = 0;
             
@@ -2814,7 +2840,7 @@ class ServersController extends WebServicesController
         // add by albert 2015-10-27 for BM connection -------------------------------
         //---------------------------------------------------------------------------
         
-        //print_r($ret); die();
+//        print_r($ret); die();
        return $ret;
        //---------------------------------------------------------------------------
     }//end function
@@ -6231,7 +6257,7 @@ class ServersController extends WebServicesController
                     left join (select 7 as origination, 
                                         bm_reservation.route, 
                                         bm_reservation.reservation_system, 
-                                        bm_reservation.reserve_date, 
+                                        date_format(bm_reservation.reserve_date, '%Y-%m-%d') as reserve_date, 
                                         bm_reservation.reserve_code,
                                         bm_reservation.date,
                                         TIME_FORMAT(bm_reservation.start, '%H:%i') as start, 
