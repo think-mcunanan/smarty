@@ -2669,7 +2669,7 @@ class ServersController extends WebServicesController
                         'TYO1', 'ADDRESS1', 'ADDRESS1_1', 'TEL1', 'TEL2', 'BIRTHDATE', 'MEMBERSCATEGORY',
                         'CHRISTIAN_ERA', 'MAILADDRESS1', 'MAILADDRESS2', 'MAILKUBUN', 'FIRSTDATE',
                         'HOWKNOWSCODE',
-                        'BLOODTYPE', 'MEMBER_CODE', 'SMOKING', 'DMKUBUN', 'JOBINDUSTRYCODE', 'CREATEDFROMCODE' //add by albert 2105-10-27 --> customer integration information
+                        'BLOODTYPE', 'MEMBER_CODE', 'SMOKING', 'DMKUBUN', 'JOBINDUSTRYCODE' //, 'CREATEDFROMCODE' //add by albert 2105-10-27 --> customer integration information
                         );
 
         if (!in_array($param['orderby'], $fields)) {
@@ -2790,7 +2790,7 @@ class ServersController extends WebServicesController
             foreach($ret['records'] as $data) {
                 $BMCustID['BMCODE'] = "";
                 
-                if ($data['CREATEDFROMCODE'] == 7) {
+//                if ($data['CREATEDFROMCODE'] == 7) {
                     $Sql = "select distinct site_customer_id as BMCODE
                             from bm_reservation 
                             where ccode = '".$data['CCODE']."'";
@@ -2798,15 +2798,15 @@ class ServersController extends WebServicesController
                     if (count($GetData) > 0) {
                          $BMCustID['BMCODE'] = $GetData[0]['bm_reservation']['BMCODE'];
                     }
-                }else if ($data['CREATEDFROMCODE'] == 8) {
-                    $Sql = "select distinct alliance_customer_id as BMCODE
-                            from rv_customer 
-                            where ccode = '".$data['CCODE']."'";
-                    $GetData = $this->Customer->query($Sql);
-                    if (count($GetData) > 0) {
-                         $BMCustID['BMCODE'] = $GetData[0]['rv_customer']['BMCODE'];
-                    }                    
-                }
+//                }else if ($data['CREATEDFROMCODE'] == 8) {
+//                    $Sql = "select distinct alliance_customer_id as BMCODE
+//                            from rv_customer 
+//                            where ccode = '".$data['CCODE']."'";
+//                    $GetData = $this->Customer->query($Sql);
+//                    if (count($GetData) > 0) {
+//                         $BMCustID['BMCODE'] = $GetData[0]['rv_customer']['BMCODE'];
+//                    }                    
+//                }
                     
                 $ret['records'][$ctr] = array_merge($data, $BMCustID);
                 $ctr++;
