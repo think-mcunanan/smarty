@@ -1872,10 +1872,13 @@ class ServersController extends WebServicesController
         
         //--------------------------------------------------------------------------------------------------------------------------------------------------
         //undating of new customer information in customer table -------------------------------------------------------------------------------------------
+        $GetData1 = "";
+        $newCustName = '"' . $params['CNAME'] . '"';
+        $newCustNameKN = '"' . $params['CNAMEKANA'] . '"';
         $Sql = "update customer
                 set /*CNUMBER = " . $cnumnew . ",*/
-                    CNAME = '". $params['CNAME'] ."',
-                    CNAMEKANA = '". $params['CNAMEKANA'] ."',
+                    CNAME = ". $newCustName .",
+                    CNAMEKANA = ". $newCustNameKN .",
                     MEMBER_CODE = '". $params['MEMBER_CODE'] ."',
                     SEX = ". $params['SEX'] .",
                     SMOKING = ". $params['SMOKING'] .",
@@ -1905,7 +1908,7 @@ class ServersController extends WebServicesController
                     STAFF_INCHARGE_SELECTED = ". $GetData[0]["customer"]["STAFF_INCHARGE_SELECTED"] ."
                 where ccode = '". $toccode ."'";
         
-        $GetData = $this->Customer->query($Sql);
+        $GetData1 = $this->Customer->query($Sql);
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
         //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1919,11 +1922,11 @@ class ServersController extends WebServicesController
                 $GetData = $this->Customer->query($Sql);
                 
                 $GetData = "";
-                $Sql = "Update store_transaction set cname = '" . $params['CNAME'] . "'  where ccode = '" . $toccode . "'";
+                $Sql = "Update store_transaction set cname = " . $newCustName . "  where ccode = '" . $toccode . "'";
                 $GetData = $this->Customer->query($Sql);
                 
                 $GetData = "";
-                $Sql = "Update store_transaction set ccode = '" . $toccode . "', cname = '" . $params['CNAME'] . "'  where ccode = '" . $fromccode . "'";
+                $Sql = "Update store_transaction set ccode = '" . $toccode . "', cname = " . $newCustName . "  where ccode = '" . $fromccode . "'";
                 $GetData = $this->Customer->query($Sql);
                 
                 // enable trigger
@@ -1932,12 +1935,26 @@ class ServersController extends WebServicesController
                 $GetData = $this->Customer->query($Sql);
                 
             }elseif ($ctr == 1){ //update ccode to bm_reservation
-                $Sql = "Update bm_reservation set ccode = '" . $toccode . "', site_customer_id = '" . $params['BMCODE'] . "',
+                $Sql = "Update bm_reservation set ccode = '" . $toccode . "'
+                        where ccode = '" . $fromccode . "'";
+                $GetData = $this->Customer->query($Sql);
+                
+                /* remove by albert by on the intruction of kato-san
+                 * 2016-03-28 at 19:40
+                $bmCode = '"' . $params['BMCODE'] . '"';
+                $Sql = "Update bm_reservation set ccode = '" . $toccode . "', 
                                                   mail =  '" . $params['MAILADDRESS1'] . "',  
-                                                  zipcode =  '" . $params['ZIPCODE1'] . "', tel =  '" . $params['TEL1'] . "', 
+                                                  zipcode =  '" . $params['ZIPCODE1'] . "',
+                                                  tel =  '" . $params['TEL1'] . "', 
                                                   sex =  " . (($params['SEX'] == 1) ? 0 : 1) . "
                         where ccode = '" . $fromccode . "'";
                 $GetData = $this->Customer->query($Sql);
+                
+                $GetData = "";
+                $Sql = "Update bm_reservation set site_customer_id = " . $bmCode . "
+                        where ccode = '" . $toccode . "'";
+                $GetData = $this->Customer->query($Sql);
+                */
                 
             }else{//update ccode for the following table
                 $Sql = "Update ".$tablename[$ctr]." set ccode = '" . $toccode . "' where ccode = '" .$fromccode . "'";
@@ -6169,8 +6186,8 @@ class ServersController extends WebServicesController
                             details.STAFFCODE, details.STAFFCODESIMEI, details.ZEIKUBUN,
                             details.PRICE, details.CLAIMED, details.KASANPOINT1, details.KASANPOINT2,
                             details.KASANPOINT3, details.TRANTYPE, details.TRANSCODE, details.STARTTIME,
-                            details.ENDTIME, details.GCODE, details.ROWNO,
-                                customer.CCODE, customer.CNUMBER, customer.CNAME, customer.CNAMEKANA,
+                            details.ENDTIME, details.GCODE, details.ROWNO, customer.CNUMBER,
+                                customer.CCODE, customer.CNAME, customer.CNAMEKANA,
                                 customer.CSTORECODE, customer.SEX, customer.TEL1, customer.TEL2,
                                 customer.BIRTHDATE, customer.MEMBERSCATEGORY, 
                        howknows_thestore.HOWKNOWSCODE, howknows_thestore.HOWKNOWS,
@@ -6190,7 +6207,7 @@ class ServersController extends WebServicesController
                         /* add by albert for bm connection 2015-10-29 */
                         bmtble.route, bmtble.reservation_system, bmtble.reserve_date, bmtble.reserve_code,
                         bmtble.date as v_date, bmtble.start as start_time, bmtble.end as end_time, bmtble.coupon_info,
-                        bmtble.comment, bmtble.shop_comment, bmtble.next_coming_comment, bmtble.demand, bmtble.site_customer_id,
+                        bmtble.comment, bmtble.shop_comment, bmtble.next_coming_comment, bmtble.demand, bmtble.site_customer_id, 
                         bmtble.price as bmPrice, bmtble.nomination_fee, bmtble.total_price as bmTprice, bmtble.use_point, 
                         bmtble.grant_point, bmtble.visit_num, bmtble.name_sei as firstname, bmtble.name_mei as lastname,
                         bmtble.sex as bmsex, bmtble.name_kn_sei as knfirstname, bmtble.name_kn_mei as knlastname, bmtble.tel as bmtel,
@@ -6338,9 +6355,9 @@ class ServersController extends WebServicesController
                            details.STAFFCODE, 
                            transaction.PRIORITYTYPE,
                            transaction.TRANSCODE, " . $order_trantype . " details.ROWNO";
+        //print_r($sql);die();
         //---------------------------------------------------------------------------------------------------------------------
         $v = $this->StoreTransaction->query($sql);
-        
         //---------------------------------------------------------------------------------------------------------------------
         $subparam['dbname']    = $storeinfo['dbname'];
         $subparam['date']      = $param['date'];
@@ -6403,6 +6420,7 @@ class ServersController extends WebServicesController
             $ret['checked_times'] = $data[0]['checked_times'];
         }//end if
         //---------------------------------------------------------------------------------------------------------------------
+        
         return $ret;
         //---------------------------------------------------------------------------------------------------------------------
     }//end function
