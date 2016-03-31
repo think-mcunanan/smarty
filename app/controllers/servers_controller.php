@@ -7055,39 +7055,50 @@ class ServersController extends WebServicesController
 
         //-- 会社データベースを設定する (Set the Company Database)
         $this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction);
-
-        $del_sql = "UPDATE store_transaction
-                    SET DELFLG =  NOW()
-                    WHERE TRANSCODE = '" . $transcode . "'";
-
-        $del_dtlsql = "UPDATE store_transaction_details
-                       SET DELFLG =  NOW()
-                       WHERE TRANSCODE = '" . $transcode . "'";
         
-        $del_jkisql = "UPDATE yoyaku_next SET CHANGEFLG = 2,YOYAKU_STATUS = 0
-                       WHERE NEXTCODE = '" . $transcode . "'";
-        #-----------------------------------------------------------------------------------------------------
-        #Added by MarvinC - 2015-06-18
-        #-----------------------------------------------------------------------------------------------------
-        $del_jkisql_details = "UPDATE yoyaku_next_details SET CHANGEFLG = 2,YOYAKU_STATUS = 0
-                       WHERE NEXTCODE = '" . $transcode . "'";
-        #-----------------------------------------------------------------------------------------------------
-
-        //-- DELETE TRANSACTION & TRANSACTION DETAILS
-        $this->StoreTransaction->query($del_sql);
-        $this->StoreTransaction->query($del_dtlsql);
-        $this->StoreTransaction->query($del_jkisql);
-        $this->StoreTransaction->query($del_jkisql_details);
-        //----------------------------------------------------------------------------------------
-        //Mark reji marketing records as deleted
-        //----------------------------------------------------------------------------------------
-        $SqlRejiMarketing = "UPDATE drejimarketing 
-                             SET delflg = now() 
-                             WHERE transcode = '" . $transcode . "'";
-        $this->StoreTransaction->query($SqlRejiMarketing);
-        //----------------------------------------------------------------------------------------
+        $sql_search = "select tempstatus
+                      from store_transaction
+                      where delflg is null and transcode = '$transcode'";
+        $tmpstat = $this->StoreTransaction->query($sql_search);
         
-        return true;
+        if ((int)$tmpstat[0]['store_transaction']['tempstatus'] > 1){
+            
+            $del_sql = "UPDATE store_transaction
+                        SET DELFLG =  NOW()
+                        WHERE TRANSCODE = '" . $transcode . "'";
+
+            $del_dtlsql = "UPDATE store_transaction_details
+                           SET DELFLG =  NOW()
+                           WHERE TRANSCODE = '" . $transcode . "'";
+
+            $del_jkisql = "UPDATE yoyaku_next SET CHANGEFLG = 2,YOYAKU_STATUS = 0
+                           WHERE NEXTCODE = '" . $transcode . "'";
+            #-----------------------------------------------------------------------------------------------------
+            #Added by MarvinC - 2015-06-18
+            #-----------------------------------------------------------------------------------------------------
+            $del_jkisql_details = "UPDATE yoyaku_next_details SET CHANGEFLG = 2,YOYAKU_STATUS = 0
+                           WHERE NEXTCODE = '" . $transcode . "'";
+            #-----------------------------------------------------------------------------------------------------
+
+            //-- DELETE TRANSACTION & TRANSACTION DETAILS
+            $this->StoreTransaction->query($del_sql);
+            $this->StoreTransaction->query($del_dtlsql);
+            $this->StoreTransaction->query($del_jkisql);
+            $this->StoreTransaction->query($del_jkisql_details);
+            //----------------------------------------------------------------------------------------
+            //Mark reji marketing records as deleted
+            //----------------------------------------------------------------------------------------
+            $SqlRejiMarketing = "UPDATE drejimarketing 
+                                 SET delflg = now() 
+                                 WHERE transcode = '" . $transcode . "'";
+            $this->StoreTransaction->query($SqlRejiMarketing);
+            //----------------------------------------------------------------------------------------
+
+            return true;
+        }else{
+            return false;
+        }
+        
     }
     //- #############################################################################
 
