@@ -7258,6 +7258,7 @@ class ServersController extends WebServicesController
 
         //-- 会社データベースを設定する (Set the Company Database)
         $this->BreakTime->set_company_database($storeinfo['dbname'], $this->BreakTime);
+        $this->BreakTime->begin();
 
         //-- BREAKIDは設定してない場合、新規BREAKIDを作成 (Check BREAKID, create new if none)
         if (empty($param['BREAKID'])) {
@@ -7275,8 +7276,15 @@ class ServersController extends WebServicesController
         //-- 会社データベース設定を再確認する (double check that company database is set)
         if ($this->BreakTime->database_set == true) {
             $this->BreakTime->save(); // アップデートか追加を実行する (Update/Add Execute)
+            
+            $query = "insert into break_time_log(BREAKID,STAFFCODE,STORECODE,DATE,STARTTIME,ENDTIME,PRIORITY,REMARKS,STATUS ,CREATEDATE )
+            select BREAKID,STAFFCODE,STORECODE,DATE,STARTTIME,ENDTIME,PRIORITY,REMARKS,1 as STATUS ,now() as CREATEDATE from break_time where breakid = {$param['BREAKID']}";
+            $this->BreakTime->query($query);
+            $this->BreakTime->commit();
+            
             return $this->BreakTime->id;
         } else {
+            $this->BreakTime->rollback();
             $this->_soap_server->fault(1, '', 'Error Processing Data');
         }
     }
@@ -7299,9 +7307,25 @@ class ServersController extends WebServicesController
         }
 
         //-- 会社データベースを設定する (Set the Company Database)
+        $ret = true;
         $this->BreakTime->set_company_database($storeinfo['dbname'], $this->BreakTime);
-
-        $this->BreakTime->delete($breakid);
+        $this->BreakTime->begin();
+        
+        //削除ログの挿入
+        $query = "insert into break_time_log(BREAKID,STAFFCODE,STORECODE,DATE,STARTTIME,ENDTIME,PRIORITY,REMARKS,STATUS ,CREATEDATE )
+            select BREAKID,STAFFCODE,STORECODE,DATE,STARTTIME,ENDTIME,PRIORITY,REMARKS,2 as STATUS ,now() as CREATEDATE from break_time where breakid = {$breakid}";
+        $ret = $this->BreakTime->query($query);
+        
+        //$this->BreakTime->delete($breakid);
+        if($ret !== false){
+            $query = "delete from breaktime where breakid = {$breakid}";
+            $this->BreakTime->query($query);
+        }
+        if($ret !== false){
+            $this->BreakTime->commit();
+        }else{
+            $this->BreakTime->rollback(); 
+        }
 
         return true;
     }
