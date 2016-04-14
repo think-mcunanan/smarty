@@ -7318,7 +7318,7 @@ class ServersController extends WebServicesController
         
         //$this->BreakTime->delete($breakid);
         if($ret !== false){
-            $query = "delete from breaktime where breakid = {$breakid}";
+            $query = "delete from brea_ktime where breakid = {$breakid}";
             $this->BreakTime->query($query);
         }
         if($ret !== false){
