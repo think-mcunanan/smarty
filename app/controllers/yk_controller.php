@@ -580,10 +580,10 @@ class YkController extends AppController {
                     $r_month = intval($this->KeitaiSession->Numeric($this->params['form']['r_month']));
                     $r_day   = intval($this->KeitaiSession->Numeric($this->params['form']['r_day']));
 
-                    if($r_year != 0 && $r_month != 0 && $r_day != 0 ) {
+                    if($r_year > 1900 && $r_year <= date('Y') && $r_month > 0 && $r_day > 0 && $r_month < 13 && $r_day < 32) {
                         $t_bday  = sprintf("%4d-%02d-%02d", $r_year, $r_month, $r_day);
                     }
-                    else if($r_month != 0 && $r_day != 0 ) {
+                    else if($r_month > 0 && $r_day > 0 && $r_month < 13 && $r_day < 32) {
                         $t_bday  = sprintf("1888-%02d-%02d", $r_month, $r_day);
                     }
                     else {
@@ -683,18 +683,35 @@ class YkController extends AppController {
                         //-- 会員登録 --------------------//
                         $body  = $store_info['NewMemberMailMsg']."\n\n";
                         $body .= $store_info['MailFooter']."\n";
-                        $this->Email->lineLength = 10000;
-                        $this->Email->from    = $store_info['STORENAME'].' <'.$store_info['storeid'].'@'.EMAIL_DOMAIN.'>';
-                        $this->Email->replyTo = 'err_'.$store_info['storeid'].'@'.EMAIL_DOMAIN;
-
                         
-                        $this->Email->to      = $t_email;
-                        $this->Email->subject = $store_info['STORENAME'].'会員登録';
-                        $this->Email->delivery = 'smtp';
-                        $this->Email->smtpOptions = array('port' => MAILSERVER_PORT,
-                                                      'host' => MAILSERVER_ADDRESS);
-                        $this->Email->send($body);
-                        //------------------------------//
+                        //#1287 shimizu change mail-function
+//                        $this->Email->lineLength = 10000;
+//                        $this->Email->from    = $store_info['STORENAME'].' <'.$store_info['storeid'].'@'.EMAIL_DOMAIN.'>';
+//                        $this->Email->replyTo = 'err_'.$store_info['storeid'].'@'.EMAIL_DOMAIN;
+//                        $this->Email->to      = $t_email;
+//                        $this->Email->subject = $store_info['STORENAME'].'会員登録';
+//                        $this->Email->delivery = 'smtp';
+//                        $this->Email->smtpOptions = array('port' => MAILSERVER_PORT,
+//                                                      'host' => MAILSERVER_ADDRESS);
+//                        
+//                        $this->Email->send($body);
+//                        //------------------------------//
+                         $to = $t_email;
+                         $content = $body;
+                         $title =  $store_info['STORENAME'].'会員登録完了のお知らせ';
+                         
+                         // メールヘッダを作成
+                         $header  = "From: ".$store_info['STORENAME'].' <'.$store_info['storeid'].'@'.EMAIL_DOMAIN."\n";
+                         $header .= 'Bcc: yoyakumaillog@think-ahead.jp' ."\n";
+                         $header .= "Reply-To: ".'err_'.$store_info['storeid'].'@'.EMAIL_DOMAIN;
+
+                         //送信ポート及び送信先サーバーの設定
+                         ini_set( "SMTP", MAILSERVER_ADDRESS);
+                         ini_set( "smtp_port", MAILSERVER_PORT);
+                         
+                         //メール送信
+                         $send_mail = mb_send_mail($to, $title, $content, $header);
+
                     }
                     else {
                         $this->KeitaiSession->UpdateStatus($this,
@@ -2371,9 +2388,10 @@ class YkController extends AppController {
                   $top_message = $store_info['ThankyouMsg'];
                   $mail_send = 0;
                   //-- ありがとうメール -----------------//
-                    if(strlen($customer_info['MAILADDRESS1']) > 0 || strlen($customer_info['MAILADDRESS2']) > 0) {
-                        $email_address = (strlen($customer_info['MAILADDRESS2']) > 0)?$customer_info['MAILADDRESS2']:
-                        $customer_info['MAILADDRESS1'];
+                    if(strlen($customer_info['MAILADDRESS1']) > 5 || strlen($customer_info['MAILADDRESS2']) > 5) {
+                        
+                        $email_address = (strlen($customer_info['MAILADDRESS1']) > 5) ? $customer_info['MAILADDRESS1']: "";
+                        $email_address2 = (strlen($customer_info['MAILADDRESS2']) > 5) ? $customer_info['MAILADDRESS2']:"";
                         //echo "<pre style=\"border-style: dashed;\">";var_dump($session_info);echo "</pre>"; exit; 
                         $yk_date = substr($session_info['y_date'],0,4)."年".
                         substr($session_info['y_date'],4,2)."月".
@@ -2390,21 +2408,44 @@ class YkController extends AppController {
                         $body .= "担当者：".$yk_staff."\n";
                         $body .= "技術：".$service_list."\n\n";
                         $body .= $store_info['MailFooter']."\n";
+//                        #redmine #1287
+//                        $this->Email->lineLength = 10000;
+//                        $this->Email->from    = $store_info['STORENAME'].' <'.$store_info['storeid'].'@'.EMAIL_DOMAIN.'>';
+//                        $this->Email->replyTo = 'err_'.$store_info['storeid'].'@'.EMAIL_DOMAIN;
+//  
+//                        $this->Email->to      = $email_address;
+//                        $this->Email->subject = $store_info['STORENAME'].'予約登録';
+//                        $this->Email->delivery = 'smtp';
+//                        $this->Email->smtpOptions = array('port' => MAILSERVER_PORT,
+//                                                      'host' => MAILSERVER_ADDRESS);
+//                        $this->Email->send($body);
 
-                        $this->Email->lineLength = 10000;
-                        $this->Email->from    = $store_info['STORENAME'].' <'.$store_info['storeid'].'@'.EMAIL_DOMAIN.'>';
-                        $this->Email->replyTo = 'err_'.$store_info['storeid'].'@'.EMAIL_DOMAIN;
-  
-                        $this->Email->to      = $email_address;
-                        $this->Email->subject = $store_info['STORENAME'].'予約登録';
-                        $this->Email->delivery = 'smtp';
-                        $this->Email->smtpOptions = array('port' => MAILSERVER_PORT,
-                                                      'host' => MAILSERVER_ADDRESS);
-                        $this->Email->send($body);
+                         $to = $email_address;
+                         if($email_address != ""){
+                             $to .= ",".$email_address2;
+                         }
+                         $content = $body;
+                         $title =  $store_info['STORENAME'].'予約内容確認メール';
+                         
+                         // メールヘッダを作成
+                         $header  = "From: ".$store_info['STORENAME'].' <'.$store_info['storeid'].'@'.EMAIL_DOMAIN."\n";
+                         $header .= 'Bcc: yoyakumaillog@think-ahead.jp' ."\n";
+                         $header .= "Reply-To: ".'err_'.$store_info['storeid'].'@'.EMAIL_DOMAIN;
+
+                         //送信ポート及び送信先サーバーの設定
+                         ini_set( "SMTP", MAILSERVER_ADDRESS);
+                         ini_set( "smtp_port", MAILSERVER_PORT);
+                         
+                         //メール送信
+                         $send_mail = mb_send_mail($to, $title, $content, $header);
+
                         $this->KeitaiSession->UpdateStatus($this, $session_info['session_no'], "61","",$session_info);
-                        $this->set('smtperrors', $this->Email->smtpError); //DEBUG CODE,,, SMTP ERORR OUTPUT
+                        //$this->set('smtperrors', $this->Email->smtpError); //DEBUG CODE,,, SMTP ERORR OUTPUT
                         $mail_send = 1;
-                        $top_message = "メールを送信しました。";
+                        $top_message = "";
+                        if($send_mail){
+                            $top_message = "メールを送信しました。";
+                        }
                     }
                     //------------------------------//
                     //$this->redirect('/yk/mypage/'.$session_info['companyid'].'/'.$session_info['storecode'].'/'.$sessionid);
