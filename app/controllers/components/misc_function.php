@@ -59,13 +59,13 @@ class MiscFunctionComponent extends Object
         unset($param['GCODE']);
         foreach ($param as $key => $val) {
             /*if ($key == 'SERVICE_TIME') {
-                $controller->StoreService->set('SERVICETIME', $val);
+            $controller->StoreService->set('SERVICETIME', $val);
             } elseif ($key == 'SERVICE_TIME_MALE') {
-                $controller->StoreService->set('SERVICETIME_MALE', $val);
+            $controller->StoreService->set('SERVICETIME_MALE', $val);
             } elseif ($key == 'WEB_DISPLAY') {*/
             //    $controller->StoreService->set('SHOWONCELLPHONE', $val);
             //} else {
-                $controller->StoreService->set($key, $val);
+            $controller->StoreService->set($key, $val);
             //}
         }
 
@@ -131,14 +131,14 @@ class MiscFunctionComponent extends Object
         //                      'StaffAssignToStore.STAFFCODE <> ?' => array(0),
         //                      'Staff.DELFLG IS NULL');
 
-//        //$orderby = array('StaffAssignToStore.STAFFCODE');
-//        //$orderby = array('IF(Staff.STAFFCODE = 0, 0, IFNULL(StaffAssignToStore.DISPLAY_ORDER, 9999999)),
-//        //                  Staff.STAFFCODE');
-        
+        //        //$orderby = array('StaffAssignToStore.STAFFCODE');
+        //        //$orderby = array('IF(Staff.STAFFCODE = 0, 0, IFNULL(StaffAssignToStore.DISPLAY_ORDER, 9999999)),
+        //        //                  Staff.STAFFCODE');
+
         //$orderby = array('Staff.DISPLAY_ORDER, Staff.STAFFCODE');
-        
+
         $Sql = "SELECT StaffAssignToStore.STORECODE,
-                       StaffAssignToStore.STAFFCODE, 
+                       StaffAssignToStore.STAFFCODE,
                        StaffAssignToStore.KEYNO,
                        StaffAssignToStore.ASSIGN,
                        StaffAssignToStore.ASSIGN_YOYAKU,
@@ -150,24 +150,24 @@ class MiscFunctionComponent extends Object
                        Staff.SALARYAMOUNT,
                        Staff.TRAVEL_ALLOWANCE,
                        Staff.DISPLAY_ORDER
-                FROM staff_assign_to_store StaffAssignToStore 
+                FROM staff_assign_to_store StaffAssignToStore
                        JOIN staff Staff
-                           ON Staff.STAFFCODE = StaffAssignToStore.STAFFCODE 
-                                AND Staff.DELFLG IS NULL 
-                                AND (((Staff.HIREDATE IS NULL OR Staff.HIREDATE <= '".$enddate."') 
-                                AND (Staff.RETIREDATE IS NULL OR Staff.RETIREDATE >= '".$enddate."')) 
+                           ON Staff.STAFFCODE = StaffAssignToStore.STAFFCODE
+                                AND Staff.DELFLG IS NULL
+                                AND (((Staff.HIREDATE IS NULL OR Staff.HIREDATE <= '".$enddate."')
+                                AND (Staff.RETIREDATE IS NULL OR Staff.RETIREDATE >= '".$enddate."'))
                                 OR Staff.HIREDATE BETWEEN '".$startdate."' AND '".$enddate."'
                                 OR Staff.RETIREDATE BETWEEN '".$startdate."' AND '".$enddate."')
-                WHERE StaffAssignToStore.STAFFCODE > 0 
+                WHERE StaffAssignToStore.STAFFCODE > 0
                         AND StaffAssignToStore.ASSIGN_YOYAKU = 1
                         AND StaffAssignToStore.STORECODE = ".$param['storecode']."
                 ORDER BY Staff.DISPLAY_ORDER, Staff.STAFFCODE";
-        
+
         $arrStaff = $controller->StaffAssignToStore->query($Sql);
 
         //$arrStaff = $controller->StaffAssignToStore->find('all', array('conditions' => $criteria_top,
         //                                                               'order'      => $orderby));
-        
+
         for ($i = 0; $i < count($arrStaff); $i++) {
             //---------------------------------------------------------------------------------------
             $arrStaff[$i]['StaffAssignToStore']['STAFFNAME']  = $arrStaff[$i]['Staff']['STAFFNAME'];
@@ -240,22 +240,22 @@ class MiscFunctionComponent extends Object
             //$flagcond = ($detail_staff !== (int)$arrData[$i]['details']['STAFFCODE']);
             //if ($transcode !== $arrData[$i]['transaction']['TRANSCODE']) {
             //if ($detail_staff !== (int)$arrData[$i]['details']['STAFFCODE']) {
-                        
+
             if ($flagcond) {
                 $ctr++;
                 $dtl = 0;
                 $transcode = $arrData[$i]['transaction']['TRANSCODE'];
-                $detail_staff = $arrData[$i]['details']['STAFFCODE'];                
-                
+                $detail_staff = $arrData[$i]['details']['STAFFCODE'];
+
                 $arrList[$ctr]['TRANSCODE']   = $arrData[$i]['transaction']['TRANSCODE'];
                 $arrList[$ctr]['KEYNO']       = $arrData[$i]['transaction']['KEYNO'];
                 $arrList[$ctr]['STORECODE']   = $arrData[$i]['transaction']['STORECODE'];
                 $arrList[$ctr]['IDNO']        = $arrData[$i]['transaction']['IDNO'];
                 $arrList[$ctr]['TRANSDATE']   = $arrData[$i]['transaction']['TRANSDATE'];
                 $arrList[$ctr]['STARTTIME'] = substr($arrData[$i]['transaction']['STARTTIME'], 0, 5);
-              
+
                 $arrList[$ctr]['ENDTIME']     = substr($arrData[$i]['transaction']['ENDTIME'], 0, 5);
-                                                
+
                 $arrList[$ctr]['CCODE']       = $arrData[$i]['transaction']['CCODE'];
                 $arrList[$ctr]['CNUMBER']     = $arrData[$i]['customer']['CNUMBER'];
                 $arrList[$ctr]['CSTORECODE']  = $arrData[$i]['customer']['CSTORECODE'];
@@ -287,14 +287,14 @@ class MiscFunctionComponent extends Object
                 $arrList[$ctr]['YOYAKU']    = $arrData[$i]['transaction']['YOYAKU'];
                 $arrList[$ctr]['HOWKNOWSCODE']    = $arrData[$i]['howknows_thestore']['HOWKNOWSCODE'];
                 $arrList[$ctr]['HOWKNOWS']    = $arrData[$i]['howknows_thestore']['HOWKNOWS'];
-                
+
                 /////////////////////////////////////////////////////////////////////
                 $arrList[$ctr]['YOYAKUTIME'] = substr($arrData[$i]['details']['STARTTIME'], 0, 5); //substr($arrData[$i]['transaction']['STARTTIME'], 0, 5);
 
                 //-- ADJUSTED_ENDTIMEで値の用意をします (Sets the value for ADJUSTED_ENDTIME)
                 $starttime = $arrList[$ctr]['YOYAKUTIME'];
                 $endtime = "";
-                
+
                 //====================================================================================
                 //Use Transaction EndTime for SameStaff & Details EndTime for Not SameStaff
                 //------------------------------------------------------------------------------------
@@ -310,7 +310,7 @@ class MiscFunctionComponent extends Object
                 //------------------------------------------------------------------------------------
                 //$endtime = substr($arrData[$i]['transaction']['ENDTIME'],0,5);
                 //====================================================================================
-              
+
                 $a1 = explode(":",$starttime);
                 $a2 = explode(":",$endtime);
                 $time1 = (($a1[0]*60*60)+($a1[1]*60));
@@ -356,8 +356,8 @@ class MiscFunctionComponent extends Object
                 } else {
                     $endtime = $arrList[$ctr]['ADJUSTED_ENDTIME'];
                 }
-                $endtime_c = strtotime($endtime);                
-                
+                $endtime_c = strtotime($endtime);
+
                 $staffcode = $arrList[$ctr]['STAFFCODE'];
                 $priority = 1;
                 $prioritytype = $arrData[$i]['transaction']['PRIORITYTYPE'];
@@ -386,7 +386,7 @@ class MiscFunctionComponent extends Object
                         }
                     }
                 }
-                
+
                 $checked_times[$staffcode][$prioritytype][$priority][] = array("starttime" => $starttime_c,
                                                                 "endtime"   => $endtime_c,
                                                                 "prioritytype" => $arrData[$i]['transaction']['PRIORITYTYPE']);
@@ -394,7 +394,7 @@ class MiscFunctionComponent extends Object
                 if (intval($checked_priority[$staffcode]) == 0 || $priority > $checked_priority[$staffcode])  {
                     $checked_priority[$staffcode] = $priority;
                 }
-                
+
                 $arrList[$ctr]['PRIORITYTYPE'] = $arrData[$i]['transaction']['PRIORITYTYPE'] . "-" .$priority;
 
                 //--------------------------------------------------------------------------------------------
@@ -424,10 +424,10 @@ class MiscFunctionComponent extends Object
             $DEFAULT_MINUTES = 15;
             //-------------------------------------------------------------------------
             if ($use_tantou_service_time) {
-                $Sql = "SELECT staffcode, gcode, service_time, service_time_male 
+                $Sql = "SELECT staffcode, gcode, service_time, service_time_male
                         FROM yoyaku_staff_service_time rs
                         WHERE storecode = ".$param['STORECODE'];
-                $rs_tantou_service_time = $controller->StoreTransaction->query($Sql);                
+                $rs_tantou_service_time = $controller->StoreTransaction->query($Sql);
             }//end if
             //-------------------------------------------------------------------------
             $tmpYoyakuTime = $arrList[$ctr]['YOYAKUTIME'];
@@ -467,7 +467,7 @@ class MiscFunctionComponent extends Object
                             //---------------------------------------------------------------------------------------
                             foreach ($rs_tantou_service_time as $data_tantou) {
                                 //-----------------------------------------------------------------------------------
-                                if ((int)$data_tantou['rs']['staffcode'] === (int)$transd_data['details']['STAFFCODE'] 
+                                if ((int)$data_tantou['rs']['staffcode'] === (int)$transd_data['details']['STAFFCODE']
                                         && (int)$data_tantou['rs']['gcode'] === (int)$transd_data['details']['GCODE']) {
                                     //-------------------------------------------------------------------------------
                                     if ((int)$transd_data['customer']['SEX'] === 1) {
@@ -507,7 +507,7 @@ class MiscFunctionComponent extends Object
                         }//end if else
                         //-------------------------------------------------------------------------------------------
                     }//end if else
-                    //$arrList[$ctr]['details'][$dtl]['MENUTIME']   = 60;                 
+                    //$arrList[$ctr]['details'][$dtl]['MENUTIME']   = 60;
                     //-----------------------------------------------------------------------------------------------
                     $arrList[$ctr]['details'][$dtl]['STAFFCODE']      = $transd_data['details']['STAFFCODE'];
                     $arrList[$ctr]['details'][$dtl]['STAFFNAME']      = $transd_data['staff']['STAFFNAME'];
@@ -530,29 +530,29 @@ class MiscFunctionComponent extends Object
                     $arrList[$ctr]['details'][$dtl]['SYSCODE']          = $transd_data['services']['SYSCODE'];
                     $dtl++;
                     //--------------------------------------------------------------------------------------------
-                }//end if                    
-            }//end for 
-            
+                }//end if
+            }//end for
+
             #-----------------------------------------------------------------------------------------------------
             #Added by MarvinC - 2015-06-18
             #-----------------------------------------------------------------------------------------------------
-             $arrList[$ctr]['SERVICESNAME'] .= $arrData[$i]['servicessys']['servicesname'] . ",";
+            $arrList[$ctr]['SERVICESNAME'] .= $arrData[$i]['servicessys']['servicesname'] . ",";
             #-----------------------------------------------------------------------------------------------------
         }//end for
-        
-//        #-----------------------------------------------------------------------------------------------------
-//        #Added by MarvinC - 2015-06-18
-//        #-----------------------------------------------------------------------------------------------------
-//        $arrList[$ctr]['SERVICESNAME'] = rtrim($servicesname,",");
-//        $servicesname = "";
-//        #-----------------------------------------------------------------------------------------------------
+
+        //        #-----------------------------------------------------------------------------------------------------
+        //        #Added by MarvinC - 2015-06-18
+        //        #-----------------------------------------------------------------------------------------------------
+        //        $arrList[$ctr]['SERVICESNAME'] = rtrim($servicesname,",");
+        //        $servicesname = "";
+        //        #-----------------------------------------------------------------------------------------------------
         $arrList[0]['checked_times'] = $checked_times;
         //-------------------------------------------------------------------------------------------------------
         return $arrList;
         //-------------------------------------------------------------------------------------------------------
     }//end function
-    
-    
+
+
     /**
      * クライアントが予想する形式でデータをアレンジします
      * Arranges the data in the format that the client expects
@@ -569,18 +569,44 @@ class MiscFunctionComponent extends Object
         //$tempstatus = array(0, 1, 2);
         //$arrStaff = array();
         //------------------------------------------------------------------------------------------------------
-        $detail_staff = -1;
+        //$detail_staff = -1;
+        $prevtranscode = "";
+        $prevstaffcode = -1;
         //------------------------------------------------------------------------------------------------------
         $is_same_staff = false;
         for ($i = 0; $i < count($arrData); $i++) {
             //print_r($arrData[$i]); die();
             $flagcond = false;
+            $currenttranscode = $arrData[$i]['transaction']['TRANSCODE'];
+            $currentstaffcode = (int)$arrData[$i]['details']['STAFFCODE'];
+
             if ((int)$arrData[$i]['tbld']['min_staffcode'] === (int)$arrData[$i]['tbld']['max_staffcode']) {
                 $flagcond = ($transcode !== $arrData[$i]['transaction']['TRANSCODE']);
                 $is_same_staff = true;
             } else {
-                $flagcond = ($detail_staff !== (int)$arrData[$i]['details']['STAFFCODE']);
-                $is_same_staff = false;
+                if($currenttranscode == $prevtranscode){
+                    $is_same_staff = false;
+                    if($currentstaffcode == $prevstaffcode){
+                        $flagcond = false;
+
+                    }else{
+                        $flagcond = true;
+                    }
+                }else{
+                    if($currentstaffcode == $prevstaffcode){
+                        $flagcond = false;
+                        $is_same_staff = true;
+                    }else{
+                        $flagcond = true;
+                        $is_same_staff = false;
+                    }
+                }
+
+                //$flagcond = ($prevtranscode !== $arrData[$i]['transaction']['TRANSCODE'] || $prevstaffcode == (int)$arrData[$i]['details']['STAFFCODE']);
+                //$is_same_staff = ($prevstaffcode == (int)$arrData[$i]['details']['STAFFCODE'] && $flagcond == false);
+                $prevstaffcode = (int)$arrData[$i]['details']['STAFFCODE'];
+                $prevtranscode = $arrData[$i]['transaction']['TRANSCODE'];
+
             }//end if else
             //$flagcond = ($detail_staff !== (int)$arrData[$i]['details']['STAFFCODE']);
             //if ($transcode !== $arrData[$i]['transaction']['TRANSCODE']) {
@@ -589,8 +615,8 @@ class MiscFunctionComponent extends Object
                 $ctr++;
                 $dtl = 0;
                 $transcode = $arrData[$i]['transaction']['TRANSCODE'];
-                $detail_staff = $arrData[$i]['details']['STAFFCODE'];                
-                
+                $detail_staff = $arrData[$i]['details']['STAFFCODE'];
+
                 $arrList[$ctr]['TRANSCODE']   = $arrData[$i]['transaction']['TRANSCODE'];
                 $arrList[$ctr]['KEYNO']       = $arrData[$i]['transaction']['KEYNO'];
                 $arrList[$ctr]['STORECODE']   = $arrData[$i]['transaction']['STORECODE'];
@@ -634,55 +660,55 @@ class MiscFunctionComponent extends Object
                 # ADDED BY MARVINC - 2015-06-22
                 # For Updating Next Reservation
                 #------------------------------------------------------------------------------------------------------------------------
-                $arrList[$ctr]['YOYAKU_STATUS'] = $arrData[$i]['YND']['YOYAKU_STATUS']; 
+                $arrList[$ctr]['YOYAKU_STATUS'] = $arrData[$i]['YND']['YOYAKU_STATUS'];
                 #------------------------------------------------------------------------------------------------------------------------
-                
+
                 /*----------------------------------------------------------------------------------------------------------------------*/
                 /*add by albert 2015-10-30 BM connection information -------------------------------------------------------------------*/
                 /*----------------------------------------------------------------------------------------------------------------------*/
-                $arrList[$ctr]['route']                 = $arrData[$i]['bmtble']['route']; 
-                $arrList[$ctr]['reservation_system']    = $arrData[$i]['bmtble']['reservation_system']; 
-                $arrList[$ctr]['reserve_date']          = $arrData[$i]['bmtble']['reserve_date']; 
-                $arrList[$ctr]['reserve_code']          = $arrData[$i]['bmtble']['reserve_code']; 
-                $arrList[$ctr]['v_date']                = $arrData[$i]['bmtble']['v_date']; 
-                $arrList[$ctr]['start_time']            = $arrData[$i]['bmtble']['start_time']; 
-                $arrList[$ctr]['end_time']              = $arrData[$i]['bmtble']['end_time']; 
-                $arrList[$ctr]['coupon_info']           = $arrData[$i]['bmtble']['coupon_info']; 
-                $arrList[$ctr]['comment']               = $arrData[$i]['bmtble']['comment']; 
-                $arrList[$ctr]['shop_comment']          = $arrData[$i]['bmtble']['shop_comment']; 
-                $arrList[$ctr]['next_coming_comment']   = $arrData[$i]['bmtble']['next_coming_comment']; 
-                $arrList[$ctr]['demand']                = $arrData[$i]['bmtble']['demand']; 
-                $arrList[$ctr]['site_customer_id']      = $arrData[$i]['bmtble']['site_customer_id']; 
-                $arrList[$ctr]['bmPrice']               = $arrData[$i]['bmtble']['bmPrice']; 
-                $arrList[$ctr]['nomination_fee']        = $arrData[$i]['bmtble']['nomination_fee']; 
-                $arrList[$ctr]['bmTprice']              = $arrData[$i]['bmtble']['bmTprice']; 
-                $arrList[$ctr]['use_point']             = $arrData[$i]['bmtble']['use_point']; 
-                $arrList[$ctr]['grant_point']           = $arrData[$i]['bmtble']['grant_point']; 
-                $arrList[$ctr]['visit_num']             = $arrData[$i]['bmtble']['visit_num']; 
-                $arrList[$ctr]['firstname']             = $arrData[$i]['bmtble']['firstname'];  
-                $arrList[$ctr]['lastname']              = $arrData[$i]['bmtble']['lastname'];  
-                $arrList[$ctr]['bmsex']                 = $arrData[$i]['bmtble']['bmsex'];   
-                $arrList[$ctr]['knfirstname']           = $arrData[$i]['bmtble']['knfirstname']; 
-                $arrList[$ctr]['knlastname']            = $arrData[$i]['bmtble']['knlastname'];  
-                $arrList[$ctr]['bmtel']                 = $arrData[$i]['bmtble']['bmtel']; 
-                $arrList[$ctr]['bmzip']                 = $arrData[$i]['bmtble']['bmzip'];  
-                $arrList[$ctr]['bmaddress']             = $arrData[$i]['bmtble']['bmaddress']; 
-                $arrList[$ctr]['bmmail']                = $arrData[$i]['bmtble']['bmmail']; 
-                $arrList[$ctr]['menu_info']             = $arrData[$i]['bmtble']['menu_info']; 
-                $arrList[$ctr]['origination']           = $arrData[$i]['transaction']['origination']; 
-                $arrList[$ctr]['bmstaff']               = $arrData[$i]['bmtble']['bmstaff']; 
-                $arrList[$ctr]['secondnote']            = $arrData[$i]['str_bm_notes']['secondnote']; 
+                $arrList[$ctr]['route']                 = $arrData[$i]['bmtble']['route'];
+                $arrList[$ctr]['reservation_system']    = $arrData[$i]['bmtble']['reservation_system'];
+                $arrList[$ctr]['reserve_date']          = $arrData[$i]['bmtble']['reserve_date'];
+                $arrList[$ctr]['reserve_code']          = $arrData[$i]['bmtble']['reserve_code'];
+                $arrList[$ctr]['v_date']                = $arrData[$i]['bmtble']['v_date'];
+                $arrList[$ctr]['start_time']            = $arrData[$i]['bmtble']['start_time'];
+                $arrList[$ctr]['end_time']              = $arrData[$i]['bmtble']['end_time'];
+                $arrList[$ctr]['coupon_info']           = $arrData[$i]['bmtble']['coupon_info'];
+                $arrList[$ctr]['comment']               = $arrData[$i]['bmtble']['comment'];
+                $arrList[$ctr]['shop_comment']          = $arrData[$i]['bmtble']['shop_comment'];
+                $arrList[$ctr]['next_coming_comment']   = $arrData[$i]['bmtble']['next_coming_comment'];
+                $arrList[$ctr]['demand']                = $arrData[$i]['bmtble']['demand'];
+                $arrList[$ctr]['site_customer_id']      = $arrData[$i]['bmtble']['site_customer_id'];
+                $arrList[$ctr]['bmPrice']               = $arrData[$i]['bmtble']['bmPrice'];
+                $arrList[$ctr]['nomination_fee']        = $arrData[$i]['bmtble']['nomination_fee'];
+                $arrList[$ctr]['bmTprice']              = $arrData[$i]['bmtble']['bmTprice'];
+                $arrList[$ctr]['use_point']             = $arrData[$i]['bmtble']['use_point'];
+                $arrList[$ctr]['grant_point']           = $arrData[$i]['bmtble']['grant_point'];
+                $arrList[$ctr]['visit_num']             = $arrData[$i]['bmtble']['visit_num'];
+                $arrList[$ctr]['firstname']             = $arrData[$i]['bmtble']['firstname'];
+                $arrList[$ctr]['lastname']              = $arrData[$i]['bmtble']['lastname'];
+                $arrList[$ctr]['bmsex']                 = $arrData[$i]['bmtble']['bmsex'];
+                $arrList[$ctr]['knfirstname']           = $arrData[$i]['bmtble']['knfirstname'];
+                $arrList[$ctr]['knlastname']            = $arrData[$i]['bmtble']['knlastname'];
+                $arrList[$ctr]['bmtel']                 = $arrData[$i]['bmtble']['bmtel'];
+                $arrList[$ctr]['bmzip']                 = $arrData[$i]['bmtble']['bmzip'];
+                $arrList[$ctr]['bmaddress']             = $arrData[$i]['bmtble']['bmaddress'];
+                $arrList[$ctr]['bmmail']                = $arrData[$i]['bmtble']['bmmail'];
+                $arrList[$ctr]['menu_info']             = $arrData[$i]['bmtble']['menu_info'];
+                $arrList[$ctr]['origination']           = $arrData[$i]['transaction']['origination'];
+                $arrList[$ctr]['bmstaff']               = $arrData[$i]['bmtble']['bmstaff'];
+                $arrList[$ctr]['secondnote']            = $arrData[$i]['str_bm_notes']['secondnote'];
                 /*----------------------------------------------------------------------------------------------------------------------*/
                 /*add by albert 2015-10-30 BM connection information -------------------------------------------------------------------*/
                 /*----------------------------------------------------------------------------------------------------------------------*/
-                
+
                 /////////////////////////////////////////////////////////////////////
                 $arrList[$ctr]['YOYAKUTIME'] = substr($arrData[$i]['details']['STARTTIME'], 0, 5); //substr($arrData[$i]['transaction']['STARTTIME'], 0, 5);
 
                 //-- ADJUSTED_ENDTIMEで値の用意をします (Sets the value for ADJUSTED_ENDTIME)
                 $starttime = $arrList[$ctr]['YOYAKUTIME'];
                 $endtime = "";
-                
+
                 //====================================================================================
                 //Use Transaction EndTime for SameStaff & Details EndTime for Not SameStaff
                 //------------------------------------------------------------------------------------
@@ -698,7 +724,7 @@ class MiscFunctionComponent extends Object
                 //------------------------------------------------------------------------------------
                 //$endtime = substr($arrData[$i]['transaction']['ENDTIME'],0,5);
                 //====================================================================================
-              
+
                 $a1 = explode(":",$starttime);
                 $a2 = explode(":",$endtime);
                 $time1 = (($a1[0]*60*60)+($a1[1]*60));
@@ -744,8 +770,8 @@ class MiscFunctionComponent extends Object
                 } else {
                     $endtime = $arrList[$ctr]['ADJUSTED_ENDTIME'];
                 }
-                $endtime_c = strtotime($endtime);                
-                
+                $endtime_c = strtotime($endtime);
+
                 $staffcode = $arrList[$ctr]['STAFFCODE'];
                 $priority = 1;
                 $prioritytype = $arrData[$i]['transaction']['PRIORITYTYPE'];
@@ -759,7 +785,7 @@ class MiscFunctionComponent extends Object
                 $arrList[$ctr]['UKETSUKESTAFF'] = @$arrData[$i]['yoyaku']['UKETSUKESTAFF'];
                 $arrList[$ctr]['UKETSUKESTAFFNAME'] = @$arrData[$i]['staff2']['UKETSUKESTAFFNAME'];
                 $arrList[$ctr]['CANCEL'] = @$arrData[$i]['yoyaku']['CANCEL'];
-                
+
                 #---------------------------------------------------------------------------------------------
                 #Added by MarvinC - 2015-07-01
                 #---------------------------------------------------------------------------------------------
@@ -768,8 +794,8 @@ class MiscFunctionComponent extends Object
                 }else{
                     $arrList[$ctr]['BEFORE_TRANSCODE'] = @$arrData[$i]['jikaiyoyaku']['TRANSCODE'];
                 }
-                
-                
+
+
 
                 $position_confirmed = false;
                 while (!$position_confirmed) {
@@ -786,7 +812,7 @@ class MiscFunctionComponent extends Object
                     }
                     //if($param["onsave"] == 1) {break;}
                 }
-                
+
                 $checked_times[$staffcode][$prioritytype][$priority][] = array("starttime" => $starttime_c,
                                                                 "endtime"   => $endtime_c,
                                                                 "prioritytype" => $arrData[$i]['transaction']['PRIORITYTYPE']);
@@ -794,7 +820,7 @@ class MiscFunctionComponent extends Object
                 if (intval($checked_priority[$staffcode]) == 0 || $priority > $checked_priority[$staffcode])  {
                     $checked_priority[$staffcode] = $priority;
                 }
-                
+
                 $arrList[$ctr]['PRIORITYTYPE'] = $arrData[$i]['transaction']['PRIORITYTYPE'] . "-" .$priority;
 
                 //--------------------------------------------------------------------------------------------
@@ -824,10 +850,10 @@ class MiscFunctionComponent extends Object
             $DEFAULT_MINUTES = 15;
             //-------------------------------------------------------------------------
             if ($use_tantou_service_time) {
-                $Sql = "SELECT staffcode, gcode, service_time, service_time_male 
+                $Sql = "SELECT staffcode, gcode, service_time, service_time_male
                         FROM yoyaku_staff_service_time rs
                         WHERE storecode = ".$param['STORECODE'];
-                $rs_tantou_service_time = $controller->StoreTransaction->query($Sql);                
+                $rs_tantou_service_time = $controller->StoreTransaction->query($Sql);
             }//end if
             //-------------------------------------------------------------------------
             $tmpYoyakuTime = $arrList[$ctr]['YOYAKUTIME'];
@@ -841,6 +867,18 @@ class MiscFunctionComponent extends Object
             //-------------------------------------------------------------------------
             $arrList[$ctr]['STIME'] = $tmpYoyakuTime;
             $arrList[$ctr]['ETIME'] = $tmpEndTIme;
+            //-------------------------------------------------------------------------
+            // Added by MarvinC - 2016-04-25
+            // This will not allow transaction with same staff to breack appart in transview
+            if($currenttranscode == $prevtranscode && $currentstaffcode == $prevstaffcode){
+                for ($x = $i; $x < count($arrData); $x++){
+                    if($arrData[$x]["details"]["STAFFCODE"] == $prevstaffcode && $arrData[$x]["details"]["TRANSCODE"] == $prevtranscode){
+                        $arrList[$ctr]['ETIME'] = $arrData[$x]["details"]['ENDTIME'];;
+                    }else{
+                        break;
+                    }
+                }
+            }
             //-------------------------------------------------------------------------
             $dtl = 0;
             foreach ($arrData as $transd_data) {
@@ -867,7 +905,7 @@ class MiscFunctionComponent extends Object
                             //---------------------------------------------------------------------------------------
                             foreach ($rs_tantou_service_time as $data_tantou) {
                                 //-----------------------------------------------------------------------------------
-                                if ((int)$data_tantou['rs']['staffcode'] === (int)$transd_data['details']['STAFFCODE'] 
+                                if ((int)$data_tantou['rs']['staffcode'] === (int)$transd_data['details']['STAFFCODE']
                                         && (int)$data_tantou['rs']['gcode'] === (int)$transd_data['details']['GCODE']) {
                                     //-------------------------------------------------------------------------------
                                     if ((int)$transd_data['customer']['SEX'] === 1) {
@@ -907,7 +945,7 @@ class MiscFunctionComponent extends Object
                         }//end if else
                         //-------------------------------------------------------------------------------------------
                     }//end if else
-                    //$arrList[$ctr]['details'][$dtl]['MENUTIME']   = 60;                 
+                    //$arrList[$ctr]['details'][$dtl]['MENUTIME']   = 60;
                     //-----------------------------------------------------------------------------------------------
                     $arrList[$ctr]['details'][$dtl]['STAFFCODE']      = $transd_data['details']['STAFFCODE'];
                     $arrList[$ctr]['details'][$dtl]['STAFFNAME']      = $transd_data['staff']['STAFFNAME'];
@@ -931,15 +969,15 @@ class MiscFunctionComponent extends Object
                     //--------------------------------------------------------------------------------------------
                     $dtl++;
                     //--------------------------------------------------------------------------------------------
-                }//end if                    
-            }//end for            
+                }//end if
+            }//end for
         }//end for
         $arrList[0]['checked_times'] = $checked_times;
         //-------------------------------------------------------------------------------------------------------
         return $arrList;
         //-------------------------------------------------------------------------------------------------------
     }//end function
-    
+
     /**
      * @author Homer Pasamba Email: homer.pasamba@think-ahead
      * @param type $controller
@@ -1051,7 +1089,7 @@ class MiscFunctionComponent extends Object
             } else {
                 $arrList[$ctrTrans]['details'][$ctrDtl]['MENUNAME']   = $trans['product']['PRODUCTNAME'];
             }//end if else
-            if (($ctrArr == count($arrData) - 1) || 
+            if (($ctrArr == count($arrData) - 1) ||
                 ($arrData[$ctrArr]['transaction']['TRANSCODE'] != $arrData[$ctrArr + 1]['transaction']['TRANSCODE'])) {
                 $ctrDtl = 0;
                 $ctrTrans++;
@@ -1065,10 +1103,10 @@ class MiscFunctionComponent extends Object
         return $arrList;
         //===========================================================================================================
     }// End Function
-    
+
     /**
      *
-     * @param <array> $TransDetails 
+     * @param <array> $TransDetails
      * @param <int> $TotalPriceTaxExcluded (Total Price of Tax Excluded Items)
      * @param <int> $TotalTax (Total Tax of Tax Excluded Items)
      * @param <int> $ctrTransTaxExc (Counter for Tax Excluded Items)
@@ -1094,31 +1132,31 @@ class MiscFunctionComponent extends Object
         if ($TransDetails != null and count($TransDetails) > 0) {
             //-------------------------------------------------------------------------------------------------------
             foreach ($TransDetails as $TDetails) {
-            //-------------------------------------------------------------------------------------------------------
-            if ((int)$TDetails['ZEIKUBUN'] === 0) {
-                //---------------------------------------------------------------------------------------------------
-                // For TaxExcludedItem, Set each Tax per item
-                // Total Price = Price (total price) + tax (per item) * quantity
-                // Check the Remaining Tax if - then set PriceTaxInc to previous HoldRemainTax
-                //---------------------------------------------------------------------------------------------------
-                if ($tmpCtrTransTaxExc < $ctrTransTaxExc) {
-                   $TransDetails[$ctr]['TAX'] = (int)floor($TDetails['UNITPRICE'] * $TaxRate);
-                   $TransDetails[$ctr]['PRICETAXINC'] = (int)floor($TDetails['PRICE'] + ($TransDetails[$ctr]['TAX'] * $TDetails['QUANTITY']));
-                   $HoldRemainTotalTax -= $TransDetails[$ctr]['TAX'] * $TDetails['QUANTITY'];
-                   $tmpCtrTransTaxExc++;
-                } else {
-                   $TransDetails[$ctr]['TAX'] = (int)floor($HoldRemainTotalTax / $TDetails['QUANTITY']);
-                   $TransDetails[$ctr]['PRICETAXINC'] = (int)($TDetails['PRICE'] + $HoldRemainTotalTax);
-                }
-                //---------------------------------------------------------------------------------------------------
-            }else {
-                //---------------------------------------------------------------------------------------------------
-                // For Tax Included Items, No Need to Compute tax since it is already computed in Tenpo
-                // And Tax in TransactionTable is only for tax excluded items.
-                //---------------------------------------------------------------------------------------------------
-                $TransDetails[$ctr]['PRICETAXINC'] = (int)$TDetails['PRICE'] + $TDetails['TAX'] * $TDetails['QUANTITY'];
-            }//End  if ((int)$TDetails['ZEIKUBUN'] === 0)
-            $ctr++;
+                //-------------------------------------------------------------------------------------------------------
+                if ((int)$TDetails['ZEIKUBUN'] === 0) {
+                    //---------------------------------------------------------------------------------------------------
+                    // For TaxExcludedItem, Set each Tax per item
+                    // Total Price = Price (total price) + tax (per item) * quantity
+                    // Check the Remaining Tax if - then set PriceTaxInc to previous HoldRemainTax
+                    //---------------------------------------------------------------------------------------------------
+                    if ($tmpCtrTransTaxExc < $ctrTransTaxExc) {
+                        $TransDetails[$ctr]['TAX'] = (int)floor($TDetails['UNITPRICE'] * $TaxRate);
+                        $TransDetails[$ctr]['PRICETAXINC'] = (int)floor($TDetails['PRICE'] + ($TransDetails[$ctr]['TAX'] * $TDetails['QUANTITY']));
+                        $HoldRemainTotalTax -= $TransDetails[$ctr]['TAX'] * $TDetails['QUANTITY'];
+                        $tmpCtrTransTaxExc++;
+                    } else {
+                        $TransDetails[$ctr]['TAX'] = (int)floor($HoldRemainTotalTax / $TDetails['QUANTITY']);
+                        $TransDetails[$ctr]['PRICETAXINC'] = (int)($TDetails['PRICE'] + $HoldRemainTotalTax);
+                    }
+                    //---------------------------------------------------------------------------------------------------
+                }else {
+                    //---------------------------------------------------------------------------------------------------
+                    // For Tax Included Items, No Need to Compute tax since it is already computed in Tenpo
+                    // And Tax in TransactionTable is only for tax excluded items.
+                    //---------------------------------------------------------------------------------------------------
+                    $TransDetails[$ctr]['PRICETAXINC'] = (int)$TDetails['PRICE'] + $TDetails['TAX'] * $TDetails['QUANTITY'];
+                }//End  if ((int)$TDetails['ZEIKUBUN'] === 0)
+                $ctr++;
             }//End  foreach ($TransDetails as $TDetails)
             $RetVal = $TransDetails;
             //-------------------------------------------------------------------------------------------------------
@@ -1240,7 +1278,7 @@ class MiscFunctionComponent extends Object
 
     /**
      * メール用の店舗情報を取得する
-     * 
+     *
      * @param AppController $controller コントローラ
      * @param array $storeinfo $storeinfo 変数
      * @return array 店舗情報
@@ -1260,7 +1298,7 @@ class MiscFunctionComponent extends Object
 
     /**
      * メール項目の配列を取得する
-     * 
+     *
      * @param AppController $controller コントローラ
      * @param array $storeinfo $storeinfo 変数
      * @return array メール項目の配列
@@ -1279,7 +1317,7 @@ class MiscFunctionComponent extends Object
 
     /**
      * お知らせメール1を取得する
-     * 
+     *
      * @return string お知らせメール1
      */
     function GetMailNotice() {
@@ -1292,7 +1330,7 @@ class MiscFunctionComponent extends Object
 
     /**
      * お知らせメール2を取得する
-     * 
+     *
      * @param array $store 店舗情報
      * @return string お知らせメール2
      */
@@ -1312,7 +1350,7 @@ class MiscFunctionComponent extends Object
 
     /**
      * 予約時間変更メールを取得する
-     * 
+     *
      * @return string 予約時間変更メール
      */
     function GetMailModifying() {
@@ -1324,7 +1362,7 @@ class MiscFunctionComponent extends Object
 
     /**
      * フォローメールを取得する
-     * 
+     *
      * @param array $store 店舗情報
      * @return string フォローメール
      */
@@ -1352,7 +1390,7 @@ class MiscFunctionComponent extends Object
 
     /**
      * デフォルトの署名を取得する
-     * 
+     *
      * @param array $store 店舗情報
      * @return string デフォルトの署名
      */
@@ -1407,8 +1445,8 @@ class MiscFunctionComponent extends Object
         $item = "{$itemLine}\n{$item}{$itemLine}";
         return $item;
     }
-    
-    
+
+
     //<editor-fold defaultstate="collapsed" desc="GetReturningCustomerCountAll">
     /**
      * @author MCUNANAN :mcunanan@think-ahead.jp
@@ -1418,8 +1456,8 @@ class MiscFunctionComponent extends Object
      * @param type $companyid
      * @param type $storecode
      */
- function GetReturningCustomerCountAll(&$controller, $dbname) {
-     
+    function GetReturningCustomerCountAll(&$controller, $dbname) {
+
         //-------------------------------------------------------------------------------------------
         $storeinfo = $controller->YoyakuSession->Check($controller);
         //-------------------------------------------------------------------------------------------
@@ -1430,9 +1468,9 @@ class MiscFunctionComponent extends Object
         #-------------------------------------------------------------------
         # ADDED BY: MARVINC - 2015-12-28 16:34
         #-------------------------------------------------------------------
-        $Sql = "SELECT 
+        $Sql = "SELECT
                 IFNULL((SELECT returningcustomercountall
-                FROM sipssbeauty_server.company 
+                FROM sipssbeauty_server.company
                 WHERE company.dbname = '{$storeinfo['dbname']}'
                 LIMIT 1),0) as returningcustomercountall";
         $data = $controller->Store->query($Sql);
@@ -1441,9 +1479,9 @@ class MiscFunctionComponent extends Object
         //===================================================================================
         return $arrReturn;
         //===================================================================================
- }
-//</editor-fold>
-    
-    
+    }
+    //</editor-fold>
+
+
 }
 ?>
