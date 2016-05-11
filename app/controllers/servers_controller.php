@@ -1405,6 +1405,7 @@ class ServersController extends WebServicesController
                                         'YOYAKU_STATUS'    => 'xsd:string', //Update by MarvinC - Added param for syscode
                                         'INCOMPLETE'       => 'xsd:int',
                                         'UKETSUKESTAFFNAME'=> 'xsd:string',
+                                        'DATETIMECREATED'     => 'xsd:string', //Update by MarvinC - 2016-05-11
                                     /*--------------------------------------------*/
                                     /* add by albert for bm connection 2015-10-29 */
                                     /*--------------------------------------------*/
@@ -2943,7 +2944,7 @@ class ServersController extends WebServicesController
                         staff.STAFFNAME,
                         servicessys.servicesname,
                         claim.claimname,
-
+                        store_transaction2.DATETIMECREATED,
                         (CASE 
                         WHEN details.ZEIKUBUN = 0 THEN 
                                 (CASE 
@@ -2958,9 +2959,11 @@ class ServersController extends WebServicesController
                         END) as TOTALTAX,
 
                         (details.PRICE + f_get_trans_detail_tax(transaction.TRANSCODE, transaction.KEYNO, details.ROWNO)) as PRICETAXINC
-
+                        
             FROM store_transaction transaction
             USE INDEX (CCODEDELFLGTEMPSTATUS)
+                        LEFT JOIN store_transaction2
+                                ON store_transaction2.transcode = transaction.transcode
                         LEFT JOIN store_transaction_details details
                                 ON transaction.storecode = details.storecode
                                     AND transaction.transcode = details.TRANSCODE
@@ -2986,7 +2989,7 @@ class ServersController extends WebServicesController
                                 ON transaction.CCODE = customer.CCODE
                         LEFT JOIN howknows_thestore as howknows_thestore 
                                 ON howknows_thestore.howknowscode = customer.howknowscode
-                WHERE  transaction.tempstatus = 0
+                WHERE  (transaction.tempstatus = 0 OR transaction.transdate >= DATE_FORMAT(NOW(),'%Y-%m-%d'))
                         AND transaction.ccode = '".$ccode."'
                         AND transaction.delflg IS NULL
                 GROUP BY transaction.transcode, transaction.keyno, details.trantype, details.rowno
@@ -6723,6 +6726,8 @@ class ServersController extends WebServicesController
                 QUANTITY, UNITPRICE, PRICE, ZEIKUBUN, KASANPOINT1, KASANPOINT2,
                 KASANPOINT3, STAFFCODE, STAFFCODESIMEI, TEMPSTATUS, STARTTIME, ENDTIME";
 
+
+        
         #------------------------------------------------------------------------------------------------------------------------
         # ADDED BY MARVINC - 2015-06-22
         # For Updating Next Reservation
@@ -6928,6 +6933,19 @@ class ServersController extends WebServicesController
                 break;
             }
         }
+
+        #------------------------------------------------------------------------------------------------------------------------
+        # ADDED BY MARVINC - 2016-05-11
+        # Note: Save record in store_transaction2 table
+        #------------------------------------------------------------------------------------------------------------------------
+        $sql = "INSERT INTO store_transaction2(transcode, keyno, `read`, datetimecreated)
+                     values('{$param['TRANSCODE']}', {$param['KEYNO']}, 0, now())
+                    ON DUPLICATE KEY UPDATE `read` = 0";
+
+        $retQuery[$sqlctr] = $this->StoreTransaction->query($sql);
+        $sqlctr++;
+        #------------------------------------------------------------------------------------------------------------------------
+
 
         if ($error <> "true") {
             $this->StoreTransaction->commit();      //-- トランザクションをコミット (Commit Transactions)

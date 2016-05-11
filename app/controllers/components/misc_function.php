@@ -1028,6 +1028,7 @@ class MiscFunctionComponent extends Object
                 $arrList[$ctrTrans]['CSTORECODE']      = $trans['customer']['CSTORECODE'];
                 $arrList[$ctrTrans]['HOWKNOWSCODE']    = $trans['howknows_thestore']['HOWKNOWSCODE'];
                 $arrList[$ctrTrans]['HOWKNOWS']        = $trans['howknows_thestore']['HOWKNOWS'];
+                $arrList[$ctrTrans]['DATETIMECREATED']  = $trans['store_transaction2']['DATETIMECREATED'];
                 #---------------------------------------------------------------------------------------------
                 #Added by MarvinC - 2015-06-18
                 #---------------------------------------------------------------------------------------------
