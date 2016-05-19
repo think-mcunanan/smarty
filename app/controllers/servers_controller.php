@@ -2958,10 +2958,15 @@ class ServersController extends WebServicesController
                         ELSE (details.TAX * details.QUANTITY) 
                         END) as TOTALTAX,
 
-                        (details.PRICE + f_get_trans_detail_tax(transaction.TRANSCODE, transaction.KEYNO, details.ROWNO)) as PRICETAXINC
+                        (details.PRICE + f_get_trans_detail_tax(transaction.TRANSCODE, transaction.KEYNO, details.ROWNO)) as PRICETAXINC,
+                        staff_yk.staffname as UKETSUKESTAFFNAME
                         
             FROM store_transaction transaction
             USE INDEX (CCODEDELFLGTEMPSTATUS)
+                        LEFT JOIN yoyaku_details
+                                ON yoyaku_details.transcode = transaction.transcode
+                        LEFT JOIN staff staff_yk
+                                ON staff_yk.staffcode = yoyaku_details.uketsukestaff
                         LEFT JOIN store_transaction2
                                 ON store_transaction2.transcode = transaction.transcode
                         LEFT JOIN store_transaction_details details
