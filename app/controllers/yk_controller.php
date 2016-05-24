@@ -2420,10 +2420,9 @@ class YkController extends AppController {
 //                                                      'host' => MAILSERVER_ADDRESS);
 //                        $this->Email->send($body);
 
-                         $to = $email_address;
-                         if($email_address != ""){
-                             $to .= ",".$email_address2;
-                         }
+					     //mailto address fixed 2016-05-24;
+                         $to = $email_address.",".$email_address2;
+
                          $content = $body;
                          $title =  $store_info['STORENAME'].'予約内容確認メール';
                          
