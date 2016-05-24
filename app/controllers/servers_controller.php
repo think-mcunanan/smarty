@@ -6420,6 +6420,9 @@ class ServersController extends WebServicesController
             }//end foreach
         } 
         //---------------------------------------------------------------------------------------------------------------------
+
+
+        
         $ret = array();
         $ret['records']      = $data;
         $ret['record_count'] = count($data);
@@ -7383,7 +7386,58 @@ class ServersController extends WebServicesController
         $param['ignoreSessionCheck'] = 1;
         $param['dbname'] = $storeinfo['dbname'];
         //--------------------------------------------------------------------------------------------------------
-        $transaction    = $this->wsSearchStoreTransaction($sessionid, $param);
+        $transaction = $this->wsSearchStoreTransaction($sessionid, $param);
+
+        $prevtrans = null;
+        $prevendtime = "";
+        $prevstaffcode = -1;
+        $finaldata = array();
+        $getval = false;
+        $ctr= 0;
+
+        #----------------------------------------------------------------------------------------------------------------
+        # UPDATE BY MARVINC - 2016-05-24 - 11:27
+        # NOTE: WILL NOT ALLOW TRANSACTION TO BREAK APART IF THEY HAVE SAME STAFF AND IF YOYAKUTIME AND ADJUSTED_ENDTIME
+        #       DON'T HAVE GAP IN BETWEEN
+        #----------------------------------------------------------------------------------------------------------------
+        $records = $transaction["records"];
+
+        foreach ($records as $trans){
+
+            $newtranscode = $trans["TRANSCODE"];
+            $newstarttime = $trans["YOYAKUTIME"];
+            $newstaffcode = intval($trans["STAFFCODE"]);
+
+            if($newtranscode === $prevtrans && 
+                    $newstaffcode === $prevstaffcode && 
+                    strtotime($prevendtime) >= strtotime($newstarttime)){
+
+                if($trans["ADJUSTED_ENDTIME"] > $finaldata[$ctr-1]["ADJUSTED_ENDTIME"]){
+                    $finaldata[$ctr-1]["ADJUSTED_ENDTIME"] = $trans["ADJUSTED_ENDTIME"];
+                }
+                $getval = false;
+
+            }else{
+
+                $finaldata[$ctr]= $trans;
+                $getval = true;
+                $ctr++;
+
+            }
+
+            $prevtrans = $trans["TRANSCODE"];
+            $prevstaffcode = intval($trans["STAFFCODE"]);
+            $prevendtime = $trans['ADJUSTED_ENDTIME'];
+        }//END OF FOR EACH
+
+        if($getval == false){
+            $finaldata[$ctr]= $trans;
+        }
+
+        $transaction["records"] = $finaldata;
+        #----------------------------------------------------------------------------------------------------------------
+
+
         //--------------------------------------------------------------------------------------------------------
         $staff          = $this->wsSearchAvailableStaff($sessionid, $param);
         $param['staff'] = $staff['records'];
@@ -7402,8 +7456,9 @@ class ServersController extends WebServicesController
                                 $transaction['records'][$i]['PRIORITYTYPE'] == 2) {
                         //------------------------------------------------------------------------------
                         $staff['records'][$s]['transaction']['records'][$ctr] = $transaction['records'][$i];
-                        //------------------------------------------------------------------------------
                         $ctr++;
+                        //------------------------------------------------------------------------------
+                        
                     //---------------------------------------------------------------
                     $col      = explode('-', $transaction['records'][$i]['PRIORITYTYPE']);
                     $prioritytype = intval($col[0]);
@@ -7506,7 +7561,7 @@ class ServersController extends WebServicesController
         } else {
             $ret['calendar'] = "";
         }
-
+        
         $ret['records']  = $staff;
 
         //新着メッセージ取得
@@ -7517,6 +7572,8 @@ class ServersController extends WebServicesController
             }
         }
         //---------------------------------------------------------------------------------------------
+
+        
         return $ret;
         //---------------------------------------------------------------------------------------------
     }//end function

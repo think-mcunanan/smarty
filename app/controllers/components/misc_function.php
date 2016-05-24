@@ -569,44 +569,18 @@ class MiscFunctionComponent extends Object
         //$tempstatus = array(0, 1, 2);
         //$arrStaff = array();
         //------------------------------------------------------------------------------------------------------
-        //$detail_staff = -1;
-        $prevtranscode = "";
-        $prevstaffcode = -1;
+        $detail_staff = -1;
         //------------------------------------------------------------------------------------------------------
         $is_same_staff = false;
         for ($i = 0; $i < count($arrData); $i++) {
             //print_r($arrData[$i]); die();
             $flagcond = false;
-            $currenttranscode = $arrData[$i]['transaction']['TRANSCODE'];
-            $currentstaffcode = (int)$arrData[$i]['details']['STAFFCODE'];
-
             if ((int)$arrData[$i]['tbld']['min_staffcode'] === (int)$arrData[$i]['tbld']['max_staffcode']) {
                 $flagcond = ($transcode !== $arrData[$i]['transaction']['TRANSCODE']);
                 $is_same_staff = true;
             } else {
-                if($currenttranscode == $prevtranscode){
-                    $is_same_staff = false;
-                    if($currentstaffcode == $prevstaffcode){
-                        $flagcond = false;
-
-                    }else{
-                        $flagcond = true;
-                    }
-                }else{
-                    if($currentstaffcode == $prevstaffcode){
-                        $flagcond = false;
-                        $is_same_staff = true;
-                    }else{
-                        $flagcond = true;
-                        $is_same_staff = false;
-                    }
-                }
-
-                //$flagcond = ($prevtranscode !== $arrData[$i]['transaction']['TRANSCODE'] || $prevstaffcode == (int)$arrData[$i]['details']['STAFFCODE']);
-                //$is_same_staff = ($prevstaffcode == (int)$arrData[$i]['details']['STAFFCODE'] && $flagcond == false);
-                $prevstaffcode = (int)$arrData[$i]['details']['STAFFCODE'];
-                $prevtranscode = $arrData[$i]['transaction']['TRANSCODE'];
-
+                $flagcond = ($detail_staff !== (int)$arrData[$i]['details']['STAFFCODE']);
+                $is_same_staff = false;
             }//end if else
             //$flagcond = ($detail_staff !== (int)$arrData[$i]['details']['STAFFCODE']);
             //if ($transcode !== $arrData[$i]['transaction']['TRANSCODE']) {
@@ -867,18 +841,6 @@ class MiscFunctionComponent extends Object
             //-------------------------------------------------------------------------
             $arrList[$ctr]['STIME'] = $tmpYoyakuTime;
             $arrList[$ctr]['ETIME'] = $tmpEndTIme;
-            //-------------------------------------------------------------------------
-            // Added by MarvinC - 2016-04-25
-            // This will not allow transaction with same staff to breack appart in transview
-            if($currenttranscode == $prevtranscode && $currentstaffcode == $prevstaffcode){
-                for ($x = $i; $x < count($arrData); $x++){
-                    if($arrData[$x]["details"]["STAFFCODE"] == $prevstaffcode && $arrData[$x]["details"]["TRANSCODE"] == $prevtranscode){
-                        $arrList[$ctr]['ETIME'] = $arrData[$x]["details"]['ENDTIME'];;
-                    }else{
-                        break;
-                    }
-                }
-            }
             //-------------------------------------------------------------------------
             $dtl = 0;
             foreach ($arrData as $transd_data) {
