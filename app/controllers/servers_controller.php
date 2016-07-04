@@ -1405,7 +1405,10 @@ class ServersController extends WebServicesController
                                         'YOYAKU_STATUS'    => 'xsd:string', //Update by MarvinC - Added param for syscode
                                         'INCOMPLETE'       => 'xsd:int',
                                         'UKETSUKESTAFFNAME'=> 'xsd:string',
-                                        'DATETIMECREATED'     => 'xsd:string', //Update by MarvinC - 2016-05-11
+                                        'DATETIMECREATED'  => 'xsd:string', //Update by MarvinC - 2016-05-11
+                                        'CREATENEWTRANS'   => 'xsd:int', //Update by MarvinC - 2016-06-30
+                                        'PREVTRANSCODE'    => 'xsd:string', //Update by MarvinC - 2016-06-30
+                                        'DELPREVTRANSGCODES'    => 'xsd:string', //Update by MarvinC - 2016-06-30
                                     /*--------------------------------------------*/
                                     /* add by albert for bm connection 2015-10-29 */
                                     /*--------------------------------------------*/
@@ -6501,7 +6504,7 @@ class ServersController extends WebServicesController
         //if (ereg_replace("-","", $param['TRANSDATE']) <> substr($param['TRANSCODE'],9,8)) {
         //削除は　サーバーのみの変更で済ますためtranscodeのstorecode利用。出来れば変更前店舗コードを取得
         if (intval($param['STORECODE']) <> intval(substr($param['TRANSCODE'],0,7))) {
-            if ($param['TRANSCODE'] <> ""){
+            if ($param['TRANSCODE'] <> "" && trim($param['DELPREVTRANSGCODES']) == ""){
 //              $del_sql = "DELETE FROM store_transaction
 //                            WHERE TRANSCODE = '" . $param['TRANSCODE'] . "'";
 //              $del_dtlsql = "DELETE FROM store_transaction_details
@@ -6930,17 +6933,7 @@ class ServersController extends WebServicesController
                 where transcode = '" . $oldTransCode . "'";
         $GetData = $this->StoreTransaction->query($Sql);
         //-----------------------------------------------------------------------------------------------------------------
-        
-        //---------------------------------------------------------------------------
-        //-- エラーのためのチェック (Checks if there are errors on all cued queries)
-        $error = "false";
-        for ($i=0; $i<count($retQuery); $i++) {
-            if ($retQuery[$i] === false) {
-                $error = "true";
-                $param['TRANSCODE'] = "ROLLBACK";
-                break;
-            }
-        }
+           
 
         #------------------------------------------------------------------------------------------------------------------------
         # ADDED BY MARVINC - 2016-05-11
@@ -6953,6 +6946,58 @@ class ServersController extends WebServicesController
         $retQuery[$sqlctr] = $this->StoreTransaction->query($sql);
         $sqlctr++;
         #------------------------------------------------------------------------------------------------------------------------
+
+
+        #------------------------------------------------------------------------------------------------------------------------
+        # ADDED BY MARVINC - 2016-06-30
+        # Note: DELETE TRANSACTION THAT HAS BEEN MOVE IN DIFFERENT DATE AND UPDATE YOYAKUTIME AND ENDTIME
+        #------------------------------------------------------------------------------------------------------------------------
+        if (trim($param['DELPREVTRANSGCODES']) <> ""){
+            $sql = "DELETE FROM store_transaction_details
+                    WHERE transcode = '{$param['PREVTRANSCODE']}'
+                        AND keyno = {$param['KEYNO']}
+                        AND gcode IN({$param['DELPREVTRANSGCODES']})";
+
+            $retQuery[$sqlctr] = $this->StoreTransaction->query($sql);
+            $sqlctr++;
+
+            $sql = "SELECT
+			            MIN(STD.STARTTIME) as STARTTIME,
+			            MAX(STD.ENDTIME) as ENDTIME
+                    FROM store_transaction ST
+                    JOIN store_transaction_details STD
+		                    ON STD.transcode = ST.transcode
+		                    AND STD.keyno = ST.keyno
+                    WHERE ST.transcode = '{$param['PREVTRANSCODE']}'
+		                    AND ST.keyno = {$param['KEYNO']}
+                            AND ST.delflg is null";
+
+            $result = $this->StoreTransaction->query($sql);
+
+            if(count($result) > 0){
+                $sql = "UPDATE store_transaction
+                        SET yoyakutime = '{$result[0][0]['STARTTIME']}',
+                            endtime = '{$result[0][0]['ENDTIME']}'
+                        WHERE transcode = '{$param['PREVTRANSCODE']}'
+                        AND keyno = {$param['KEYNO']}
+                        AND delflg is null";
+
+                $retQuery[$sqlctr] = $this->StoreTransaction->query($sql);
+                $sqlctr++;
+            }
+        }
+        #------------------------------------------------------------------------------------------------------------------------
+
+        //---------------------------------------------------------------------------
+        //-- エラーのためのチェック (Checks if there are errors on all cued queries)
+        $error = "false";
+        for ($i=0; $i<count($retQuery); $i++) {
+            if ($retQuery[$i] === false) {
+                $error = "true";
+                $param['TRANSCODE'] = "ROLLBACK";
+                break;
+            }
+        }
 
 
         if ($error <> "true") {
