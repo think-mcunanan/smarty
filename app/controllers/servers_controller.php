@@ -6785,9 +6785,10 @@ class ServersController extends WebServicesController
         # ADDED BY MARVINC - 2015-07-27
         # For Updating Next Reservation
         #------------------------------------------------------------------------------------------------------------------------
+        $newsyscode = array();
         $gdcodelist = implode(",",array_unique($gdcode));
                 $this->Syscode->set_company_database($storeinfo['dbname'], $this->Syscode);
-                $sql = "select SYSCODE, GDCODE from services where GDCODE in (".$gdcodelist.") and DELFLG is null group by SYSCODE order by SYSCODE";
+                $sql = "select SYSCODE, GDCODE from services where GDCODE in ({$gdcodelist}) and DELFLG is null group by SYSCODE order by SYSCODE";
                 $newsyscodes = $this->Syscode->query($sql);
                 
                 $x = 0;
@@ -6802,64 +6803,81 @@ class ServersController extends WebServicesController
         
         if(trim($param['BEFORE_TRANSCODE']) <> "" || $param['YOYAKU_STATUS'] == 2){
         	//$sql = "UPDATE yoyaku_next SET YOYAKU_STATUS = 2 ,NEXTCODE = '" .$param['TRANSCODE']."' WHERE TRANSCODE ='". $param['BEFORE_TRANSCODE']."'";     
-        	//$sql = "UPDATE yoyaku_next SET CHANGEFLG = CASE WHEN NEXTCODE IS NULL AND CHANGEFLG = 0 THEN 0 ELSE 1 END, YOYAKU_STATUS = 2 ,NEXTCODE = '" .$param['TRANSCODE']."' WHERE TRANSCODE ='". $param['BEFORE_TRANSCODE']."'";
         	$sql = "UPDATE yoyaku_next 
         	        SET CHANGEFLG = CASE WHEN NEXTCODE IS NULL AND CHANGEFLG = 0 THEN 0 ELSE 1 END,
         	        YOYAKU_STATUS = 2 ,
-        	        FIRST_YOYAKUDATE = CASE WHEN FIRST_YOYAKUDATE IS NULL THEN '". $param['TRANSDATE']."' ELSE FIRST_YOYAKUDATE END,
-        	        NEXTCODE = '" .$param['TRANSCODE']."' WHERE TRANSCODE ='".$param['BEFORE_TRANSCODE']."' OR NEXTCODE = '". $param['TRANSCODE']."'";
-                //-- 挿入または更新トランザクション (Insert or Update transaction)
-                $retQuery[$sqlctr] = $this->StoreTransaction->query($sql);
-                $sqlctr++;
+        	        FIRST_YOYAKUDATE = CASE WHEN FIRST_YOYAKUDATE IS NULL THEN '{$param['TRANSDATE']}' ELSE FIRST_YOYAKUDATE END,
+        	        NEXTCODE = '{$param['TRANSCODE']}' WHERE TRANSCODE ='{$param['BEFORE_TRANSCODE']}' OR NEXTCODE = '{$param['BEFORE_TRANSCODE']}'";
+            //-- 挿入または更新トランザクション (Insert or Update transaction)
+            $retQuery[$sqlctr] = $this->StoreTransaction->query($sql);
+            $sqlctr++;
                 
+            #------------------------------------------------------------------------------------------------------------------------
+            # ADDED BY MARVINC - 2015-06-22
+            # For Updating Next Reservation
+            #------------------------------------------------------------------------------------------------------------------------
+            if ($param['YOYAKU_STATUS'] == 2){
+
                 #------------------------------------------------------------------------------------------------------------------------
-                # ADDED BY MARVINC - 2015-06-22
-                # For Updating Next Reservation
+                # WILL ONLY UPDATE THOSE SERVICES THAT WAS SELECTED
                 #------------------------------------------------------------------------------------------------------------------------
-                if ($param['YOYAKU_STATUS'] == 2){
+                $syscond = "";
+                if (trim($param['DELPREVTRANSGCODES']) <> ""){
+                    $syscond = "AND SYSCODE IN({$syscodes})";
+                }
+
+                #------------------------------------------------------------------------------------------------------------------------
+                # UPDATE TRANSACTION WHEN CHANGE OR MOVE
+                #------------------------------------------------------------------------------------------------------------------------
+                $sql = "UPDATE yoyaku_next_details
+                        SET CHANGEFLG = CASE WHEN NEXTCODE IS NULL AND CHANGEFLG = 0 THEN 0 ELSE 1 END, 
+                        YOYAKU_STATUS = 2,
+                        FIRST_YOYAKUDATE = CASE WHEN FIRST_YOYAKUDATE IS NULL THEN '{$param['TRANSDATE']}' ELSE FIRST_YOYAKUDATE END,
+                        NEXTCODE = '{$param['TRANSCODE']}' WHERE NEXTCODE ='{$param['BEFORE_TRANSCODE']}' {$syscond}";
+                #------------------------------------------------------------------------------------------------------------------------
+
+            }else{
+                #------------------------------------------------------------------------------------------------------------------------
+                # Update by: MarvinC - 2016-01-14 15:07
+                # Check Powers Flag
+                #------------------------------------------------------------------------------------------------------------------------
+                if($this->MiscFunction->GetReturningCustomerCountAll($this) == 1){
+                    #check if the service is existing if not existing it will insert a new transaction with syscode equal to 0
+                    $this->Syscode->set_company_database($storeinfo['dbname'], $this->Syscode);
+                    $sql = "select SYSCODE from yoyaku_next_details where transcode = '{$param['BEFORE_TRANSCODE']}' and syscode in ({$syscodes}) and yoyaku_status = 1";
+                    $exists = $this->Syscode->query($sql);
+
+                    if(empty($exists)){
+
+                        #get the staff incharge and insert one transaction with a syscode of 0
+                        $sql = "INSERT INTO yoyaku_next_details 
+                                SELECT TRANSCODE, MAX(ROWNO) + 1, 2, 0, '{$param['TRANSCODE']}', STAFFCODE_INCHARGE, STAFFCODE_INCHARGE,  '".$param['TRANSDATE']."', 0, null, CURRENT_DATE()
+                                FROM yoyaku_next_details YND
+                                WHERE TRANSCODE = '{$param['BEFORE_TRANSCODE']}' LIMIT 1";
+
+                    }else{
+                        #Will update all transaction changeflg according to services selected
+                        $sql = "UPDATE yoyaku_next_details
+                                SET CHANGEFLG = CASE WHEN NEXTCODE IS NULL AND CHANGEFLG = 0 THEN 0 ELSE 1 END, 
+                                YOYAKU_STATUS = 2,
+                                FIRST_YOYAKUDATE = CASE WHEN FIRST_YOYAKUDATE IS NULL THEN '{$param['TRANSDATE']}' ELSE FIRST_YOYAKUDATE END,
+                                NEXTCODE = '{$param['TRANSCODE']}' WHERE TRANSCODE = '{$param['BEFORE_TRANSCODE']}' 
+                                AND SYSCODE IN ({$syscodes}) AND YOYAKU_STATUS < 2";
+                    }
+                }else{
+                    #If powers is not on it will still update all transaction. No need to check for services.
                     $sql = "UPDATE yoyaku_next_details
                             SET CHANGEFLG = CASE WHEN NEXTCODE IS NULL AND CHANGEFLG = 0 THEN 0 ELSE 1 END, 
                             YOYAKU_STATUS = 2,
-                            FIRST_YOYAKUDATE = CASE WHEN FIRST_YOYAKUDATE IS NULL THEN '". $param['TRANSDATE']."' ELSE FIRST_YOYAKUDATE END,
-                            NEXTCODE = '" .$param['TRANSCODE']."' WHERE NEXTCODE ='".$param['TRANSCODE']."' OR NEXTCODE = '". $param['BEFORE_TRANSCODE']."'";
-                }else{
-                    
-                    #Update by: MarvinC - 2016-01-14 15:07
-                    #Check Powers Flag
-                    if($this->MiscFunction->GetReturningCustomerCountAll($this) == 1){
-                        #check if the service is existing
-                        $this->Syscode->set_company_database($storeinfo['dbname'], $this->Syscode);
-                        //$sql = "select SYSCODE from yoyaku_next_details where transcode = '". $param['BEFORE_TRANSCODE']."' and syscode in (".$syscodes.") and nextcode is null";
-                        $sql = "select SYSCODE from yoyaku_next_details where transcode = '". $param['BEFORE_TRANSCODE']."' and syscode in (".$syscodes.") and yoyaku_status = 1";
-                        $exists = $this->Syscode->query($sql);
-
-                        if(empty($exists)){
-                            #get the staff incharge
-                            $sql = "INSERT INTO yoyaku_next_details 
-                                    SELECT TRANSCODE, MAX(ROWNO) + 1, 2, 0, '".$param['TRANSCODE']."', STAFFCODE_INCHARGE, STAFFCODE_INCHARGE,  '". $param['TRANSDATE']."', 0, null, CURRENT_DATE()
-                                    FROM yoyaku_next_details YND
-                                    WHERE TRANSCODE = '". $param['BEFORE_TRANSCODE']."' LIMIT 1";
-                        }else{
-                            $sql = "UPDATE yoyaku_next_details
-                                    SET CHANGEFLG = CASE WHEN NEXTCODE IS NULL AND CHANGEFLG = 0 THEN 0 ELSE 1 END, 
-                                    YOYAKU_STATUS = 2,
-                                    FIRST_YOYAKUDATE = CASE WHEN FIRST_YOYAKUDATE IS NULL THEN '". $param['TRANSDATE']."' ELSE FIRST_YOYAKUDATE END,
-                                    NEXTCODE = '".$param['TRANSCODE']."' WHERE TRANSCODE = '". $param['BEFORE_TRANSCODE']."' 
-                                    AND SYSCODE IN (".$syscodes.") AND YOYAKU_STATUS < 2";
-                        }
-                    }else{
-                        $sql = "UPDATE yoyaku_next_details
-                                    SET CHANGEFLG = CASE WHEN NEXTCODE IS NULL AND CHANGEFLG = 0 THEN 0 ELSE 1 END, 
-                                    YOYAKU_STATUS = 2,
-                                    FIRST_YOYAKUDATE = CASE WHEN FIRST_YOYAKUDATE IS NULL THEN '". $param['TRANSDATE']."' ELSE FIRST_YOYAKUDATE END,
-                                    NEXTCODE = '".$param['TRANSCODE']."' WHERE TRANSCODE = '". $param['BEFORE_TRANSCODE']."' 
-                                    AND YOYAKU_STATUS < 2";
-                    }
-                    #----------------------------------------------------------------------------------------------------------------------
+                            FIRST_YOYAKUDATE = CASE WHEN FIRST_YOYAKUDATE IS NULL THEN '{$param['TRANSDATE']}' ELSE FIRST_YOYAKUDATE END,
+                            NEXTCODE = '{$param['TRANSCODE']}' WHERE NEXTCODE = '{$param['BEFORE_TRANSCODE']}' 
+                            AND YOYAKU_STATUS < 2";
                 }
+                #----------------------------------------------------------------------------------------------------------------------
+            }
                 
-                $retQuery[$sqlctr] = $this->StoreTransaction->query($sql);
-                $sqlctr++;	
+            $retQuery[$sqlctr] = $this->StoreTransaction->query($sql);
+            $sqlctr++;	
                 
         }    
         $SqlInsertRejiMarketing = "";
