@@ -840,6 +840,7 @@ class ServersController extends WebServicesController
                                         'JOBINDUSTRYCODE'=> 'xsd:int', 
                                         'JOBINDUSTRY'    => 'xsd:string',
                                         'CREATEDFROMCODE'    => 'xsd:int',
+										'SystemDesc'     => 'xsd:string',
                                     /*--------------------------------------------*/
                                     /* add by albert for bm connection 2015-11-05 */
                                     /*--------------------------------------------*/
@@ -1903,6 +1904,8 @@ class ServersController extends WebServicesController
                     BLOODTYPE = '". $params['BLOODTYPE'] ."',
                     JOBINDUSTRYCODE = ". $params['JOBINDUSTRYCODE'] .",
                     HOWKNOWSCODE = ". $params['HOWKNOWSCODE'] .",
+					
+					CREATEDFROMCODE = ". $params['CREATEDFROMCODE'] .",
                         
                     CHRISTIAN_ERA = ". $GetData[0]["customer"]['CHRISTIAN_ERA'] .",
                     INTRODUCETYPE = ". $GetData[0]["customer"]["INTRODUCETYPE"] .",
@@ -2690,7 +2693,7 @@ class ServersController extends WebServicesController
                         'TYO1', 'ADDRESS1', 'ADDRESS1_1', 'TEL1', 'TEL2', 'BIRTHDATE', 'MEMBERSCATEGORY',
                         'CHRISTIAN_ERA', 'MAILADDRESS1', 'MAILADDRESS2', 'MAILKUBUN', 'FIRSTDATE',
                         'HOWKNOWSCODE',
-                        'BLOODTYPE', 'MEMBER_CODE', 'SMOKING', 'DMKUBUN', 'JOBINDUSTRYCODE' //, 'CREATEDFROMCODE' //add by albert 2105-10-27 --> customer integration information
+                        'BLOODTYPE', 'MEMBER_CODE', 'SMOKING', 'DMKUBUN', 'JOBINDUSTRYCODE', 'CREATEDFROMCODE' //add by albert 2016-07-15 --> redmine 0650
                         );
 
         if (!in_array($param['orderby'], $fields)) {
@@ -2809,27 +2812,36 @@ class ServersController extends WebServicesController
         if (count($ret['records']) > 0) { //check and get BMCODE if the customer have BM record
             $ctr = 0;
             foreach($ret['records'] as $data) {
+				
                 $BMCustID['BMCODE'] = "";
-                
-//                if ($data['CREATEDFROMCODE'] == 7) {
-                    $Sql = "select distinct site_customer_id as BMCODE
-                            from bm_reservation 
-                            where ccode = '".$data['CCODE']."'";
-                    $GetData = $this->Customer->query($Sql);
-                    if (count($GetData) > 0) {
-                         $BMCustID['BMCODE'] = $GetData[0]['bm_reservation']['BMCODE'];
-                    }
-//                }else if ($data['CREATEDFROMCODE'] == 8) {
-//                    $Sql = "select distinct alliance_customer_id as BMCODE
-//                            from rv_customer 
-//                            where ccode = '".$data['CCODE']."'";
-//                    $GetData = $this->Customer->query($Sql);
-//                    if (count($GetData) > 0) {
-//                         $BMCustID['BMCODE'] = $GetData[0]['rv_customer']['BMCODE'];
-//                    }                    
-//                }
-                    
+				$SysDesc['SystemDesc'] = "";
+				
+				$Sql = "select distinct site_customer_id as BMCODE
+						from bm_reservation 
+						where ccode = '".$data['CCODE']."'";
+				$GetData = $this->Customer->query($Sql);
+				if (count($GetData) > 0) {
+					 $BMCustID['BMCODE'] = $GetData[0]['bm_reservation']['BMCODE'];
+				}
                 $ret['records'][$ctr] = array_merge($data, $BMCustID);
+				
+				if ((int)$data['CREATEDFROMCODE'] == 1) {
+                    $SysDesc['SystemDesc'] = "店舗（顧客情報）";
+                }else if ((int)$data['CREATEDFROMCODE'] == 2) {
+                    $SysDesc['SystemDesc'] = " 店舗（受付）";
+                }else if ((int)$data['CREATEDFROMCODE'] == 3) {
+                    $SysDesc['SystemDesc'] = "もばすて";
+                }else if ((int)$data['CREATEDFROMCODE'] == 4) {
+                    $SysDesc['SystemDesc'] = "Web予約（PC）";
+                }else if ((int)$data['CREATEDFROMCODE'] == 5) {
+                    $SysDesc['SystemDesc'] = "Web予約（携帯）";
+                }else if ((int)$data['CREATEDFROMCODE'] == 7) {
+                    $SysDesc['SystemDesc'] = "BeautyMerit";
+                }else if ((int)$data['CREATEDFROMCODE'] == 8) {
+                    $SysDesc['SystemDesc'] = "Reservia";
+                }
+                $ret['records'][$ctr] = array_merge($data, $SysDesc);
+				
                 $ctr++;
             }
         }
