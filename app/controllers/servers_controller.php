@@ -474,7 +474,8 @@ class ServersController extends WebServicesController
                                               'enddate'           => 'xsd:string',
                                               'storecode'         => 'xsd:int',
                                               'staffcode'         => 'xsd:int',
-                                              'uketsukestaffcode' => 'xsd:int'),
+                                              'uketsukestaffcode' => 'xsd:int',
+                                              'staffcode_sthdr'   => 'xsd:int'),
                                               'output' => array('return'    => 'return_yoyakuDetailsInformation')),
                      //- ############################################################
 
@@ -7930,13 +7931,14 @@ class ServersController extends WebServicesController
      * @param int $uketsukestaffcode
      * @return return_yoyakuDetailsInformation
      */
-    function wsSearchYoyakuDetails($sessionid, $begindate, $enddate, $storecode, $staffcode, $uketsukestaffcode) {
+    function wsSearchYoyakuDetails($sessionid, $begindate, $enddate, $storecode, $staffcode, $uketsukestaffcode, $staffcode_sthdr) {
         $whereQuery = "";
         if ($begindate !== null) $whereQuery .= "AND s_t.TRANSDATE >= '{$begindate}' ";
         if ($enddate !== null) $whereQuery .= "AND s_t.TRANSDATE <= '{$enddate}' ";
         if ($storecode > -1) $whereQuery .= "AND s_t.STORECODE = {$storecode} ";
         if ($staffcode > -1) $whereQuery .= "AND s_t.UKETSUKESTAFF = {$staffcode} ";
         if ($uketsukestaffcode > -1) $whereQuery .= "AND y_d.UKETSUKESTAFF = {$uketsukestaffcode} ";
+        if ($staffcode_sthdr > -1) $whereQuery .= "AND s_t.STAFFCODE = {$staffcode_sthdr} ";
         $whereQuery .=" AND s_t.YOYAKU > 0 ";
 
         $query =
@@ -7984,6 +7986,7 @@ class ServersController extends WebServicesController
             "  s_t.ENDTIME, " .
             "  s.STAFFNAME ";
 
+    //print_r($query);    die();
         $storeinfo = $this->YoyakuSession->Check($this);
         $this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction);
         $rs = $this->StoreTransaction->query($query);
