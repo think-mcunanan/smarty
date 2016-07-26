@@ -6871,7 +6871,7 @@ class ServersController extends WebServicesController
                             SET CHANGEFLG = CASE WHEN NEXTCODE IS NULL AND CHANGEFLG = 0 THEN 0 ELSE 1 END, 
                             YOYAKU_STATUS = 2,
                             FIRST_YOYAKUDATE = CASE WHEN FIRST_YOYAKUDATE IS NULL THEN '{$param['TRANSDATE']}' ELSE FIRST_YOYAKUDATE END,
-                            NEXTCODE = '{$param['TRANSCODE']}' WHERE NEXTCODE = '{$param['BEFORE_TRANSCODE']}' 
+                            NEXTCODE = '{$param['TRANSCODE']}' WHERE TRANSCODE = '{$param['BEFORE_TRANSCODE']}' 
                             AND YOYAKU_STATUS < 2";
                 }
                 #----------------------------------------------------------------------------------------------------------------------
