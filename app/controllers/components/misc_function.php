@@ -770,15 +770,16 @@ class MiscFunctionComponent extends Object
                 }
 
 
-
+                
                 $position_confirmed = false;
                 while (!$position_confirmed) {
                     $position_confirmed = true;
                     foreach ($checked_times[$staffcode][$prioritytype][$priority] as $entry) {
-                        if (($starttime_c  > $entry["starttime"] && $starttime_c <  $entry["endtime"]) ||
+                        if ((($starttime_c  > $entry["starttime"] && $starttime_c <  $entry["endtime"]) ||
 	                        ($endtime_c    > $entry["starttime"] && $endtime_c   <  $entry["endtime"]) ||
-	                        ($starttime_c <= $entry["starttime"] && $endtime_c   >= $entry["endtime"]) &&
-	                         $arrData[$i]['transaction']['PRIORITYTYPE'] == $entry["prioritytype"] ) {
+	                        ($starttime_c <= $entry["starttime"] && $endtime_c   >= $entry["endtime"])) &&
+	                         $arrData[$i]['transaction']['PRIORITYTYPE'] == $entry["prioritytype"] &&
+                             $arrData[$i]['transaction']['TRANSCODE'] !== $entry["transcode"]) { //Added by MarvinC 2016-07-25 18:30 Bug: 1626
 	                        $position_confirmed = false;
 	                        $priority++;
 	                        break;
@@ -786,9 +787,10 @@ class MiscFunctionComponent extends Object
                     }
                     //if($param["onsave"] == 1) {break;}
                 }
-
+                
                 $checked_times[$staffcode][$prioritytype][$priority][] = array("starttime" => $starttime_c,
                                                                 "endtime"   => $endtime_c,
+                                                                "transcode" => $arrData[$i]['transaction']['TRANSCODE'],
                                                                 "prioritytype" => $arrData[$i]['transaction']['PRIORITYTYPE']);
 
                 if (intval($checked_priority[$staffcode]) == 0 || $priority > $checked_priority[$staffcode])  {
@@ -1446,6 +1448,64 @@ class MiscFunctionComponent extends Object
     }
     //</editor-fold>
 
+    //<editor-fold defaultstate="collapsed" desc="sksort">
+    /**
+     * @author MCUNANAN :mcunanan@think-ahead.jp
+     * Date: 2016-07-22
+     * @uses Sort Array According to key
+     * @param $array|type array()
+     * @param $subkey|type string
+     * @param $sort_ascending|type boolean
+     */
+    function sortBy($array, $field, $direction = 'asc')
+    {
+        usort($array, create_function('$a, $b', '
+		$a = $a["' . $field . '"];
+		$b = $b["' . $field . '"];
 
+		if ($a == $b)
+		{
+			return 0;
+		}
+
+		return ($a ' . ($direction == 'desc' ? '>' : '<') .' $b) ? -1 : 1;
+	'));
+
+        return $array;
+    }
+    //</editor-fold>
+
+
+    //<editor-fold defaultstate="collapsed" desc="CheckConflict">
+    /**
+     * @author MCUNANAN :mcunanan@think-ahead.jp
+     * Date: 2016-07-25
+     * @uses Check if transaction has a coflict in schedule
+     * @param $transactions|type array()
+     * @param $transcode|type string
+     * @param $starttime_s|type string
+     * @param $endtime_s|type string
+     * @param $priority|type string
+     * @param $sort_ascending|type boolean
+     */
+    public function CheckConflict($transactions, $transcode, $starttime_s, $endtime_s, $priority){
+
+        foreach ($transactions as $key => $trans){
+            $endtime = $trans["ADJUSTED_ENDTIME"];
+            $startime = $transactions[$key]["YOYAKUTIME"];
+            $prioritytypecur = $trans["PRIORITYTYPE"];
+            $transcodecur = $trans["TRANSCODE"];
+            if( $transcode !== $transcodecur &&
+                    ($endtime > $starttime_s && $endtime_s > $startime)
+                        && $prioritytypecur == $priority){
+                return true;                
+            }
+        }
+
+        return false;
+    }
+    //</editor-fold>
+
+    
 }
 ?>

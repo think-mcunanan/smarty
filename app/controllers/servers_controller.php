@@ -6373,10 +6373,11 @@ class ServersController extends WebServicesController
                     AND details.DELFLG IS NULL
                     " . $trantype1 . $condition . $storecond. "
                 GROUP BY transaction.transcode, details.rowno
-                ORDER BY " . $misc_order . " transaction.TRANSCODE, 
+                ORDER BY " . $misc_order . " transaction.TRANSCODE,
+                           details.STAFFCODE,
                            details.STARTTIME, 
                            details.ROWNO, 
-                           details.STAFFCODE, 
+                           
                            transaction.PRIORITYTYPE,
                            transaction.TRANSCODE, " . $order_trantype . " details.ROWNO";
         //print_r($sql);die();
@@ -6883,7 +6884,7 @@ class ServersController extends WebServicesController
                             SET CHANGEFLG = CASE WHEN NEXTCODE IS NULL AND CHANGEFLG = 0 THEN 0 ELSE 1 END, 
                             YOYAKU_STATUS = 2,
                             FIRST_YOYAKUDATE = CASE WHEN FIRST_YOYAKUDATE IS NULL THEN '{$param['TRANSDATE']}' ELSE FIRST_YOYAKUDATE END,
-                            NEXTCODE = '{$param['TRANSCODE']}' WHERE NEXTCODE = '{$param['BEFORE_TRANSCODE']}' 
+                            NEXTCODE = '{$param['TRANSCODE']}' WHERE TRANSCODE = '{$param['BEFORE_TRANSCODE']}' 
                             AND YOYAKU_STATUS < 2";
                 }
                 #----------------------------------------------------------------------------------------------------------------------
@@ -7470,7 +7471,7 @@ class ServersController extends WebServicesController
         $finaldata = array();
         $getval = false;
         $ctr= 0;
-
+        
         #----------------------------------------------------------------------------------------------------------------
         # UPDATE BY MARVINC - 2016-05-24 - 11:27
         # NOTE: WILL NOT ALLOW TRANSACTION TO BREAK APART IF THEY HAVE SAME STAFF AND IF YOYAKUTIME AND ADJUSTED_ENDTIME
@@ -7483,6 +7484,10 @@ class ServersController extends WebServicesController
             $newtranscode = $trans["TRANSCODE"];
             $newstarttime = $trans["YOYAKUTIME"];
             $newstaffcode = intval($trans["STAFFCODE"]);
+
+            //if($trans["CNUMBER"] == "0060028865"){
+            //    $trans["PRIORITYTYPE"] = "1-2";
+            //}
 
             if($newtranscode === $prevtrans && 
                     $newstaffcode === $prevstaffcode && 
@@ -7510,8 +7515,12 @@ class ServersController extends WebServicesController
             $finaldata[$ctr]= $trans;
         }
 
+             
+
         $transaction["records"] = $finaldata;
         #----------------------------------------------------------------------------------------------------------------
+        
+        
 
 
         //--------------------------------------------------------------------------------------------------------
@@ -7649,7 +7658,48 @@ class ServersController extends WebServicesController
         }
         //---------------------------------------------------------------------------------------------
 
+
+        #----------------------------------------------------------------------------------------------------------------
+        # UPDATE BY MARVINC - 2016-07-25 16:58
+        # NOTE: MAKE SURE THAT TRANSACTION WILL NOT OVERLAP WITH EACH OTHER
+        # Bug: 1626
+        #----------------------------------------------------------------------------------------------------------------
+        $records = $ret["records"]["records"];
+
+        foreach ($records as $key => $record){
+            foreach($record["transaction"] as $transactions){
+
+                $transactions = $this->MiscFunction->sortBy($transactions, "YOYAKUTIME");
+
+                foreach ($transactions as $key3 => $trans){
+                    $endtime = $trans["ADJUSTED_ENDTIME"];
+                    
+                    $startime = $transactions[$key3 + 1]["YOYAKUTIME"];
+                    $prioritytypecur = $trans["PRIORITYTYPE"];
+                    $prioritytypenxt = $transactions[$key3 + 1]["PRIORITYTYPE"];
+                    if($endtime > $startime && $startime != null && $prioritytypecur == $prioritytypenxt){
+                        $conflict = true;
+                        $priority = split("-", $transactions[$key3 + 1]["PRIORITYTYPE"]);
+                        $starttime_s = $transactions[$key3 + 1]["YOYAKUTIME"];
+                        $endtime_s = $transactions[$key3 + 1]["ADJUSTED_ENDTIME"];
+                        $transcode = $transactions[$key3 + 1]["TRANSCODE"];
+                        $p1 = $priority[0];
+                        $p2 = "";
+		                for ($i = 1; $conflict == true; $i++){
+                            $p2 = $p1 . "-". $i;
+                            $conflict = $this->MiscFunction->CheckConflict($transactions,$transcode, $starttime_s, $endtime_s, $p2);
+                        }
+                        $transactions[$key3 + 1]["PRIORITYTYPE"] = $p2;
+                    }
+                }
+                $records[$key]["transaction"]["records"] = $transactions;
+            }
+        }
         
+        $ret["records"]["records"] = $records;
+        #----------------------------------------------------------------------------------------------------------------
+        
+
         return $ret;
         //---------------------------------------------------------------------------------------------
     }//end function
