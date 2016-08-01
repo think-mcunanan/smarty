@@ -880,6 +880,8 @@ class ServersController extends WebServicesController
                              'staffInformation' => array('struct' => array(
                                         'STAFFCODE'        => 'xsd:int',
                                         'STAFFNAME'        => 'xsd:string',
+                                        'origrows'         => 'xsd:int',
+                                        'origphonerows'    => 'xsd:int',
                                         'STAFFNAME2'       => 'xsd:string',
                                         'STORECODE'        => 'xsd:int',
                                         'STORENAME'        => 'xsd:string',
@@ -3500,6 +3502,8 @@ class ServersController extends WebServicesController
                     StaffAssignToStore.STAFFCODE,
                     Staff.STORECODE,
                     Staff.STAFFNAME,
+                    ifnull((select rows from staffrowshistory where staffcode = StaffAssignToStore.STAFFCODE order by datechange desc limit 1),".DEFAULT_ROWS.") as origrows,
+                    ifnull((select phonerows from staffrowshistory where staffcode = StaffAssignToStore.STAFFCODE order by datechange desc limit 1), ".DEFAULT_PHONEROWS.") as origphonerows,
                     Store.STORENAME,
                     if(Staff.STORECODE = ".$param['STORECODE'].",
                       StaffAssignToStore.WEBYAN_DISPLAY,
@@ -3568,6 +3572,18 @@ class ServersController extends WebServicesController
         for ($i = 0; $i < count($v); $i++) {
             $v[$i]['StaffAssignToStore']['STAFFNAME']  = $v[$i]['Staff']['STAFFNAME'];
             $v[$i]['StaffAssignToStore']['STORECODE']  = $v[$i]['Staff']['STORECODE'];
+            
+            if ($v[$i][0]['origrows'] == "" || $v[$i][0]['origrows'] == 0) {
+                $v[$i]['StaffAssignToStore']['origrows'] = DEFAULT_ROWS;
+            }else{
+                $v[$i]['StaffAssignToStore']['origrows'] = $v[$i][0]['origrows'];
+            }
+            if ($v[$i][0]['origphonerows'] == "" || $v[$i][0]['origphonerows'] == 0) {
+                $v[$i]['StaffAssignToStore']['origphonerows'] = DEFAULT_PHONEROWS;
+            }else{
+                $v[$i]['StaffAssignToStore']['origphonerows'] = $v[$i][0]['origphonerows'];
+            }
+            
             $v[$i]['StaffAssignToStore']['WEB_DISPLAY']= $v[$i][0]['WEBYAN_DISPLAY'];
             $v[$i]['StaffAssignToStore']['STORENAME']  = $v[$i]['Store']['STORENAME'];
             if ($v[$i][0]['ROWS'] == "" ||
