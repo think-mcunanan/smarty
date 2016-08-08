@@ -1639,6 +1639,7 @@ class ServersController extends WebServicesController
                                         'YOYAKUNEXTFLG'     => 'xsd:int',
                                         'ORIGINATION'       => 'xsd:int', //add by albert 2016-01-27
                                         'TEMPSTATUS'        => 'xsd:int',
+                                        'TRANSCODE'         => 'xsd:string',
                                  )),
                              '_yoyakuDetailsInformation' => array(
                                         'array' => 'yoyakuDetailsInformation'),
@@ -3557,6 +3558,7 @@ class ServersController extends WebServicesController
                     )
                 GROUP BY StaffAssignToStore.STAFFCODE
                 ORDER BY " . $param['orderby'] . " ";
+        //print_r($sql); die();
         //-------------------------------------------------------------------------------------------------
         $offset = $param['limit'] * ($param['page'] - 1);
         $limit_offset = "LIMIT " . $param['limit'] . "
@@ -8014,6 +8016,7 @@ class ServersController extends WebServicesController
 
         $query =
             "SELECT " .
+            "  s_t.TRANSCODE, " .
             "  s_t.STORECODE, " .
             "  s_t.TRANSDATE, " .
             "  s_t.YOYAKUTIME, " .
@@ -8030,7 +8033,7 @@ class ServersController extends WebServicesController
             "  s_t.TEMPSTATUS ".
             " " .
             "FROM store_transaction s_t " .
-            " " .
+            "  join store_transaction_details tmp_std on s_t.transcode = tmp_std.transcode and tmp_std.delflg is null " .
             "LEFT JOIN yoyaku_next_details y_n " .
             "ON s_t.TRANSCODE = y_n.NEXTCODE " .
             " " .
@@ -8057,7 +8060,7 @@ class ServersController extends WebServicesController
             "  s_t.ENDTIME, " .
             "  s.STAFFNAME ";
 
-    //print_r($query);    die();
+//    print_r($query);    die();
         $storeinfo = $this->YoyakuSession->Check($this);
         $this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction);
         $rs = $this->StoreTransaction->query($query);
@@ -8067,6 +8070,7 @@ class ServersController extends WebServicesController
 
         foreach ($rs as $row) {
             $result = array();
+            $result["TRANSCODE"]         = $row["s_t"]["TRANSCODE"];
             $result["STORECODE"]         = $row["s_t"]["STORECODE"];
             $result["TRANSDATE"]         = $row["s_t"]["TRANSDATE"];
             $result["BEGINTIME"]         = $row["s_t"]["YOYAKUTIME"];
