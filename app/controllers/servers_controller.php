@@ -1640,6 +1640,7 @@ class ServersController extends WebServicesController
                                         'ORIGINATION'       => 'xsd:int', //add by albert 2016-01-27
                                         'TEMPSTATUS'        => 'xsd:int',
                                         'TRANSCODE'         => 'xsd:string',
+                                        'MENUNAME'          => 'xsd:string',
                                  )),
                              '_yoyakuDetailsInformation' => array(
                                         'array' => 'yoyakuDetailsInformation'),
@@ -8030,8 +8031,12 @@ class ServersController extends WebServicesController
             "  y_d.CANCEL, " .
             "  (CASE WHEN y_n.NEXTCODE IS NOT NULL AND y_n.YOYAKU_STATUS = 2 THEN 1 ELSE 0 END) as YOYAKUNEXTFLG, ".
             " s_t.ORIGINATION, " .
-            "  s_t.TEMPSTATUS ".
-            " " .
+            "  s_t.TEMPSTATUS, ".
+            " (select group_concat(if(str_svr.menuname = 'BM', '他社連携', str_svr.menuname)) as menuname
+               FROM store_transaction_details str_dtl
+                    JOIN store_services str_svr ON str_dtl.gcode = str_svr.gcode
+               WHERE str_dtl.delflg IS NULL AND str_dtl.claimed = 0 AND str_dtl.transdate = s_t.TRANSDATE AND str_dtl.transcode = s_t.TRANSCODE AND str_dtl.keyno = s_t.keyno
+              ) as MENUNAME " .
             "FROM store_transaction s_t " .
             "  join store_transaction_details tmp_std on s_t.transcode = tmp_std.transcode and tmp_std.delflg is null " .
             "LEFT JOIN yoyaku_next_details y_n " .
@@ -8060,7 +8065,7 @@ class ServersController extends WebServicesController
             "  s_t.ENDTIME, " .
             "  s.STAFFNAME ";
 
-//    print_r($query);    die();
+   // print_r($query);    die();
         $storeinfo = $this->YoyakuSession->Check($this);
         $this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction);
         $rs = $this->StoreTransaction->query($query);
@@ -8085,6 +8090,7 @@ class ServersController extends WebServicesController
             $result["YOYAKUNEXTFLG"]     = $row[0]["YOYAKUNEXTFLG"];
             $result["ORIGINATION"]       = $row["s_t"]["ORIGINATION"];
             $result["TEMPSTATUS"]        = $row["s_t"]["TEMPSTATUS"];
+            $result["MENUNAME"]          = $row[0]["MENUNAME"];
             $results["records"][]        = $result;
         }
 
