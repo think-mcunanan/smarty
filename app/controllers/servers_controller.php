@@ -3476,7 +3476,8 @@ class ServersController extends WebServicesController
             //                     Staff.STAFFCODE";
             $param['orderby'] = "Staff.DISPLAY_ORDER, Staff.STAFFCODE";
         }
-
+// print($param['date']); die();
+        
         if (intval($param['limit']) == 0) {
             $param['limit'] = DEFAULT_LIMIT;
         }
@@ -3504,8 +3505,8 @@ class ServersController extends WebServicesController
                     StaffAssignToStore.STAFFCODE,
                     Staff.STORECODE,
                     Staff.STAFFNAME,
-                    ifnull((select rows from staffrowshistory where staffcode = StaffAssignToStore.STAFFCODE order by datechange desc limit 1),".DEFAULT_ROWS.") as origrows,
-                    ifnull((select phonerows from staffrowshistory where staffcode = StaffAssignToStore.STAFFCODE order by datechange desc limit 1), ".DEFAULT_PHONEROWS.") as origphonerows,
+                    ifnull((select rows from staffrowshistory where staffcode = StaffAssignToStore.STAFFCODE and datechange <= '". $param['date'] ."'  order by datechange desc limit 1),".DEFAULT_ROWS.") as origrows,
+                    ifnull((select phonerows from staffrowshistory where staffcode = StaffAssignToStore.STAFFCODE and datechange <= '". $param['date'] ."' order by datechange desc limit 1), ".DEFAULT_PHONEROWS.") as origphonerows,
                     Store.STORENAME,
                     if(Staff.STORECODE = ".$param['STORECODE'].",
                       StaffAssignToStore.WEBYAN_DISPLAY,
@@ -3559,7 +3560,7 @@ class ServersController extends WebServicesController
                     )
                 GROUP BY StaffAssignToStore.STAFFCODE
                 ORDER BY " . $param['orderby'] . " ";
-        //print_r($sql); die();
+       // print_r($sql); die();
         //-------------------------------------------------------------------------------------------------
         $offset = $param['limit'] * ($param['page'] - 1);
         $limit_offset = "LIMIT " . $param['limit'] . "
@@ -3571,6 +3572,7 @@ class ServersController extends WebServicesController
         } else {
             $v = $this->StaffAssignToStore->query($sql);
         }//end if else
+       // print_r($v); die();
         //-------------------------------------------------------------------------------------------------        
         for ($i = 0; $i < count($v); $i++) {
             $v[$i]['StaffAssignToStore']['STAFFNAME']  = $v[$i]['Staff']['STAFFNAME'];
