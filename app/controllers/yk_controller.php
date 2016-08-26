@@ -696,12 +696,16 @@ class YkController extends AppController {
 //                        
 //                        $this->Email->send($body);
 //                        //------------------------------//
+                         //文字コードを設定
+                         mb_language("ja");
+                         mb_internal_encoding("utf-8");
+
                          $to = $t_email;
                          $content = $body;
                          $title =  $store_info['STORENAME'].'会員登録完了のお知らせ';
                          
                          // メールヘッダを作成
-                         $header  = "From: ".$store_info['STORENAME'].' <'.$store_info['storeid'].'@'.EMAIL_DOMAIN."\n";
+                         $header  = "From: ".mb_encode_mimeheader($store_info['STORENAME']).' <'.$store_info['storeid'].'@'.EMAIL_DOMAIN.'>'."\n";
                          $header .= 'Bcc: yoyakumaillog@think-ahead.jp' ."\n";
                          $header .= "Reply-To: ".'err_'.$store_info['storeid'].'@'.EMAIL_DOMAIN;
 
@@ -2426,8 +2430,11 @@ class YkController extends AppController {
                          $content = $body;
                          $title =  $store_info['STORENAME'].'予約内容確認メール';
                          
+                         mb_language("ja");
+                         mb_internal_encoding("utf-8");
+                         
                          // メールヘッダを作成
-                         $header  = "From: ".$store_info['STORENAME'].' <'.$store_info['storeid'].'@'.EMAIL_DOMAIN."\n";
+                         $header  = "From: ".mb_encode_mimeheader($store_info['STORENAME']).' <'.$store_info['storeid'].'@'.EMAIL_DOMAIN.'>'."\n";
                          $header .= 'Bcc: yoyakumaillog@think-ahead.jp' ."\n";
                          $header .= "Reply-To: ".'err_'.$store_info['storeid'].'@'.EMAIL_DOMAIN;
 
