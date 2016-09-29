@@ -10,8 +10,8 @@
                 <br />
 {if $complete === false}
                 <br />
-                <input type='submit' name='p_unreg' value='解約' /><br />
-                <input type='submit' name='p_cancel' value='キャンセル' /><br />
+                <input type='submit' name='p_unreg' value='解約' style='width: 150px' /><br />
+                <input type='submit' name='p_cancel' value='キャンセル' style='width: 150px' /><br />
 {/if}
             </form>
         </td>

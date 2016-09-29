@@ -1,14 +1,24 @@
-<form name='YkNew0Form' action="{$form_action}" method="post">
-<table border='1' style='border-collapse: collapse; border: 1px solid #dddddd;' width='95%' cellpadding='5'>
-        <tr>
-            <td align='left'><br />
-                {html_radios name='syscode' options=$gyoshukubun_list selected = $gyoshukubun separator='<br />'}
-            </td>
-        </tr>
-</table>
-<br />
-<input type="submit" name="p_next"  value="次へ" width="250px" style="cursor: pointer;"><br />
-<input type="submit" name="p_cancel" value="キャンセル" width="150px" title="" style="cursor: pointer;"><br />
+<!-- Created by jonathanparel, 20160925; RM#1724; -------------------------ii-->
+<!-- SMARTPHONE -->
+<div id="new0" style="margin: 0;">
+    <form name='YkNew0Form' action="{$form_action}" method="post">
+        <div style="padding-left: 30%; padding-right: 30%; text-align: left;">
+            <br />
+            {html_radios name='syscode' options=$gyoshukubun_list selected = $gyoshukubun separator='<br />'}
+        </div>
+
+        <hr />
+        <div style="display: inline-block; max-width: 50%;">
+            <input class="groovybutton" type="submit" name="p_cancel" value="キャンセル" title="" style="cursor: pointer; width:100px">
+        </div> 
+        
+        
+        <div style="display: inline-block; max-width: 50%;">
+            <input class="groovybutton" type="submit" name="p_next"  value="次へ" style="cursor: pointer; width: 100px">
+        </div>
+        
         <input type="hidden" name="cid" value="{$companyid}" />
         <input type="hidden" name="scd" value="{$storecode}" />
-</form>
+    </form>
+</div>
+    <!-- Created by jonathanparel, 20160925; RM#1724; -------------------------xx-->

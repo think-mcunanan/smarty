@@ -1507,25 +1507,30 @@ class YkController extends AppController {
                     $currentStaffList = array_slice($staffList, $currentStaffIndex, $columnCount);
                     $tdRadio = "";
                     $tdData = "";
-
+                    
+                    // Modified by jonathanparel, 20160908; RM#1724; --------------------------------------------------------------------------------------ii
                     foreach ($currentStaffList as $currentStaff) {
                         $checked = $currentStaff === $firstStaff ? " checked=\"checked\"" : "";
                         $shashinUrl = sprintf("%s/yk/s_shashin/%s/%s", MAIN_PATH, $sessionId, $currentStaff["STAFFCODE"]);
                         $blogUrl = $currentStaff["BLOG_URL"];
-                        $tdRadio .= sprintf("<td><input type=\"radio\" name=\"staff\" value=\"%s\"%s></td>", $currentStaff["STAFFCODE"], $checked);
-                        $tdData .= "<td height=\"360\" align=\"center\">";
+                        
+                        $tdRadio = sprintf("<div id=\"staffButton\"><input type=\"radio\" name=\"staff\" value=\"%s\"%s></div>", $currentStaff["STAFFCODE"], $checked);
+                        
+                        $tdData .= "<div id=\"staffData\" height=\"360\" align=\"center\">" . $tdRadio;
                         $tdData .= sprintf("<img src=\"%s\" width=\"200\" height=\"300\"><br />", $shashinUrl);
                         $tdData .= htmlspecialchars($currentStaff["STAFFNAME"]) . "<br />";
                         $tdData .= htmlspecialchars($currentStaff["POSITIONNAME"]) . "<br />";
                         $tdData .= isset($blogUrl) ? sprintf("<a href=\"%s\" target=\"_blank\">ブログを見る</a>", htmlspecialchars($blogUrl)) : "&nbsp;";
-                        $tdData .= "</td>";
+                        $tdData .= "</div>";
+                        //$tdData .= "</div><div id=\"filler\"><br \></div>";
+                        
                     }
-
-                    $result .= sprintf("<tr bgcolor=\"#FFDCD9\" align=\"center\">%s</tr>", $tdRadio);
-                    $result .= sprintf("<tr>%s</tr>", $tdData);
+                    
+                    //$result .= sprintf("<div>%s</div>", "<div>" . $tdData . "</div>");
+                    $result .= sprintf("<div>%s</div>", $tdData);
                     $currentStaffIndex += $columnCount;
+                    // Modified by jonathanparel, 20160908; RM#1724; --------------------------------------------------------------------------------------ii
                 }
-
                 return $result;
             }
 
@@ -2589,10 +2594,13 @@ class YkController extends AppController {
                     if ($errcode>0) $this->layout = 'empty_utf';
                 }
                 else if($carrier == "iphone") {
+                    $this->layout = "iphone_layout";
+                    $logo_image = "ob_logo.png";
+                    if ($errcode>0) $this->layout = 'empty_utf';
+                }
+                else if($carrier == "smartphone") {  // Added by jonathanparel, 20160923; RM#1724;
                     $this->action = "smartphone/".$this->action;
-                    //$this->layout = "iphone_layout";
-                    //$this->layout = "keitai_layout"; //とりあえず差し戻し
-                    $this->layout = "pc_layout";
+                    $this->layout = "smartphone_layout";
                     $logo_image = "ob_logo.png";
                     if ($errcode>0) $this->layout = 'empty_utf';
                 }
