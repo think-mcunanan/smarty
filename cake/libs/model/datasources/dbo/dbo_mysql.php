@@ -365,18 +365,16 @@ class DboMysql extends DboMysqlBase {
         * Get DB Host (Dynamic)
         * @author Marvin Seron <marvin@thinnk-ahead.jp>
         * @datecreated 2015-10-02 19:16
-        * 
         * @param string $dbname - database nae
-        * @param tinyint $slave - slave flag
         * @return array - return object
         */
         function getdbhost($config) {
-            $link = mysql_connect($config['host'], $config['login'], $config['password']);
+            $link = mysql_connect($config['mainhost'], $config['login'], $config['password']);
             if (!$link) {
                 die('Could not connect: ' . mysql_error());
             }
             mysql_select_db("sipssbeauty_server", $link) or die(mysql_error());
-            $sql = "SELECT dbhostmaster AS dbhost, dbhostuser, dbhostpasswd
+            $sql = "SELECT dbhostmaster AS dbhost, dbhostslave, dbhostuser, dbhostpasswd
                     FROM company
                     WHERE dbname = '".$config['database']."'
                         AND delflg IS NULL";
@@ -398,13 +396,14 @@ class DboMysql extends DboMysqlBase {
 	function connect() {
 		$config = $this->config;
 		$connect = $config['connect'];
+
 		$this->connected = false;
                         //----------------------------------------------------------
                         // Get DB Host (Dynamic)
                         //----------------------------------------------------------
                         if ($config['database'] == "sipssbeauty_server" || $config['database'] == "sipssbeauty_schema") {
                             //print_r("yes");
-                            $dbhostip = $config['host'];
+                            $dbhostip = $config['mainhost'];
                             $dbhostuser = $config['login'];
                             $dbhostpasswd = $config['password'];
                         } else {
@@ -413,9 +412,16 @@ class DboMysql extends DboMysqlBase {
                             //print_r($dbhostrecord);
                             //validate host record
                             if ($dbhostrecord != null) {
-                                $dbhostip = $dbhostrecord["dbhost"];
+                                // CONNECT TO MASTER SERVER
+                                if($config['con'] === ConnectionServer::MASTER){
+                                    $dbhostip = $dbhostrecord["dbhost"];
+                                }else{
+                                    // CONNECT TO SLAVE SERVER
+                                    $dbhostip = $dbhostrecord["dbhostslave"];
+                                }
                                 $dbhostuser = $dbhostrecord["dbhostuser"];
                                 $dbhostpasswd = $dbhostrecord["dbhostpasswd"];
+                                $this->config['host'] = $dbhostip;
                             }
                         }
                         //----------------------------------------------------------

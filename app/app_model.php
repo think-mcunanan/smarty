@@ -26,15 +26,26 @@ class AppModel extends Model {
      * @param model $model
      * @return boolean
      */
-    function set_company_database($dbname, $model) {
+    function set_company_database($dbname, $model, $con = null) {
         // Copy default config values, usefull if dynamic config differs only in one-two params
         $config = $this->getDataSource()->config;
+        if($con === null){
+            $mare = null;
+        }
         // Set new database name
         $config['database'] = $dbname;
-        // Add new config to connections manager
-        ConnectionManager::getInstance()->create('companydb', $config);
-        // Point model to new config
-        $this->useDbConfig = 'companydb';
+        // Set Server Connection SLAVE/MASTER
+        if($con === null){
+            $config['con'] = ConnectionServer::MASTER;
+            ConnectionManager::getInstance()->create('companydb'.ConnectionServer::MASTER, $config);
+            // Point model to new config
+            $this->useDbConfig = 'companydb'.ConnectionServer::MASTER;
+        }else{
+            $config['con'] = ConnectionServer::SLAVE;
+            ConnectionManager::getInstance()->create('companydb'.ConnectionServer::SLAVE, $config);
+            // Point model to new config
+            $this->useDbConfig = 'companydb'.ConnectionServer::SLAVE;
+        }
         //Recreates the model
         $model->setSource($model->useTable);
 

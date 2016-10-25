@@ -1765,8 +1765,8 @@ class ServersController extends WebServicesController
     if ($storeinfo == false) {
        $this->_soap_server->fault(1, '', INVALID_SESSION);
         return;
-    } 
-    $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
+    }
+    $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer, ConnectionServer::SLAVE);
     //===================================================================================
     
     if (strlen($storecode) == 3) {
@@ -2137,7 +2137,7 @@ class ServersController extends WebServicesController
        $this->_soap_server->fault(1, '', INVALID_SESSION);
         return;
     }
-    $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
+    $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer , ConnectionServer::SLAVE);
     //===================================================================================
 
     //rule change 
@@ -2207,7 +2207,7 @@ class ServersController extends WebServicesController
        $this->_soap_server->fault(1, '', INVALID_SESSION);
         return;
     }
-    $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
+    $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer, ConnectionServer::SLAVE);
     //===================================================================================
     
     $sorting  = " desc ";
@@ -2604,7 +2604,7 @@ class ServersController extends WebServicesController
                                        'StoreAccount.honbu' => 1)));
         if (count($honbu) > 0) {
             $this->loadModel('DataShare');
-            $this->DataShare->set_company_database($storeinfo['dbname'], $this->DataShare);
+            $this->DataShare->set_company_database($storeinfo['dbname'], $this->DataShare, ConnectionServer::SLAVE);
 
             $condition['STORECODE'] = $storeinfo['storecode'];
             $condition['DELFLG'] = null;
@@ -2618,7 +2618,7 @@ class ServersController extends WebServicesController
         }
 
         //-- 会社データベースを設定する (Set the Company Database)
-        $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
+        $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer, ConnectionServer::SLAVE);
 
         if ($param['free_customer'] == 0) {
             $criteria[] = array('CID <> ' => '0');
@@ -2899,7 +2899,7 @@ class ServersController extends WebServicesController
         //-----------------------------------------------------------------------------------------------------------------
         //-- 会社データベースを設定する (Set the Company Database)
         //-----------------------------------------------------------------------------------------------------------------
-        $this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction);
+        $this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction, ConnectionServer::SLAVE);
         //-----------------------------------------------------------------------------------------------------------------
         $sql =  "SELECT transaction.TRANSCODE,
                         transaction.KEYNO,
@@ -3198,10 +3198,10 @@ class ServersController extends WebServicesController
         }
 
         //-- 会社データベースを設定する (Set the Company Database)
-        $this->Staff->set_company_database($storeinfo['dbname'], $this->Staff);
-        $this->Position->set_company_database($storeinfo['dbname'], $this->Position);
-        $this->Sublevel->set_company_database($storeinfo['dbname'], $this->Sublevel);
-        $this->StaffAssignToStore->set_company_database($storeinfo['dbname'], $this->StaffAssignToStore);
+        $this->Staff->set_company_database($storeinfo['dbname'], $this->Staff, ConnectionServer::SLAVE);
+        $this->Position->set_company_database($storeinfo['dbname'], $this->Position, ConnectionServer::SLAVE);
+        $this->Sublevel->set_company_database($storeinfo['dbname'], $this->Sublevel, ConnectionServer::SLAVE);
+        $this->StaffAssignToStore->set_company_database($storeinfo['dbname'], $this->StaffAssignToStore, ConnectionServer::SLAVE);
         
         $use_syscode = intval($param['syscode']) > 0 ? true : false;
 
@@ -3469,7 +3469,7 @@ class ServersController extends WebServicesController
             $storeinfo['dbname'] = $param['dbname'];
         }
 
-        $this->StaffAssignToStore->set_company_database($storeinfo['dbname'], $this->StaffAssignToStore);
+        $this->StaffAssignToStore->set_company_database($storeinfo['dbname'], $this->StaffAssignToStore, ConnectionServer::SLAVE);
 
         if (empty($param['orderby'])) {
             //$param['orderby'] = "IF(Staff.STAFFCODE = 0, 0, IFNULL(StaffAssignToStore.DISPLAY_ORDER, 9999999)),
@@ -4006,7 +4006,7 @@ class ServersController extends WebServicesController
         }
 
         //-- Checks if the shift for the month has been set already
-        $this->FinishedShift->set_company_database($storeinfo['dbname'], $this->FinishedShift);
+        $this->FinishedShift->set_company_database($storeinfo['dbname'], $this->FinishedShift, ConnectionServer::SLAVE);
         $condition = array('FinishedShift.storecode' => $param['storecode'],
                            'FinishedShift.year'      => $param['year'],
                            'FinishedShift.month'     => $param['month'],
@@ -4024,13 +4024,13 @@ class ServersController extends WebServicesController
             }
         }
 
-        $this->StaffAssignToStore->set_company_database($storeinfo['dbname'], $this->StaffAssignToStore);
+        $this->StaffAssignToStore->set_company_database($storeinfo['dbname'], $this->StaffAssignToStore, ConnectionServer::SLAVE);
         $this->Staff->set_company_database($storeinfo['dbname'], $this->Staff);
-        $this->Stafftype->set_company_database($storeinfo['dbname'], $this->Stafftype);
+        $this->Stafftype->set_company_database($storeinfo['dbname'], $this->Stafftype, ConnectionServer::SLAVE);
         $arrStaff = $this->MiscFunction->SearchStaffAssignToStore($this, $param);
 
-        $this->Shift->set_company_database($storeinfo['dbname'], $this->Shift);
-        $this->StaffShift->set_company_database($storeinfo['dbname'], $this->StaffShift);                
+        $this->Shift->set_company_database($storeinfo['dbname'], $this->Shift, ConnectionServer::SLAVE);
+        $this->StaffShift->set_company_database($storeinfo['dbname'], $this->StaffShift, ConnectionServer::SLAVE);                
 
         $criteria = array('StaffShift.STORECODE'  => $param['storecode'],
                           'YEAR(StaffShift.YMD)'  => $param['year'],
@@ -4269,7 +4269,7 @@ class ServersController extends WebServicesController
         }
 
         //-- 会社データベースを設定する (Set the Company Database)
-        $this->Store->set_company_database($storeinfo['dbname'], $this->Store);
+        $this->Store->set_company_database($storeinfo['dbname'], $this->Store, ConnectionServer::SLAVE);
 
         if (empty($param['orderby'])) {
             $param['orderby'] = $this->Store->primaryKey;
@@ -4417,7 +4417,7 @@ class ServersController extends WebServicesController
             $storeinfo['dbname'] = $param['dbname'];
         }
 
-        $this->StoreHoliday->set_company_database($storeinfo['dbname'], $this->StoreHoliday);
+        $this->StoreHoliday->set_company_database($storeinfo['dbname'], $this->StoreHoliday, ConnectionServer::SLAVE);
 
         $criteria = array('StoreHoliday.STORECODE'  => $param['storecode'],
                           'YEAR(StoreHoliday.YMD)'  => $param['year'],
@@ -5206,7 +5206,7 @@ class ServersController extends WebServicesController
         }
 
         //-- 会社データベースを設定する (Set the Company Database)
-        $this->Shift->set_company_database($storeinfo['dbname'], $this->Shift);
+        $this->Shift->set_company_database($storeinfo['dbname'], $this->Shift, ConnectionServer::SLAVE);
 
         $fields = array('SHIFTID', 'SHIFTNAME', 'STARTTIME', 'ENDTIME');
 
@@ -5361,7 +5361,7 @@ class ServersController extends WebServicesController
         }
 
         //-- 会社データベースを設定する (Set the Company Database)
-        $this->Position->set_company_database($storeinfo['dbname'], $this->Position);
+        $this->Position->set_company_database($storeinfo['dbname'], $this->Position, ConnectionServer::SLAVE);
 
         if (empty($param['orderby'])) {
             $param['orderby'] = $this->Position->primaryKey;
@@ -5428,7 +5428,7 @@ class ServersController extends WebServicesController
         }
 
         //-- 会社データベースを設定する (Set the Company Database)
-        $this->Sublevel->set_company_database($storeinfo['dbname'], $this->Sublevel);
+        $this->Sublevel->set_company_database($storeinfo['dbname'], $this->Sublevel, ConnectionServer::SLAVE);
 
         if (empty($param['orderby'])) {
             $param['orderby'] = $this->Sublevel->primaryKey;
@@ -5558,8 +5558,8 @@ class ServersController extends WebServicesController
         }
 
         //-- 会社データベースを設定する (Set the Company Database)
-        $this->Store->set_company_database($storeinfo['dbname'], $this->Store);
-        $this->StoreSettings->set_company_database($storeinfo['dbname'], $this->StoreSettings);
+        $this->Store->set_company_database($storeinfo['dbname'], $this->Store, ConnectionServer::SLAVE);
+        $this->StoreSettings->set_company_database($storeinfo['dbname'], $this->StoreSettings, ConnectionServer::SLAVE);
 
         $criteria   = array('STORECODE' => $storeinfo['storecode']);
         $fields     = array('STORENAME','TEL','FAX','ADDRESS1','WEBYAN_HOMEPAGE','PC_HOMEPAGE','HIDECUSTOMERINFO_FLG');
@@ -6050,7 +6050,7 @@ class ServersController extends WebServicesController
         }
 
         //-- 会社データベースを設定する (Set the Company Database)
-        $this->StoreTransactionColors->set_company_database($storeinfo['dbname'], $this->StoreTransactionColors);
+        $this->StoreTransactionColors->set_company_database($storeinfo['dbname'], $this->StoreTransactionColors, ConnectionServer::SLAVE);
 
         $criteria = array('storecode' => $param['STORECODE']);
 
@@ -6174,7 +6174,7 @@ class ServersController extends WebServicesController
         }
 
         //---------------------------------------------------------------------------------------------------------------------
-        $this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction);
+        $this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction, ConnectionServer::SLAVE);
         //---------------------------------------------------------------------------------------------------------------------
         $condition = "";
         $storecond = "";
@@ -7290,7 +7290,7 @@ class ServersController extends WebServicesController
         }
 
         //-- 会社データベースを設定する (Set the Company Database)
-        $this->BreakTime->set_company_database($storeinfo['dbname'], $this->BreakTime);
+        $this->BreakTime->set_company_database($storeinfo['dbname'], $this->BreakTime, ConnectionServer::SLAVE);
 
         $criteria = array('BreakTime.STORECODE' => $param['STORECODE'],
                           'BreakTime.DATE'      => $param['date']);
@@ -7614,7 +7614,7 @@ class ServersController extends WebServicesController
         $ret['store'] = array();
         if ($storeinfo['storecode'] <> $param['STORECODE']) {
             //-- 会社データベースを設定する (Set the Company Database)
-            $this->StoreSettings->set_company_database($arrReturn['dbname'], $this->StoreSettings);
+            $this->StoreSettings->set_company_database($arrReturn['dbname'], $this->StoreSettings, ConnectionServer::SLAVE);
 
             $tmp  = "(OPTIONNAME = 'OpenTime' OR ";
             $tmp .= "OPTIONNAME  = 'CloseTime' OR ";
@@ -7757,7 +7757,7 @@ class ServersController extends WebServicesController
 
         //-- 会社データベースを設定する (Set the Company Database)
         //$this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction);
-        $this->StoreHoliday->set_company_database($storeinfo['dbname'], $this->StoreHoliday);
+        $this->StoreHoliday->set_company_database($storeinfo['dbname'], $this->StoreHoliday, ConnectionServer::SLAVE);
 
         $date = $param['year'] . "-" . $param['month'] . "-1";
 
@@ -7967,7 +7967,7 @@ class ServersController extends WebServicesController
             return;
         }//end if
         //-----------------------------------------------------------------
-        $this->YoyakuStaffServiceTime->set_company_database($staffservicetime['dbname'], $this->YoyakuStaffServiceTime);
+        $this->YoyakuStaffServiceTime->set_company_database($staffservicetime['dbname'], $this->YoyakuStaffServiceTime, ConnectionServer::SLAVE);
         //-----------------------------------------------------------------
         $Sql = "SELECT IFNULL(service_time, 0) AS service_time,
                        IFNULL(service_time_male, 0) AS service_time_male  
@@ -8069,7 +8069,7 @@ class ServersController extends WebServicesController
 
    // print_r($query);    die();
         $storeinfo = $this->YoyakuSession->Check($this);
-        $this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction);
+        $this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction, ConnectionServer::SLAVE);
         $rs = $this->StoreTransaction->query($query);
 
         $results = array();
@@ -8149,7 +8149,7 @@ class ServersController extends WebServicesController
         }
 
         //-- 会社データベースを設定する (Set the Company Database)
-        $this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction);
+        $this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction, ConnectionServer::SLAVE);
 
         $condition = "";
         $trantype1 = " AND details.TRANTYPE = 1 ";
@@ -8340,7 +8340,7 @@ class ServersController extends WebServicesController
         }//end if
         //-------------------------------------------------------------------------------------------
         //-- 会社データベースを設定する (Set the Company Database)
-        $this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction);
+        $this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction, ConnectionServer::SLAVE);
         //-------------------------------------------------------------------------------------------
         $DisplayCondition = "";
         //-------------------------------------------------------------------------------------------
@@ -8459,7 +8459,7 @@ class ServersController extends WebServicesController
         }//end if
         //-------------------------------------------------------------------------------------------
         //-- 会社データベースを設定する (Set the Company Database)
-        $this->Staff->set_company_database($storeinfo['dbname'], $this->Staff);
+        $this->Staff->set_company_database($storeinfo['dbname'], $this->Staff, ConnectionServer::SLAVE);
         //-------------------------------------------------------------------------------------------
         //Set Sql Condition
         //-------------------------------------------------------------------------------------------
@@ -8531,7 +8531,7 @@ class ServersController extends WebServicesController
         }//end if
         //-------------------------------------------------------------------------------------------
         //-- 会社データベースを設定する (Set the Company Database)
-        $this->Store->set_company_database($storeinfo['dbname'], $this->Store);
+        $this->Store->set_company_database($storeinfo['dbname'], $this->Store, ConnectionServer::SLAVE);
         //-------------------------------------------------------------------------------------------
         $Sql = "SELECT howknowscode AS HOWKNOWSCODE,
                        howknows AS HOWKNOWS
@@ -8636,7 +8636,7 @@ class ServersController extends WebServicesController
         }//end if
         //-------------------------------------------------------------------------------------------
         //-- 会社データベースを設定する (Set the Company Database)
-        $this->Staff->set_company_database($storeinfo['dbname'], $this->Staff);
+        $this->Staff->set_company_database($storeinfo['dbname'], $this->Staff, ConnectionServer::SLAVE);
         //-------------------------------------------------------------------------------------------
         //Query
         //-------------------------------------------------------------------------------------------
@@ -8774,7 +8774,7 @@ class ServersController extends WebServicesController
         }//end if
         //-------------------------------------------------------------------------------------------
         //-- 会社データベースを設定する (Set the Company Database)
-        $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
+        $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer, ConnectionServer::SLAVE);
         //-------------------------------------------------------------------------------------------
         //Query
         //-------------------------------------------------------------------------------------------
@@ -8837,7 +8837,7 @@ class ServersController extends WebServicesController
         }//end if
         //-------------------------------------------------------------------------------------------
         //-- 会社データベースを設定する (Set the Company Database)
-        $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
+        $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer, ConnectionServer::SLAVE);
         //-------------------------------------------------------------------------------------------
         //Query
         //-------------------------------------------------------------------------------------------
@@ -8965,7 +8965,7 @@ class ServersController extends WebServicesController
             return;
         }//end if
         //-------------------------------------------------------------------------------------------
-        $this->Staff->set_company_database($storeinfo['dbname'], $this->Staff);
+        $this->Staff->set_company_database($storeinfo['dbname'], $this->Staff, ConnectionServer::SLAVE);
         //-------------------------------------------------------------------------------------------
         //Query
         //-------------------------------------------------------------------------------------------
@@ -9005,7 +9005,7 @@ class ServersController extends WebServicesController
         }//end if
         //
         //-- 会社データベースを設定する (Set the Company Database)
-        $this->Service->set_company_database($storeinfo['dbname'], $this->Service);
+        $this->Service->set_company_database($storeinfo['dbname'], $this->Service, ConnectionServer::SLAVE);
         //-------------------------------------------------------------------------------------------
         //Query
         //-------------------------------------------------------------------------------------------
@@ -9053,7 +9053,7 @@ function wsGetYoyakuAllowTransToStore($sessionid,$storecode) {
         return;
     }
     //-------------------------------------------------------------------------------------------
-    $this->Store->set_company_database($storeinfo['dbname'], $this->Store);
+    $this->Store->set_company_database($storeinfo['dbname'], $this->Store, ConnectionServer::SLAVE);
     //-------------------------------------------------------------------------------------------                      
     $sql= 'select tblresult.* from (select tblyayaku.STORECODE as storecode,
                                            tblyayaku.TOSTORECODE as tostorecode,
@@ -9093,7 +9093,7 @@ function wsGetYoyakuAllowTransToStore($sessionid,$storecode) {
             return;
         } // End if
         //-----------------------------------------------------------------------------------
-        $this->Store->set_company_database($storeinfo['dbname'], $this->Store);
+        $this->Store->set_company_database($storeinfo['dbname'], $this->Store, ConnectionServer::SLAVE);
         //===================================================================================
         // Get StoreMenuServiceTime Data
         //-----------------------------------------------------------------------------------
@@ -9131,7 +9131,7 @@ function wsGetYoyakuAllowTransToStore($sessionid,$storecode) {
             return;
         } // End if
         //-----------------------------------------------------------------------------------
-        $this->Store->set_company_database($storeinfo['dbname'], $this->Store);
+        $this->Store->set_company_database($storeinfo['dbname'], $this->Store, ConnectionServer::SLAVE);
         //===================================================================================
         // Get store_transaction Data
         //-----------------------------------------------------------------------------------
