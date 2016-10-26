@@ -29,9 +29,6 @@ class AppModel extends Model {
     function set_company_database($dbname, $model, $con = null) {
         // Copy default config values, usefull if dynamic config differs only in one-two params
         $config = $this->getDataSource()->config;
-        if($con === null){
-            $mare = null;
-        }
         // Set new database name
         $config['database'] = $dbname;
         // Set Server Connection SLAVE/MASTER
