@@ -6495,6 +6495,16 @@ class ServersController extends WebServicesController
 
         $subparam['ignoreSessionCheck'] = 1;
         $subparam['dbname'] = $storeinfo['dbname'];
+        
+        /*=============================================================================
+         * Added by Alberto S. Baguio
+         * reference to Redmine 1841 (elemenate the -1 staffcode)
+         * date Oct. 26 2016
+         *=============================================================================*/
+        if ($param['STAFFCODE'] == -1){
+            $param['STAFFCODE'] = 0;
+        }
+        /*=============================================================================*/
 
         //-- transactionの衝突を無視するかどうかチェックします (Checks if transaction will ignore conflicts or not)
         if ($param['ignoreConflict'] == 0) {
@@ -6740,8 +6750,8 @@ class ServersController extends WebServicesController
                    YOYAKU, CUST_TELNO, HASSERVICES, TEMPSTATUS, PRIORITYTYPE, SEX, ORIGINATION ";
             $values = "'" . $param['TRANSCODE']      . "', " . $param['KEYNO']      . " ,
                         " . $param['STORECODE']      . " , " . $param['IDNO']       . " ,
-                    '" . $param['TRANSDATE']      . "','" . $param['YOYAKUTIME'] . "',
-                    '" . $param['ENDTIME']        . "','" . $param['CCODE']      . "',
+                       '" . $param['TRANSDATE']      . "','" . $param['YOYAKUTIME'] . "',
+                       '" . $param['ENDTIME']        . "','" . $param['CCODE']      . "',
                         " . $param['REGULARCUSTOMER']. " , " . $param['KYAKUKUBUN'] . " ,
                         " . $param['RATETAX']        . " , " . $param['ZEIOPTION']  . " ,
                         " . $param['SOGOKEIOPTION']  . " ,'" . $param['CNAME']      . "',
@@ -6794,6 +6804,17 @@ class ServersController extends WebServicesController
                 #---------------------------------------------------------------------------------------
                 $gdcode[$i] = $param['details'][$i]["GDCODE"];
                 #---------------------------------------------------------------------------------------
+                /*=============================================================================
+                * Added by Alberto S. Baguio
+                * reference to Redmine 1841 (elemenate the -1 staffcode)
+                * date Oct. 26 2016
+                * i replace $param['details'][$i]['STAFFCODESIMEI'] to $tmpStaffCode
+                *=============================================================================*/
+               if ($param['details'][$i]['STAFFCODESIMEI'] == -1){
+                   $tmpStaffCode = $param['STAFFCODE'];
+               }
+               /*=============================================================================*/
+                
                 $val = "";
                 $val = "'" . $param['TRANSCODE']                  . "', " . $param['KEYNO']                         . ",
                          " . $param['details'][$i]['ROWNO']       . " , " . $param['STORECODE']                     . ",
@@ -6802,8 +6823,8 @@ class ServersController extends WebServicesController
                          " . $param['details'][$i]['PRICE']       . " , " . $param['details'][$i]['PRICE']          . ",
                          " . $param['details'][$i]['ZEIKUBUN']    . " , " . $param['details'][$i]['POINTKASAN1']    . ",
                          " . $param['details'][$i]['POINTKASAN2'] . " , " . $param['details'][$i]['POINTKASAN3']    . ",
-                         " . $param['details'][$i]['STAFFCODE']   . " , " . $param['details'][$i]['STAFFCODESIMEI'] . ",
-                         " . $param['TEMPSTATUS'].", '".$param['details'][$i]['STARTTIME']."', 
+                         " . $param['details'][$i]['STAFFCODE']   . " , " . $tmpStaffCode . ",
+                         " . $param['TEMPSTATUS']                 .", ' " . $param['details'][$i]['STARTTIME']      ."', 
                          '".$param['details'][$i]['ENDTIME']."'";
 
                 $dtlsql[$i] = "REPLACE INTO store_transaction_details (".$fld.") VALUES(".$val.")";
@@ -7725,7 +7746,6 @@ class ServersController extends WebServicesController
         $ret["records"]["records"] = $records;
         #----------------------------------------------------------------------------------------------------------------
         
-
         return $ret;
         //---------------------------------------------------------------------------------------------
     }//end function
