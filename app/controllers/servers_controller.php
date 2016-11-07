@@ -3560,7 +3560,6 @@ class ServersController extends WebServicesController
                     )
                 GROUP BY StaffAssignToStore.STAFFCODE
                 ORDER BY " . $param['orderby'] . " ";
-       // print_r($sql); die();
         //-------------------------------------------------------------------------------------------------
         $offset = $param['limit'] * ($param['page'] - 1);
         $limit_offset = "LIMIT " . $param['limit'] . "
@@ -3572,7 +3571,6 @@ class ServersController extends WebServicesController
         } else {
             $v = $this->StaffAssignToStore->query($sql);
         }//end if else
-       // print_r($v); die();
         //-------------------------------------------------------------------------------------------------        
         for ($i = 0; $i < count($v); $i++) {
             $v[$i]['StaffAssignToStore']['STAFFNAME']  = $v[$i]['Staff']['STAFFNAME'];
@@ -4578,7 +4576,7 @@ class ServersController extends WebServicesController
         $sSUpdateIndex = $this->StoreService->find('all', array('fields'  => array('MAX(UPDATEDATE) as UPDATE_INDEX'),
                                                                 'limit'   => 1));
         $storeServiceMaxIndex = $sSUpdateIndex[0][0]['UPDATE_INDEX'];
-
+        
         $ret['records']      = array();
         $ret['record_count'] = 0;
             
@@ -4638,20 +4636,18 @@ class ServersController extends WebServicesController
             //------------------------------------------------------------------
             //$param['infoSTORECODE'] = $storeinfo['storecode'];
             //==================================================================
-           
             for ($i=0; $i<count($v); $i++) {
                 $param['GDCODE'] = $v[$i]['Service']['GDCODE'];
                 $service = array();
                 $service = $this->wsSearchStoreService($sessionid, $param);
                 $v[$i]['Service']['store_service'] = $service;
             }
-
             $ret = array();
             $ret['records']      = set::extract($v, '{n}.Service');
             $ret['record_count'] = $this->Service->find('count', array('conditions' => $criteria,
                                                                        'fields'     => 'DISTINCT Service.GDCODE'));
 //        }
-
+        
         $ret['maxServiceIndex']      = $serviceMaxIndex;
         $ret['maxStoreServiceIndex'] = $storeServiceMaxIndex;
 
@@ -4754,11 +4750,18 @@ class ServersController extends WebServicesController
             $storeinfo['dbname']    = $param['dbname'];
             $storeinfo['storecode'] = $param['infoSTORECODE'];
         }
-
+        
         //-- 会社データベースを設定する (Set the Company Database)
         $this->StoreService->set_company_database($storeinfo['dbname'], $this->StoreService);
+        
+        
+       /* ======================================================================================
+        * Update By Alberto S. Baguio
+        * Reference to Redmine 1864 (add -->> if(StoreService.orderby = 0, 99999, StoreService.orderby) as orderby
+        * Date Nov. 04, 2016       
+        * ======================================================================================*/
 
-        $fields = array('StoreService.GDCODE', 'StoreService.GSCODE',
+        $fields = array('StoreService.GDCODE', 'StoreService.GDCODE', 'StoreService.GSCODE',
                         'StoreService.GCODE', 'StoreService.MENUNAME',
                         'StoreService.SERVICETIME AS SERVICE_TIME',
                         'StoreService.SERVICETIME_MALE AS SERVICE_TIME_MALE',
@@ -4766,13 +4769,14 @@ class ServersController extends WebServicesController
                         'StoreService.POINTKASAN2', 'StoreService.POINTKASAN3',
                         'StoreService.ZTYPE AS ZEIKUBUN', 'StoreService.MEMBERPRICE',
                         'StoreService.YOYAKUMARK'
-                        , 'StoreService.KEYCODE'
+                        , 'StoreService.KEYCODE', 'if(StoreService.orderby = 0, 99999, StoreService.orderby) as orderby'
                         );
         
+
         if (!in_array($param['orderby'], $fields)) {
             $param['orderby'] = $this->StoreService->primaryKey;
         }
-
+       
         if (intval($param['limit']) == 0) {
             $param['limit'] = DEFAULT_LIMIT;
         }
@@ -4784,10 +4788,11 @@ class ServersController extends WebServicesController
         $criteria = array("StoreService.STORECODE" => $storeinfo['storecode'],
                           "StoreService.GDCODE" => $param['GDCODE'],
                           "StoreService.DELFLG IS NULL");
-        
         if ($param['hasHonbu'] <> 1) {
+            
             //-----------------------------------------------------------------------------------------------
              if ($param['STAFF_TANTOU_STAFFCODE'] >= 0) {
+                
                     //---------------------------------------------------------------------------------------
                     $Sql = "SELECT optionvaluei 
                             FROM store_settings 
@@ -4825,6 +4830,13 @@ class ServersController extends WebServicesController
                                             AND ST.staffcode = ".$param['STAFF_TANTOU_STAFFCODE'];
                         $this->StoreService->query($SqlSTime);
                     }//end if 
+                    
+                   /* ======================================================================================
+                    * Update By Alberto S. Baguio
+                    * Reference to Redmine 1864 (add -->> if(orderby = 0, 99999, orderby) as orderby)
+                    * Date Nov. 04, 2016        (add -->> order by orderby, gdcode, keycode, gcode)
+                    * ======================================================================================*/
+
                     //---------------------------------------------------------------------------------------
                     $sql = "SELECT
                                     GDCODE, GSCODE, GCODE, MENUNAME, INSTORE,
@@ -4832,6 +4844,7 @@ class ServersController extends WebServicesController
                                     POINTKASAN1, POINTKASAN2, POINTKASAN3, ZEIKUBUN,
                                     PRICE, MEMBERPRICE, MAX(YOYAKUMARK) as YOYAKUMARK
                                     , KEYCODE
+                                    , orderby
                             FROM (
                                 SELECT st.GDCODE as GDCODE, 
                                        st.GSCODE as GSCODE, 
@@ -4849,6 +4862,7 @@ class ServersController extends WebServicesController
                                        st.MEMBERPRICE as MEMBERPRICE, 
                                        st.YOYAKUMARK as YOYAKUMARK 
                                     , st.KEYCODE
+                                    , if(st.orderby = 0, 99999, st.orderby) as orderby
                                 FROM store_services st
                                     LEFT JOIN yoyaku_staff_service_time tblservicetime
                                         ON tblservicetime.gcode = st.gcode
@@ -4864,13 +4878,22 @@ class ServersController extends WebServicesController
                                     POINTKASAN1, POINTKASAN2, POINTKASAN3, ZTYPE AS ZEIKUBUN,
                                     0 as PRICE, 0 as MEMBERPRICE, YOYAKUMARK
                                     , KEYCODE
+                                    , 99999 as orderby
                                 FROM subservices
                                 WHERE GDCODE = " . $param['GDCODE'] . "
                                     AND DELFLG IS NULL
                                 ) as data
-                            GROUP BY GSCODE ";
+                            GROUP BY GSCODE  
+                            ORDER BY orderby, GDCODE, KEYCODE, GCODE ";
                     //---------------------------------------------------------------------------------------
              } else {           
+                 
+                /* ======================================================================================
+                 * Update By Alberto S. Baguio
+                 * Reference to Redmine 1864 (add -->> if(orderby = 0, 99999, orderby) as orderby)
+                 * Date Nov. 04, 2016        (add -->> order by orderby, gdcode, keycode, gcode)
+                 * ======================================================================================*/
+                 
                     //---------------------------------------------------------------------------------------
                      $sql = "SELECT
                                     GDCODE, GSCODE, GCODE, MENUNAME, INSTORE,
@@ -4878,6 +4901,7 @@ class ServersController extends WebServicesController
                                     POINTKASAN1, POINTKASAN2, POINTKASAN3, ZEIKUBUN,
                                     PRICE, MEMBERPRICE, MAX(YOYAKUMARK) as YOYAKUMARK
                                     , KEYCODE
+                                    , orderby
                             FROM (
                                 SELECT GDCODE, GSCODE, GCODE, MENUNAME, 1 as INSTORE,
                                     SHOWONCELLPHONE as WEB_DISPLAY, SERVICETIME as SERVICE_TIME,
@@ -4885,6 +4909,7 @@ class ServersController extends WebServicesController
                                     POINTKASAN1, POINTKASAN2, POINTKASAN3, ZTYPE AS ZEIKUBUN,
                                     PRICE, MEMBERPRICE, YOYAKUMARK
                                     , KEYCODE
+                                    , if(st.orderby = 0, 99999, st.orderby) as orderby
                                 FROM store_services
                                 WHERE GDCODE = " . $param['GDCODE'] . "
                                     AND STORECODE = " . $storeinfo['storecode'] . "
@@ -4896,16 +4921,17 @@ class ServersController extends WebServicesController
                                     POINTKASAN1, POINTKASAN2, POINTKASAN3, ZTYPE AS ZEIKUBUN,
                                     0 as PRICE, 0 as MEMBERPRICE, YOYAKUMARK
                                     , KEYCODE
+                                    , 99999 as orderby
                                 FROM subservices
                                 WHERE GDCODE = " . $param['GDCODE'] . "
                                     AND DELFLG IS NULL
                                 ) as data
-                            GROUP BY GSCODE ";
+                            GROUP BY GSCODE   
+                            ORDER BY orderby, GDCODE, KEYCODE, GCODE ";
                      //--------------------------------------------------------------------------------------
              }//end if else
         } else {
-            
-             if ($param['STAFF_TANTOU_STAFFCODE'] >= 0) {
+            if ($param['STAFF_TANTOU_STAFFCODE'] >= 0) {
                 //---------------------------------------------------------------------------------------
                 //SET DATA TO yoyaku_staff_service_time table if not exists from store_services table
                 //---------------------------------------------------------------------------------------
@@ -4928,6 +4954,12 @@ class ServersController extends WebServicesController
                                 AND ST.staffcode = ".$param['STAFF_TANTOU_STAFFCODE'];
                 $this->StoreService->query($SqlSTime);
                 //---------------------------------------------------------------------------------------
+                
+                /* ======================================================================================
+                 * Update By Alberto S. Baguio
+                 * Reference to Redmine 1864 (add -->> if(orderby = 0, 99999, orderby) as orderby)
+                 * Date Nov. 04, 2016        (add -->> order by orderby, store_services.gdcode, store_services.keycode, store_services.gcode)
+                 * ======================================================================================*/
                 $sql = "SELECT *
                         FROM (
                             SELECT store_services.GDCODE, 
@@ -4946,6 +4978,7 @@ class ServersController extends WebServicesController
                                    store_services.MEMBERPRICE, 
                                    store_services.YOYAKUMARK
                                 , store_services.KEYCODE
+                                , if(orderby = 0, 99999, orderby) as orderby
                             FROM store_services
                                 LEFT JOIN yoyaku_staff_service_time tblservicetime
                                     ON tblservicetime.storecode = ".$param['STAFF_TANTOU_STORECODE']." 
@@ -4954,9 +4987,16 @@ class ServersController extends WebServicesController
                             WHERE store_services.GDCODE = " . $param['GDCODE'] . "
                                 AND store_services.STORECODE = " . $storeinfo['storecode'] . "
                                 AND store_services.DELFLG IS NULL
+                            order by orderby, store_services.gdcode, store_services.keycode, store_services.gcode
                             ) as data ";
                  //------------------------------------------------------------------------------   
              } else {
+                 
+                 /* ======================================================================================
+                  * Update By Alberto S. Baguio
+                  * Reference to Redmine 1864 (add -->> if(orderby = 0, 99999, orderby) as orderby)
+                  * Date Nov. 04, 2016        (add -->> order by orderby, store_services.gdcode, store_services.keycode, store_services.gcode)
+                  * ======================================================================================*/
                     $sql = "SELECT *
                             FROM (
                                 SELECT GDCODE, GSCODE, GCODE, MENUNAME, 1 as INSTORE,
@@ -4965,10 +5005,12 @@ class ServersController extends WebServicesController
                                     POINTKASAN1, POINTKASAN2, POINTKASAN3, ZTYPE AS ZEIKUBUN,
                                     PRICE, MEMBERPRICE, YOYAKUMARK
                                     , KEYCODE
+                                    , if(orderby = 0, 99999, orderby) as orderby
                                 FROM store_services
                                 WHERE GDCODE = " . $param['GDCODE'] . "
                                     AND STORECODE = " . $storeinfo['storecode'] . "
                                     AND DELFLG IS NULL
+                                order by orderby, store_services.gdcode, store_services.keycode, store_services.gcode
                                 ) as data ";
              }//end if ($param['STAFF_TANTOU_STAFFCODE'] >= 0)       
         }
@@ -4976,7 +5018,7 @@ class ServersController extends WebServicesController
         $offset = $param['limit'] * ($param['page'] - 1);
         $limit_offset = "LIMIT " . $param['limit'] . "
                          OFFSET " . $offset;
-
+        
         if ($param['limit'] <> -1) {
             if ($param['STORECODE'] <> 0) {
                 $v = $this->StoreService->find('all', array('conditions' => $criteria,
@@ -4985,9 +5027,9 @@ class ServersController extends WebServicesController
                                                             'limit'      => $param['limit'],
                                                             'page'       => $param['page']));
             } else {
+                
                 $sql_limit_offset = $sql . $limit_offset;
                 $v = $this->StoreService->query($sql_limit_offset);
-
                 if ($param['hasHonbu'] <> 1) {
                     for($i=0; $i<count($v); $i++) {
                         $v[$i]['data']['YOYAKUMARK'] = $v[$i][0]['YOYAKUMARK'];
@@ -4999,7 +5041,6 @@ class ServersController extends WebServicesController
                 $v = $this->StoreService->find('all', array('conditions' => $criteria,
                                                             'fields'     => $fields,
                                                             'order'      => array($param['orderby'])));
-                
             } else {
                 $v = $this->StoreService->query($sql);
             }
@@ -6401,7 +6442,6 @@ class ServersController extends WebServicesController
                            
                            transaction.PRIORITYTYPE,
                            transaction.TRANSCODE, " . $order_trantype . " details.ROWNO";
-        //print_r($sql);die();
         //---------------------------------------------------------------------------------------------------------------------
         $v = $this->StoreTransaction->query($sql);
         //---------------------------------------------------------------------------------------------------------------------
@@ -8088,7 +8128,6 @@ class ServersController extends WebServicesController
             "  s_t.ENDTIME, " .
             "  s.STAFFNAME ";
 
-   // print_r($query);    die();
         $storeinfo = $this->YoyakuSession->Check($this);
         $this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction, ConnectionServer::SLAVE);
         $rs = $this->StoreTransaction->query($query);
