@@ -79,25 +79,34 @@
 class DATABASE_CONFIG {
 
 	var $default = array(
-		'driver' => 'mysql',
-		'persistent' => false,
-		'host' => 'localhost',
-		'login' => 'user',
-		'password' => 'password',
-		'database' => 'sipss_server',
-		'encoding' => 'UTF8',
-		'prefix' => '',
-	);
+        'driver' => 'mysql',
+        'persistent' => false,
+        'host' => '192.168.11.50',
+        'login' => 'marvin',
+        'password' => 'marvin1',
+        'database' => 'sipssbeauty_server',
+        'encoding' => 'UTF8',
+        'prefix' => '',
+        'con'   => ConnectionServer::MASTER,
+        'dynamichost' => '192.168.11.50'
+    );
 
 	var $database_schema = array(
-		'driver' => 'mysql',
-		'persistent' => false,
-		'host' => 'localhost',
-		'login' => 'user',
-		'password' => 'password',
-		'database' => 'sipss_schema',	
-		'encoding' => 'UTF8',
-		'prefix' => '',
+	'driver' => 'mysql',
+        'persistent' => false,
+        'host' => '192.168.11.50',
+        'login' => 'marvin',
+        'password' => 'marvin1',
+        'database' => 'sipssbeauty_schema',
+        'encoding' => 'UTF8',
+        'prefix' => '',
+        'con'   => ConnectionServer::MASTER,
+        'dynamichost' => '192.168.11.50'
 	);
+}
+
+abstract class ConnectionServer {
+    const MASTER = 'master';
+    const SLAVE = 'slave';
 }
 ?>

@@ -369,7 +369,7 @@ class DboMysql extends DboMysqlBase {
         * @return array - return object
         */
         function getdbhost($config) {
-            $link = mysql_connect($config['mainhost'], $config['login'], $config['password']);
+            $link = mysql_connect($config['host'], $config['login'], $config['password']);
             if (!$link) {
                 die('Could not connect: ' . mysql_error());
             }
@@ -396,14 +396,16 @@ class DboMysql extends DboMysqlBase {
 	function connect() {
 		$config = $this->config;
 		$connect = $config['connect'];
-
+        $dbhostip = null;
+        $dbhostuser = null;
+        $dbhostpasswd = null;
 		$this->connected = false;
                         //----------------------------------------------------------
                         // Get DB Host (Dynamic)
                         //----------------------------------------------------------
                         if ($config['database'] == "sipssbeauty_server" || $config['database'] == "sipssbeauty_schema") {
                             //print_r("yes");
-                            $dbhostip = $config['mainhost'];
+                            $dbhostip = $config['host'];
                             $dbhostuser = $config['login'];
                             $dbhostpasswd = $config['password'];
                         } else {
@@ -421,7 +423,7 @@ class DboMysql extends DboMysqlBase {
                                 }
                                 $dbhostuser = $dbhostrecord["dbhostuser"];
                                 $dbhostpasswd = $dbhostrecord["dbhostpasswd"];
-                                $this->config['host'] = $dbhostip;
+                                $this->config['dynamichost'] = $dbhostip;
                             }
                         }
                         //----------------------------------------------------------

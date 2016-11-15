@@ -82,31 +82,30 @@ class DATABASE_CONFIG {
         'driver' => 'mysql',
         'persistent' => false,
         'host' => '192.168.11.50',
-        'mainhost' => '192.168.11.50',
-        //'host' => 'localhost',
         'login' => 'marvin',
         'password' => 'marvin1',
         'database' => 'sipssbeauty_server',
         'encoding' => 'UTF8',
         'prefix' => '',
-        'con'   => ConnectionServer::MASTER
+        'con'   => ConnectionServer::MASTER,
+        'dynamichost' => '192.168.11.50'
     );
 
 	var $database_schema = array(
 	'driver' => 'mysql',
         'persistent' => false,
         'host' => '192.168.11.50',
-        'mainhost' => '192.168.11.50',
         'login' => 'marvin',
         'password' => 'marvin1',
         'database' => 'sipssbeauty_schema',
         'encoding' => 'UTF8',
         'prefix' => '',
-        'con'   => ConnectionServer::MASTER
+        'con'   => ConnectionServer::MASTER,
+        'dynamichost' => '192.168.11.50'
 	);
 }
 
-class ConnectionServer {
+abstract class ConnectionServer {
     const MASTER = 'master';
     const SLAVE = 'slave';
 }

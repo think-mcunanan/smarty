@@ -89,13 +89,16 @@ class DboMysqli extends DboMysqlBase {
  */
 	function connect() {
 		$config = $this->config;
+        $dbhostip = null;
+        $dbhostuser = null;
+        $dbhostpasswd = null;
 		$this->connected = false;
                         //----------------------------------------------------------
                         // Get DB Host (Dynamic)
                         //----------------------------------------------------------
                         if ($config['database'] == "sipssbeauty_server" || $config['database'] == "sipssbeauty_schema") {
                             //print_r("yes");
-                            $dbhostip = $config['mainhost'];
+                            $dbhostip = $config['host'];
                             $dbhostuser = $config['login'];
                             $dbhostpasswd = $config['password'];
                         } else {
@@ -113,6 +116,7 @@ class DboMysqli extends DboMysqlBase {
                                 }
                                 $dbhostuser = $dbhostrecord["dbhostuser"];
                                 $dbhostpasswd = $dbhostrecord["dbhostpasswd"];
+                                $config['dynamichost'] = $dbhostip;
                             }
                         }
                         //----------------------------------------------------------                    
@@ -123,7 +127,7 @@ class DboMysqli extends DboMysqlBase {
 			$config['port'] = null;
 		}
 
-		$this->connection = mysqli_connect($config['host'], $config['login'], $config['password'], $config['database'], $config['port'], $config['socket']);
+		$this->connection = mysqli_connect($dbhostip, $dbhostuser, $dbhostpasswd, $config['database'], $config['port'], $config['socket']);
 
 		if ($this->connection !== false) {
 			$this->connected = true;
