@@ -563,251 +563,230 @@ class MiscFunctionComponent extends Object
      * @return $arrList
      */
     function ParseTransactionData(&$controller, $arrData, $param) {
+        // スタッフ、予約行・来店行、伝票番号、開始時刻でソート
+        usort($arrData, function ($prev, $next) {
+            if ($prev['details']['STAFFCODE'] === $next['details']['STAFFCODE']) {
+                if ($prev['transaction']['PRIORITYTYPE'] === $next['transaction']['PRIORITYTYPE']) {
+                    if ($prev['transaction']['TRANSCODE'] === $next['transaction']['TRANSCODE']) {
+                        if ($prev['details']['STARTTIME'] === $next['details']['STARTTIME']) {
+                            return 0;
+                        } else {
+                            return $prev['details']['STARTTIME'] < $next['details']['STARTTIME'] ? -1 : 1;
+                        }
+                    } else {
+                        return $prev['transaction']['TRANSCODE'] < $next['transaction']['TRANSCODE'] ? -1 : 1;
+                    }
+                } else {
+                    return $prev['transaction']['PRIORITYTYPE'] - $next['transaction']['PRIORITYTYPE'];
+                }
+            } else {
+                return $prev['details']['STAFFCODE'] - $next['details']['STAFFCODE'];
+            }
+        });
+
+        $mergedArrData = [];
+
+        // 連続するメニューを統合する
+        foreach ($arrData as $current) {
+            $last_index = count($mergedArrData) - 1;
+            $last = $last_index > 0 ? $mergedArrData[$last_index] : null;
+
+            if (
+                $last &&
+                $last['details']['STAFFCODE'] === $current['details']['STAFFCODE'] &&
+                $last['transaction']['TRANSCODE'] === $current['transaction']['TRANSCODE'] &&
+                $last['transaction']['ADJUSTED_ENDTIME'] >= $current['details']['STARTTIME']
+            ) {
+                // 同一の予約、および時間が連続している場合
+                $mergedArrData[$last_index]['transaction']['ADJUSTED_ENDTIME'] = $current['details']['ENDTIME'];
+            } else {
+                $current['transaction']['YOYAKUTIME'] = $current['details']['STARTTIME'];
+                $current['transaction']['ADJUSTED_ENDTIME'] = $current['details']['ENDTIME'];
+                $mergedArrData[] = $current;
+            }
+        }
+
+        $arrData = $mergedArrData;
+
+        // スタッフ、予約行・来店行、開始時刻、終了時刻、伝票番号でソート
+        usort($arrData, function ($prev, $next) {
+            if ($prev['details']['STAFFCODE'] === $next['details']['STAFFCODE']) {
+                if ($prev['transaction']['PRIORITYTYPE'] === $next['transaction']['PRIORITYTYPE']) {
+                    if ($prev['transaction']['YOYAKUTIME'] === $next['transaction']['YOYAKUTIME']) {
+                        if ($prev['transaction']['ADJUSTED_ENDTIME'] === $next['transaction']['ADJUSTED_ENDTIME']) {
+                            if ($prev['transaction']['TRANSCODE'] === $next['transaction']['TRANSCODE']) {
+                                return 0;
+                            } else {
+                                return $prev['transaction']['TRANSCODE'] < $next['transaction']['TRANSCODE'] ? -1 : 1;
+                            }
+                        } else {
+                            return $prev['transaction']['ADJUSTED_ENDTIME'] > $next['transaction']['ADJUSTED_ENDTIME'] ? -1 : 1;
+                        }
+                    } else {
+                        return $prev['transaction']['YOYAKUTIME'] < $next['transaction']['YOYAKUTIME'] ? -1 : 1;
+                    }
+                } else {
+                    return $prev['transaction']['PRIORITYTYPE'] - $next['transaction']['PRIORITYTYPE'];
+                }
+            } else {
+                return $prev['details']['STAFFCODE'] < $next['details']['STAFFCODE'] ? -1 : 1;
+            }
+        });
+
+        $assinged_start_index = 0;
+
+        // PRIORITYを設定する
+        foreach ($arrData as $i => $current) {
+            $arrData[$i]['transaction']['PRIORITY'] = '1';
+
+            if (
+                $i === 0 ||
+                $current['details']['STAFFCODE'] !== $arrData[$i - 1]['details']['STAFFCODE'] ||
+                $current['transaction']['PRIORITYTYPE'] !== $arrData[$i - 1]['transaction']['PRIORITYTYPE']
+            ) {
+                // 初回ループ、スタッフが変化、または予約行・来店行が変化した場合
+                $assinged_start_index = $i;
+            }
+
+            $conflicts = [];
+
+            for ($j = $assinged_start_index; $j < $i; $j++) {
+                $assinged = $arrData[$j];
+
+                if (
+                    $current['transaction']['YOYAKUTIME'] < $assinged['transaction']['ADJUSTED_ENDTIME'] &&
+                    $current['transaction']['ADJUSTED_ENDTIME'] > $assinged['transaction']['YOYAKUTIME']
+                ) {
+                    // 時刻が衝突している場合
+                    $conflicts[] = +$assinged['transaction']['PRIORITY'];
+                }
+            }
+
+            for ($j = 1; $j <= max($conflicts) + 1; $j++) {
+                if (!in_array($j, $conflicts)) {
+                    $arrData[$i]['transaction']['PRIORITY'] = $j + '';
+                    break;
+                }
+            }
+        }
+
         //------------------------------------------------------------------------------------------------------
         $ctr       = -1;
-        $transcode = "";
-        //$tempstatus = array(0, 1, 2);
-        //$arrStaff = array();
-        //------------------------------------------------------------------------------------------------------
-        $detail_staff = -1;
-        //------------------------------------------------------------------------------------------------------
-        $is_same_staff = false;
         for ($i = 0; $i < count($arrData); $i++) {
-            //print_r($arrData[$i]); die();
-            $flagcond = false;
-            if ((int)$arrData[$i]['tbld']['min_staffcode'] === (int)$arrData[$i]['tbld']['max_staffcode']) {
-                $flagcond = ($transcode !== $arrData[$i]['transaction']['TRANSCODE']);
-                $is_same_staff = true;
+            $ctr++;
+            $transcode = $arrData[$i]['transaction']['TRANSCODE'];
+
+            $arrList[$ctr]['TRANSCODE']   = $arrData[$i]['transaction']['TRANSCODE'];
+            $arrList[$ctr]['KEYNO']       = $arrData[$i]['transaction']['KEYNO'];
+            $arrList[$ctr]['STORECODE']   = $arrData[$i]['transaction']['STORECODE'];
+            $arrList[$ctr]['IDNO']        = $arrData[$i]['transaction']['IDNO'];
+            $arrList[$ctr]['TRANSDATE']   = $arrData[$i]['transaction']['TRANSDATE'];
+            $arrList[$ctr]['STARTTIME']   = substr($arrData[$i]['transaction']['STARTTIME'], 0, 5);
+            $arrList[$ctr]['ENDTIME']     = substr($arrData[$i]['transaction']['ENDTIME'], 0, 5);
+            $arrList[$ctr]['CCODE']       = $arrData[$i]['transaction']['CCODE'];
+            $arrList[$ctr]['INCOMPLETE']  = $arrData[$i]['transaction']['INCOMPLETE'];
+            $arrList[$ctr]['CNUMBER']     = $arrData[$i]['customer']['CNUMBER'];
+            $arrList[$ctr]['CSTORECODE']  = $arrData[$i]['customer']['CSTORECODE'];
+            $arrList[$ctr]['TEMPSTATUS']  = $arrData[$i]['transaction']['TEMPSTATUS'];
+            $arrList[$ctr]['KYAKUKUBUN']  = $arrData[$i]['transaction']['KYAKUKUBUN'];
+            $arrList[$ctr]['REGULARCUSTOMER'] = $arrData[$i]['transaction']['REGULARCUSTOMER'];
+            if (substr($arrData[$i]['transaction']['CCODE'],3) == "0000000"){
+                $arrList[$ctr]['CNAME']   = $arrData[$i]['transaction']['CNAME'];
+                $arrList[$ctr]['SEX']     = $arrData[$i]['transaction']['SEX'];
             } else {
-                $flagcond = ($detail_staff !== (int)$arrData[$i]['details']['STAFFCODE']);
-                $is_same_staff = false;
-            }//end if else
-            //$flagcond = ($detail_staff !== (int)$arrData[$i]['details']['STAFFCODE']);
-            //if ($transcode !== $arrData[$i]['transaction']['TRANSCODE']) {
-            //if ($detail_staff !== (int)$arrData[$i]['details']['STAFFCODE']) {
-            if ($flagcond) {
-                $ctr++;
-                $dtl = 0;
-                $transcode = $arrData[$i]['transaction']['TRANSCODE'];
-                $detail_staff = $arrData[$i]['details']['STAFFCODE'];
+                $arrList[$ctr]['CNAME']   = $arrData[$i]['customer']['CNAME'];
+                $arrList[$ctr]['SEX']     = $arrData[$i]['customer']['SEX'];
+            }
+            $arrList[$ctr]['ZEIOPTION']   = $arrData[$i]['transaction']['ZEIOPTION'];
+            $arrList[$ctr]['RATETAX']     = $arrData[$i]['transaction']['RATETAX'];
+            $arrList[$ctr]['SOGOKEIOPTION'] = $arrData[$i]['transaction']['SOGOKEIOPTION'];
+            $arrList[$ctr]['APT_COLOR']   = $arrData[$i]['transaction']['APT_COLOR'];
+            $arrList[$ctr]['NOTES']       = $arrData[$i]['transaction']['NOTES'];
+            //$arrList[$ctr]['STAFFCODE']   = $arrData[$i]['transaction']['STAFFCODE'];
+            $arrList[$ctr]['STAFFCODE']   = $arrData[$i]['details']['STAFFCODE'];
+            $arrList[$ctr]['CNAMEKANA']   = $arrData[$i]['customer']['CNAMEKANA'];
+            $arrList[$ctr]['TEL1']        = $arrData[$i]['customer']['TEL1'];
+            $arrList[$ctr]['TEL2']        = $arrData[$i]['customer']['TEL2'];
+            $arrList[$ctr]['BIRTHDATE']   = $arrData[$i]['customer']['BIRTHDATE'];
+            $arrList[$ctr]['MEMBERSCATEGORY'] = $arrData[$i]['customer']['MEMBERSCATEGORY'];
+            $arrList[$ctr]['CLAIMKYAKUFLG']   = $arrData[$i]['transaction']['CLAIMKYAKUFLG'];
+            $arrList[$ctr]['UPDATEDATE']  = $arrData[$i]['transaction']['UPDATEDATE'];
+            $arrList[$ctr]['PRIORITY']    = $arrData[$i]['transaction']['PRIORITY'];
+            $arrList[$ctr]['YOYAKU']    = $arrData[$i]['transaction']['YOYAKU'];
+            $arrList[$ctr]['HOWKNOWSCODE']    = $arrData[$i]['howknows_thestore']['HOWKNOWSCODE'];
+            $arrList[$ctr]['HOWKNOWS']    = $arrData[$i]['howknows_thestore']['HOWKNOWS'];
+            #------------------------------------------------------------------------------------------------------------------------
+            # ADDED BY MARVINC - 2015-06-22
+            # For Updating Next Reservation
+            #------------------------------------------------------------------------------------------------------------------------
+            $arrList[$ctr]['YOYAKU_STATUS'] = $arrData[$i]['YND']['YOYAKU_STATUS'];
+            #------------------------------------------------------------------------------------------------------------------------
 
-                $arrList[$ctr]['TRANSCODE']   = $arrData[$i]['transaction']['TRANSCODE'];
-                $arrList[$ctr]['KEYNO']       = $arrData[$i]['transaction']['KEYNO'];
-                $arrList[$ctr]['STORECODE']   = $arrData[$i]['transaction']['STORECODE'];
-                $arrList[$ctr]['IDNO']        = $arrData[$i]['transaction']['IDNO'];
-                $arrList[$ctr]['TRANSDATE']   = $arrData[$i]['transaction']['TRANSDATE'];
-                $arrList[$ctr]['STARTTIME']   = substr($arrData[$i]['transaction']['STARTTIME'], 0, 5);
-                $arrList[$ctr]['ENDTIME']     = substr($arrData[$i]['transaction']['ENDTIME'], 0, 5);
-                $arrList[$ctr]['CCODE']       = $arrData[$i]['transaction']['CCODE'];
-                $arrList[$ctr]['INCOMPLETE']  = $arrData[$i]['transaction']['INCOMPLETE'];
-                $arrList[$ctr]['CNUMBER']     = $arrData[$i]['customer']['CNUMBER'];
-                $arrList[$ctr]['CSTORECODE']  = $arrData[$i]['customer']['CSTORECODE'];
-                $arrList[$ctr]['TEMPSTATUS']  = $arrData[$i]['transaction']['TEMPSTATUS'];
-                $arrList[$ctr]['KYAKUKUBUN']  = $arrData[$i]['transaction']['KYAKUKUBUN'];
-                $arrList[$ctr]['REGULARCUSTOMER'] = $arrData[$i]['transaction']['REGULARCUSTOMER'];
-                if (substr($arrData[$i]['transaction']['CCODE'],3) == "0000000"){
-                    $arrList[$ctr]['CNAME']   = $arrData[$i]['transaction']['CNAME'];
-                    $arrList[$ctr]['SEX']     = $arrData[$i]['transaction']['SEX'];
-                } else {
-                    $arrList[$ctr]['CNAME']   = $arrData[$i]['customer']['CNAME'];
-                    $arrList[$ctr]['SEX']     = $arrData[$i]['customer']['SEX'];
-                }
-                $arrList[$ctr]['ZEIOPTION']   = $arrData[$i]['transaction']['ZEIOPTION'];
-                $arrList[$ctr]['RATETAX']     = $arrData[$i]['transaction']['RATETAX'];
-                $arrList[$ctr]['SOGOKEIOPTION'] = $arrData[$i]['transaction']['SOGOKEIOPTION'];
-                $arrList[$ctr]['APT_COLOR']   = $arrData[$i]['transaction']['APT_COLOR'];
-                $arrList[$ctr]['NOTES']       = $arrData[$i]['transaction']['NOTES'];
-                //$arrList[$ctr]['STAFFCODE']   = $arrData[$i]['transaction']['STAFFCODE'];
-                $arrList[$ctr]['STAFFCODE']   = $arrData[$i]['details']['STAFFCODE'];
-                $arrList[$ctr]['CNAMEKANA']   = $arrData[$i]['customer']['CNAMEKANA'];
-                $arrList[$ctr]['TEL1']        = $arrData[$i]['customer']['TEL1'];
-                $arrList[$ctr]['TEL2']        = $arrData[$i]['customer']['TEL2'];
-                $arrList[$ctr]['BIRTHDATE']   = $arrData[$i]['customer']['BIRTHDATE'];
-                $arrList[$ctr]['MEMBERSCATEGORY'] = $arrData[$i]['customer']['MEMBERSCATEGORY'];
-                $arrList[$ctr]['CLAIMKYAKUFLG']   = $arrData[$i]['transaction']['CLAIMKYAKUFLG'];
-                $arrList[$ctr]['UPDATEDATE']  = $arrData[$i]['transaction']['UPDATEDATE'];
-                $arrList[$ctr]['PRIORITY']    = $arrData[$i]['transaction']['PRIORITY'];
-                $arrList[$ctr]['YOYAKU']    = $arrData[$i]['transaction']['YOYAKU'];
-                $arrList[$ctr]['HOWKNOWSCODE']    = $arrData[$i]['howknows_thestore']['HOWKNOWSCODE'];
-                $arrList[$ctr]['HOWKNOWS']    = $arrData[$i]['howknows_thestore']['HOWKNOWS'];
-                #------------------------------------------------------------------------------------------------------------------------
-                # ADDED BY MARVINC - 2015-06-22
-                # For Updating Next Reservation
-                #------------------------------------------------------------------------------------------------------------------------
-                $arrList[$ctr]['YOYAKU_STATUS'] = $arrData[$i]['YND']['YOYAKU_STATUS'];
-                #------------------------------------------------------------------------------------------------------------------------
+            /*----------------------------------------------------------------------------------------------------------------------*/
+            /*add by albert 2015-10-30 BM connection information -------------------------------------------------------------------*/
+            /*----------------------------------------------------------------------------------------------------------------------*/
+            $arrList[$ctr]['route']                 = $arrData[$i]['bmtble']['route'];
+            $arrList[$ctr]['reservation_system']    = $arrData[$i]['bmtble']['reservation_system'];
+            $arrList[$ctr]['reserve_date']          = $arrData[$i]['bmtble']['reserve_date'];
+            $arrList[$ctr]['reserve_code']          = $arrData[$i]['bmtble']['reserve_code'];
+            $arrList[$ctr]['v_date']                = $arrData[$i]['bmtble']['v_date'];
+            $arrList[$ctr]['start_time']            = $arrData[$i]['bmtble']['start_time'];
+            $arrList[$ctr]['end_time']              = $arrData[$i]['bmtble']['end_time'];
+            $arrList[$ctr]['coupon_info']           = $arrData[$i]['bmtble']['coupon_info'];
+            $arrList[$ctr]['comment']               = $arrData[$i]['bmtble']['comment'];
+            $arrList[$ctr]['shop_comment']          = $arrData[$i]['bmtble']['shop_comment'];
+            $arrList[$ctr]['next_coming_comment']   = $arrData[$i]['bmtble']['next_coming_comment'];
+            $arrList[$ctr]['demand']                = $arrData[$i]['bmtble']['demand'];
+            $arrList[$ctr]['site_customer_id']      = $arrData[$i]['bmtble']['site_customer_id'];
+            $arrList[$ctr]['bmPrice']               = $arrData[$i]['bmtble']['bmPrice'];
+            $arrList[$ctr]['nomination_fee']        = $arrData[$i]['bmtble']['nomination_fee'];
+            $arrList[$ctr]['bmTprice']              = $arrData[$i]['bmtble']['bmTprice'];
+            $arrList[$ctr]['use_point']             = $arrData[$i]['bmtble']['use_point'];
+            $arrList[$ctr]['grant_point']           = $arrData[$i]['bmtble']['grant_point'];
+            $arrList[$ctr]['visit_num']             = $arrData[$i]['bmtble']['visit_num'];
+            $arrList[$ctr]['firstname']             = $arrData[$i]['bmtble']['firstname'];
+            $arrList[$ctr]['lastname']              = $arrData[$i]['bmtble']['lastname'];
+            $arrList[$ctr]['bmsex']                 = $arrData[$i]['bmtble']['bmsex'];
+            $arrList[$ctr]['knfirstname']           = $arrData[$i]['bmtble']['knfirstname'];
+            $arrList[$ctr]['knlastname']            = $arrData[$i]['bmtble']['knlastname'];
+            $arrList[$ctr]['bmtel']                 = $arrData[$i]['bmtble']['bmtel'];
+            $arrList[$ctr]['bmzip']                 = $arrData[$i]['bmtble']['bmzip'];
+            $arrList[$ctr]['bmaddress']             = $arrData[$i]['bmtble']['bmaddress'];
+            $arrList[$ctr]['bmmail']                = $arrData[$i]['bmtble']['bmmail'];
+            $arrList[$ctr]['menu_info']             = $arrData[$i]['bmtble']['menu_info'];
+            $arrList[$ctr]['origination']           = $arrData[$i]['transaction']['origination'];
+            $arrList[$ctr]['bmstaff']               = $arrData[$i]['bmtble']['bmstaff'];
+            $arrList[$ctr]['secondnote']            = $arrData[$i]['str_bm_notes']['secondnote'];
+            /*----------------------------------------------------------------------------------------------------------------------*/
+            /*add by albert 2015-10-30 BM connection information -------------------------------------------------------------------*/
+            /*----------------------------------------------------------------------------------------------------------------------*/
 
-                /*----------------------------------------------------------------------------------------------------------------------*/
-                /*add by albert 2015-10-30 BM connection information -------------------------------------------------------------------*/
-                /*----------------------------------------------------------------------------------------------------------------------*/
-                $arrList[$ctr]['route']                 = $arrData[$i]['bmtble']['route'];
-                $arrList[$ctr]['reservation_system']    = $arrData[$i]['bmtble']['reservation_system'];
-                $arrList[$ctr]['reserve_date']          = $arrData[$i]['bmtble']['reserve_date'];
-                $arrList[$ctr]['reserve_code']          = $arrData[$i]['bmtble']['reserve_code'];
-                $arrList[$ctr]['v_date']                = $arrData[$i]['bmtble']['v_date'];
-                $arrList[$ctr]['start_time']            = $arrData[$i]['bmtble']['start_time'];
-                $arrList[$ctr]['end_time']              = $arrData[$i]['bmtble']['end_time'];
-                $arrList[$ctr]['coupon_info']           = $arrData[$i]['bmtble']['coupon_info'];
-                $arrList[$ctr]['comment']               = $arrData[$i]['bmtble']['comment'];
-                $arrList[$ctr]['shop_comment']          = $arrData[$i]['bmtble']['shop_comment'];
-                $arrList[$ctr]['next_coming_comment']   = $arrData[$i]['bmtble']['next_coming_comment'];
-                $arrList[$ctr]['demand']                = $arrData[$i]['bmtble']['demand'];
-                $arrList[$ctr]['site_customer_id']      = $arrData[$i]['bmtble']['site_customer_id'];
-                $arrList[$ctr]['bmPrice']               = $arrData[$i]['bmtble']['bmPrice'];
-                $arrList[$ctr]['nomination_fee']        = $arrData[$i]['bmtble']['nomination_fee'];
-                $arrList[$ctr]['bmTprice']              = $arrData[$i]['bmtble']['bmTprice'];
-                $arrList[$ctr]['use_point']             = $arrData[$i]['bmtble']['use_point'];
-                $arrList[$ctr]['grant_point']           = $arrData[$i]['bmtble']['grant_point'];
-                $arrList[$ctr]['visit_num']             = $arrData[$i]['bmtble']['visit_num'];
-                $arrList[$ctr]['firstname']             = $arrData[$i]['bmtble']['firstname'];
-                $arrList[$ctr]['lastname']              = $arrData[$i]['bmtble']['lastname'];
-                $arrList[$ctr]['bmsex']                 = $arrData[$i]['bmtble']['bmsex'];
-                $arrList[$ctr]['knfirstname']           = $arrData[$i]['bmtble']['knfirstname'];
-                $arrList[$ctr]['knlastname']            = $arrData[$i]['bmtble']['knlastname'];
-                $arrList[$ctr]['bmtel']                 = $arrData[$i]['bmtble']['bmtel'];
-                $arrList[$ctr]['bmzip']                 = $arrData[$i]['bmtble']['bmzip'];
-                $arrList[$ctr]['bmaddress']             = $arrData[$i]['bmtble']['bmaddress'];
-                $arrList[$ctr]['bmmail']                = $arrData[$i]['bmtble']['bmmail'];
-                $arrList[$ctr]['menu_info']             = $arrData[$i]['bmtble']['menu_info'];
-                $arrList[$ctr]['origination']           = $arrData[$i]['transaction']['origination'];
-                $arrList[$ctr]['bmstaff']               = $arrData[$i]['bmtble']['bmstaff'];
-                $arrList[$ctr]['secondnote']            = $arrData[$i]['str_bm_notes']['secondnote'];
-                /*----------------------------------------------------------------------------------------------------------------------*/
-                /*add by albert 2015-10-30 BM connection information -------------------------------------------------------------------*/
-                /*----------------------------------------------------------------------------------------------------------------------*/
+            /////////////////////////////////////////////////////////////////////
+            $arrList[$ctr]['YOYAKUTIME'] = substr($arrData[$i]['details']['STARTTIME'], 0, 5); //substr($arrData[$i]['transaction']['STARTTIME'], 0, 5);
+            $arrList[$ctr]['ADJUSTED_ENDTIME'] = substr($arrData[$i]['transaction']['ADJUSTED_ENDTIME'], 0, 5);
+            $arrList[$ctr]['UKETSUKEDATE'] = @$arrData[$i]['yoyaku']['UKETSUKEDATE'];
+            $arrList[$ctr]['UKETSUKESTAFF'] = @$arrData[$i]['yoyaku']['UKETSUKESTAFF'];
+            $arrList[$ctr]['UKETSUKESTAFFNAME'] = @$arrData[$i]['staff2']['UKETSUKESTAFFNAME'];
+            $arrList[$ctr]['CANCEL'] = @$arrData[$i]['yoyaku']['CANCEL'];
 
-                /////////////////////////////////////////////////////////////////////
-                $arrList[$ctr]['YOYAKUTIME'] = substr($arrData[$i]['details']['STARTTIME'], 0, 5); //substr($arrData[$i]['transaction']['STARTTIME'], 0, 5);
+            #---------------------------------------------------------------------------------------------
+            #Added by MarvinC - 2015-07-01
+            #---------------------------------------------------------------------------------------------
+            if($arrData[$i]['YND']['YOYAKU_STATUS'] == 2){
+                $arrList[$ctr]['BEFORE_TRANSCODE'] = @$arrData[$i]['YND']['NEXTCODE'];
+            }else{
+                $arrList[$ctr]['BEFORE_TRANSCODE'] = @$arrData[$i]['jikaiyoyaku']['TRANSCODE'];
+            }
 
-                //-- ADJUSTED_ENDTIMEで値の用意をします (Sets the value for ADJUSTED_ENDTIME)
-                $starttime = $arrList[$ctr]['YOYAKUTIME'];
-                $endtime = "";
+            $arrList[$ctr]['PRIORITYTYPE'] = $arrData[$i]['transaction']['PRIORITYTYPE'] . "-" . $arrData[$i]['transaction']['PRIORITY'];
 
-                //====================================================================================
-                //Use Transaction EndTime for SameStaff & Details EndTime for Not SameStaff
-                //------------------------------------------------------------------------------------
-                if ($is_same_staff) {
-                    //--------------------------------------------------------------------------------
-                    $endtime   = substr($arrData[$i]['transaction']['ENDTIME'],0,5);
-                    //--------------------------------------------------------------------------------
-                }else {
-                    //--------------------------------------------------------------------------------
-                    $endtime   = substr($arrData[$i]['details']['ENDTIME'], 0, 5);
-                    //--------------------------------------------------------------------------------
-                }//End if ($is_same_staff) Else
-                //------------------------------------------------------------------------------------
-                //$endtime = substr($arrData[$i]['transaction']['ENDTIME'],0,5);
-                //====================================================================================
-
-                $a1 = explode(":",$starttime);
-                $a2 = explode(":",$endtime);
-                $time1 = (($a1[0]*60*60)+($a1[1]*60));
-                $time2 = (($a2[0]*60*60)+($a2[1]*60));
-                $diff = abs($time1-$time2);
-                $mins = floor(($diff-($hours*60*60))/(60));
-                $mins_diff = $mins;
-
-                if ($mins_diff <= MIN_SERVICE_TIME) {
-                    $arrEnd = explode(":",$starttime);
-                    $arrEnd[1] += MIN_SERVICE_TIME;
-
-                    if ($arrEnd[1] >= 60) {
-                        $arrEnd[1] = fmod($arrEnd[1], 60);
-                        $arrEnd[0]++;
-                    }
-
-                    $arrList[$ctr]['ADJUSTED_ENDTIME'] = date("G:i", mktime($arrEnd[0], $arrEnd[1], 0, 1, 1, 2010));
-                } else {
-                    //===============================================================================================
-                    //Use Transaction EndTime for SameStaff & Details EndTime for Not SameStaff
-                    //-----------------------------------------------------------------------------------------------
-                    if ($is_same_staff) {
-                        //-------------------------------------------------------------------------------------------
-                        $arrList[$ctr]['ADJUSTED_ENDTIME']   = substr($arrData[$i]['transaction']['ENDTIME'],0,5);
-                        //-------------------------------------------------------------------------------------------
-                    }else {
-                        //-------------------------------------------------------------------------------------------
-                        $arrList[$ctr]['ADJUSTED_ENDTIME']   = substr($arrData[$i]['details']['ENDTIME'], 0, 5);
-                        //-------------------------------------------------------------------------------------------
-                    }//End if ($is_same_staff) Else
-                    //-----------------------------------------------------------------------------------------------
-                    //$arrList[$ctr]['ADJUSTED_ENDTIME'] = substr($arrData[$i]['transaction']['ENDTIME'],0,5);
-                    //===============================================================================================
-                }
-
-                $starttime = $arrList[$ctr]['YOYAKUTIME'];
-                $starttime_c = strtotime($starttime);
-                //$endtime = $arrList[$ctr]['ENDTIME'];
-                //$endtime = $arrList[$ctr]['ADJUSTED_ENDTIME'];
-                if ($arrList[$ctr]['ADJUSTED_ENDTIME'] < OVER_MAXTIME) {
-                    $endtime = MAXTIME;
-                } else {
-                    $endtime = $arrList[$ctr]['ADJUSTED_ENDTIME'];
-                }
-                $endtime_c = strtotime($endtime);
-
-                $staffcode = $arrList[$ctr]['STAFFCODE'];
-                $priority = 1;
-                $prioritytype = $arrData[$i]['transaction']['PRIORITYTYPE'];
-
-                //-- 最低のサービス時間を置く[900秒 OR 15分] (Sets minimum service time [900 seconds OR 15 minutes])
-                if (($endtime_c - $starttime_c) < MIN_SERVICE_TIME) {
-                    $endtime_c = $starttime_c + MIN_SERVICE_TIME;
-                }
-
-                $arrList[$ctr]['UKETSUKEDATE'] = @$arrData[$i]['yoyaku']['UKETSUKEDATE'];
-                $arrList[$ctr]['UKETSUKESTAFF'] = @$arrData[$i]['yoyaku']['UKETSUKESTAFF'];
-                $arrList[$ctr]['UKETSUKESTAFFNAME'] = @$arrData[$i]['staff2']['UKETSUKESTAFFNAME'];
-                $arrList[$ctr]['CANCEL'] = @$arrData[$i]['yoyaku']['CANCEL'];
-
-                #---------------------------------------------------------------------------------------------
-                #Added by MarvinC - 2015-07-01
-                #---------------------------------------------------------------------------------------------
-                if($arrData[$i]['YND']['YOYAKU_STATUS'] == 2){
-                    $arrList[$ctr]['BEFORE_TRANSCODE'] = @$arrData[$i]['YND']['NEXTCODE'];
-                }else{
-                    $arrList[$ctr]['BEFORE_TRANSCODE'] = @$arrData[$i]['jikaiyoyaku']['TRANSCODE'];
-                }
-
-
-                
-                $position_confirmed = false;
-                while (!$position_confirmed) {
-                    $position_confirmed = true;
-                    foreach ($checked_times[$staffcode][$prioritytype][$priority] as $entry) {
-                        if ((($starttime_c  > $entry["starttime"] && $starttime_c <  $entry["endtime"]) ||
-	                        ($endtime_c    > $entry["starttime"] && $endtime_c   <  $entry["endtime"]) ||
-	                        ($starttime_c <= $entry["starttime"] && $endtime_c   >= $entry["endtime"])) &&
-	                         $arrData[$i]['transaction']['PRIORITYTYPE'] == $entry["prioritytype"] &&
-                             $arrData[$i]['transaction']['TRANSCODE'] !== $entry["transcode"]) { //Added by MarvinC 2016-07-25 18:30 Bug: 1626
-	                        $position_confirmed = false;
-	                        $priority++;
-	                        break;
-                        }
-                    }
-                    //if($param["onsave"] == 1) {break;}
-                }
-                
-                $checked_times[$staffcode][$prioritytype][$priority][] = array("starttime" => $starttime_c,
-                                                                "endtime"   => $endtime_c,
-                                                                "transcode" => $arrData[$i]['transaction']['TRANSCODE'],
-                                                                "prioritytype" => $arrData[$i]['transaction']['PRIORITYTYPE']);
-
-                if (intval($checked_priority[$staffcode]) == 0 || $priority > $checked_priority[$staffcode])  {
-                    $checked_priority[$staffcode] = $priority;
-                }
-
-                $arrList[$ctr]['PRIORITYTYPE'] = $arrData[$i]['transaction']['PRIORITYTYPE'] . "-" .$priority;
-
-                //--------------------------------------------------------------------------------------------
-                //SET EACH TRANSACTION START TIME AND END TIME SAME AS DETAILS PER TRANSACTION
-                //--------------------------------------------------------------------------------------------
-                $arrList[$ctr]['STIME'] = $arrData[$i]['details']['STARTTIME'];
-                $arrList[$ctr]['ETIME'] = $arrData[$i]['details']['ENDTIME'];
-                //--------------------------------------------------------------------------------------------
-                $arrList[$ctr]['GCODE'] = $arrData[$i]['details']['GCODE'];
-                //--------------------------------------------------------------------------------------------
-            }// end if ($detail_staff !== $arrData[$i]['details']['STAFFCODE'])
+            //--------------------------------------------------------------------------------------------
+            //SET EACH TRANSACTION START TIME AND END TIME SAME AS DETAILS PER TRANSACTION
+            //--------------------------------------------------------------------------------------------
+            $arrList[$ctr]['STIME'] = $arrData[$i]['details']['STARTTIME'];
+            $arrList[$ctr]['ETIME'] = $arrData[$i]['details']['ENDTIME'];
+            //--------------------------------------------------------------------------------------------
+            $arrList[$ctr]['GCODE'] = $arrData[$i]['details']['GCODE'];
             //-------------------------------------------------------------------------
             //if use tantou service time or get service time from store services
             //-------------------------------------------------------------------------
@@ -832,17 +811,8 @@ class MiscFunctionComponent extends Object
                 $rs_tantou_service_time = $controller->StoreTransaction->query($Sql);
             }//end if
             //-------------------------------------------------------------------------
-            $tmpYoyakuTime = $arrList[$ctr]['YOYAKUTIME'];
-            $tmpEndTIme = $arrList[$ctr]['ENDTIME'];
-            //-------------------------------------------------------------------------
-            if (!$is_same_staff) {
-                $arrList[$ctr]['YOYAKUTIME'] = substr($arrList[$ctr]['STIME'], 0, 5);
-                $arrList[$ctr]['ENDTIME'] = substr($arrList[$ctr]['ETIME'], 0, 5);
-                $arrList[$ctr]['ADJUSTED_ENDTIME'] = substr($arrList[$ctr]['ETIME'], 0, 5);
-            }//end if
-            //-------------------------------------------------------------------------
-            $arrList[$ctr]['STIME'] = $tmpYoyakuTime;
-            $arrList[$ctr]['ETIME'] = $tmpEndTIme;
+            $arrList[$ctr]['STIME'] = $arrList[$ctr]['YOYAKUTIME'];
+            $arrList[$ctr]['ETIME'] = $arrList[$ctr]['ENDTIME'];
             //-------------------------------------------------------------------------
             $dtl = 0;
             foreach ($arrData as $transd_data) {
@@ -936,7 +906,6 @@ class MiscFunctionComponent extends Object
                 }//end if
             }//end for
         }//end for
-        $arrList[0]['checked_times'] = $checked_times;
         //-------------------------------------------------------------------------------------------------------
         return $arrList;
         //-------------------------------------------------------------------------------------------------------
@@ -1498,7 +1467,7 @@ class MiscFunctionComponent extends Object
             if( $transcode !== $transcodecur &&
                     ($endtime > $starttime_s && $endtime_s > $startime)
                         && $prioritytypecur == $priority){
-                return true;                
+                return true;
             }
         }
 
@@ -1506,6 +1475,6 @@ class MiscFunctionComponent extends Object
     }
     //</editor-fold>
 
-    
+
 }
 ?>
