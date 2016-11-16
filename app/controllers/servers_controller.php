@@ -6215,7 +6215,7 @@ class ServersController extends WebServicesController
         }
 
         //---------------------------------------------------------------------------------------------------------------------
-        $this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction, ConnectionServer::SLAVE);
+        $this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction);
         //---------------------------------------------------------------------------------------------------------------------
         $condition = "";
         $storecond = "";
