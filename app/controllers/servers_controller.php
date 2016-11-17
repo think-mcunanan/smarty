@@ -7389,8 +7389,7 @@ class ServersController extends WebServicesController
                 }
             }
         } else {
-            // スタッフ、開始時刻、終了時刻、予定IDでソート
-            usort($v, function ($prev, $next) {
+            function break_time_sort($prev, $next) {
                 if ($prev['BreakTime']['STAFFCODE'] === $next['BreakTime']['STAFFCODE']) {
                     if ($prev['BreakTime']['STARTTIME'] === $next['BreakTime']['STARTTIME']) {
                         if ($prev['BreakTime']['ENDTIME'] === $next['BreakTime']['ENDTIME']) {
@@ -7404,7 +7403,10 @@ class ServersController extends WebServicesController
                 } else {
                     return $prev['BreakTime']['STAFFCODE'] < $next['BreakTime']['STAFFCODE'] ? -1 : 1;
                 }
-            });
+            }
+
+            // スタッフ、開始時刻、終了時刻、予定IDでソート
+            usort($v, 'break_time_sort');
 
             $assinged_start_index = 0;
 
@@ -7418,7 +7420,7 @@ class ServersController extends WebServicesController
                     $assinged_start_index = $i;
                 }
 
-                $conflicts = [];
+                $conflicts = array();
 
                 for ($j = $assinged_start_index; $j < $i; $j++) {
                     if ($v[$i]['BreakTime']['STARTTIME'] < $v[$j]['BreakTime']['ENDTIME'] && $v[$i]['BreakTime']['ENDTIME'] > $v[$j]['BreakTime']['STARTTIME']) {
