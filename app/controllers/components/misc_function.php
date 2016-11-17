@@ -563,8 +563,7 @@ class MiscFunctionComponent extends Object
      * @return $arrList
      */
     function ParseTransactionData(&$controller, $arrData, $param) {
-        // スタッフ、予約行・来店行、伝票番号、開始時刻でソート
-        usort($arrData, function ($prev, $next) {
+        function first_transaction_sort($prev, $next) {
             if ($prev['details']['STAFFCODE'] === $next['details']['STAFFCODE']) {
                 if ($prev['transaction']['PRIORITYTYPE'] === $next['transaction']['PRIORITYTYPE']) {
                     if ($prev['transaction']['TRANSCODE'] === $next['transaction']['TRANSCODE']) {
@@ -582,9 +581,36 @@ class MiscFunctionComponent extends Object
             } else {
                 return $prev['details']['STAFFCODE'] - $next['details']['STAFFCODE'];
             }
-        });
+        }
 
-        $mergedArrData = [];
+        function second_transaction_sort($prev, $next) {
+            if ($prev['details']['STAFFCODE'] === $next['details']['STAFFCODE']) {
+                if ($prev['transaction']['PRIORITYTYPE'] === $next['transaction']['PRIORITYTYPE']) {
+                    if ($prev['transaction']['YOYAKUTIME'] === $next['transaction']['YOYAKUTIME']) {
+                        if ($prev['transaction']['ADJUSTED_ENDTIME'] === $next['transaction']['ADJUSTED_ENDTIME']) {
+                            if ($prev['transaction']['TRANSCODE'] === $next['transaction']['TRANSCODE']) {
+                                return 0;
+                            } else {
+                                return $prev['transaction']['TRANSCODE'] < $next['transaction']['TRANSCODE'] ? -1 : 1;
+                            }
+                        } else {
+                            return $prev['transaction']['ADJUSTED_ENDTIME'] > $next['transaction']['ADJUSTED_ENDTIME'] ? -1 : 1;
+                        }
+                    } else {
+                        return $prev['transaction']['YOYAKUTIME'] < $next['transaction']['YOYAKUTIME'] ? -1 : 1;
+                    }
+                } else {
+                    return $prev['transaction']['PRIORITYTYPE'] - $next['transaction']['PRIORITYTYPE'];
+                }
+            } else {
+                return $prev['details']['STAFFCODE'] < $next['details']['STAFFCODE'] ? -1 : 1;
+            }
+        }
+
+        // スタッフ、予約行・来店行、伝票番号、開始時刻でソート
+        usort($arrData, 'first_transaction_sort');
+
+        $mergedArrData = array();
 
         // 連続するメニューを統合する
         foreach ($arrData as $current) {
@@ -609,29 +635,7 @@ class MiscFunctionComponent extends Object
         $arrData = $mergedArrData;
 
         // スタッフ、予約行・来店行、開始時刻、終了時刻、伝票番号でソート
-        usort($arrData, function ($prev, $next) {
-            if ($prev['details']['STAFFCODE'] === $next['details']['STAFFCODE']) {
-                if ($prev['transaction']['PRIORITYTYPE'] === $next['transaction']['PRIORITYTYPE']) {
-                    if ($prev['transaction']['YOYAKUTIME'] === $next['transaction']['YOYAKUTIME']) {
-                        if ($prev['transaction']['ADJUSTED_ENDTIME'] === $next['transaction']['ADJUSTED_ENDTIME']) {
-                            if ($prev['transaction']['TRANSCODE'] === $next['transaction']['TRANSCODE']) {
-                                return 0;
-                            } else {
-                                return $prev['transaction']['TRANSCODE'] < $next['transaction']['TRANSCODE'] ? -1 : 1;
-                            }
-                        } else {
-                            return $prev['transaction']['ADJUSTED_ENDTIME'] > $next['transaction']['ADJUSTED_ENDTIME'] ? -1 : 1;
-                        }
-                    } else {
-                        return $prev['transaction']['YOYAKUTIME'] < $next['transaction']['YOYAKUTIME'] ? -1 : 1;
-                    }
-                } else {
-                    return $prev['transaction']['PRIORITYTYPE'] - $next['transaction']['PRIORITYTYPE'];
-                }
-            } else {
-                return $prev['details']['STAFFCODE'] < $next['details']['STAFFCODE'] ? -1 : 1;
-            }
-        });
+        usort($arrData, 'second_transaction_sort');
 
         $assinged_start_index = 0;
 
@@ -648,7 +652,7 @@ class MiscFunctionComponent extends Object
                 $assinged_start_index = $i;
             }
 
-            $conflicts = [];
+            $conflicts = array();
 
             for ($j = $assinged_start_index; $j < $i; $j++) {
                 $assinged = $arrData[$j];
