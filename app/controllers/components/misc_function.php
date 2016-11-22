@@ -607,15 +607,15 @@ class MiscFunctionComponent extends Object
             }
         }
 
-        // スタッフ、予約行・来店行、伝票番号、開始時刻でソート
-        usort($arrData, 'first_transaction_sort');
+        $originalArrData = $sortedArrData = $arrData;
+        $arrData = array();
 
-        $mergedArrData = array();
+        // スタッフ、予約行・来店行、伝票番号、開始時刻でソート
+        usort($sortedArrData, 'first_transaction_sort');
 
         // 連続するメニューを統合する
-        foreach ($arrData as $current) {
-            $last_index = count($mergedArrData) - 1;
-            $last = $last_index > 0 ? $mergedArrData[$last_index] : null;
+        foreach ($sortedArrData as $current) {
+            $last = end($arrData);
 
             if (
                 $last &&
@@ -624,15 +624,14 @@ class MiscFunctionComponent extends Object
                 $last['transaction']['ADJUSTED_ENDTIME'] >= $current['details']['STARTTIME']
             ) {
                 // 同一の予約、および時間が連続している場合
-                $mergedArrData[$last_index]['transaction']['ADJUSTED_ENDTIME'] = $current['details']['ENDTIME'];
+                $last_index = count($arrData) - 1;
+                $arrData[$last_index]['transaction']['ADJUSTED_ENDTIME'] = $current['details']['ENDTIME'];
             } else {
                 $current['transaction']['YOYAKUTIME'] = $current['details']['STARTTIME'];
                 $current['transaction']['ADJUSTED_ENDTIME'] = $current['details']['ENDTIME'];
-                $mergedArrData[] = $current;
+                $arrData[] = $current;
             }
         }
-
-        $arrData = $mergedArrData;
 
         // スタッフ、予約行・来店行、開始時刻、終了時刻、伝票番号でソート
         usort($arrData, 'second_transaction_sort');
@@ -819,7 +818,7 @@ class MiscFunctionComponent extends Object
             $arrList[$ctr]['ETIME'] = $arrList[$ctr]['ENDTIME'];
             //-------------------------------------------------------------------------
             $dtl = 0;
-            foreach ($arrData as $transd_data) {
+            foreach ($originalArrData as $transd_data) {
                 //---------------------------------------------------------------------------------------------------
                 if ($transd_data['transaction']['TRANSCODE'] === $transcode) {
                     //-----------------------------------------------------------------------------------------------
