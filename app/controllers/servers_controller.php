@@ -5251,9 +5251,16 @@ class ServersController extends WebServicesController
 
         $fields = array('SHIFTID', 'SHIFTNAME', 'STARTTIME', 'ENDTIME');
 
-        if (!in_array($param['orderby'], $fields)) {
-            $param['orderby'] = 'SHIFTNAME';
-        }
+        /*=============================================================
+         * update by Alberto S. Baguio
+         * reference to redmine 1902    (replace the parameter .orderby)
+         * date November 24, 2016       remove the condition on the orderby
+         *------------------------------------------------------------- */
+        $param['orderby'] = 'STARTTIME, ENDTIME, SHIFTID';
+        /* if (!in_array($param['orderby'], $fields)) {
+                $param['orderby'] = 'SHIFTNAME';
+            } 
+        * =============================================================*/
 
         if (intval($param['limit']) == 0) {
             $param['limit'] = DEFAULT_LIMIT;
