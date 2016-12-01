@@ -723,6 +723,7 @@ class MiscFunctionComponent extends Object
             # For Updating Next Reservation
             #------------------------------------------------------------------------------------------------------------------------
             $arrList[$ctr]['YOYAKU_STATUS'] = $arrData[$i]['YND']['YOYAKU_STATUS'];
+            $arrList[$ctr]['WITHMARKETING'] = $arrData[$i]['drejimarketing']['WITHMARKETING'];
             #------------------------------------------------------------------------------------------------------------------------
 
             /*----------------------------------------------------------------------------------------------------------------------*/
@@ -1478,6 +1479,27 @@ class MiscFunctionComponent extends Object
     }
     //</editor-fold>
 
+
+    function record_sort($records, $field, $reverse=false)
+    {
+        $hash = array();
+
+        foreach($records as $key => $record)
+        {
+            $hash[$record[$field].$key] = $record;
+        }
+
+        ($reverse)? krsort($hash) : ksort($hash);
+
+        $records = array();
+
+        foreach($hash as $record)
+        {
+            $records []= $record;
+        }
+
+        return $records;
+    }
 
 }
 ?>
