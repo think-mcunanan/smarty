@@ -624,8 +624,10 @@ class MiscFunctionComponent extends Object
                 $last['transaction']['ADJUSTED_ENDTIME'] >= $current['details']['STARTTIME']
             ) {
                 // 同一の予約、および時間が連続している場合
-                $last_index = count($arrData) - 1;
-                $arrData[$last_index]['transaction']['ADJUSTED_ENDTIME'] = $current['details']['ENDTIME'];
+                if ($last['transaction']['ADJUSTED_ENDTIME'] < $current['details']['ENDTIME']) {
+                    $last_index = count($arrData) - 1;
+                    $arrData[$last_index]['transaction']['ADJUSTED_ENDTIME'] = $current['details']['ENDTIME'];
+                }
             } else {
                 $current['transaction']['YOYAKUTIME'] = $current['details']['STARTTIME'];
                 $current['transaction']['ADJUSTED_ENDTIME'] = $current['details']['ENDTIME'];
