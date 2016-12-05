@@ -1,5 +1,5 @@
 <!-- Created by jonathanparel, 20160916; RM#1744; --------------------------ii -->
-<!-- SMARTPHONE -->
+<!-- IPHONE -->
 
 <div class="yoyakumail">
     <hr id="hr_slim"/>

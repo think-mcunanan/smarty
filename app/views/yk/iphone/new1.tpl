@@ -1,5 +1,6 @@
 <!-- Created by jonathanparel, 20160916; RM#1744; --------------------------ii -->
-<!-- SMARTPHONE -->
+<!-- IPHONE -->
+
 <div class="new1">
     <hr id="hr_slim"/>
     <div id="bground_mat">
