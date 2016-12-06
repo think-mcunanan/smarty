@@ -1,33 +1,30 @@
 <!--Optimized by jonathanparel, 20160906 For Mobile Devices; RM#1724; ii-->
 
-<div class="login" align="center">
-    <div id="rounded_login">
-        <form name='YkLoginForm' action="{$form_action}" method="post">
-            <font size="+2"><strong>ログイン</strong></font>
-            <hr>
-            <br />
+<div class="login">
+    <div id="bground_mat" style="width: 60%; min-width: 400px;">
+        <div>
+            <form name='YkLoginForm' action="{$form_action}" method="post">
+                <font size="+2"><strong>ログイン</strong></font>
+                <hr>
+                <br />
 
-            <strong>ユーザー名</strong>
-            <input name="username" type="text" value="{$username}" size="30" style="width: 200px;" />
-            <br />
-            <font size ="2">{$logincomment}</font></td>
-            <br />
-            <br />
+                <strong>ユーザー名</strong>
+                <input name="username" type="text" value="{$username}" size="30" style="width: 200px;" />
+                <br />
+                <font size ="2">{$logincomment}</font></td>
+                <br />
+                <br />
 
-            <strong>パスワード</strong>&nbsp;
-            <input name="password" type="password" value="{$password}" size="30" style="width: 200px;" />
-            <br />
-            <br />
-            <hr>
-            <input type="submit" name="login" class="groovybutton" value="ログイン" title="" style="cursor: pointer;">
-        </form>
-    </div>
-
-    <div id="filler">
+                <strong>パスワード</strong>&nbsp;
+                <input name="password" type="password" value="{$password}" size="30" style="width: 200px;" />
+                <br />
+                <br />
+                <hr>
+                <input type="submit" name="login" class="groovybutton" value="ログイン" title="" style="cursor: pointer;">
+            </form>
+        </div>
         <br />
-    </div>
-
-    <div id="rounded_email">
+    
         <strong>初めてのお客様は、下記のアドレスに<span style="color:red;">空メールを送信</span>して、会員登録をお願いします。</strong>
         <br />
         <br />
@@ -47,7 +44,6 @@
                 </font>
             </center>
         </form>
-        <br />
     </div>
 </div>
 <!--Optimized by jonathanparel, 20160906 For Mobile Devices; RM#1724; xx-->

@@ -31,64 +31,53 @@
         {/literal}
     </head>
 
-    <body bgcolor='#F9F9F9'>
-        <div class="pc_layout">
-            <div id="left">
-                {if $logo_image != ""}
-                    <img border='0' align='left' src="{$logo_image}" />
-                {else}
-                    <font size='5' align='left'>{$title_for_layout}</font>
-                {/if}
-            </div>
+    <body>
+        <div class="pc" style="text-align: left;">
+            {if $logo_image != ""}
+                <img border='0' align='left' src="{$logo_image}" />
+            {else}
+                <font size='5' align='left'>{$title_for_layout}</font>
+            {/if}
 
-            <div id="right">
-                {if $logoutpath}
-                    <a href='{$html->url($logoutpath)}'><img border='0' align="right" src="{$html->url('/img/logout.gif')}" /></a>
-                {/if}
-                <br />
-                <img border='0' align="right" src="{$html->url('/img/onlineyoyaku.jpg')}" />
-            </div>
+            {if $logoutpath}
+                <a href='{$html->url($logoutpath)}'><img border='0' align="right" src="{$html->url('/img/logout.gif')}" /></a>
+            {/if}
+            <br />
+            <img border='0' align="right" src="{$html->url('/img/onlineyoyaku.jpg')}" />
             <br />
             <br />
 
-            <!-- Horizontal Line -->
             <hr>
         </div>
-                
+        
+        {if $top_message}
+            <div id="title">
+                {$top_message}
+            </div>
+        {/if}
+        
         <!-- Data Insertion Point -->
-        <div class="insertion_point">
-            <br />
-            {if $top_message}
-                <p><center>{$top_message}</center></p>
-            {/if}
-            {$content_for_layout}
-            <br />
-        </div>
-
-        <div class="bottom">
-            <!-- Horizontal Line -->
-            <hr>
-              
+        {$content_for_layout}
+        
+        <!-- Horizontal Line -->
+        <hr>
+        <div style="text-align: center;">
             {if $unregpath}
-                <div align="center">
-                    <font size='2'><img border='0' src="{$html->url('/img/arrow.gif')}" /><a href="{$html->url($unregpath)}">解約はこちら</a></font>
-                </div>
+                <font size='2'><img border='0' src="{$html->url('/img/arrow.gif')}" /><a href="{$html->url($unregpath)}">解約はこちら</a></font>
                 <br />
             {/if}
-            
+
             {if $privacypath}
-                <div align="center">
-                    <br />
-                    <font size='2'><img border='0' src="{$html->url('/img/arrow.gif')}" /><a target='_blank' href="{$html->url($privacypath)}">プライバシーポリシー</a></font>
-                </div>
+                <br />
+                <font size='2'><img border='0' src="{$html->url('/img/arrow.gif')}" /><a target='_blank' href="{$html->url($privacypath)}">プライバシーポリシー</a></font>
                 <br />
             {/if}
-            
+
             <div align="center">
                 <font size="-2">POWERED BY</font><br />
                 <br />
                 <img src="{$html->url('/img/logo_footer.gif')}" width="106" height="53" />
-                
+
                 <br />
                 <font size="-2">Copyright (C) Think Inc. All rights reserved.</font>
                 <br />

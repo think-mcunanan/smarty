@@ -1,6 +1,7 @@
 <!--Optimized by jonathanparel, 20160907 For Mobile Devices; RM#1724; ii-->
 
-<div class="new1" align="center">
+<div class="new1">
+    <br />
     <form name='YkNew1Form' action="{$form_action}" method="post">
 
         <div>
@@ -13,34 +14,32 @@
             <img src="{$html->url('/img/new/5touroku.gif')}" height="25">
             <img src="{$html->url('/img/new/end.gif')}" height="20">
         </div>
-
-        <hr width="75%">
+        
+        <hr id="hr_before-button">
         <br />
             
-        {if $error != 1}
-            <div class="insertion_point" align="center">
-				<strong>指名</strong>
-				<br />
-				<br />
-				{$staffhtmltr}
-            </div>
-            <br />
-            
-            <hr width="75%">
-            <div class='buttonframe'>
+        
+            {if $error != 1}
+                <div id="bground_mat" class="insertion_point" style="width: 65%; margin: auto; min-width: 200px;"> 
+                    <strong>指名</strong>
+                    <br />
+                    <br />
+                    {$staffhtmltr}
+                
+
+                <hr id="hr_before-button">
                 <input type="submit" name="p_cancel" class="groovybutton" value="キャンセル" title="" style="cursor: pointer;">
                 <input type="submit" name="p_back" class="groovybutton" value="戻る" title="" style="cursor: pointer;">
                 <input type="submit" name="p_next" class="groovybutton" value="次へ" title="" style="cursor: pointer;">
-            </div>
-        {else}
-            <div class='buttonframe'>
+            {else}
+                <hr id="hr_before-button">
                 <input type="submit" name="p_cancel" class="groovybutton" value="キャンセル" title="" style="cursor: pointer;">
                 <input type="submit" name="p_back" class="groovybutton" value="戻る" title="" style="cursor: pointer;">
-            </div>
-        {/if}
-        
-        <input type="hidden" name="cid" value="{$companyid}" />
-        <input type="hidden" name="scd" value="{$storecode}" />
+            {/if}
+
+            <input type="hidden" name="cid" value="{$companyid}" />
+            <input type="hidden" name="scd" value="{$storecode}" />
+        </div>
     </form>
 </div>
 <!--Optimized by jonathanparel, 20160907 For Mobile Devices; RM#1724; xx-->

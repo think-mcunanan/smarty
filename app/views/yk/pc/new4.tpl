@@ -1,5 +1,7 @@
 <!--Optimized by jonathanparel, 20160909 For Mobile Devices; RM#1724; ii-->
-<div class="new4" align="center">
+<div class="new4">
+    <br />
+    
     <form name='YkNew3Form' action="{$form_action}" method="post">
         
             <div>
@@ -13,12 +15,11 @@
                 <img src="{$html->url('/img/new/end.gif')}" height="20">
             </div>
         
-        <hr width="75%">
-        
-        <p><font size="2">※ご予約可能な時間のみ表示されます</font></p>
-        
-        <div>
-            <table border='1' style='border-collapse: collapse; border: 1px solid #cccccc;' width='80%' cellpadding='5'>
+        <hr id="hr_before-button">
+    
+        <div id="bground_mat" style="width: 60%; min-width: 200px;">
+            <p><font size="2">※ご予約可能な時間のみ表示されます</font></p>
+            <table border='0' style='border-collapse: collapse; border: 0px solid #cccccc;' width='100%' cellpadding='5'>
                 {foreach from=$AvailableTimes key=val item=label}
                     <tr>
                         <td align='center'>
@@ -41,10 +42,8 @@
                     <a href='{$yoyaku_path}/new4/{$sessionid}/0/{$nextpage}/ts:{$ts}'>次へ &gt;&gt;</a>
                 {/if}
             </span>
-        </div>
         
-        <hr width="75%">
-        <div class='buttonframe'>
+            <hr id="hr_before-button">
             <input type="submit" name="p_cancel" class="groovybutton" value="キャンセル" title="" style="cursor: pointer;">
             <input type="submit" name="p_back" class="groovybutton" value="戻る" title="" style="cursor: pointer;">
         </div>

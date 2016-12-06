@@ -1,5 +1,5 @@
 <!-- Created by jonathanparel, 20160925; RM#1724; -------------------------ii-->
-<!-- SMARTPHONE -->
+<!-- IPHONE -->
 
 <div class="new0">
     <hr id="hr_slim"/>

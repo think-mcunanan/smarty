@@ -1,4 +1,5 @@
 <!-- Created by jonathanparel, 20160923; RM#1724; -------------------------ii-->
+<!-- SMARTPHONE -->
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html lang="ja" xml:lang="ja" xmlns="http://www.w3.org/1999/xhtml">
@@ -19,17 +20,17 @@
     </head>
     
     <body>
-        <div id="smartphone">
-            <div class="head">
+        <div class="smartphone">
+            <div id="head">
                 {if $logo_image != ""}
-                    <img border='0' src="{$logo_image}" /><br />
+                    <img border='0' src="{$logo_image}" />
                 {else}
                     ～ {$title_for_layout} ～
                 {/if}
             </div>
             <hr />
             
-            <div class="mesage">
+            <div id="title">
                 {if $top_message}
                     {$top_message}
                 {/if}
@@ -39,7 +40,7 @@
             {$content_for_layout}
             
             <hr />
-            <div class="foot">
+            <div id="foot">
                 {if $unregpath}
                     <a href="{$html->url($unregpath)}">解約はこちら</a>
                 {/if}
@@ -52,7 +53,7 @@
                     <li><a target='_blank' href="{$html->url($sitepath)}">ホームページ</a></li>
                 {/if}
                 
-                <br />
+                <hr id="hr_slim"/>
                 (C) 株式会社シンク
             </div>
         </div>

@@ -1,5 +1,5 @@
 <!-- Created by jonathanparel, 20160923; RM#1724; -------------------------ii-->
-<!-- SMARTPHONE -->
+<!-- IPHONE -->
 
 <div class="login">
     <div id="title">
