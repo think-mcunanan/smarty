@@ -6857,8 +6857,8 @@ class ServersController extends WebServicesController
                 * date Oct. 26 2016
                 * i replace $param['details'][$i]['STAFFCODESIMEI'] to $tmpStaffCode
                 *=============================================================================*/
-                $tmpStaffCode =0;
-               if ($param['details'][$i]['STAFFCODESIMEI'] == -1){
+                $tmpStaffCode = $param['details'][$i]['STAFFCODESIMEI'];
+               if ($tmpStaffCode == -1){
                    $tmpStaffCode = $param['STAFFCODE'];
                }
                /*=============================================================================*/
