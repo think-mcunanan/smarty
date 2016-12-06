@@ -14,7 +14,7 @@
             <img src="{$html->url('/img/new/end.gif')}" height="20">
 
         <hr id="hr_before-button">
-        <div id="bground_mat" style="width: 80%;">
+        <div id="bground_mat" style="width: 80%; min-width: 400px">
             <div class="rbroundboxc">
                 <div class="rbtopc">
                     <div>

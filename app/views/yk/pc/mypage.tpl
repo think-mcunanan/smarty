@@ -1,5 +1,5 @@
 <!--Optimized by jonathanparel, 20160907 For Mobile Devices; RM#1724; ii-->
-<div class="mypage" style="margin: auto;">
+<div class="mypage" style="margin: auto; min-width: 400px;">
     <br />
     <div id="bground_mat" style="width:80%;">
         

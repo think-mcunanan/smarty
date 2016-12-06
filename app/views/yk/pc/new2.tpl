@@ -17,7 +17,7 @@
             
         <hr id="hr_before-button">
         
-        <div id="bground_mat" style="width:60%;">
+        <div id="bground_mat" style="width:60%; min-width: 200px">
             <table border='1' style='border-collapse: collapse; border: 1px solid #dddddd;' width=100% cellpadding='5' align="center">
                 {if $menu_name_only != 1}
                     <tr bgcolor='#efefef'>

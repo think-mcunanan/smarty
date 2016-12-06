@@ -1,6 +1,6 @@
 <!--Optimized by jonathanparel, 20160907 For Mobile Devices; RM#1724; ii-->
 
-<div class="new0">
+<div class="new0" style="min-width: 400px;">
     <br />
     <form name='YkNew0Form' action="{$form_action}" method="post">
 

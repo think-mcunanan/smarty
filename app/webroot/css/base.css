@@ -131,122 +131,6 @@ tbody {
     padding-right: 25pt;
 }
 
-/* Added by jonathanparel, 20160906; RM#1724;-------------------------------ii*/
-/* PC_LAYOUT -----------------------------------------------------------------*/
-/* LOGIN ---------------------------------------------------------------------*/
-
-#filler {
-    display:inline-block;
-}
-
-#child {
-    text-align: center;
-    letter-spacing: 10px;
-    white-space: nowrap;
-    vertical-align: middle;
-    display:inline-block;
-}
-
-#radio_button {
-    max-width:300px;
-    margin: auto;
-    border: 2px solid #aaaaaa;
- }
- 
- 
-    
-/* NEW1 ----------------------------------------------------------------------*/
-.div_new1 {
-    max-width: 240px;
-}
-
-
-
-/* COMMON TO MAIN FORMS */
-#smartphone, #login, #mypage, #new0, #new1, #new2, #new3, #new4, #reg {
-    width: 100%;
-    text-align: center;
-    font-family: "Times New Roman", Georgia, Serif;
-}
-
-.slim_hr {
-    height: 1px;
-    margin-bottom: -10px;
-    visibility: hidden;
-}
-
-.head {
-    font-size: 180%;
-    font-weight: bold;
-}
-
-.message {
-     width: 80%;
-     border: 1pt;
-     background-color: #FFD6CF;
-}
-
-.foot {
-     font-size: 100%;
-     font-weight: bold;
-}
-
-/* COMMON TO ALL FORMS */
-
-.login {
-     width: 90%;
-}
-
-.form {
-     background-color: lightgray;
-     width: 90%;
-     border-radius: 25px;
-     margin: auto;
-}
-
-.input_center {
-     text-align: center;
-}
-
-a.button {
-    -webkit-appearance: button;
-    -moz-appearance: button;
-    appearance: button;
-
-    text-decoration: none;
-    color: initial;
-    padding-left: 10px;
-    padding-right: 10px;
-}
-
-    #filler {
-        display:inline-block;
-    }
-    
-    a.groovybutton2 {
-	font-size: 16px;
-	color: #FFF;
-	width: 180px;
-	height: 28px;
-	/*background-color: #0086E0;*/
-	border-style: solid;
-        text-align:center;
-	/*border-color: #5081E9;*/
-	border-width: 3px;
-        /* グラデーションを加える */
-        background-color: #3699D0;
-        background: -moz-linear-gradient(top, #56B9F0, #3699D0); /* Mozilla */
-        background: -webkit-gradient(linear, left top, left bottom, from(#56B9F0), to(#3699D0)); /* Webkit */
-
-        /* 1pxのラインを加える */
-        border: 1px solid #02659C;
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7),
-                    inset 1px 0 0 rgba(255, 255, 255, 0.3),
-                    inset -1px 0 0 rgba(255, 255, 255, 0.3),
-                    inset 0 -1px 0 rgba(255, 255, 255, 0.2);
-        padding-left: 20px;
-        padding-right: 20px;
-}
 
 /* CSS For PC, iPhones & Smartphones                      */
 /* Added by jonathanparel, 20160906; RM#1724;-------ii*/
@@ -310,5 +194,20 @@ hr {
     margin-bottom: 10px;
 	visibility: visible;
 }
+
+#staffButton {
+    width: 200px;
+    height: 18px;
+    display: inline-block;
+    background-color: pink;
+}
+
+#staffData {
+    width: 200px;
+    border: 1px solid #eeeeee;
+    display: inline-block;
+}    
+
+/*--------------------------------------------------------------------*/
 
 /* Added by jonathanparel, 20160906; RM#1724;-------xx*/

@@ -1,7 +1,7 @@
 <!--Optimized by jonathanparel, 20160906 For Mobile Devices; RM#1724; ii-->
 
 <div class="login">
-    <div id="bground_mat" style="width: 60%; min-width: 30%;">
+    <div id="bground_mat" style="width: 60%; min-width: 400px;">
         <div>
             <form name='YkLoginForm' action="{$form_action}" method="post">
                 <font size="+2"><strong>ログイン</strong></font>

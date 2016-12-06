@@ -18,26 +18,27 @@
         <hr id="hr_before-button">
         <br />
             
-        <div id="bground_mat" style="width: 65%;">
-        {if $error != 1}
-            
-            <strong>指名</strong>
-            <br />
-            <br />
-            {$staffhtmltr}
-
-            <hr id="hr_before-button">
-            <input type="submit" name="p_cancel" class="groovybutton" value="キャンセル" title="" style="cursor: pointer;">
-            <input type="submit" name="p_back" class="groovybutton" value="戻る" title="" style="cursor: pointer;">
-            <input type="submit" name="p_next" class="groovybutton" value="次へ" title="" style="cursor: pointer;">
-        {else}
-            <hr id="hr_before-button">
-            <input type="submit" name="p_cancel" class="groovybutton" value="キャンセル" title="" style="cursor: pointer;">
-            <input type="submit" name="p_back" class="groovybutton" value="戻る" title="" style="cursor: pointer;">
-        {/if}
         
-        <input type="hidden" name="cid" value="{$companyid}" />
-        <input type="hidden" name="scd" value="{$storecode}" />
+            {if $error != 1}
+                <div id="bground_mat" class="insertion_point" style="width: 65%; margin: auto; min-width: 200px;"> 
+                    <strong>指名</strong>
+                    <br />
+                    <br />
+                    {$staffhtmltr}
+                
+
+                <hr id="hr_before-button">
+                <input type="submit" name="p_cancel" class="groovybutton" value="キャンセル" title="" style="cursor: pointer;">
+                <input type="submit" name="p_back" class="groovybutton" value="戻る" title="" style="cursor: pointer;">
+                <input type="submit" name="p_next" class="groovybutton" value="次へ" title="" style="cursor: pointer;">
+            {else}
+                <hr id="hr_before-button">
+                <input type="submit" name="p_cancel" class="groovybutton" value="キャンセル" title="" style="cursor: pointer;">
+                <input type="submit" name="p_back" class="groovybutton" value="戻る" title="" style="cursor: pointer;">
+            {/if}
+
+            <input type="hidden" name="cid" value="{$companyid}" />
+            <input type="hidden" name="scd" value="{$storecode}" />
         </div>
     </form>
 </div>

@@ -2,7 +2,7 @@
 <div class="yoyakumail">
     <br />
     
-    <div id="bground_mat" style="width: 60%">
+    <div id="bground_mat" style="width: 60%; min-width: 400px;">
         {if $mail_send == 1}
             ご利用ありがとうございました。
         {else}

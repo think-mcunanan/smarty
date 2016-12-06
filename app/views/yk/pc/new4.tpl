@@ -17,7 +17,7 @@
         
         <hr id="hr_before-button">
     
-        <div id="bground_mat" style="width: 60%">
+        <div id="bground_mat" style="width: 60%; min-width: 200px;">
             <p><font size="2">※ご予約可能な時間のみ表示されます</font></p>
             <table border='0' style='border-collapse: collapse; border: 0px solid #cccccc;' width='100%' cellpadding='5'>
                 {foreach from=$AvailableTimes key=val item=label}

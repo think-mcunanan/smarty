@@ -16,7 +16,7 @@
         
         <hr id="hr_before-button">
         
-        <div id="bground_mat" style="width: 60%;">
+        <div id="bground_mat" style="width: 60%; min-width: 500px">
             <table border='1' style='border-collapse: collapse;' align="center" width=100% cellpadding='5'>
                 <tr align='center'>
                     <td>{if $prevlink != ""} <font size='5'><a href='{$yoyaku_path}/new3/{$sessionid}/{$prevlink}/ts:{$ts}'>&lt;</a></font> {else} <font color='#AAAAAA' size='5'>&lt;</font> {/if}</td>

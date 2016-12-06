@@ -1,7 +1,7 @@
 <!--Optimized by jonathanparel, 20160907 For Mobile Devices; RM#1724; ii-->
 <div class="reg">
     <br />
-    <div id="bground_mat" style="width: 80%;">
+    <div id="bground_mat" style="width: 80%; min-width: 400px;">
         <form name='YkRegForm' action="{$form_action}" method="post">
 
             <table border='0' cellpadding='6' align="center">
