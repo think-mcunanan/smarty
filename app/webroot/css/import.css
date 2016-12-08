@@ -1,3 +1,83 @@
 @charset "UTF-8";
 @import "base.css";
 
+
+
+
+
+
+
+/* CSS For Smartphones & iPhones */
+/* By jonathanparel 20161202 */
+
+/* COMMON TO MAIN FORMS */
+#iphone, #smartphone, #login, #mypage, #new0, #new1, #new2, #new3, #new4, #reg {
+    width: 100%;
+    text-align: center;
+    font-family: "Times New Roman", Georgia, Serif;
+}
+
+.slim_hr {
+    height: 1px;
+    margin-bottom: -10px;
+    visibility: hidden;
+}
+
+.head {
+    font-size: 180%;
+    font-weight: bold;
+}
+
+.message {
+     width: 80%;
+     border: 1pt;
+     background-color: #FFD6CF;
+}
+
+.foot {
+     font-size: 100%;
+     font-weight: bold;
+}
+
+
+
+
+#background_mat {
+	text-align: center;
+	border-radius: 15px;
+	background-color: red;
+	padding: 20px;
+	width: 280px;
+	height: 245px;
+}
+
+
+
+
+
+
+	#iphone_rounded_login {
+        text-align: center;
+        border-radius: 15px;
+        background: #eeeeee;
+        padding: 20px;
+        width: 280px;
+        height: 245px;
+    }
+    
+	#iphone_new1_mat {
+        text-align: center;
+        border-radius: 15px;
+        background: #eeeeee;
+        padding: 20px;
+        width: 280px;
+        height: 100px;
+    }
+	
+	#iphone_reg_mat {
+        text-align: center;
+        border-radius: 15px;
+        background: #eeeeee;
+        padding: 10px;
+        width: 280px;
+    }
