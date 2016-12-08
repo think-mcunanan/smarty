@@ -3495,14 +3495,14 @@ class ServersController extends WebServicesController
                     StaffAssignToStore.STAFFCODE,
 		            Staff.STORECODE,
 		            Staff.STAFFNAME,
-		            ifnull(OrigStaffRowsHistory.ROWS,".DEFAULT_ROWS.") as origrows,
-		            ifnull(OrigStaffRowsHistory.PHONEROWS, ".DEFAULT_PHONEROWS.") as origphonerows,
 		            Store.STORENAME,
 		            if(Staff.STORECODE = ".$param['STORECODE'].",
 				            StaffAssignToStore.WEBYAN_DISPLAY,
 				            if(Staff.STAFFCODE = 0,
 					        StaffAssignToStore.WEBYAN_DISPLAY, 0)
 		            ) as WEBYAN_DISPLAY,
+                    IFNULL(StaffRowsHistory.ROWS, ".DEFAULT_ROWS.") as origrows,
+		            IFNULL(StaffRowsHistory.PHONEROWS, ".DEFAULT_PHONEROWS.") as origphonerows,
 		            IFNULL(StaffRowsHistory.ROWS, ".DEFAULT_ROWS.") as ROWS,
 		            IFNULL(StaffRowsHistory.PHONEROWS, ".DEFAULT_PHONEROWS.") as PHONEROWS,
 		            CONVERT(tblstafftypes.STAFFTYPES USING UTF8) AS STAFFTYPES,
@@ -3545,35 +3545,6 @@ class ServersController extends WebServicesController
                             GROUP BY TMPTBL.staffcode
                             ) as StaffRowsHistory
                     ON StaffRowsHistory.STAFFCODE = Staff.STAFFCODE
-                LEFT JOIN (
-						    SELECT *
-						    FROM(
-								    SELECT
-										    StaffRowsHistory.STAFFCODE,
-										    StaffRowsHistory.PHONEROWS,
-										    StaffRowsHistory.ROWS,
-										    StaffRowsHistory.DATECHANGE
-								    FROM staffrowshistory as StaffRowsHistory
-								    WHERE StaffRowsHistory.DATECHANGE <= '". $param['date'] ."'
-								    AND StaffRowsHistory.staffcode > 0
-
-						            UNION ALL
-
-								    SELECT
-										    StaffRowsHistory.STAFFCODE,
-										    StaffRowsHistory.PHONEROWS,
-										    StaffRowsHistory.ROWS,
-										    StaffRowsHistory.DATECHANGE
-								    FROM staffrowshistory as StaffRowsHistory
-								    WHERE StaffRowsHistory.DATECHANGE <= '". $param['date'] ."'
-										    AND StaffRowsHistory.staffcode = 0
-										    AND StaffRowsHistory.storecode = " . $param['STORECODE'] ."
-
-							        ORDER BY STAFFCODE, DATECHANGE DESC
-						        ) as TMPTBL
-						    GROUP BY TMPTBL.staffcode
-					    ) as OrigStaffRowsHistory
-		            ON OrigStaffRowsHistory.STAFFCODE = Staff.STAFFCODE
                 LEFT JOIN store_settings as Settings
                     ON Settings.STORECODE = StaffAssignToStore.STORECODE
                     AND Settings.OPTIONNAME = 'HIDE_HOLIDAY_STAFF'
