@@ -1641,6 +1641,8 @@ class ServersController extends WebServicesController
                                         'TEMPSTATUS'        => 'xsd:int',
                                         'TRANSCODE'         => 'xsd:string',
                                         'MENUNAME'          => 'xsd:string',
+                                        'BMTYPE'            => 'xsd:string',
+                                        'RVTYPE'            => 'xsd:string',
                                  )),
                              '_yoyakuDetailsInformation' => array(
                                         'array' => 'yoyakuDetailsInformation'),
@@ -8142,6 +8144,28 @@ class ServersController extends WebServicesController
      * @return return_yoyakuDetailsInformation
      */
     function wsSearchYoyakuDetails($sessionid, $begindate, $enddate, $storecode, $staffcode, $uketsukestaffcode, $staffcode_sthdr) {
+
+
+        $bmrvqueryfield = " CASE WHEN ROUTE ='アプリ' THEN '1'
+					           WHEN ROUTE ='連携システム' AND (RESERVATION_SYSTEM='ホットペッパービューティー' OR RESERVATION_SYSTEM='ホットペッパービューティー（キレイサロン）')   THEN '2'
+					           WHEN ROUTE ='連携システム' THEN '3'
+					           WHEN ROUTE ='WEB予約' THEN '4'
+					           WHEN ROUTE ='電話予約' THEN '5'
+					           WHEN ISNULL(ROUTE) THEN NULL
+ 					         ELSE '6' END as BMTYPE,
+    			 	         CASE WHEN ALLIANCE_CUSTOMER_ID = 'guest' AND LEFT(CUSTOMER_NAME, 3)='HPB' THEN '7'
+					           WHEN LEFT(ALLIANCE_CUSTOMER_ID, 1)='A' THEN '8'
+					           WHEN ISNULL(ALLIANCE_CUSTOMER_ID) THEN NULL
+					           ELSE '9' END as RVTYPE " ;
+
+        $bmrvqueryjoin = " LEFT JOIN bm_reservation bm_r
+	       		             ON bm_r.TRANSCODE = s_t.TRANSCODE
+			 	               LEFT	JOIN rv_reservation_key rvrk
+  					         ON rvrk.TRANSCODE = s_t.TRANSCODE
+				               LEFT JOIN  rv_reservation rv
+				             ON rv.ALLIANCE_RESERVE_ID = rvrk.ALLIANCE_RESERVE_ID ";
+
+
         $whereQuery = "";
         if ($begindate !== null) $whereQuery .= "AND s_t.TRANSDATE >= '{$begindate}' ";
         if ($enddate !== null) $whereQuery .= "AND s_t.TRANSDATE <= '{$enddate}' ";
@@ -8172,7 +8196,7 @@ class ServersController extends WebServicesController
                FROM store_transaction_details str_dtl
                     JOIN store_services str_svr ON str_dtl.gcode = str_svr.gcode
                WHERE str_dtl.delflg IS NULL AND str_dtl.claimed = 0 AND str_dtl.transdate = s_t.TRANSDATE AND str_dtl.transcode = s_t.TRANSCODE AND str_dtl.keyno = s_t.keyno
-              ) as MENUNAME " .
+              ) as MENUNAME, " . $bmrvqueryfield.
             "FROM store_transaction s_t " .
             "  join store_transaction_details tmp_std on s_t.transcode = tmp_std.transcode and tmp_std.delflg is null " .
             "LEFT JOIN yoyaku_next_details y_n " .
@@ -8186,7 +8210,7 @@ class ServersController extends WebServicesController
             " " .
             "LEFT JOIN staff u_s " .
             "ON u_s.STAFFCODE = y_d.UKETSUKESTAFF " .
-            " " .
+            " " .$bmrvqueryjoin.
             "WHERE" .
             "  NOT ( " .
             "    s_t.DELFLG IS NOT NULL AND " .
@@ -8226,6 +8250,8 @@ class ServersController extends WebServicesController
             $result["ORIGINATION"]       = $row["s_t"]["ORIGINATION"];
             $result["TEMPSTATUS"]        = $row["s_t"]["TEMPSTATUS"];
             $result["MENUNAME"]          = $row[0]["MENUNAME"];
+            $result["BMTYPE"]            = $row[0]["BMTYPE"];
+            $result["RVTYPE"]            = $row[0]["RVTYPE"];
             $results["records"][]        = $result;
         }
 
