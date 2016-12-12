@@ -8198,7 +8198,7 @@ class ServersController extends WebServicesController
                WHERE str_dtl.delflg IS NULL AND str_dtl.claimed = 0 AND str_dtl.transdate = s_t.TRANSDATE AND str_dtl.transcode = s_t.TRANSCODE AND str_dtl.keyno = s_t.keyno
               ) as MENUNAME, " . $bmrvqueryfield.
             "FROM store_transaction s_t " .
-            "  join store_transaction_details tmp_std on s_t.transcode = tmp_std.transcode and tmp_std.delflg is null " .
+            " LEFT JOIN store_transaction_details tmp_std on s_t.transcode = tmp_std.transcode  " .
             "LEFT JOIN yoyaku_next_details y_n " .
             "ON s_t.TRANSCODE = y_n.NEXTCODE " .
             " " .
