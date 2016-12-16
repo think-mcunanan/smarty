@@ -4798,7 +4798,7 @@ class ServersController extends WebServicesController
 
 
         if (!in_array($param['orderby'], $fields)) {
-            $param['orderby'] = $this->StoreService->primaryKey;
+            $param['orderby'] = array("orderby, GDCODE, KEYCODE, GCODE");
         }
 
         if (intval($param['limit']) == 0) {
@@ -5047,7 +5047,7 @@ class ServersController extends WebServicesController
             if ($param['STORECODE'] <> 0) {
                 $v = $this->StoreService->find('all', array('conditions' => $criteria,
                                                             'fields'     => $fields,
-                                                            'order'      => array($param['orderby']),
+                                                            'order'      => $param['orderby'],
                                                             'limit'      => $param['limit'],
                                                             'page'       => $param['page']));
             } else {
@@ -5064,7 +5064,7 @@ class ServersController extends WebServicesController
             if ($param['STORECODE'] <> 0) {
                 $v = $this->StoreService->find('all', array('conditions' => $criteria,
                                                             'fields'     => $fields,
-                                                            'order'      => array($param['orderby'])));
+                                                            'order'      => $param['orderby']));
             } else {
                 $v = $this->StoreService->query($sql);
             }
