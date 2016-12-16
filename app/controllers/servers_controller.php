@@ -8153,7 +8153,7 @@ class ServersController extends WebServicesController
 					           WHEN ROUTE ='電話予約' THEN '5'
 					           WHEN ISNULL(ROUTE) THEN NULL
  					         ELSE '6' END as BMTYPE,
-    			 	         CASE WHEN ALLIANCE_CUSTOMER_ID = 'guest' AND LEFT(CUSTOMER_NAME, 3)='HPB' THEN '7'
+    			 	         CASE WHEN ALLIANCE_CUSTOMER_ID = 'guest' AND CUSTOMER_NAME = 'HPB' THEN '7'
 					           WHEN LEFT(ALLIANCE_CUSTOMER_ID, 1)='A' THEN '8'
 					           WHEN ISNULL(ALLIANCE_CUSTOMER_ID) THEN NULL
 					           ELSE '9' END as RVTYPE " ;
