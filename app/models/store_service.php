@@ -25,7 +25,7 @@ class StoreService extends AppModel
 {
 	var $name       = 'StoreService';
     var $useTable   = 'store_services';
-    var $primaryKey	= 'orderby, gdcode, keycode, gcode';
+    var $primaryKey	= 'GCODE';
 
     var $database_set = false;
     var $useDbConfig = 'database_schema';
