@@ -45,7 +45,8 @@ class YkController extends AppController {
             'YoyakuStaffServiceTime',
             'Storetype',
             'Stafftype',
-            'Syscode' //Added by MarvinC 2015-07-03
+            'Syscode', //Added by MarvinC 2015-07-03
+            'MobasuteStoreInfo'
             );
             var $components = array(
             'KeitaiSession',
@@ -373,7 +374,6 @@ class YkController extends AppController {
                             $delete_date = str_replace("p_delete","",$key);
                         }
                 }
-
                                 
                 if($delete_date != "" ){
                 //if($this->params['form']['p_delete'] ||  ) {
@@ -483,7 +483,7 @@ class YkController extends AppController {
 
                 $this->set('top_message', $top_message);
                 $this->pageTitle = $store_info['STORENAME'];
-                
+
                 //$this->set('prevdate_b',  $transhistory2['prevtrans']['date']);
                 //$this->set('prevstaff_b', $transhistory2['prevtrans']['staff']);
                 //$this->set('prevstname_b',$transhistory2['prevtrans']['storename']);
@@ -494,9 +494,7 @@ class YkController extends AppController {
                 */
                 //nexttransactions
                 $this->set('nexttrans', $transhistory2['nexttrans']);
-                
                 $this->set('addyoyakub',$addyoyaku_button);
-                
 
                 //$this->set('nextdate',  $transhistory['nexttrans']['date']);
                 //$this->set('nexttime',  $transhistory['nexttrans']['time']);
@@ -514,6 +512,7 @@ class YkController extends AppController {
                 $this->set('privacypath', "privacy/".$session_info['companyid']."/".$session_info['storecode']);
                 $this->set('cancellim', $store_info['CancelLimit']);
                 $this->set('form_action', MAIN_PATH."yk/mypage/".$companyid."/".$storecode."/".$sessionid);
+
                 //add_access log
                 $this->KeitaiSession->SetAccesslog($this, $session_info['dbname'], $sessionid, $session_info['ccode'], $session_info['storecode'], "mypage",1);
                 $this->prepare_carrier_output($session_info['carrier'], $store_info['storeid']);
@@ -2475,10 +2474,6 @@ class YkController extends AppController {
                 //add_access log sendmail->110/ nosendmail->100
                 $this->KeitaiSession->SetAccesslog($this, $session_info['dbname'], $sessionid, $session_info['ccode'], $session_info['storecode'], "yoyakumail",($mail_send*10) + 100);
                 $this->prepare_carrier_output($session_info['carrier'], $store_info['storeid']);
-                
-
-                
-                
             }
             
             /**
@@ -2486,8 +2481,8 @@ class YkController extends AppController {
              * Privacy Policy
              *
              * @param int $companyid
-             * @param int $storecode
-             */
+               * @param int $storecode
+           */
             function privacy($companyid = 0, $storecode = 0) {
 
                 $store_info = $this->KeitaiSession->GetStoreInfo($this,
@@ -2498,12 +2493,44 @@ class YkController extends AppController {
                     $this->_redirect(FAIL_REDIRECT,false);
                     exit;
                 }
+                
                 $this->pageTitle = $store_info['STORENAME'];
                 $this->set('storename', $store_info['STORENAME']);
                 $this->prepare_carrier_output($this->KeitaiSession->getMobileCarrier(),
                 $store_info['storeid']);
             }
+            
+            /**
+             * プラィバシーポリシー
+             * Privacy Policy
+             *
+             * @param int $companyid
+             * @param int $storecode
+             */
+            
+            // Added by jonathanparel, 20160929; RM#1789 ----------------------------------------------------------ii
+            function message($companyid = 0, $storecode = 0) {
+                
+                $store_info = $this->KeitaiSession->GetMobasuteStoreInfo($this, $companyid, $storecode, "");
+                
+                if($store_info == false) {
+                    $this->_redirect(FAIL_REDIRECT,false);
+                    exit;
+                }
+                
+                $this->pageTitle = $store_info['pagetitle'];
+                $this->set('storename', $store_info['STORENAME']);
+               
+                if($store_info['message']==""){
+                    $this->set('message', "There is no message.");
+                }else{
+                    $this->set('message', $store_info['message']);
+                }
+                $this->prepare_carrier_output($this->KeitaiSession->getMobileCarrier(), $store_info['storeid']);
+            }
+            // Added by jonathanparel, 20160929; RM#1789 ---------------------------------------------------------xx
 
+            
             /**
              * 利用規約
              * Terms of service
@@ -2600,6 +2627,11 @@ class YkController extends AppController {
                     if ($errcode>0) $this->layout = 'empty_utf';
                 }
                 else if($carrier == "smartphone") {  // Added by jonathanparel, 20160923; RM#1724;
+                    $this->layout = "iphone_layout";
+                    $logo_image = "ob_logo.png";
+                    if ($errcode>0) $this->layout = 'empty_utf';
+                }
+                else if($carrier == "smartphone") {  // Added by jonathanparel, 20160923; RM#1724;
                     $this->action = "smartphone/".$this->action;
                     $this->layout = "smartphone_layout";
                     $logo_image = "ob_logo.png";
@@ -2668,5 +2700,4 @@ class YkController extends AppController {
                 $this->redirect($url, $status, $exit);
             }
 }
-
 ?>
