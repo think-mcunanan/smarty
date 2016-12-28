@@ -199,7 +199,7 @@ class KeitaiSessionComponent extends Object
         ));
         if (!empty($v)) {
             $arrReturn = array_merge($v[0]['LogSessionKeitai'], $v[0]['Company']);
-         
+
             $tmparr = explode("|",$arrReturn['ykstatus']);
 
             $arrReturn['y_status']   = intval($tmparr[0]);
@@ -217,8 +217,8 @@ class KeitaiSessionComponent extends Object
             return false;
         }
     }
-    
-    
+
+
     /**
      * セッションを確認する
      * Checks for the validity of session
@@ -242,9 +242,9 @@ class KeitaiSessionComponent extends Object
         if (!empty($v)) {
             $arrReturn = array_merge($v[0]['LogSessionKeitai'], $v[0]['Company']);
 
-            //unserialize 
+            //unserialize
             $ret = unserialize($arrReturn['ykstatus']);
-            
+
             $arrReturn['y_status']   = $ret['y_status'];
             $arrReturn['syscode']    = $ret['syscode'];
             $arrReturn['y_staff']    = $ret['y_staff'];
@@ -252,7 +252,7 @@ class KeitaiSessionComponent extends Object
             $arrReturn['y_date']     = $ret['y_date'];
             $arrReturn['y_time']     = $ret['y_time'];
             $arrReturn['carrier']    = $this->getMobileCarrier();
- 
+
             return $arrReturn;
         } else {
             return false;
@@ -266,9 +266,9 @@ class KeitaiSessionComponent extends Object
      * @return string
      */
     function getMobileCarrier () {
-        
+
         $userAgent = $_SERVER['HTTP_USER_AGENT'];
-        
+
         // Added by jonathanparel, 20160914; RM#1744;
         $smartphones = '/(Motorola|DROIDX|DROID BIONIC|HTC|HTC.*(Sensation|Evo|Vision|Explorer|6800|8100|8900|A7272|S510e|C110e
                                   |Legend|Desire|T8282)|APX515CKT|Qtek9090|APA9292KT|HD_mini|Sensation.*Z710e|PG86100|Z715e
@@ -285,7 +285,7 @@ class KeitaiSessionComponent extends Object
                                   |p-9521|telco|sl74|ktouch|m4u\/|me702|8325rc|kddi|phone|lg |sonyericsson|samsung|240x|x320
                                   |vx10|nokia|sony cmd|motorola|up.browser|up.link|mmp|symbian|smartphone|midp|wap|vodafone
                                   |o2|pocket|kindle|mobile|psp|treo)/i';
-        
+
         if (preg_match('/^DoCoMo/', $userAgent)) {
             if(intval(substr($userAgent, 7, 1)) < 2) {
                 $carrier = 'docomo_old'; // No table support
@@ -337,7 +337,7 @@ class KeitaiSessionComponent extends Object
         $controller->LogSessionKeitai->set('last_activity', date("Y-m-d H:i:s"));
         return $controller->LogSessionKeitai->save();
     }
-    
+
      /**
      * セッションステータスをアップデートする serialize対応版
      * Updates the sessions status
@@ -357,8 +357,8 @@ class KeitaiSessionComponent extends Object
         $controller->LogSessionKeitai->set('last_activity', date("Y-m-d H:i:s"));
         $controller->LogSessionKeitai->save();
     }
-    
-    
+
+
 
     /**
      * 顧客情報をアップデート
@@ -405,9 +405,9 @@ class KeitaiSessionComponent extends Object
         if (isset($sex)) { $controller->Customer->set("SEX", $sex); }
         if (isset($bday)) { $controller->Customer->set("BIRTHDATE", $bday); }
         if (isset($mailkubun)) { $controller->Customer->set("MAILKUBUN", $mailkubun); }
-        //echo "<pre style=\"border-style: dashed;\">";var_dump(strpos($email,"@") ,strpos($email,"@") > 0,$carrier == "pc" ? "MAILADDRESS1" : "MAILADDRESS2", $email);echo "</pre>"; exit; 
+        //echo "<pre style=\"border-style: dashed;\">";var_dump(strpos($email,"@") ,strpos($email,"@") > 0,$carrier == "pc" ? "MAILADDRESS1" : "MAILADDRESS2", $email);echo "</pre>"; exit;
         if (isset($email) && $email !== 0 && strpos($email,"@") > 0 ) { $controller->Customer->set($carrier == "pc" ? "MAILADDRESS1" : "MAILADDRESS2", $email); }
-        
+
         //====================================================================================
         // Created By: Homer Pasamba <homer.pasamba@think-ahead.jp>
         // Created Date: 2013/03/08
@@ -431,15 +431,15 @@ class KeitaiSessionComponent extends Object
                 //----------------------------------------------------------------------------
             }// End if($carrier == "pc")
             //--------------------------------------------------------------------------------
-            if (isset($CustCreatedFrom)) { 
+            if (isset($CustCreatedFrom)) {
                 //----------------------------------------------------------------------------
-                $controller->Customer->set("CREATEDFROMCODE", $CustCreatedFrom); 
+                $controller->Customer->set("CREATEDFROMCODE", $CustCreatedFrom);
                 //----------------------------------------------------------------------------
             }// End if (isset($CustCreatedFrom))
             //--------------------------------------------------------------------------------
         }// End if ($session_info["y_status"] == 8)
         //====================================================================================
-        
+
         $controller->Customer->save();
 
         return $ccode;
@@ -497,7 +497,7 @@ class KeitaiSessionComponent extends Object
         if (empty($v)) {
             return false;
         }
-
+        
         $arrReturn = $v[0]['Store'];
         $arrReturn['dbname']  = $dbname;
         $arrReturn['logintype'] = $logintype;
@@ -572,6 +572,74 @@ class KeitaiSessionComponent extends Object
 
         return $arrReturn;
     }
+    
+    // Added by jonathanparel, 20160930; RM#1789 -----------------------------------------------------ii
+    /**
+     * スタッフリストを読み込む
+     * Get Mobasute Store Information
+     *
+     * @param controller &$controller
+     * @param companyid
+     * @param int $storecode
+     * @param string $dbname
+     */
+    function GetMobasuteStoreInfo(&$controller, $companyid, $storecode, $dbname = "") {
+        
+        if(intval($companyid) == 0 || intval($storecode) == 0) {
+            return false;
+        }
+
+        if($dbname == "") {
+
+            $c = $controller->Company->find('all', array(
+                 'conditions' => array('Company.companyid' => $companyid),
+                 'fields'     => array('Company.dbname','Company.logintype')));
+
+            if (empty($c)) {
+                return false;
+            }
+            $dbname = $c[0]['Company']['dbname'];
+            $logintype = $c[0]['Company']['logintype'];
+        }
+
+        $account_data = $controller->StoreAccount->find('all', array(
+            'conditions' => array('StoreAccount.companyid'    => $companyid,
+                                  'StoreAccount.storecode'    => $storecode,
+                                  'WebyanAccount.yoyaku_flag' => 1  ),
+            'fields'     => array('WebyanAccount.storeid','WebyanAccount.tos_flg')));
+
+        if(empty($account_data)) {
+            return false;
+        }
+
+        $controller->MobasuteStoreInfo->set_company_database($dbname, $controller->MobasuteStoreInfo);
+
+        $m = $controller->MobasuteStoreInfo->find('all',
+            array(
+                'conditions' =>
+                    array('MobasuteStoreInfo.storecode' => $storecode),
+                        'recursive' => -1
+                )
+            );
+
+        if (empty($m)) {
+            return false;
+        }
+
+        $arrReturn = $m[0]['MobasuteStoreInfo'];
+        $arrReturn['dbname']  = $dbname;
+        $arrReturn['logintype'] = $logintype;
+        $arrReturn['storeid'] = $account_data[0]['WebyanAccount']['storeid'];
+        $arrReturn['tosflg'] = $account_data[0]['WebyanAccount']['tos_flg'];
+
+        $controller->StoreSettings->set_company_database($dbname, $controller->StoreSettings);
+        $criteria   = array('STORECODE' => $storecode);
+        $v = $controller->StoreSettings->find('all', array('conditions' => $criteria));
+
+        return $arrReturn;
+    }
+    // Added by jonathanparel, 20160930; RM#1789 -----------------------------------------------------xx
+    
 
     /**
      * スタッフリストを読み込む
@@ -592,12 +660,12 @@ class KeitaiSessionComponent extends Object
 
         // シフト設定が行われていない場合、、リターンする。
         if ($finished_shift != 1) { return; }
-        
+
         /*
         if($syscode != 0){
             $where_syscode = "and stafftype.syscode = ". $syscode . " ";
         }
-         * 
+         *
          */
         $controller->Staff->set_company_database($dbname, $controller->Staff);
         $controller->StaffAssignToStore->set_company_database($dbname, $controller->StaffAssignToStore);
@@ -645,7 +713,7 @@ class KeitaiSessionComponent extends Object
 
         $fields = "Staff.STAFFNAME, Staff.STAFFCODE, Staff.SUBLEVELCODE, Staff.POSITIONCODE, Staff.SEX, Staff.BLOG_URL";
         $staffRecords = $controller->Staff->findAll($conditions, $fields, null, null, null, 2);
-        
+
         foreach ($staffRecords as $staffRecord) {
             $staff = $staffRecord["Staff"];
             $staffCode = $staff["STAFFCODE"];
@@ -659,7 +727,7 @@ class KeitaiSessionComponent extends Object
                 $staff["STAFFNAME"] .= $sex;
                 $staff["POSITIONNAME"] = $staffRecord["Position"]["POSITIONNAME"];
             }
-            
+
                 $staffList[] = $staff;
                 $staffNameList[$staffCode] = $staff["STAFFNAME"];
               //業種区分が一致した際に表示
@@ -751,7 +819,7 @@ class KeitaiSessionComponent extends Object
             $arrReturn[$daibunrui][$gcode] = array($menuname, $servicetime, $price);
         }
         */
-        
+
         //--------------------------------------------------------------------------------
         //担当者別メニュー時間を表示、利用時とそうでない場合の場合分け
         $controller->StoreSettings->set_company_database($dbname, $controller->StoreSettings);
@@ -759,13 +827,13 @@ class KeitaiSessionComponent extends Object
             'OPTIONNAME' => 'YOYAKU_MENU_TANTOU'),
             'order'      => 'STORECODE ASC',
             'limit'      => 1 ) );
-        
+
         $use_staff_service_time = false;
         if(!empty($option)) {
             if($option[0]['StoreSettings']['OPTIONVALUEI'] > 0) {
                 $use_staff_service_time = true;
                 }
-        }   
+        }
        if($use_staff_service_time) {
             $service_time = "ifnull(yoyaku_staff_service_time.SERVICE_TIME,store_services.SERVICETIME) as SERVICE_TIME, ";
             $service_time_male = "ifnull(yoyaku_staff_service_time.SERVICE_TIME_MALE,store_services.SERVICETIME_MALE) as SERVICETIME_MALE, ";
@@ -774,8 +842,8 @@ class KeitaiSessionComponent extends Object
             $service_time_male = "store_services.SERVICETIME_MALE as SERVICETIME_MALE, ";
        }
         //--------------------------------------------------------------------------------
-        
-        
+
+
         $where_syscode = "";
         if($syscode != 0){
             $where_syscode = "and services.syscode = ". $syscode . " ";
@@ -819,7 +887,7 @@ class KeitaiSessionComponent extends Object
             if($use_staff_service_time){
                 $servicetime = ($sex == 0)?$n[0]['SERVICE_TIME']:$n[0]['SERVICETIME_MALE'];
             }else{
-                $servicetime = ($sex == 0)?$n['store_services']['SERVICE_TIME']:$n['store_services']['SERVICETIME_MALE'];   
+                $servicetime = ($sex == 0)?$n['store_services']['SERVICE_TIME']:$n['store_services']['SERVICETIME_MALE'];
             }
             $price       = $n['store_services']['PRICE'];
             if($servicetime < 15) { $servicetime = 15; }
@@ -828,8 +896,8 @@ class KeitaiSessionComponent extends Object
 
         return $arrReturn;
     }
-
-    /**
+    
+     /**
      * メニューを読み込む
      * Gets Services
      *
@@ -908,13 +976,13 @@ class KeitaiSessionComponent extends Object
             'OPTIONNAME' => 'YOYAKU_MENU_TANTOU'),
             'order'      => 'STORECODE ASC',
             'limit'      => 1 ) );
-        
+
         $use_staff_service_time = false;
         if(!empty($option)) {
             if($option[0]['StoreSettings']['OPTIONVALUEI'] > 0) {
                 $use_staff_service_time = true;
                 }
-        }   
+        }
        if($use_staff_service_time) {
             $service_time = "ifnull(yoyaku_staff_service_time.SERVICE_TIME,store_services.SERVICETIME) as SERVICE_TIME, ";
             $service_time_male = "ifnull(yoyaku_staff_service_time.SERVICE_TIME_MALE,store_services.SERVICETIME_MALE) as SERVICETIME_MALE, ";
@@ -923,7 +991,7 @@ class KeitaiSessionComponent extends Object
             $service_time_male = "store_services.SERVICETIME_MALE as SERVICETIME_MALE, ";
        }
         //--------------------------------------------------------------------------------
-        
+
         $query = "select ".
 		"services.BUNRUINAME as BUNRUINAME, ".
 		"store_services.GCODE as GCODE, ".
@@ -953,7 +1021,7 @@ class KeitaiSessionComponent extends Object
         if (empty($v)) {
             return false;
         }
-        
+
         $arrReturn = array();
         foreach($v as $n) {
             $gcode        = $n['store_services']['GCODE'];
@@ -962,7 +1030,7 @@ class KeitaiSessionComponent extends Object
             if($use_staff_service_time){
                 $servicetime = ($sex == 0)?$n[0]['SERVICE_TIME']:$n[0]['SERVICETIME_MALE'];
             }else{
-                $servicetime = ($sex == 0)?$n['store_services']['SERVICE_TIME']:$n['store_services']['SERVICETIME_MALE'];   
+                $servicetime = ($sex == 0)?$n['store_services']['SERVICE_TIME']:$n['store_services']['SERVICETIME_MALE'];
             }
             if($servicetime < 15) { $servicetime = 15; }
             $price        = $n['store_services']['PRICE'];
@@ -979,10 +1047,10 @@ class KeitaiSessionComponent extends Object
     }
 
     /**
-     * 
+     *
      */
-    
-    
+
+
     function CheckStoreGyoshuKubun(&$controller, $storecode, $dbname = "")
     {
         if(intval($storecode) == 0 || strlen($dbname) == 0) {
@@ -990,23 +1058,23 @@ class KeitaiSessionComponent extends Object
         }
         $arrReturn = array();
         $controller->Storetype->set_company_database($dbname, $controller->Storetype);
-        
-        $query = "select storetype.syscode , servicessys.DESCRIPTION from storetype 
+
+        $query = "select storetype.syscode , servicessys.DESCRIPTION from storetype
                     left join servicessys on servicessys.SYSCODE = storetype.syscode
-                    where storecode = ? and servicessys.delflg is null and storetype.DELFLG is null";   
-        
+                    where storecode = ? and servicessys.delflg is null and storetype.DELFLG is null";
+
         $v = $controller->Storetype->query($query,array($storecode));
- 
+
         if (empty($v)) {
             return false;
         }
         foreach($v as $n) {
-            $arrReturn[]  = $n['storetype']['syscode']; 
+            $arrReturn[]  = $n['storetype']['syscode'];
             //$arrReturn[$n['storetype']['syscode']]  = $n['servicessys']['DESCRIPTION'];
         }
         return $arrReturn;
     }
-    
+
     /**
      *　ccodeを指定した場合、店舗の業種区分を読み込む。
      * 指定なしの場合、先頭のsyscodeを返す
@@ -1017,9 +1085,9 @@ class KeitaiSessionComponent extends Object
         }
         $arrReturn = array();
         $controller->Storetype->set_company_database($dbname, $controller->Storetype);
-        
+
         //Store syscode
-        $query = "select storetype.syscode , servicessys.DESCRIPTION from storetype 
+        $query = "select storetype.syscode , servicessys.DESCRIPTION from storetype
                     left join servicessys on servicessys.SYSCODE = storetype.syscode
                     where storecode = ? and servicessys.delflg is null and storetype.DELFLG is null";
 
@@ -1032,8 +1100,8 @@ class KeitaiSessionComponent extends Object
         }
         return $arrReturn;
     }
-    
-    
+
+
     /**
      *　ccodeを指定した場合、店舗の業種区分を読み込む。
      * 指定なしの場合、先頭のsyscodeを返す
@@ -1044,11 +1112,11 @@ class KeitaiSessionComponent extends Object
         }
         $arrReturn = array();
         $controller->Storetype->set_company_database($dbname, $controller->Storetype);
-        
+
         /*already yoyaku finished syscodes*/
         //        $tran_query ="select services.syscode
         //                      from store_transaction
-        //                      left join store_transaction_details on 
+        //                      left join store_transaction_details on
         //                      store_transaction_details.TRANSCODE = store_transaction.TRANSCODE and
         //                      store_transaction_details.KEYNO = store_transaction.KEYNO
         //                      left join store_services on store_services.GCODE = store_transaction_details.GCODE
@@ -1058,22 +1126,22 @@ class KeitaiSessionComponent extends Object
         //                      store_transaction.TRANSDATE >= CURRENT_DATE() and
         //                      store_transaction.YOYAKU >= 1 and
         //                      store_transaction.TEMPSTATUS >= 4 and
-        //                      store_transaction.delflg is null and 
+        //                      store_transaction.delflg is null and
         //                      store_transaction_details.delflg is null
         //                      group by services.syscode";
 
         /*Store syscode*/
         //        $controller->Storetype->set_company_database($dbname, $controller->Storetype);
-        //        $query = "select storetype.syscode , servicessys.DESCRIPTION from storetype 
+        //        $query = "select storetype.syscode , servicessys.DESCRIPTION from storetype
         //                    left join servicessys on servicessys.SYSCODE = storetype.syscode
         //                    where storecode = ? and servicessys.delflg is null and storetype.DELFLG is null";
 
-            $query = "select storetype.syscode , servicessys.DESCRIPTION from storetype 
+            $query = "select storetype.syscode , servicessys.DESCRIPTION from storetype
                         left join servicessys on servicessys.SYSCODE = storetype.syscode
                         where storecode = ? and servicessys.delflg is null and storetype.DELFLG is null and
                         storetype.syscode not in (select services.syscode
                         from store_transaction
-                        left join store_transaction_details on 
+                        left join store_transaction_details on
                         store_transaction_details.TRANSCODE = store_transaction.TRANSCODE and
                         store_transaction_details.KEYNO = store_transaction.KEYNO
                         left join store_services on store_services.GCODE = store_transaction_details.GCODE
@@ -1083,7 +1151,7 @@ class KeitaiSessionComponent extends Object
                         store_transaction.TRANSDATE >= CURRENT_DATE() and
                         store_transaction.YOYAKU >= 1 and
                         store_transaction.TEMPSTATUS >= 4 and
-                        store_transaction.delflg is null and 
+                        store_transaction.delflg is null and
                         store_transaction_details.delflg is null
                         group by services.syscode)";
 
@@ -1096,8 +1164,8 @@ class KeitaiSessionComponent extends Object
         }
         return $arrReturn;
     }
-    
-    
+
+
     /**
      * 顧客情報を読み込む
      * Gets Customer information
@@ -1266,7 +1334,7 @@ class KeitaiSessionComponent extends Object
         $ratetax = "0.05";
         $zeioption = 0;
         $sogokeioption = 0;
-        
+
         foreach ($v as $itm) {
             switch ($itm['StoreSettings']['OPTIONNAME']) {
                 case 'Tax':
@@ -1333,13 +1401,13 @@ class KeitaiSessionComponent extends Object
         $time_from = strtotime(substr($session_info['y_time'],0,2).":".substr($session_info['y_time'],2,2));
         foreach($full_services_arr as $srvc) {
             $serviceprice = ($customer_info['MEMBERSCATEGORY'] == 1) ? $srvc['memberprice'] : $srvc['price'];
-            
+
             $time_to = $time_from + ($srvc['servicetime'] * 60);
             $starttime = date("H:i",$time_from);
             $endtime = date("H:i",$time_to);
             $time_from = $time_to;
-            
-            $controller->StoreTransactionDetails->create(); // model::create(),read Cakephp manual //no delete 
+
+            $controller->StoreTransactionDetails->create(); // model::create(),read Cakephp manual //no delete
             $controller->StoreTransactionDetails->set('TRANSCODE',       $transcode);
             $controller->StoreTransactionDetails->set('STARTTIME',       $starttime);
             $controller->StoreTransactionDetails->set('ENDTIME',         $endtime);
@@ -1362,7 +1430,7 @@ class KeitaiSessionComponent extends Object
             if($ret == false){break;}
             $rowno++;
         }
-        
+
         if($ret === true || $ret === false)
         {
             //予約の削除
@@ -1403,8 +1471,8 @@ class KeitaiSessionComponent extends Object
         //データチェック
         if(intval($session_info['companyid']) == 0 ||
         intval($session_info['storecode']) == 0 ||
-        strlen($session_info['ccode']) == 0) 
-        {    
+        strlen($session_info['ccode']) == 0)
+        {
             return false;
         }
 
@@ -1427,7 +1495,7 @@ class KeitaiSessionComponent extends Object
                                         'order' => 'TRANSDATE DESC',
                                         'limit' => 1 )
             );
-        
+
         if(!empty($trans)) {
             //伝票から作業時間取得
             $transcode = $trans[0]['StoreTransaction']['TRANSCODE'];
@@ -1438,9 +1506,9 @@ class KeitaiSessionComponent extends Object
         }
 
         //同日予約済みのメニュー一覧を取得
-        
-        
-        
+
+
+
         //追加するサービス時間を取得。
         $services_arr = explode(",", $session_info['y_services']);
         $full_services_arr = $this->GetServices (
@@ -1450,20 +1518,20 @@ class KeitaiSessionComponent extends Object
             $services_arr,
             $customer_info['SEX']
          );
-        
+
         //追加の総合計時間を再計算
         $total_add_servicetime = 0;
         foreach($full_services_arr as $srvc) {
             $total_add_servicetime += $srvc['servicetime'];
         }
-        
+
         //$time_from = strtotime(substr($session_info['y_time'],0,2).":".substr($session_info['y_time'],2,2));
         //$time_to = $time_from + ($total_servicetime * 60);
 
         //既存サービスに追加。結構危険なので要確認
         $time_from = strtotime($last_endtime);
         $time_to = $time_from + ($total_add_servicetime * 60);
-        
+
         //新しい終了時間の書き込み
         $endtime = date("H:i",$time_to);
 
@@ -1473,7 +1541,7 @@ class KeitaiSessionComponent extends Object
         //最終行の取得
         $detail = $controller->StoreTransactionDetails->query("select MAX(ROWNO) as ROWNO from store_transaction_details WHERE TRANSCODE = '{$transcode}' AND KEYNO = {$keyno} group by transcode");
         $rowno = $detail[0][0]['ROWNO'];
-        
+
         if($session_info['carrier'] != "pc") {
             // 携帯
             $tempstatus  = 5;
@@ -1486,7 +1554,7 @@ class KeitaiSessionComponent extends Object
             $yoyaku      = 2;
             $origination = 2;
         }
-        
+
         //追加するdetailsの生成
         foreach($full_services_arr as $srvc) {
             $rowno++;
@@ -1496,7 +1564,7 @@ class KeitaiSessionComponent extends Object
             $endtime = date("H:i",$time_to);
             $time_from = $time_to;
 
-            $controller->StoreTransactionDetails->create(); // model::create(),read Cakephp manual //no delete 
+            $controller->StoreTransactionDetails->create(); // model::create(),read Cakephp manual //no delete
             $controller->StoreTransactionDetails->set('TRANSCODE',       $transcode);
             $controller->StoreTransactionDetails->set('STARTTIME',       $starttime);
             $controller->StoreTransactionDetails->set('ENDTIME',         $endtime);
@@ -1528,10 +1596,10 @@ class KeitaiSessionComponent extends Object
     function GetYoyakuServices(&$controller, $session_info)
     {
         $controller->StoreTransactionDetails->set_company_database($session_info['dbname'], $controller->StoreTransactionDetails);
-        
+
         $query = "select store_transaction.TRANSCODE,GROUP_CONCAT(CAST(`GCODE` AS CHAR)) as GCODE_ARR
                         from store_transaction
-                        left join store_transaction_details on 
+                        left join store_transaction_details on
                         store_transaction_details.TRANSCODE = store_transaction.TRANSCODE and
                         store_transaction_details.KEYNO = store_transaction.KEYNO
                         where
@@ -1539,14 +1607,14 @@ class KeitaiSessionComponent extends Object
                         store_transaction.TRANSDATE = ? and
                         store_transaction.YOYAKU >= 1 and
                         store_transaction.TEMPSTATUS >= 4 and
-                        store_transaction.delflg is null and 
+                        store_transaction.delflg is null and
                         store_transaction_details.delflg is null and
 			GCODE in ( {$session_info['y_services']} )
 			group by store_transaction.TRANSCODE;";
         $sel_date = substr($session_info['y_date'],0,4).'-'.
         substr($session_info['y_date'],4,2).'-'.
         substr($session_info['y_date'],6,2);
-        
+
         $v = $controller->StoreTransactionDetails->query($query,array($session_info['ccode'],$sel_date));
 
 
@@ -1559,7 +1627,7 @@ class KeitaiSessionComponent extends Object
             //return implode(",",array_diff($service_arr,$dep_arr));
             $ret = array_diff($service_arr,$dep_arr);
             return count($ret) > 0 ? $ret : false;
-       
+
     }
 
     /**
@@ -1589,7 +1657,7 @@ class KeitaiSessionComponent extends Object
         //$controller->StoreTransaction->set_company_database($session_info['$dbname'], $controller->StoreTransaction);
         $controller->StaffAssignToStore->set_company_database($session_info['dbname'], $controller->StaffAssignToStore); //add
         $controller->StoreTransactionDetails->set_company_database($session_info['dbname'], $controller->StoreTransactionDetails); //add
-        
+
         $sel_date = sprintf("%04s-%02s-%02s", substr($session_info['y_date'], 0, 4), substr($session_info['y_date'], 4, 2), substr($session_info['y_date'], 6, 2));
         //---------- Get all Staff Capacity -------------------------------------------//
         //----------add all staff capacity--------
@@ -1611,7 +1679,7 @@ class KeitaiSessionComponent extends Object
                                     WHERE StaffRowsHistory.STORECODE = ".$session_info['storecode']."
                                        AND StaffRowsHistory.DATECHANGE <= '".$sel_date."'
                                     ORDER BY StaffRowsHistory.DATECHANGE DESC
-                                    ) as TMPTBL 
+                                    ) as TMPTBL
                                 GROUP BY staffcode
                                ) as StaffRowsHistory ON StaffRowsHistory.STAFFCODE = Staff.STAFFCODE
                     /* LEFT JOIN store_settings as Settings
@@ -1624,7 +1692,7 @@ class KeitaiSessionComponent extends Object
             		) as Holiday
                         ON Holiday.STAFFCODE = Staff.STAFFCODE
                             AND Holiday.YMD = '".$sel_date."'
-                WHERE StaffAssignToStore.STORECODE = ".$session_info['storecode']." 
+                WHERE StaffAssignToStore.STORECODE = ".$session_info['storecode']."
                     AND (Staff.STORECODE =".$session_info['storecode']." OR (Staff.STORECODE = 0 AND Staff.Staffcode = 0))
                     AND StaffAssignToStore.ASSIGN_YOYAKU = 1
                     AND Staff.DELFLG IS NULL
@@ -1637,7 +1705,7 @@ class KeitaiSessionComponent extends Object
                     )
                 GROUP BY StaffAssignToStore.STAFFCODE
                 having WEBYAN_DISPLAY >0 and ROWS > 0";
-        
+
                 $v2 = $controller->StaffAssignToStore->query($sql);
 
                 $total_staff_capacity = 0;
@@ -1646,16 +1714,16 @@ class KeitaiSessionComponent extends Object
                          //スタッフ全体のキャパ
                          $total_staff_capacity += $v2[$i][0]['ROWS'];
                     }
-                    //選択したスタッフの予約列のキャパシティ   
+                    //選択したスタッフの予約列のキャパシティ
                     if($v2[$i]['StaffAssignToStore']['STAFFCODE'] == $session_info['y_staff'] )
                     {
                         $staff_capacity = intval($v2[$i][0]['ROWS']);
                         if ($staff_capacity == 0) {
-                            $staff_capacity = 1; // Default? 
+                            $staff_capacity = 1; // Default?
                         }
                     }
-                }   
- 
+                }
+
         // 予約可能顧客数。デフォルトは99とする
         $yoyakuCustomersLimit = 99;
 
@@ -1663,7 +1731,7 @@ class KeitaiSessionComponent extends Object
         $controller->StoreSettings->set_company_database($session_info['dbname'], $controller->StoreSettings);
 
         $criteria = array('STORECODE' => $session_info['storecode']);
-        $criteria[] = "(OPTIONNAME = 'YoyakuStart' OR OPTIONNAME = 'YoyakuEnd' OR OPTIONNAME = 'YoyakuCustomersLimitAuto' OR 
+        $criteria[] = "(OPTIONNAME = 'YoyakuStart' OR OPTIONNAME = 'YoyakuEnd' OR OPTIONNAME = 'YoyakuCustomersLimitAuto' OR
                         OPTIONNAME = 'YoyakuStart_satsun' OR OPTIONNAME = 'YoyakuEnd_satsun' OR
                         OPTIONNAME = 'OpenTime' OR OPTIONNAME = 'CloseTime' OR
                         OPTIONNAME = 'YoyakuCustomersLimit' OR OPTIONNAME = 'YoyakuShowMenuNameOnly')";
@@ -1705,7 +1773,7 @@ class KeitaiSessionComponent extends Object
                     $yoyakuShowMenuNameOnly = $itm['StoreSettings']['OPTIONVALUES'];
                     break;
                 //----------------------------------------------------------------------------------
-                //スタッフの予約列で制限する 
+                //スタッフの予約列で制限する
                 //----------------------------------------------------------------------------------
                 case 'YoyakuCustomersLimitAuto' :
                     $yoyakuCustomersLimitAuto = $itm['StoreSettings']['OPTIONVALUES'];
@@ -1758,7 +1826,7 @@ class KeitaiSessionComponent extends Object
         $end_time += ($end_min >= 45) ? 3 :
                         (($end_min >= 30) ? 2 :
                                 (($end_min >= 15) ? 1 : 0));
-        
+
         $start_time_staff = $start_time;
         $end_time_staff = $end_time;
 
@@ -1770,11 +1838,11 @@ class KeitaiSessionComponent extends Object
                                 'StaffShift.HOLIDAYTYPE' => 4,
                                 'StaffShift.DELFLG IS NULL'),
             'fields' => array('Shift.STARTTIME','Shift.ENDTIME','StaffShift.STAFFCODE')  ));
-        
+
          // 時間ごとの予約件数
         //$time_arr_reserves = array();
         $time_arr_reserves_staff = array();
-        
+
         //if (!empty($v)) {
         for ($i = 0; $i < count($v2); $i++) {
                 $itm = NULL;
@@ -1786,13 +1854,13 @@ class KeitaiSessionComponent extends Object
                         }
                     }
                 }
-                
+
             //初期値設定
             $start_time = intval(substr($tmp_start, 0, 2)) * 4;
             $start_min = intval(substr($tmp_start, 2, 2));
             $end_time = intval(substr($tmp_end, 0, 2)) * 4;
             $end_min = intval(substr($tmp_end, 2, 2));
-            
+
             if(!empty($itm)){
                 // Use Shift Settings
                 $tmp_start_shift = $itm['Shift']['STARTTIME'];
@@ -1802,7 +1870,7 @@ class KeitaiSessionComponent extends Object
                     $start_time = intval(substr($tmp_start_shift, 0, 2)) * 4;
                     $start_min = intval(substr($tmp_start_shift, 3, 2));
                 }
- 
+
                 if (strtotime($tmp_end_shift) < strtotime($tmp_end)) {
                     $end_time = intval(substr($tmp_end_shift, 0, 2)) * 4;
                     $end_min = intval(substr($tmp_end_shift, 3, 2));
@@ -1847,7 +1915,7 @@ class KeitaiSessionComponent extends Object
             //開始時間までを埋める
             for ($b = 0; $b < $start_time; $b++) {
                     $time_arr_reserves_staff[$staffcode][$b] = intval($v2[$i][0]['ROWS']);
-            } 
+            }
             //終了時間までを埋める
             for ($b = $end_time; $b <= (23*4) + 3 ; $b++) {
                     $time_arr_reserves_staff[$staffcode][$b] = intval($v2[$i][0]['ROWS']);
@@ -1865,9 +1933,9 @@ class KeitaiSessionComponent extends Object
                 'DATE' => $sel_date
 //              ,'PRIORITY <= ' . $staff_capacity
               )));
-        
+
         $time_arr_reserves_staff_yoyaku = array();
-        
+
         foreach ($v as $itm) {
             $break_start_b = intval(substr($itm['BreakTime']['STARTTIME'], 0, 2)) * 4;
             $start_min = intval(substr($itm['BreakTime']['STARTTIME'], 3, 2));
@@ -1905,7 +1973,7 @@ class KeitaiSessionComponent extends Object
              //}
         //--------- END Break Times -----------------------------------------------//
 
- 
+
         //--------- START Existing Transactions -----------------------------------//
         /*
         $v = $controller->StoreTransaction->find('all', array('conditions' => array(
@@ -1928,14 +1996,14 @@ class KeitaiSessionComponent extends Object
                         transaction.DELFLG is null
                         and transaction.PRIORITYTYPE = 1 and
                         details.TRANTYPE = 1";
-       
+
        $v = $controller->StoreTransactionDetails->query($query,array($session_info['storecode'],$sel_date));
  /*
        if (empty($v)) {
             return false;
         }
  */
-       
+
 /*
         $v = $controller->StoreTransactionDetails->find('all', array('conditions' => array(
                 'STORECODE' => $session_info['storecode'],
@@ -1944,11 +2012,11 @@ class KeitaiSessionComponent extends Object
                 'DELFLG IS NULL'
         )));
 */
-            
+
         // 時間ごとの予約件数
         //$time_arr_reserves = array();
         $time_arr_free = array(); //free staff
-        
+
         foreach ($v as $itm) {
             $trans_start = $itm['details']['STARTTIME'];
             if (strlen($trans_start) == 0) {
@@ -1982,7 +2050,7 @@ class KeitaiSessionComponent extends Object
                             $time_arr_reserves_staff[$staffcode][$b]+=1;
                             $time_arr_reserves_staff_yoyaku[$staffcode][$b]+=1; //予約者数のカウント！
                         }
-                    }                 
+                    }
                     if ($itm['details']['STAFFCODE'] == $session_info['y_staff']) {
                         $time_arr[$b]+=1;
                     }
@@ -1993,14 +2061,14 @@ class KeitaiSessionComponent extends Object
                     break;
                  }
            }
-        }       
-        
+        }
+
         //--------- END Existing Transactions -------------------------------------//
         $time_arr_reserves = array();
         //$time_arr_reserves_staff_yoyaku = array();
         $time_arr_reserves_yoyaku = array();
         $time_arr = array(); //・・・reset????
-        
+
         //スタッフの各列の合計を算出 //スタッフの予約列数で制御する場合
         foreach($time_arr_reserves_staff as $key => $staff){
             for($i=0; $i <= (23*4)+3; $i++){
@@ -2015,7 +2083,7 @@ class KeitaiSessionComponent extends Object
                 }
             }
         }
-        
+
         //予約者数の算出 //同時間帯最大予約人数
         foreach($time_arr_reserves_staff_yoyaku as $key => $staff){
             for($i=0; $i <= (23*4)+3; $i++){
@@ -2030,8 +2098,8 @@ class KeitaiSessionComponent extends Object
             if ($servicetime % 15 > 0) {
                 $end_block++;
             }
-            
-            //$yoyakuCustomersLimitAuto = 1;            
+
+            //$yoyakuCustomersLimitAuto = 1;
             for ($j = $i; $j < $end_block; $j++) {
                 if(intval($time_arr[$j]) >= $staff_capacity) {
                     $ok = false;
@@ -2044,8 +2112,8 @@ class KeitaiSessionComponent extends Object
                      //スタッフの予約列数で制御する場合
                     $ok = false;
                 }
-                
-                
+
+
 
                 /*
                 elseif (intval($time_arr_reserves[$j]) >= $yoyakuCustomersLimit) {
@@ -2053,7 +2121,7 @@ class KeitaiSessionComponent extends Object
                 }
                 */
             }
-            
+
             if ($ok) {
                 $hour = intval($i / 4);
                 $min = ($i % 4) * 15;
@@ -2072,7 +2140,7 @@ class KeitaiSessionComponent extends Object
                     $AvailableTimes[$timeKey] = sprintf("%02d:%02d", $hour, $min);
                 }
             }
-        } 
+        }
 
         return $AvailableTimes;
 
@@ -2187,7 +2255,7 @@ class KeitaiSessionComponent extends Object
                         $week_data[] = array($n, ""); // Gray Calendar Day
                     }
                     else {
-                        $day = sprintf("%02d",$n);                 
+                        $day = sprintf("%02d",$n);
                         $week_data[] = array($n, $yearmonthstr.$day, $n."日（".$jp_days_of_the_week[$d]."）");
                     }
                 }
@@ -2294,7 +2362,7 @@ class KeitaiSessionComponent extends Object
         }
         return $arrReturn;
     }
-    
+
      /**
      * 次回以降のすべての予約データを読み込む。GetPrevNextTransactionsの代替
      * Gets data for next and previous transactions
@@ -2303,43 +2371,43 @@ class KeitaiSessionComponent extends Object
      * @param array $session_info
      * @return Array
      */
-    function GetNextTransactions(&$controller, $session_info, $cancel_limit=0) 
+    function GetNextTransactions(&$controller, $session_info, $cancel_limit=0)
     {
             $arrReturn = array();
             $controller->StoreTransaction->set_company_database($session_info['dbname'], $controller->StoreTransaction);
             $controller->Store->set_company_database($session_info['dbname'], $controller->Store);
-            $sql = "select store_transaction.TRANSCODE,store_transaction.STORECODE,store_transaction.STAFFCODE, store_transaction.KEYNO,store_transaction.TRANSDATE, store_transaction.ENDTIME, 
+            $sql = "select store_transaction.TRANSCODE,store_transaction.STORECODE,store_transaction.STAFFCODE, store_transaction.KEYNO,store_transaction.TRANSDATE, store_transaction.ENDTIME,
                 store_transaction.YOYAKUTIME,GROUP_CONCAT(DISTINCT servicessys.DESCRIPTION separator '、') as servicessys,count(DISTINCT servicessys.DESCRIPTION) as scount
                       from store_transaction
-                      left join store_transaction_details on 
+                      left join store_transaction_details on
                       store_transaction_details.TRANSCODE = store_transaction.TRANSCODE and
                       store_transaction_details.KEYNO = store_transaction.KEYNO
                       left join store_services on store_services.GCODE = store_transaction_details.GCODE
                       left join services on store_services.GDCODE = services.GDCODE
-		     left join  servicessys on services.SYSCODE= servicessys.SYSCODE 
+		     left join  servicessys on services.SYSCODE= servicessys.SYSCODE
                       where
                       ccode = ? and
                       store_transaction.TRANSDATE >= CURRENT_DATE() and
                       store_transaction.YOYAKU >= 1 and
                       store_transaction.TEMPSTATUS >= 4 and
-                      store_transaction.delflg is null and 
+                      store_transaction.delflg is null and
                       store_transaction_details.delflg is null
                       group by store_transaction.TRANSCODE
                       order by store_transaction.TRANSDATE
 ";
-            
+
             //SQLを実行
             $v = $controller->StoreTransaction->query($sql,array($session_info['ccode']),false);
-  
+
             $ret = 0;
             if(!empty($v)) {
                 foreach($v as $itm) {
- 
+
                 $staffname = $this->GetStaff($controller,
                     $itm['store_transaction']['STAFFCODE'],
                     $session_info['dbname']
                 );
-                
+
                 if(strlen($staffname) == 0) { $staffname = "指名なし"; }
                 $date = substr($itm['store_transaction']['TRANSDATE'],0,4)."年".
                 substr($itm['store_transaction']['TRANSDATE'],5,2)."月".
@@ -2362,7 +2430,7 @@ class KeitaiSessionComponent extends Object
                     'conditions' => array('Store.storecode' => $storecode)));
                     $storename_next = $st[0]['Store']['STORENAME'];
                 }
-                
+
                 $is_cancelb = true;
                 if($cancel_limit > 0)
                     {
@@ -2374,7 +2442,7 @@ class KeitaiSessionComponent extends Object
                             }
                     }
                }
-   
+
                 $arrReturn['nexttrans'][$ret] = array("date"      => $date,
                                         "transdate" => $transdate,
                                         "staff"     => $staffname,
@@ -2386,18 +2454,18 @@ class KeitaiSessionComponent extends Object
                                         'servicessys_count' => $servicessys_count,
                                         "storename" => $storename_next,
                                         "canselb" => $is_cancelb);
-                
+
                 $arrReturn['service_count'] += $itm[0]['scount'];
-                
+
                 $ret++;
-                                        
+
             }
         }
         return $arrReturn;
-            
+
     }
-    
-    
+
+
      /**
      * 今日以降（今日含む）のある業種の予約の存在をチェックする。
      * Gets data for next and previous transactions
@@ -2411,10 +2479,10 @@ class KeitaiSessionComponent extends Object
         //$today = date("Y-m-d");
         //$arrReturn = array();
         $controller->StoreTransaction->set_company_database($session_info['dbname'], $controller->StoreTransaction);
-               
+
         $sql = "select store_transaction.transcode
                       from store_transaction
-                      left join store_transaction_details on 
+                      left join store_transaction_details on
                       store_transaction_details.TRANSCODE = store_transaction.TRANSCODE and
                       store_transaction_details.KEYNO = store_transaction.KEYNO
                       left join store_services on store_services.GCODE = store_transaction_details.GCODE
@@ -2424,19 +2492,19 @@ class KeitaiSessionComponent extends Object
                       store_transaction.TRANSDATE >= CURRENT_DATE() and
                       store_transaction.YOYAKU >= 1 and
                       store_transaction.TEMPSTATUS >= 4 and
-                      store_transaction.delflg is null and 
+                      store_transaction.delflg is null and
                       store_transaction_details.delflg is null and
                       store_transaction_details.trantype = 1 and
-                      services.syscode = ? 
+                      services.syscode = ?
                       group by services.syscode";
-        
+
 
 
         //SQLを実行
         $retRecords = $controller->StoreTransaction->query($sql,array($session_info['ccode'],$session_info['syscode']),false);
 
         //取得可否をreturn
-        if (count($retRecords) == 0) { 
+        if (count($retRecords) == 0) {
             return false;
         }else{
             return true;
@@ -2452,17 +2520,17 @@ class KeitaiSessionComponent extends Object
      * @return array transaction
      */
     function checkDateTransaction(&$controller, $session_info, $date="" , $syscode = "") {
-        
+
         //2012-12-15 add ..no use syscode
         $syscode = -1;
-        
+
         //$today = date("Y-m-d");
         //$arrReturn = array();
         $controller->StoreTransaction->set_company_database($session_info['dbname'], $controller->StoreTransaction);
 
-        $sql = "select store_transaction.TRANSDATE, store_transaction.YOYAKUTIME, store_transaction.ENDTIME, store_transaction.TRANSCODE, store_transaction.KEYNO 
+        $sql = "select store_transaction.TRANSDATE, store_transaction.YOYAKUTIME, store_transaction.ENDTIME, store_transaction.TRANSCODE, store_transaction.KEYNO
                       from store_transaction
-                      left join store_transaction_details on 
+                      left join store_transaction_details on
                       store_transaction_details.TRANSCODE = store_transaction.TRANSCODE and
                       store_transaction_details.KEYNO = store_transaction.KEYNO
                       left join store_services on store_services.GCODE = store_transaction_details.GCODE
@@ -2472,14 +2540,14 @@ class KeitaiSessionComponent extends Object
                       store_transaction.TRANSDATE = ? and
                       store_transaction.YOYAKU >= 1 and
                       store_transaction.TEMPSTATUS >= 4 and
-                      store_transaction.delflg is null and 
+                      store_transaction.delflg is null and
                       store_transaction_details.delflg is null and
-                      store_transaction_details.trantype = 1 and 
-                      services.syscode <> ? 
+                      store_transaction_details.trantype = 1 and
+                      services.syscode <> ?
                       group by services.syscode";
-        
+
         if($date == ""){
-            $date = $session_info['y_date']; 
+            $date = $session_info['y_date'];
         }
         if($syscode == "")
         {
@@ -2498,10 +2566,10 @@ class KeitaiSessionComponent extends Object
                                         "yoyakutime" => $yoyakutime,
                                         "endtime"   => $endtime,
                                         "transcode" => $transcode,
-                                        "keyno"     => $keyno);     
-        
+                                        "keyno"     => $keyno);
+
         //取得可否をreturn
-        if (count($v) == 0) { 
+        if (count($v) == 0) {
             return false;
         }else{
             return $arrReturn;
@@ -2519,16 +2587,16 @@ class KeitaiSessionComponent extends Object
     function getTransactionDetail(&$controller, $session_info, $date="") {
         //check $session_info
         if(!isset($session_info)){return false;}
-        
+
         $controller->StoreTransactionDetails->set_company_database($session_info['dbname'], $controller->StoreTransaction);
         if($date == ""){
-            $date = $session_info['y_date']; 
+            $date = $session_info['y_date'];
         }
-        
+
         $query = "select store_transaction.TRANSDATE, store_transaction.YOYAKUTIME, store_transaction.ENDTIME, store_transaction.TRANSCODE, store_transaction.KEYNO ,
             store_transaction_details.
                       from store_transaction
-                      left join store_transaction_details on 
+                      left join store_transaction_details on
                       store_transaction_details.TRANSCODE = store_transaction.TRANSCODE and
                       store_transaction_details.KEYNO = store_transaction.KEYNO
                       left join store_services on store_services.GCODE = store_transaction_details.GCODE
@@ -2538,14 +2606,14 @@ class KeitaiSessionComponent extends Object
                       store_transaction.TRANSDATE = ? and
                       store_transaction.YOYAKU >= 1 and
                       store_transaction.TEMPSTATUS >= 4 and
-                      store_transaction.delflg is null and 
+                      store_transaction.delflg is null and
                       store_transaction_details.delflg is null and
-                      store_transaction_details.trantype = 1 
+                      store_transaction_details.trantype = 1
                       group by services.syscode";
- 
-        
+
+
     }
-    
+
     /**
      * transactionをキャンセールする
      * Cancels a transaction
@@ -2598,7 +2666,7 @@ class KeitaiSessionComponent extends Object
 
         // 次回予約テーブルに反映
         $controller->StoreTransaction->query("UPDATE yoyaku_next SET CHANGEFLG = 2,YOYAKU_STATUS = 0 WHERE NEXTCODE = '{$transcode}'");
-        
+
         // Update by: MarvinC - 2016-01-04 11:34
         $controller->StoreTransaction->query("UPDATE yoyaku_next_details SET CHANGEFLG = 2,YOYAKU_STATUS = 0 WHERE NEXTCODE = '{$transcode}'");
 
@@ -2719,7 +2787,7 @@ class KeitaiSessionComponent extends Object
         //$controller->Customer->query("UPDATE customer SET DELFLG = NOW() WHERE CCODE = '{$ccode}'");
         $controller->Customer->query("UPDATE customer SET mailkubun = 0 WHERE CCODE = '{$ccode}'");
     }
- 
+
     /**
      *
      * アクセスログを記録する
@@ -2732,15 +2800,15 @@ class KeitaiSessionComponent extends Object
         if (is_null($controller) || is_null($dbName) || is_null($ccode)) { return null; }
         //試験的にDIVAのみに導入
         if($dbName == "sipssb_diva" || $dbName == "sipssb_think" || $dbName == "sipssb_remi"){
-            
+
         if($sessionid == ""){
             $sessionid = "new_".$dbName.md5(mt_rand());
         }
         $x_remote_addr = isset($_SERVER['HTTP_X_FORWARDED_FOR']) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : "0.0.0.0";
         $user_agent = $_SERVER['HTTP_USER_AGENT'];
         $referer = $_SERVER['HTTP_REFERER'];
-        
-            $query = "insert into log_mobile(ymd,sessionid ,storecode,ccode, client_ip, ua,referer,lastpagename,status,reg_status,user_fromcode) 
+
+            $query = "insert into log_mobile(ymd,sessionid ,storecode,ccode, client_ip, ua,referer,lastpagename,status,reg_status,user_fromcode)
                 values(
                      CURRENT_DATE(),
                      '{$sessionid}',
@@ -2767,7 +2835,7 @@ class KeitaiSessionComponent extends Object
             $controller->Customer->query($query);
         }
     }
-    
+
 
 }
 ?>
