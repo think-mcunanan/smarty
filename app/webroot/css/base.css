@@ -5,7 +5,7 @@
 /* GENERAL -------------------------------------------------------------------*/
 body {
     font-size: 14px;
-    font-family: "Century Gothic", "MS PGothic", "ヒラギノ角ゴPro W3", "Hiragino Sans GB W3", sans-serif;
+    font-family: "Arial, Helvetica, sans-serif", sans-serif;
     color: #333;
 }
 
@@ -122,6 +122,15 @@ tbody {
     color: #FFF;
 }
 
+.fadebox2 {
+    width: 85%;
+    border: 3px solid #999;
+    background-color: #666;
+    padding: 5px 5px 5px 5px;
+    text-align: center;
+    color: #FFF;
+}
+
 /* </共通> *************************************************/
 
 /* <プライバシーポリシー> ******************************************/
@@ -138,7 +147,7 @@ tbody {
 .pc, .smartphone, .iphone, .login, .mypage, .new0, .new1, .new2, .new3, .new4, .new5, .yoyakumail, .privacy, .reg {
     width: 100%;
     text-align: center;
-    font-family: "Century Gothic", "MS PGothic", "ヒラギノ角ゴPro W3", "Hiragino Sans GB W3", sans-serif;
+    font-family: "Arial, Helvetica, sans-serif";
     /*font-family: "Times New Roman", Georgia, Serif;*/
 }
 

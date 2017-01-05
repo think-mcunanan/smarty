@@ -27,11 +27,11 @@
                 {if $itemdata.canselb == false}
                     <br />（ご予約の{$cancellim}時間前を過ぎると、webでキャンセルができません。）<br />
                 {else}
-                    <hr id="hr_before-button">
                     <form name='YkMyPageForm' action="{$form_action}" method="post" onSubmit="return check()">
                         <input type="submit" name="p_delete{$itemdata.transdate}" class="groovybutton" value="この予約をキャンセル" title="" style="cursor: pointer;">
                     </form>
                 {/if}
+				<hr id="hr_before-button">
             </div>
 
             <!-- /rbcontent -->

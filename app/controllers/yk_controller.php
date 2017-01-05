@@ -2627,11 +2627,6 @@ class YkController extends AppController {
                     if ($errcode>0) $this->layout = 'empty_utf';
                 }
                 else if($carrier == "smartphone") {  // Added by jonathanparel, 20160923; RM#1724;
-                    $this->layout = "iphone_layout";
-                    $logo_image = "ob_logo.png";
-                    if ($errcode>0) $this->layout = 'empty_utf';
-                }
-                else if($carrier == "smartphone") {  // Added by jonathanparel, 20160923; RM#1724;
                     $this->action = "smartphone/".$this->action;
                     $this->layout = "smartphone_layout";
                     $logo_image = "ob_logo.png";
