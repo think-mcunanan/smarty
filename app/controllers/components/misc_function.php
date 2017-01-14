@@ -1392,19 +1392,17 @@ class MiscFunctionComponent extends Object
     /**
      * @author MCUNANAN :mcunanan@think-ahead.jp
      * Date: 2015-12-05 14:34
-     * @uses Get Mail Domain
-     * @param type $sessionid
-     * @param type $companyid
-     * @param type $storecode
+     * @uses Get Returning Customer Settings
+     * @param mixed $controller
      */
-    function GetReturningCustomerCountAll(&$controller, $dbname) {
+    function GetReturningCustomerCountAll(&$controller) {
 
         //-------------------------------------------------------------------------------------------
         $storeinfo = $controller->YoyakuSession->Check($controller);
         //-------------------------------------------------------------------------------------------
         if ($storeinfo == false) {
             $controller->_soap_server->fault(1, '', INVALID_SESSION);
-            return;
+            return null;
         }//end if
         #-------------------------------------------------------------------
         # ADDED BY: MARVINC - 2015-12-28 16:34
@@ -1481,27 +1479,22 @@ class MiscFunctionComponent extends Object
     }
     //</editor-fold>
 
-
-    function record_sort($records, $field, $reverse=false)
-    {
-        $hash = array();
-
-        foreach($records as $key => $record)
-        {
-            $hash[$record[$field].$key] = $record;
-        }
-
-        ($reverse)? krsort($hash) : ksort($hash);
-
-        $records = array();
-
-        foreach($hash as $record)
-        {
-            $records []= $record;
-        }
-
-        return $records;
+    //<editor-fold defaultstate="collapsed" desc="SetTransUpdateDate">
+    /**
+     * @author MCUNANAN :mcunanan@think-ahead.jp
+     * Date: 2017-01-12
+     * @uses Update transcode updatedate in store_transaction table
+     * @param $con_model
+     * @param $transcode|type string
+     */
+    function SetTransUpdateDate(&$con_model, $transcode){
+        $sql = "UPDATE store_transaction
+                    SET updatedate = NOW()
+                WHERE delflg IS NULL
+                    AND transcode = '{$transcode}'";
+        return $con_model->query($sql);
     }
+    //</editor-fold>
 
 }
 ?>

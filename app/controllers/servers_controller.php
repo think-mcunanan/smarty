@@ -531,7 +531,9 @@ class ServersController extends WebServicesController
                      'wsSearchJikaiYoyaku' => array(
                             'doc'    => '次回予約リスト',
                             'input'  => array('sessionid'         => 'xsd:string',
-                                              'storecode'         => 'xsd:int'),
+                                              'storecode'         => 'xsd:int',
+                                              'ccode'             => 'xsd:string',
+                                              'transcode'         => 'xsd:string'),
                             'output' => array('return'    => 'return_storeTransactionInformation')),
 
                      'wsDeleteJikaiYoyaku' => array(
@@ -721,6 +723,17 @@ class ServersController extends WebServicesController
                             'output' => array('return'     => 'xsd:string')),
                      //- ############################################################
 
+                     //--------------------------------------------------------------
+                     // GET STORE EMAIL DOMAIN
+                     // Added by: MarvinC - 2015-12-05 14:34
+                     //--------------------------------------------------------------
+                      'wsVerifyStaffPassword' => array(
+                            'doc'    => 'wsGetMailDomain',
+                            'input'  => array('sessionid'  => 'xsd:string',
+                                              'staffcode'  => 'xsd:int',
+                                              'password'   => 'xsd:string'),
+                            'output' => array('return'     => 'xsd:int')),
+                     //- ############################################################
 
                      //--------------------------------------------------------------
                      // GET POWERS SETTINGS
@@ -1276,7 +1289,8 @@ class ServersController extends WebServicesController
                                         'YOYAKU_DRAGDROP_TIMEINTERVAL' => 'xsd:int',
                                         'HIDE_RAITEN' => 'xsd:int',
                                         'OKOTOWARI_TIME' => 'xsd:int',
-                                        'HIDECUSTOMERINFO_FLG' => 'xsd:int')),
+                                        'HIDECUSTOMERINFO_FLG' => 'xsd:int',
+                                        'JIKAIUPDATEOPTION_FLG' => 'xsd:int')),
                              //- ####################################################
 
 
@@ -1398,6 +1412,7 @@ class ServersController extends WebServicesController
                                         'UKETSUKEDATE'     => 'xsd:string',
                                         'UKETSUKESTAFF'    => 'xsd:int',
                                         'BEFORE_TRANSCODE' => 'xsd:string',
+                                        'STAFF_CHANGE_JIKAI_LINK'=> 'xsd:int',
                                         'HOWKNOWSCODE'     => 'xsd:int',
                                         'HOWKNOWS'         => 'xsd:string',
                                         'STIME'            => 'xsd:string',
@@ -5634,7 +5649,15 @@ class ServersController extends WebServicesController
         $this->StoreSettings->set_company_database($storeinfo['dbname'], $this->StoreSettings, ConnectionServer::SLAVE);
 
         $criteria   = array('STORECODE' => $storeinfo['storecode']);
-        $fields     = array('STORENAME','TEL','FAX','ADDRESS1','WEBYAN_HOMEPAGE','PC_HOMEPAGE','HIDECUSTOMERINFO_FLG');
+        $fields     = array('STORENAME',
+                            'TEL',
+                            'FAX',
+                            'ADDRESS1',
+                            'WEBYAN_HOMEPAGE',
+                            'PC_HOMEPAGE',
+                            'HIDECUSTOMERINFO_FLG',
+                            'JIKAIUPDATEOPTION_FLG'
+                            );
 
         $v = $this->Store->find('all',array('conditions' => $criteria,
                                               'fields'     => $fields));
@@ -6960,11 +6983,45 @@ class ServersController extends WebServicesController
 
         if(trim($param['BEFORE_TRANSCODE']) <> "" || $param['YOYAKU_STATUS'] == 2){
             //$sql = "UPDATE yoyaku_next SET YOYAKU_STATUS = 2 ,NEXTCODE = '" .$param['TRANSCODE']."' WHERE TRANSCODE ='". $param['BEFORE_TRANSCODE']."'";
-            if($param['YOYAKU_STATUS'] == 2){
+            if($param['YOYAKU_STATUS'] == 2 && $param['STAFF_CHANGE_JIKAI_LINK'] == 0){
                 $transcond = " NEXTCODE = '{$param['BEFORE_TRANSCODE']}'";
             }else{
+
                 $transcond = " TRANSCODE ='{$param['BEFORE_TRANSCODE']}'";
+
+                // Update the transaction in store_transaction table so it cannot be save in Tenpo 
+                // just incase it is being edited at the same time
+                //--------------------------------------------------------------------------------------------------
+                if(empty($param['YOYAKU_STATUS']) || $param['STAFF_CHANGE_JIKAI_LINK'] > 0){
+                    $retQuery[$sqlctr] = $this->MiscFunction->SetTransUpdateDate($this->StoreTransaction, $param['BEFORE_TRANSCODE']);
+                    $sqlctr++;
+                }
+                //--------------------------------------------------------------------------------------------------
+
+                if($param['STAFF_CHANGE_JIKAI_LINK'] > 0){
+
+                    // Reset the transaction YOYAKU_STATUS to 1
+                    //--------------------------------------------------------------------------------------------------
+                    $sql = "UPDATE yoyaku_next SET CHANGEFLG = 0, YOYAKU_STATUS = 1, FIRST_YOYAKUDATE = NULL, NEXTCODE = NULL
+                            WHERE NEXTCODE = '{$param['TRANSCODE']}'";
+                    $retQuery[$sqlctr] = $this->StoreTransaction->query($sql);
+                    $sqlctr++;
+
+                    $sql = "DELETE FROM yoyaku_next_details WHERE NEXTCODE = '{$param['TRANSCODE']}' AND SYSCODE = 0";
+
+                    $retQuery[$sqlctr] = $this->StoreTransaction->query($sql);
+                    $sqlctr++;
+
+                    $sql = "UPDATE yoyaku_next_details SET CHANGEFLG = 0, YOYAKU_STATUS = 1, FIRST_YOYAKUDATE = NULL, NEXTCODE = NULL
+                            WHERE NEXTCODE = '{$param['TRANSCODE']}'";
+
+                    $retQuery[$sqlctr] = $this->StoreTransaction->query($sql);
+                    $sqlctr++;
+                    //--------------------------------------------------------------------------------------------------
+                    
+                }
             }
+
             $sql = "UPDATE yoyaku_next
         	        SET CHANGEFLG = CASE WHEN NEXTCODE IS NULL AND CHANGEFLG = 0 THEN 0 ELSE 1 END,
         	        YOYAKU_STATUS = 2 ,
@@ -6978,7 +7035,7 @@ class ServersController extends WebServicesController
             # ADDED BY MARVINC - 2015-06-22
             # For Updating Next Reservation
             #------------------------------------------------------------------------------------------------------------------------
-            if ($param['YOYAKU_STATUS'] == 2){
+            if ($param['YOYAKU_STATUS'] == 2 && $param['STAFF_CHANGE_JIKAI_LINK'] == 0){
 
                 #------------------------------------------------------------------------------------------------------------------------
                 # WILL ONLY UPDATE THOSE SERVICES THAT WAS SELECTED
@@ -7015,7 +7072,9 @@ class ServersController extends WebServicesController
                         $sql = "INSERT INTO yoyaku_next_details
                                 SELECT TRANSCODE, MAX(ROWNO) + 1, 2, 0, '{$param['TRANSCODE']}', STAFFCODE_INCHARGE, STAFFCODE_INCHARGE,  '".$param['TRANSDATE']."', 0, null, CURRENT_DATE()
                                 FROM yoyaku_next_details YND
-                                WHERE TRANSCODE = '{$param['BEFORE_TRANSCODE']}' LIMIT 1";
+                                WHERE TRANSCODE = '{$param['BEFORE_TRANSCODE']}'
+                                HAVING TRANSCODE IS NOT NULL
+                                LIMIT 1";
 
                     }else{
                         #Will update all transaction changeflg according to services selected
@@ -7041,6 +7100,21 @@ class ServersController extends WebServicesController
             $retQuery[$sqlctr] = $this->StoreTransaction->query($sql);
             $sqlctr++;
 
+            // Save JIKAI YOYAKU LINKANGE History
+            if($param['STAFF_CHANGE_JIKAI_LINK'] > 0){
+
+                $sql = "INSERT INTO yoyaku_next_history_link
+                            (staffcode, nextcode, transcode, datetimechange)
+                        VALUES(
+                                {$param['STAFF_CHANGE_JIKAI_LINK']},
+                                '{$param['TRANSCODE']}',
+                                '{$param['BEFORE_TRANSCODE']}',
+                                NOW()
+                                )";
+
+                $retQuery[$sqlctr] = $this->StoreTransaction->query($sql);
+                $sqlctr++;
+            }
         }
         $SqlInsertRejiMarketing = "";
         //===========================================================================================================
@@ -8293,9 +8367,11 @@ class ServersController extends WebServicesController
      *
      * @param string $sessionid
      * @param int $storecode
+     * @param string $ccode
+     * @param string $transcode
      * @return return_storeTransactionInformation
      */
-    function wsSearchJikaiYoyaku($sessionid, $storecode) {
+    function wsSearchJikaiYoyaku($sessionid, $storecode, $ccode, $transcode) {
         if ($param['ignoreSessionCheck'] <> 1) {
             //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
             $storeinfo = $this->YoyakuSession->Check($this);
@@ -8307,6 +8383,7 @@ class ServersController extends WebServicesController
             $storeinfo['dbname'] = $param['dbname'];
         }
 
+
         //-- 会社データベースを設定する (Set the Company Database)
         $this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction, ConnectionServer::SLAVE);
 
@@ -8314,9 +8391,17 @@ class ServersController extends WebServicesController
         $trantype1 = " AND details.TRANTYPE = 1 ";
 
         if ($storecode <> 0) {
-        	$condition .= " AND `transaction`.STORECODE = " . $storecode;
+        	$condition .= " AND `transaction`.STORECODE = {$storecode}";
         }
 
+        if ($ccode <> '') {
+        	$condition .= " AND `transaction`.CCODE = '{$ccode}' 
+                            AND NOT EXISTS (SELECT NULL
+                                            FROM yoyaku_next_details YND_SUB
+                                            WHERE YND_SUB.transcode = `transaction`.transcode
+                                                AND YND_SUB.nextcode = '{$transcode}'
+                                            )";
+        }
 
         $sql = "select
                     `transaction`.TRANSCODE,
@@ -8499,6 +8584,9 @@ class ServersController extends WebServicesController
 				WHERE trans.transcode = '".$transcode."' and trans.delflg is null";
 
 			$this->YoyakuNext->query($sql);
+        }else{
+
+            $update = $this->MiscFunction->SetTransUpdateDate($this->YoyakuNext, $transcode);
         }
         return true;
     }//function close
@@ -9435,14 +9523,47 @@ class ServersController extends WebServicesController
      * @author MCUNANAN :mcunanan@think-ahead.jp
      * Date: 2015-12-05 14:34
      * @uses Get Mail Domain
-     * @param type $sessionid
-     * @param type $companyid
-     * @param type $storecode
+     * @param mixed $sessionid
      */
     function wsGetReturningCustomerCountAll($sessionid) {
         return $this->MiscFunction->GetReturningCustomerCountAll($this);
     }
     //</editor-fold>
+
+    //<editor-fold defaultstate="collapsed" desc="wsGetMailDomain">
+    /**
+     * @author MCUNANAN :mcunanan@think-ahead.jp
+     * Date: 2016-12-19 15:13
+     * @uses Get Mail Domain
+     * @param string $sessionid
+     * @param integer $staffcode
+     * @param string $password
+     * @return mixed 
+     */
+    function wsVerifyStaffPassword($sessionid, $staffcode, $password) {
+
+        //-------------------------------------------------------------------------------------------
+        $storeinfo = $this->YoyakuSession->Check($this);
+        //-------------------------------------------------------------------------------------------
+        if ($storeinfo == false) {
+            $this->_soap_server->fault(1, '', INVALID_SESSION);
+            return null;
+        }//end if
+
+        $this->Staff->set_company_database($storeinfo['dbname'], $this->Staff, ConnectionServer::SLAVE);
+
+        $Sql = "SELECT staff_password as password FROM staff WHERE staffcode = {$staffcode} limit 1";
+        $res = $this->Staff->query($Sql);
+        
+        if(isset($res{0})){
+            if($res[0]['staff']['password'] == $password){
+                return 1;            
+            }
+        }
+        return 0;
+    }
+    //</editor-fold>
+
 
 }//end class ServersController
 
