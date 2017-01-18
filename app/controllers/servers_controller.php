@@ -114,6 +114,21 @@ class ServersController extends WebServicesController
                                               'param'     => 'staffRowsHistoryInformation'),
                             'output' => array('return'    => 'xsd:int')),
 
+                     'wsDeleteStaffRowsHistory' => array(
+                            'doc'    => 'スタッフ予約列削除',
+                            'input'  => array('sessionid'   => 'xsd:string',
+                                              'storecode'   => 'xsd:int',
+                                              'staffcode'   => 'xsd:int',
+                                              'datechanges' => 'SOAP-ENC:Array'),
+                            'output' => array('return'      => 'xsd:boolean')),
+
+                     'wsSearchStaffRowsHistory' => array(
+                            'doc'    => 'スタッフ予約列検索',
+                            'input'  => array('sessionid' => 'xsd:string',
+                                              'storecode' => 'xsd:int',
+                                              'staffcode' => 'xsd:int'),
+                            'output' => array('return'    => 'return_staffRowsHistoryInformation')),
+
                      'wsDeleteStaff' => array(
                             'doc'    => 'スタッフ削除',
                             'input'  => array('sessionid' => 'xsd:string',
@@ -931,6 +946,12 @@ class ServersController extends WebServicesController
                                         'date'             => 'xsd:string',
                                         'ROWS'             => 'xsd:int',
                                         'PHONEROWS'        => 'xsd:int')),
+
+                             '_staffRowsHistoryInformation' => array(
+                                        'array' => 'staffRowsHistoryInformation'),
+                             'return_staffRowsHistoryInformation' => array('struct' => array(
+                                        'records'      => 'tns:_staffRowsHistoryInformation',
+                                        'record_count' => 'xsd:int')),
                              //- ####################################################
 
 
@@ -3687,6 +3708,109 @@ class ServersController extends WebServicesController
         $this->StaffRowsHistory->query($sql);
 
         return $param['STAFFCODE'];
+    }
+
+
+    /**
+     * スタッフ予約列数削除
+     * Delete StaffRowsHistory
+     *
+     * @param string $sessionid
+     * @param int $storecode
+     * @param int $staffcode
+     * @param array $datechanges
+     * @return bool
+     */
+    function wsDeleteStaffRowsHistory($sessionid, $storecode, $staffcode, $datechanges) {
+        $_var_=$datechanges;$_time_=explode('.',microtime(true));file_put_contents(sprintf('C:\Kijima\Development\Debug\%s.log',php_uname()),sprintf("[%s.%s] %s:%s\n%s\n",date('Y-m-d H:i:s',$_time_[0]),$_time_[1],basename(__FILE__),__LINE__,json_encode($_var_,JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE)),FILE_APPEND);
+
+        $storeinfo = $this->YoyakuSession->Check($this);
+
+        if (!$storeinfo) {
+            $this->_soap_server->fault(1, '', INVALID_SESSION);
+            return false;
+        }
+
+        $this->StaffRowsHistory->set_company_database($storeinfo['dbname'], $this->StaffRowsHistory);
+
+        $where_query = array(
+            "STORECODE = {$storecode}",
+            "STAFFCODE = {$staffcode}"
+        );
+
+        if (count($datechanges) > 0) {
+            for ($i = 0; $i < count($datechanges); $i++) {
+            	$datechanges[$i] = "'{$datechanges[$i]}'";
+            }
+
+            $where_query[] = "DATECHANGE IN(" . implode(',', $datechanges) . ")";
+        }
+
+        $where_query = implode(' AND ', $where_query);
+
+        $query =
+            "DELETE FROM staffrowshistory ".
+            "WHERE {$where_query} ";
+
+        $this->StaffRowsHistory->query($query);
+        return true;
+    }
+
+
+    /**
+     * スタッフ予約列数検索
+     * Search StaffRowsHistory
+     *
+     * @param string $sessionid
+     * @param int $storecode
+     * @param int $staffcode
+     * @return return_staffRowsHistoryInformation
+     */
+    function wsSearchStaffRowsHistory($sessionid, $storecode, $staffcode) {
+        $storeinfo = $this->YoyakuSession->Check($this);
+
+        if (!$storeinfo) {
+            $this->_soap_server->fault(1, '', INVALID_SESSION);
+            return null;
+        }
+
+        $this->StaffRowsHistory->set_company_database($storeinfo['dbname'], $this->StaffRowsHistory);
+
+        $where_query = array(
+            "STORECODE = {$storecode}",
+            "DELFLG IS NULL"
+        );
+
+        if ($staffcode >= 0) {
+            $where_query[] = "STAFFCODE = {$staffcode}";
+        }
+
+        $where_query = implode(' AND ', $where_query);
+
+        $query =
+            "SELECT ".
+                "STAFFCODE, ".
+                "STORECODE, ".
+                "DATECHANGE date, ".
+                "ROWS, ".
+                "PHONEROWS ".
+            "FROM staffrowshistory ".
+            "WHERE {$where_query} ".
+            "ORDER BY ".
+                "STAFFCODE, ".
+                "date DESC ";
+
+        $result = $this->StaffRowsHistory->query($query);
+        $records = array();
+
+        foreach ($result as $row) {
+            $records[] = $row['staffrowshistory'];
+        }
+
+        return array(
+            'records' => $records,
+            'record_count' => count($records)
+        );
     }
 
 
