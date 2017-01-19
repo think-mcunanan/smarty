@@ -3080,6 +3080,10 @@ class ServersController extends WebServicesController
      * @return return_customerIDs
      */
     function wsAddUpdateCustomer($sessionid, $param) {
+
+        // Remove REGULAR field so it will not update
+        unset($param['REGULAR']);
+
         if ($param['ignoreSessionCheck'] <> 1) {
             //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
             $storeinfo = $this->YoyakuSession->Check($this);
@@ -3100,6 +3104,7 @@ class ServersController extends WebServicesController
         if (empty($param['CSTORECODE'])) {
             $param['CSTORECODE'] = $storeinfo['storecode'];
         }
+
 
         //-- CCODEは設定してない場合、新規CCODEを作成 (Check CCODE, create new if none)
         if (empty($param['CCODE'])) {
