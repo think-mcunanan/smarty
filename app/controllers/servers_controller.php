@@ -2249,28 +2249,28 @@ class ServersController extends WebServicesController
         //===================================================================================
 
         $sorting  = " desc ";
-        if ($ascsort == 1) {
-            $sorting  = " desc ";
-        }else{
-            $sorting  = " asc ";
-        }
+		if ($ascsort == 0) { //albert redmine 2033 -->> 2017-01-24 (reverse the original rules of sorting to the excel type of sorting)
+			$sorting  = " desc ";
+		}else{
+			$sorting  = " asc ";
+		}
 
-        $orderby = " ";
-        if ($colsort == 0){
-            $orderby = ", alreadyread " . $sorting;
-        }elseif ($colsort == 1){
-            $orderby = ", starttime " . $sorting;
-        }elseif ($colsort == 2){
-            $orderby = ", transdate " . $sorting . ", reservationtm " . $sorting;
-        }elseif ($colsort == 3){
-            $orderby = ", cname " . $sorting;
-        }elseif ($colsort == 4){
-            $orderby = ", staffname " . $sorting;
-        }elseif ($colsort == 5){
-            $orderby = ", transstat " . $sorting;
-        }elseif ($colsort == 6){
-            $orderby = ", route " . $sorting;
-        }
+		$orderby = " ";
+		if ($colsort == 0){
+			$orderby = ", alreadyread " . $sorting;
+		}elseif ($colsort == 1){
+			$orderby = ", transdate " . $sorting . ", reservationtm /*starttime*/ " . $sorting; //albert redmine 2033 -->> 2017-01-23
+		}elseif ($colsort == 2){
+			$orderby = ", starttime " . $sorting /*", transdate " . $sorting . ", reservationtm " . $sorting*/; //albert redmine 2033 -->> 2017-01-23
+		}elseif ($colsort == 3){
+			$orderby = ", cname " . $sorting;
+		}elseif ($colsort == 4){
+			$orderby = ", staffname " . $sorting;
+		}elseif ($colsort == 5){
+			$orderby = ", transstat " . $sorting;
+		}elseif ($colsort == 6){
+			$orderby = ", route " . $sorting;
+		}
 
         $opeAnd = "";
 
