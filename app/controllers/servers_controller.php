@@ -929,6 +929,7 @@ class ServersController extends WebServicesController
                                         'SYSCODES'         => 'xsd:string',
                                         'STAFFTYPES'       => 'xsd:string',
                                         'STAFFTYPECODES'   => 'xsd:string',
+                                        'STAFF_PASSWORD'   => 'xsd:string',
                                         'STAFFVIEWS'       => 'xsd:string', //UPDATE by SHIMIZU 20150906
                                         'transaction'      => 'tns:return_storeTransactionInformation',
                                         'breaktime'        => 'tns:return_breakTimeInformation',
@@ -8883,7 +8884,8 @@ class ServersController extends WebServicesController
                            aaa.YOYAKUKUBUN,
                            staff_sublevel.SUBLEVELNAME,
                            staff_assign_to_store.KEYNO,
-                           staff_assign_to_store.assign AS STAFF_ASSIGN_TO_STORE
+                           staff_assign_to_store.assign AS STAFF_ASSIGN_TO_STORE,
+                           IFNULL(aaa.staff_password,'') as STAFF_PASSWORD
                     FROM staff aaa
                             LEFT JOIN store ON aaa.storecode = store.storecode
                             LEFT JOIN staff_sublevel ON staff_sublevel.SUBLEVELCODE = aaa.sublevelcode
