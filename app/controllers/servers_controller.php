@@ -114,6 +114,15 @@ class ServersController extends WebServicesController
                                               'param'     => 'staffRowsHistoryInformation'),
                             'output' => array('return'    => 'xsd:int')),
 
+                     'wsAddStaffRowsHistories' => array(
+                            'doc'    => 'スタッフ予約列複数追加',
+                            'input'  => array('sessionid'  => 'xsd:string',
+                                              'storecode'  => 'xsd:int',
+                                              'staffcode'  => 'xsd:int',
+                                              'params'     => '_staffRowsHistoryInformation',
+                                              'pre_delete' => 'xsd:boolean'),
+                            'output' => array('return'     => 'xsd:boolean')),
+
                      'wsDeleteStaffRowsHistory' => array(
                             'doc'    => 'スタッフ予約列削除',
                             'input'  => array('sessionid'   => 'xsd:string',
@@ -3717,6 +3726,77 @@ class ServersController extends WebServicesController
 
 
     /**
+     * スタッフ予約列数複数追加
+     * Add StaffRowsHistories
+     *
+     * @param string $sessionid
+     * @param int $storecode
+     * @param int $staffcode
+     * @param array $params
+     * @param bool $pre_delete
+     * @return bool
+     */
+    function wsAddStaffRowsHistories($sessionid, $storecode, $staffcode, $params, $pre_delete) {
+        $storeinfo = $this->YoyakuSession->Check($this);
+
+        if (!$storeinfo) {
+            $this->_soap_server->fault(1, '', INVALID_SESSION);
+            return false;
+        }
+
+        $this->StaffRowsHistory->set_company_database($storeinfo['dbname'], $this->StaffRowsHistory);
+        $source = $this->StaffRowsHistory->getDataSource();
+
+        try {
+            $source->begin();
+
+            if ($pre_delete) {
+                $query =
+                    "DELETE FROM staffrowshistory ".
+                    "WHERE ".
+                        "STORECODE = {$storecode} AND ".
+                        "STAFFCODE = {$staffcode} ";
+
+                if ($this->StaffRowsHistory->query($query) === false) {
+                    throw new Exception();
+                }
+            }
+
+            if (count($params) > 0) {
+                $values_query = [];
+
+                foreach ($params as $param) {
+                    $values_query[] = "({$staffcode}, '{$param['date']}', {$param['ROWS']}, {$param['PHONEROWS']}, {$storecode}, 0)";
+                }
+
+                $values_query = implode(', ', $values_query);
+
+                $query =
+                    "INSERT INTO staffrowshistory ( ".
+                        "STAFFCODE, ".
+                        "DATECHANGE, ".
+                        "ROWS, ".
+                        "PHONEROWS, ".
+                        "STORECODE, ".
+                        "SHOWINCALENDAR ".
+                    ") VALUES {$values_query} ";
+
+                if ($this->StaffRowsHistory->query($query) === false) {
+                    throw new Exception();
+                }
+            }
+
+            $source->commit();
+            return true;
+        }
+        catch (Exception $ex) {
+            $source->rollback();
+            return false;
+        }
+    }
+
+
+    /**
      * スタッフ予約列数削除
      * Delete StaffRowsHistory
      *
@@ -3727,8 +3807,6 @@ class ServersController extends WebServicesController
      * @return bool
      */
     function wsDeleteStaffRowsHistory($sessionid, $storecode, $staffcode, $datechanges) {
-        $_var_=$datechanges;$_time_=explode('.',microtime(true));file_put_contents(sprintf('C:\Kijima\Development\Debug\%s.log',php_uname()),sprintf("[%s.%s] %s:%s\n%s\n",date('Y-m-d H:i:s',$_time_[0]),$_time_[1],basename(__FILE__),__LINE__,json_encode($_var_,JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE)),FILE_APPEND);
-
         $storeinfo = $this->YoyakuSession->Check($this);
 
         if (!$storeinfo) {
@@ -3757,8 +3835,7 @@ class ServersController extends WebServicesController
             "DELETE FROM staffrowshistory ".
             "WHERE {$where_query} ";
 
-        $this->StaffRowsHistory->query($query);
-        return true;
+        return $this->StaffRowsHistory->query($query) !== false;
     }
 
 
@@ -7118,7 +7195,7 @@ class ServersController extends WebServicesController
 
                 $transcond = " TRANSCODE ='{$param['BEFORE_TRANSCODE']}'";
 
-                // Update the transaction in store_transaction table so it cannot be save in Tenpo 
+                // Update the transaction in store_transaction table so it cannot be save in Tenpo
                 // just incase it is being edited at the same time
                 //--------------------------------------------------------------------------------------------------
                 if(empty($param['YOYAKU_STATUS']) || $param['STAFF_CHANGE_JIKAI_LINK'] > 0){
@@ -7147,7 +7224,7 @@ class ServersController extends WebServicesController
                     $retQuery[$sqlctr] = $this->StoreTransaction->query($sql);
                     $sqlctr++;
                     //--------------------------------------------------------------------------------------------------
-                    
+
                 }
             }
 
@@ -8524,7 +8601,7 @@ class ServersController extends WebServicesController
         }
 
         if ($ccode <> '') {
-        	$condition .= " AND `transaction`.CCODE = '{$ccode}' 
+        	$condition .= " AND `transaction`.CCODE = '{$ccode}'
                             AND NOT EXISTS (SELECT NULL
                                             FROM yoyaku_next_details YND_SUB
                                             WHERE YND_SUB.transcode = `transaction`.transcode
@@ -9667,7 +9744,7 @@ class ServersController extends WebServicesController
      * @param string $sessionid
      * @param integer $staffcode
      * @param string $password
-     * @return mixed 
+     * @return mixed
      */
     function wsVerifyStaffPassword($sessionid, $staffcode, $password) {
 
@@ -9683,10 +9760,10 @@ class ServersController extends WebServicesController
 
         $Sql = "SELECT staff_password as password FROM staff WHERE staffcode = {$staffcode} limit 1";
         $res = $this->Staff->query($Sql);
-        
+
         if(isset($res{0})){
             if($res[0]['staff']['password'] == $password){
-                return 1;            
+                return 1;
             }
         }
         return 0;
