@@ -3764,7 +3764,7 @@ class ServersController extends WebServicesController
             }
 
             if (count($params) > 0) {
-                $values_query = [];
+                $values_query = array();
 
                 foreach ($params as $param) {
                     $values_query[] = "({$staffcode}, '{$param['date']}', {$param['ROWS']}, {$param['PHONEROWS']}, {$storecode}, 0)";
