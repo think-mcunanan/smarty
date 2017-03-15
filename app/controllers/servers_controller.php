@@ -2206,8 +2206,8 @@ class ServersController extends WebServicesController
         //count all reservation -------------------------------------------------------------------------------------------
         $sql = "select bmr, wrkr
             from (
-                    select count(if(origination = 7 or origination = 8, transcode, null)) as bmr,
-                           count(if(origination = 1 or origination = 2, transcode, null)) as wrkr
+                    select count(if(origination in (7,8,9), transcode, null)) as bmr,
+                           count(if(origination in (1,2), transcode, null)) as wrkr
                     from (
 
                             select str_hdr.transcode, str_hdr.origination, ifnull(str_trans2_hdr.read, 0) as yread
@@ -2220,7 +2220,7 @@ class ServersController extends WebServicesController
                                     join stafftype on stafftype.staffcode = stff.staffcode and stafftype.delflg is null or str_dtl.staffcode = 0
                                     join storetype on storetype.delflg is null and storetype.storecode = str_hdr.storecode
                                     left join store_transaction2 as str_trans2_hdr on str_hdr.transcode = str_trans2_hdr.transcode and str_hdr.keyno = str_trans2_hdr.keyno
-                            where str_hdr.origination in (1,2,7,8) " . $datastrcode . $datatransdate . "
+                            where str_hdr.origination in (1,2,7,8,9) " . $datastrcode . $datatransdate . "
                             group by str_hdr.transcode
                     ) tmptbl where yread = 0
 
@@ -2286,7 +2286,7 @@ class ServersController extends WebServicesController
 
         $dataoriginate = "";
         if ($origination == 0 ){
-            $dataoriginate = " str_hdr.origination in (1, 2, 7, 8) ";
+            $dataoriginate = " str_hdr.origination in (1, 2, 7, 8, 9) ";
             $opeAnd = " and ";
         }elseif ($origination == 1){
             $dataoriginate = " str_hdr.origination in (1) ";
@@ -2295,7 +2295,7 @@ class ServersController extends WebServicesController
             $dataoriginate = " str_hdr.origination in (2) ";
             $opeAnd = " and ";
         }elseif ($origination == 3){
-            $dataoriginate = " str_hdr.origination in (7, 8) ";
+            $dataoriginate = " str_hdr.origination in (7, 8, 9) ";
             $opeAnd = " and ";
         }
 
@@ -2338,7 +2338,7 @@ class ServersController extends WebServicesController
                                                     if(ifnull(str_hdr.YOYAKUTIME, '') <> '', DATE_FORMAT(str_hdr.YOYAKUTIME, '%H:%i'), '') as reservationtm,
                                                     str_hdr.cname, stff.staffname,
                                                     case when str_hdr.delflg is not null then 'キャンセル' else '予約' end as transstat,
-                                                    if(str_hdr.origination = 7 or str_hdr.origination = 8, '連携', 'もばすて') as route, ifnull(str_trans2_hdr.read, 0) as alreadyread,
+                                                    if(str_hdr.origination in (7, 8, 9), '連携', 'もばすて') as route, ifnull(str_trans2_hdr.read, 0) as alreadyread,
                                                     group_concat(distinct svr.syscode) as syscode, str_hdr.origination
                     from store_transaction as str_hdr
                                                     left join store_transaction_details as str_dtl on str_hdr.transcode = str_dtl.transcode and str_hdr.keyno = str_dtl.keyno
@@ -6702,6 +6702,57 @@ class ServersController extends WebServicesController
                             join rv_reservation as rvRes on rvKey.alliance_reserve_id = rvRes.alliance_reserve_id
                             left join staff as stf ON rvRes.staff_id = stf.STAFFCODE
                             where rvRes.delflg is null
+
+                            UNION ALL
+
+                            SELECT
+                                9 origination,
+                                '' route,
+                                '' reservation_system,
+                                hr.datecreated reserve_date,
+                                hr.reserve_id reserve_code,
+                                hr.start_datetime date,
+                                hr.minutes start,
+                                '' end,
+                                '' coupon_info,
+                                hr.mail_body comment,
+                                '' shop_comment,
+                                '' site_customer_id,
+                                '' demand,
+                                '' next_coming_comment,
+                                0 price,
+                                0 nomination_fee,
+                                0 total_price,
+                                0 use_point,
+                                0 grant_point,
+                                0 visit_num,
+                                hr.customer_name name_sei,
+                                '' name_kn_sei,
+                                0 sex,
+                                '' name_mei,
+                                '' name_kn_mei,
+                                '' tel,
+                                '' zipcode,
+                                '' address,
+                                '' mail,
+                                s.staffname staffname,
+                                '' menu_info,
+                                hr.transcode transcode,
+                                '' ccode
+
+                            FROM store_transaction st
+
+                            JOIN hpb_reservation hr
+                            USING(transcode)
+
+                            LEFT JOIN staff s
+                            ON hr.staff_id = s.staffcode
+
+                            WHERE st.transdate = '".$param['date']."'
+                            AND st.origination = 9
+                            AND st.delflg IS NULL
+                            ".$transconde."
+
                               ) as bmtble on bmtble.transcode = transaction.TRANSCODE and bmtble.origination = transaction.origination
 
                             /*add by albert for bm connection 2015-10-29 */
