@@ -3181,7 +3181,7 @@ class ServersController extends WebServicesController
                 } else if ($key == 'CNUMBER' && $val == "") {
                     $this->Customer->set($key, null);
                 } else {
-                    $this->Customer->set($key, $val);
+                    $this->Customer->set($key, trim($val));
                 }
             }
         }
