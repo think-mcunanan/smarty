@@ -9628,12 +9628,22 @@ class ServersController extends WebServicesController
         //===================================================================================
         // Get StoreMenuServiceTime Data
         //-----------------------------------------------------------------------------------
-        $Sql = "SELECT * FROM(SELECT staffcode,
-                                      gcode,
-                                      IFNULL(service_time, 0) AS female_time,
-                                      IFNULL(service_time_male, 0) AS male_time
-                               FROM yoyaku_staff_service_time
-                               WHERE storecode = ".$storecode.") as tblresult";
+        $Sql = "SELECT * 
+                FROM(SELECT staffcode,
+						    gcode,
+						    IFNULL(service_time, 0) AS female_time,
+						    IFNULL(service_time_male, 0) AS male_time
+		            FROM yoyaku_staff_service_time
+				        JOIN (SELECT S.STAFFCODE, S.STAFFNAME 
+							  FROM staff_assign_to_store as SATS
+							    INNER JOIN staff as S
+								   ON SATS.STAFFCODE = S.STAFFCODE
+								      AND S.DELFLG IS NULL
+			                    WHERE SATS.STORECODE = {$storecode}
+								    AND SATS.ASSIGN_YOYAKU = 1
+						    ) yoyakustaffs USING (STAFFCODE)
+		            WHERE storecode = {$storecode}
+				        AND GCODE > 0) as tblresult";
         //-----------------------------------------------------------------------------------
         $GetData = $this->Store->query($Sql);
         //-----------------------------------------------------------------------------------
