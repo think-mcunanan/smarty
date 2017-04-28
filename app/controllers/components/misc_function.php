@@ -1496,5 +1496,17 @@ class MiscFunctionComponent extends Object
     }
     //</editor-fold>
 
+    #Redion IsPowerFlgOn
+    /**
+     * Check if Power Flag is ON
+     * @author Marvin Cunanan <mcunanan@think-ahead.jp>
+     * @datecreated 2017-04-25 10:33
+     * @param mixed $controller
+     * @return boolean
+     */
+    function IsPowerFlgOn($controller){
+        return $this->GetReturningCustomerCountAll($controller) == 1;
+    }
+    #end region
 }
 ?>

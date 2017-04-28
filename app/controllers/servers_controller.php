@@ -1848,7 +1848,7 @@ class ServersController extends WebServicesController
                      mailaddress1, mailaddress2, zipcode1, address1, mansionmei, cstorecode, firstdate, lastdate,
                      ($totalrec) as totalrecords
             from
-                    (select ccode, cnumber, cname, cnamekana, sex, tel1, tel2, birthdate, christian_era,
+                    (select ccode, cnumber, cname, cnamekana, ifnull(sex, 0) as sex, tel1, tel2, birthdate, christian_era,
                             mailaddress1, mailaddress2, zipcode1, address1, mansionmei, cstorecode, firstdate, lastdate
                     from customer
                     where delflg is null and ccode <> '" . $tmpccode . "' and ccode <> '" . $basecode . "'" . $strcond . $filename1 . $firstdatecond . "
@@ -1973,8 +1973,28 @@ class ServersController extends WebServicesController
 
         //--------------------------------------------------------------------------------------------------------------------------------------------------
         //update ccode for the following table -------------------------------------------------------------------------------------------------------------
-        $tablename = Array("store_transaction", "bm_reservation", "credit_trans", "coupon_trans", "customer_mails", "store_transaction_apsales", "store_transaction_item",
-                           "yoyaku_message", "ks_yoyaku");
+        $tablename = array("store_transaction",
+                           "credit_trans",
+                           "coupon_trans",
+                           "customer_mails",
+                           "customer_mail_reservation",
+                           "customer_mail_reservation_details",
+                           "auto_mail_history",
+                           "customer_ticket",
+                           "store_transaction_item",
+                           "store_transaction_apsales",
+                           "customer_next_coming_dates",
+                           "karte",
+                           "bm_reservation",
+                           "rv_customer",
+                           "cti"
+                           );
+
+        if($this->MiscFunction->IsPowerFlgOn($this)){
+            $tablename[] = "store_transaction_gdcode_kyakukubun";
+            $tablename[] = "store_transaction_kyakukubun";
+        }
+
         for ($ctr = 0; $ctr < count($tablename); $ctr++) {
             $GetData = "";
             if ($ctr == 0) { // disable the trigger first to preserved transaction data
@@ -1994,42 +2014,12 @@ class ServersController extends WebServicesController
                 $Sql = "Update dbsettings set dbvalue = 0 where dbset = 'DISABLE_TRIGGER'";
                 $GetData = $this->Customer->query($Sql);
 
-            }elseif ($ctr == 1){ //update ccode to bm_reservation
-                $Sql = "Update bm_reservation set ccode = '" . $toccode . "'
-                        where ccode = '" . $fromccode . "'";
-                $GetData = $this->Customer->query($Sql);
-
-                /* remove by albert by on the intruction of kato-san
-                 * 2016-03-28 at 19:40
-                $bmCode = '"' . $params['BMCODE'] . '"';
-                $Sql = "Update bm_reservation set ccode = '" . $toccode . "',
-                mail =  '" . $params['MAILADDRESS1'] . "',
-                zipcode =  '" . $params['ZIPCODE1'] . "',
-                tel =  '" . $params['TEL1'] . "',
-                sex =  " . (($params['SEX'] == 1) ? 0 : 1) . "
-                where ccode = '" . $fromccode . "'";
-                $GetData = $this->Customer->query($Sql);
-
-                $GetData = "";
-                $Sql = "Update bm_reservation set site_customer_id = " . $bmCode . "
-                where ccode = '" . $toccode . "'";
-                $GetData = $this->Customer->query($Sql);
-                 */
-
             }else{//update ccode for the following table
                 $Sql = "Update ".$tablename[$ctr]." set ccode = '" . $toccode . "' where ccode = '" .$fromccode . "'";
                 $GetData = $this->Customer->query($Sql);
             }
 
         }
-        //--------------------------------------------------------------------------------------------------------------------------------------------------
-
-        //--------------------------------------------------------------------------------------------------------------------------------------------------
-        //update reservia customer table -------------------------------------------------------------------------------------------------------------------
-        $GetData = "";
-        $Sql = "update rv_customer set ccode = '" . $toccode . "'
-                where ccode = '" . $fromccode . "'";
-        $GetData = $this->Customer->query($Sql);
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
         //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -9628,13 +9618,13 @@ class ServersController extends WebServicesController
         //===================================================================================
         // Get StoreMenuServiceTime Data
         //-----------------------------------------------------------------------------------
-        $Sql = "SELECT * 
+        $Sql = "SELECT *
                 FROM(SELECT staffcode,
 						    gcode,
 						    IFNULL(service_time, 0) AS female_time,
 						    IFNULL(service_time_male, 0) AS male_time
 		            FROM yoyaku_staff_service_time
-				        JOIN (SELECT S.STAFFCODE, S.STAFFNAME 
+				        JOIN (SELECT S.STAFFCODE, S.STAFFNAME
 							  FROM staff_assign_to_store as SATS
 							    INNER JOIN staff as S
 								   ON SATS.STAFFCODE = S.STAFFCODE
