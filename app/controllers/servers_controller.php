@@ -2182,31 +2182,21 @@ class ServersController extends WebServicesController
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
         //--------------------------------------------------------------------------------------------------------------------------------------------------
-        // SQL to update customer_merge table to new customer code
+        // SQL to update customer_images table to new customer code
         //--------------------------------------------------------------------------------------------------------------------------------------------------
-        $images = $this->getImageToUpdate($companyid, $fromccode, $toccode);
-
-        if(!empty($images)){
-            $imgno_ctr = $images[0]['maximgno'];
-            $resetprimarypic = ($images[0]['resetprimarypic'] == 1 ? ', primarypic = 0' : '');
-
-            foreach($images as $image){
-
-                $imgno_ctr++;
-
-                $sqlstatements[] = "UPDATE sipssbeauty_img.customer_images
-                                    SET ccode = '{$toccode}',
-                                        imgno = {$imgno_ctr}
-                                        {$resetprimarypic}
-                                    WHERE companyid = {$companyid}
-                                    AND ccode = '{$fromccode}'
-                                    AND imgno = {$image['imgno']}
-                                    ";
-
-            }
-
-            unset($images, $imgno_ctr, $resetprimarypic);
-        }
+        $sqlstatements[] = "UPDATE sipssbeauty_img.customer_images C1,
+			                    (SELECT
+					                @cnt := max(imgno) as imgno,
+                                    ccode,
+					                max(primarypic) as resetprimarypic
+			                    from sipssbeauty_img.customer_images
+			                    where companyid = {$companyid}
+			                    and ccode = '{$toccode}') as C2
+                            SET C1.ccode = C2.ccode,
+		                        C1.imgno = (@cnt := @cnt + 1),
+		                        C1.primarypic = IF(C2.resetprimarypic = 1, 0, C1.primarypic)
+                            WHERE C1.companyid = {$companyid}
+		                        AND C1.ccode = '{$fromccode}'";
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -2237,54 +2227,6 @@ class ServersController extends WebServicesController
             return false;
         }
         //--------------------------------------------------------------------------------------------------------------------------------------------------
-
-    }//function close
-    //</editor-fold>
-
-    //<editor-fold defaultstate="collapsed" desc="getImageToUpdate">
-    /**
-     * Get Image to Update
-     * @author Marvin Cunanan Email:mcunanan@think-ahead.jp
-     * @created 2017-05-10 17:40
-     * Update:
-     *
-     * @param Int - $companyid - Company ID
-     * @param String - $fromccode - From Customer CCODE
-     * @param String - $toccode - To Customer CCODE
-     * @return Array
-     */
-    private function getImageToUpdate($companyid, $fromccode, $toccode) {
-
-        $sql = "SELECT
-                    custimagetbl.*
-                FROM(
-                    SELECT
-		                imgno,
-                        primarypic,
-		                maximgno,
-		                resetprimarypic
-                    FROM sipssbeauty_img.customer_images CI1
-                    LEFT JOIN(
-					            SELECT
-							        companyid,
-							        MAX(imgno) as maximgno,
-							        (MAX(primarypic) = 1) as resetprimarypic
-				                FROM sipssbeauty_img.customer_images
-					            WHERE ccode = '{$toccode}'
-					                AND companyid = {$companyid}
-					            ) as CI2
-		                ON CI2.companyid = CI2.companyid
-                    WHERE CI1.ccode = '{$fromccode}'
-                        AND CI1.companyid = {$companyid}
-                    ORDER BY CI1.imgno
-                    ) as custimagetbl";
-        $rawdata = $this->Customer->query($sql);
-
-        if(empty($rawdata)){
-            return null;
-        }
-
-        return $this->ParseDataToObjectArray($rawdata, 'custimagetbl');
 
     }//function close
     //</editor-fold>
