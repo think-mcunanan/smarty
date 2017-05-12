@@ -1869,11 +1869,20 @@ class ServersController extends WebServicesController
     }
 
 
-    // wsCustomerMergeSave -----------------------------------------------------------------------------------------------------------------------
-    /* author : Albert 2015-11-24
-     * Customer merging
-     * @param array $param
-     * @return customerlistinginfo
+
+    //<editor-fold defaultstate="collapsed" desc="wsCustomerMergeSave">
+    /**
+     * Merge Customer Records
+     * @author Alber Baguio
+     * @created 2015-11-24
+     * @updateby Marvin Cunanan Email:mcunanan@think-ahead.jp
+     * @datedate 2017-05-12 11:25
+     * @param string $sessionid - Session ID
+     * @param int $strcode - Storecode
+     * @param string $fromccode - From CCODE
+     * @param string $toccode - To CCODE
+     * @param int $companyid - Company ID
+     * @param mixed $params - Customer Object
      */
     function wsCustomerMergeSave($sessionid, $strcode, $fromccode, $toccode, $companyid, $params){
 
@@ -1883,17 +1892,18 @@ class ServersController extends WebServicesController
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
             $this->_soap_server->fault(1, '', INVALID_SESSION);
-            return;
+            return false;
         }
         $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
         //===================================================================================
 
-        $Sql = "Select cstorecode from customer where ccode = '" . $toccode . "'";
-        $GetData = $this->Customer->query($Sql);
+        $sql = "SELECT cstorecode FROM customer WHERE ccode = '{$toccode}'";
+        $data = $this->Customer->query($sql);
 
         $newstorecode = 0;
-        if (count($GetData) > 0) {
-            $newstorecode = $GetData[0]["customer"]["cstorecode"];
+
+        if (count($data) > 0) {
+            $newstorecode = (int)$data[0]["customer"]["cstorecode"];
         }else{
             return false;
         }
@@ -1901,262 +1911,383 @@ class ServersController extends WebServicesController
             return false;
         }
 
-        //--------------------------------------------------------------------------------------------------------------------------------------------------
-        //set old customer CNUMBER to NULL to remove the Duplicate entry -----------------------------------------------------------------------------------
-        //        $Sql = "update customer set cnumber = null where ccode = '" . $fromccode . "'";
-        //        $GetData = $this->Customer->query($Sql);
-        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        $sqlstatements = array();
+        $newstoredate = "NULL";
+        $newstaffinchargeselected = "NULL";
+        $newagerange = "NULL";
+        $newreferralrelationcode = "NULL";
+        $newintroducetype = "NULL";
+        $newchristianera = "NULL";
+
 
         //--------------------------------------------------------------------------------------------------------------------------------------------------
-        //get the addition information for customer --------------------------------------------------------------------------------------------------------
-        $Sql = "Select STAFF_INCHARGE_SELECTED, AGERANGE, REFERRALRELATIONCODE, INTRODUCETYPE, STOREDATE, CHRISTIAN_ERA  from customer where ccode = '" . $fromccode . "'";
-        $GetData = $this->Customer->query($Sql);
+        // Get additional customer information
         //--------------------------------------------------------------------------------------------------------------------------------------------------
+        $sql = "SELECT
+                    STAFF_INCHARGE_SELECTED,
+                    AGERANGE,
+                    REFERRALRELATIONCODE,
+                    INTRODUCETYPE,
+                    STOREDATE,
+                    CHRISTIAN_ERA
+                FROM customer
+                WHERE ccode = '{$fromccode}'";
+        $data = $this->Customer->query($sql);
 
-        $cnumnew = "null";
-        if ($params['CNUMBER'] <> ""){
-            $cnumnew = "'" . $params['CNUMBER'] . "'";
+        if (!empty($data)){
+            $data = $this->ParseDataToObjectArray($data, 'customer');
+
+            $newstaffinchargeselected = $data[0]['STAFF_INCHARGE_SELECTED'] !== NULL ? $data[0]['STAFF_INCHARGE_SELECTED'] : 'NULL';
+            $newagerange = $data[0]['AGERANGE'] !== NULL ? $data[0]['AGERANGE'] : 'NULL';
+            $newreferralrelationcode = $data[0]['REFERRALRELATIONCODE'] !== NULL ? $data[0]['REFERRALRELATIONCODE'] : 'NULL';
+            $newintroducetype = $data[0]['INTRODUCETYPE'] !== NULL ? $data[0]['INTRODUCETYPE'] : 'NULL';
+            $newstoredate = $data[0]['STOREDATE'] <> '' ? "'{$data[0]['STOREDATE']}'" : 'NULL';
+            $newchristianera = $data[0]['CHRISTIAN_ERA'] !== NULL ? $data[0]['CHRISTIAN_ERA'] : 'NULL';
         }
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
 
-        $newbdate =  "null";
-        if ($params['BIRTHDATE']  <> ""){
-            $newbdate = "'" . $params['BIRTHDATE'] . "'";
-        }
-
-        $newstrdate = "null";
-        if ($GetData[0]["customer"]["STOREDATE"]  <> ""){
-            $newstrdate = "'" . $GetData[0]["customer"]["STOREDATE"] . "'";
-        }
+        $newbirthdate =  $params['BIRTHDATE'] <> '' ? "'{$params['BIRTHDATE']}'" : "NULL";
+        $newcustname = $params['CNAME'];
 
         //--------------------------------------------------------------------------------------------------------------------------------------------------
-        //undating of new customer information in customer table -------------------------------------------------------------------------------------------
-        $GetData1 = "";
-        $newCustName = '"' . $params['CNAME'] . '"';
-        $newCustNameKN = '"' . $params['CNAMEKANA'] . '"';
-        $Sql = "update customer
-                set /*CNUMBER = " . $cnumnew . ",*/
-                    CNAME = ". $newCustName .",
-                    CNAMEKANA = ". $newCustNameKN .",
-                    MEMBER_CODE = '". $params['MEMBER_CODE'] ."',
-                    SEX = ". $params['SEX'] .",
-                    SMOKING = ". $params['SMOKING'] .",
-                    REGULAR = ". $params['REGULAR'] .",
-                    TEL1 = '". $params['TEL1'] ."',
-                    TEL2 = '". $params['TEL2'] ."',
-                    MAILADDRESS1 = '". $params['MAILADDRESS1'] ."',
-                    MAILADDRESS2 = '". $params['MAILADDRESS2'] ."',
-                    ZIPCODE1 = '". $params['ZIPCODE1'] ."',
-                    KEN1 = '". $params['KEN1'] ."',
-                    SITYO1 = '". $params['SITYO1'] ."',
-                    MANSIONMEI = '". $params['MANSIONMEI'] ."',
-                    ADDRESS1 = '". $params['ADDRESS1'] ."',
-                    BIRTHDATE = ". $newbdate .",
-                    MEMBERSCATEGORY = ". $params['MEMBERSCATEGORY'] .",
-                    DMKUBUN = ". $params['DMKUBUN'] .",
-                    MAILKUBUN = ". $params['MAILKUBUN'] .",
-                    BLOODTYPE = '". $params['BLOODTYPE'] ."',
-                    JOBINDUSTRYCODE = ". $params['JOBINDUSTRYCODE'] .",
-                    HOWKNOWSCODE = ". $params['HOWKNOWSCODE'] .",
-
-					CREATEDFROMCODE = ". $params['CREATEDFROMCODE'] .",
-
-                    CHRISTIAN_ERA = ". $GetData[0]["customer"]['CHRISTIAN_ERA'] .",
-                    INTRODUCETYPE = ". $GetData[0]["customer"]["INTRODUCETYPE"] .",
-                    STOREDATE = ". $newstrdate .",
-                    REFERRALRELATIONCODE = ". $GetData[0]["customer"]["REFERRALRELATIONCODE"] .",
-                    AGERANGE = ". $GetData[0]["customer"]["AGERANGE"] .",
-                    STAFF_INCHARGE_SELECTED = ". $GetData[0]["customer"]["STAFF_INCHARGE_SELECTED"] ."
-                where ccode = '". $toccode ."'";
-
-        $GetData1 = $this->Customer->query($Sql);
+        // SQL to update customer information table
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        $sqlstatements[] = "UPDATE customer
+                            SET CNAME = '{$newcustname}',
+                                CNAMEKANA = '{$params['CNAMEKANA']}',
+                                MEMBER_CODE = '{$params['MEMBER_CODE']}',
+                                SEX = {$params['SEX']},
+                                SMOKING = {$params['SMOKING']},
+                                REGULAR = {$params['REGULAR']},
+                                TEL1 = '{$params['TEL1']}',
+                                TEL2 = '{$params['TEL2']}',
+                                MAILADDRESS1 = '{$params['MAILADDRESS1']}',
+                                MAILADDRESS2 = '{$params['MAILADDRESS2']}',
+                                ZIPCODE1 = '{$params['ZIPCODE1']}',
+                                KEN1 = '{$params['KEN1']}',
+                                SITYO1 = '{$params['SITYO1']}',
+                                MANSIONMEI = '{$params['MANSIONMEI']}',
+                                ADDRESS1 = '{$params['ADDRESS1']}',
+                                BIRTHDATE = {$newbirthdate},
+                                MEMBERSCATEGORY = {$params['MEMBERSCATEGORY']},
+                                DMKUBUN = {$params['DMKUBUN']},
+                                MAILKUBUN = {$params['MAILKUBUN']},
+                                BLOODTYPE = '{$params['BLOODTYPE']}',
+                                JOBINDUSTRYCODE = {$params['JOBINDUSTRYCODE']},
+                                HOWKNOWSCODE = {$params['HOWKNOWSCODE']},
+					            CREATEDFROMCODE = {$params['CREATEDFROMCODE']},
+                                CHRISTIAN_ERA = {$newchristianera},
+                                INTRODUCETYPE = {$newintroducetype},
+                                STOREDATE = {$newstoredate},
+                                REFERRALRELATIONCODE = {$newreferralrelationcode},
+                                AGERANGE = {$newagerange},
+                                STAFF_INCHARGE_SELECTED = {$newstaffinchargeselected}
+                            WHERE ccode = '{$toccode}'";
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
         //--------------------------------------------------------------------------------------------------------------------------------------------------
-        //update ccode for the following table -------------------------------------------------------------------------------------------------------------
-        $tablename = array("store_transaction",
-                           "credit_trans",
-                           "coupon_trans",
-                           "customer_mails",
-                           "customer_mail_reservation",
-                           "customer_mail_reservation_details",
-                           "auto_mail_history",
-                           "customer_ticket",
-                           "store_transaction_item",
-                           "store_transaction_apsales",
-                           "customer_next_coming_dates",
-                           "karte",
-                           "bm_reservation",
-                           "rv_customer",
-                           "cti"
-                           );
+        // SQL to updated following tables
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        $tablenames = array("store_transaction",
+                            "credit_trans",
+                            "coupon_trans",
+                            "customer_mails",
+                            "customer_mail_reservation",
+                            "customer_mail_reservation_details",
+                            "auto_mail_history",
+                            "customer_ticket",
+                            "store_transaction_item",
+                            "store_transaction_apsales",
+                            "customer_next_coming_dates",
+                            "karte",
+                            "bm_reservation",
+                            "rv_customer",
+                            "cti"
+                            );
 
         if($this->MiscFunction->IsPowerFlgOn($this)){
-            $tablename[] = "store_transaction_gdcode_kyakukubun";
-            $tablename[] = "store_transaction_kyakukubun";
+            $tablenames[] = "store_transaction_gdcode_kyakukubun";
+            $tablenames[] = "store_transaction_kyakukubun";
         }
 
-        for ($ctr = 0; $ctr < count($tablename); $ctr++) {
-            $GetData = "";
-            if ($ctr == 0) { // disable the trigger first to preserved transaction data
-                $Sql = "Update dbsettings set dbvalue = 1 where dbset = 'DISABLE_TRIGGER'";
-                $GetData = $this->Customer->query($Sql);
+        foreach ($tablenames as $tablename){
 
-                $GetData = "";
-                $Sql = "Update store_transaction set cname = " . $newCustName . "  where ccode = '" . $toccode . "'";
-                $GetData = $this->Customer->query($Sql);
+            if($tablename == 'store_transaction'){
+                // disable the trigger first to preserved transaction data
+                $sqlstatements[] = "Update dbsettings set dbvalue = 1 where dbset = 'DISABLE_TRIGGER'";
 
-                $GetData = "";
-                $Sql = "Update store_transaction set ccode = '" . $toccode . "', cname = " . $newCustName . "  where ccode = '" . $fromccode . "'";
-                $GetData = $this->Customer->query($Sql);
+                $sqlstatements[] = "Update store_transaction set cname = '{$newcustname}'  where ccode = '{$toccode}'";
+
+                $sqlstatements[] = "Update store_transaction set ccode = '{$toccode}', cname = '{$newcustname}'  where ccode = '{$fromccode}'";
 
                 // enable trigger
-                $GetData = "";
-                $Sql = "Update dbsettings set dbvalue = 0 where dbset = 'DISABLE_TRIGGER'";
-                $GetData = $this->Customer->query($Sql);
-
-            }else{//update ccode for the following table
-                $Sql = "Update ".$tablename[$ctr]." set ccode = '" . $toccode . "' where ccode = '" .$fromccode . "'";
-                $GetData = $this->Customer->query($Sql);
+                $sqlstatements[] = "Update dbsettings set dbvalue = 0 where dbset = 'DISABLE_TRIGGER'";
+            }else{
+                //update ccode for the following table
+                $sqlstatements[] = "Update {$tablename} set ccode = '{$toccode}' where ccode = '{$fromccode}'";
             }
 
         }
+        unset($tablenames);
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
         //--------------------------------------------------------------------------------------------------------------------------------------------------
-        //update dcustomerinfo table for new customer code -------------------------------------------------------------------------------------------------
-        $GetData = "";
-        $Sql = "Insert IGNORE into dcustomerinfo(ccode, ITEMCODE,ITEMLISTCODE, `STORECODE`,`DELFLG` )
-			Select '" . $toccode . "', custinfo.ITEMCODE,ITEMLISTCODE, '" . $newstorecode . "', custinfo.DELFLG
-			from dcustomerinfo custinfo
-			where custinfo.ccode = '" . $fromccode . "'";
-        $GetData = $this->Customer->query($Sql);
+        // SQL to update dcustomerinfo table for new customer code
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        $sqlstatements[] = "INSERT IGNORE INTO dcustomerinfo(ccode, ITEMCODE,ITEMLISTCODE, `STORECODE`,`DELFLG` )
+			                SELECT
+                                '{$toccode}',
+                                custinfo.ITEMCODE,
+                                custinfo.ITEMLISTCODE,
+                                {$newstorecode},
+                                custinfo.DELFLG
+			                FROM dcustomerinfo custinfo
+			                WHERE custinfo.ccode = '{$fromccode}'";
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
         //--------------------------------------------------------------------------------------------------------------------------------------------------
-        //update customer relation table for new customer code ---------------------------------------------------------------------------------------------
-        $GetData = "";
-        $Sql = "Insert IGNORE into `customer_relation`(ccode, TORELATIONCCODE, RELATIONCODE, STORECODE, REMARKS, DELFLG )
-			Select '" . $toccode . "', relation.TORELATIONCCODE, relation.RELATIONCODE, '" . $newstorecode . "', relation.REMARKS, relation.DELFLG
-			from customer_relation relation
-			where relation.ccode = '" . $fromccode . "'";
-        $GetData = $this->Customer->query($Sql);
+        // SQL to update customer relation table for new customer code
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        $sqlstatements[] = "INSERT IGNORE INTO customer_relation(CCODE, TORELATIONCCODE, RELATIONCODE, STORECODE, REMARKS, DELFLG)
+			                SELECT
+                                '{$toccode}',
+                                relation.TORELATIONCCODE,
+                                relation.RELATIONCODE,
+                                {$newstorecode},
+                                relation.REMARKS,
+                                relation.DELFLG
+			                FROM customer_relation relation
+			                WHERE relation.ccode = '{$fromccode}'";
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
         //--------------------------------------------------------------------------------------------------------------------------------------------------
-        //update customer total table for new customer code ------------------------------------------------------------------------------------------------
-        $GetData = "";
-        $Sql = "Insert into customertotal(storecode, ccode, pointtotal1, pointtotal2)
-                 Select '" . $newstorecode . "', '" . $toccode . "', custot.pointtotal1, custot.pointtotal2
-                     from customertotal custot
-                    where custot.ccode =  '" . $fromccode . "'
-             on duplicate key update customertotal.pointtotal1 = customertotal.pointtotal1 + custot.pointtotal1,
-                customertotal.pointtotal2 = customertotal.pointtotal2 + custot.pointtotal2";
-        $GetData = $this->Customer->query($Sql);
+        // SQL to update customer total table for new customer code
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        $sqlstatements[] = "INSERT INTO customertotal(storecode, ccode, pointtotal1, pointtotal2)
+                            SELECT
+                                {$newstorecode},
+                                '{$toccode}',
+                                custot.pointtotal1,
+                                custot.pointtotal2
+                            FROM customertotal custot
+                            WHERE custot.ccode =  '{$fromccode}'
+                            ON DUPLICATE KEY UPDATE
+                                customertotal.pointtotal1 = customertotal.pointtotal1 + custot.pointtotal1,
+                                customertotal.pointtotal2 = customertotal.pointtotal2 + custot.pointtotal2";
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
         //--------------------------------------------------------------------------------------------------------------------------------------------------
-        //update customer total table for old customer code set the delflug --------------------------------------------------------------------------------
-        $GetData = "";
-        $Sql = "Update customertotal set delflg = now() where ccode = '" . $fromccode . "'";
-        $GetData = $this->Customer->query($Sql);
+        // SQL to update customer total table for old customer code set the delflag
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        $sqlstatements[] = "UPDATE customertotal SET delflg = NOW() WHERE ccode = '{$fromccode}'";
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
         //--------------------------------------------------------------------------------------------------------------------------------------------------
-        //update customer anniversary table for new customer code ------------------------------------------------------------------------------------------
-        $GetData = "";
-        $Sql = "Insert into customer_anniversary(ccode, anniversarycode, anniversarydate, storecode)
-			Select '" . $toccode . "', custanni.anniversarycode, custanni.anniversarydate, '" . $newstorecode . "'
-			from customer_anniversary custanni
-			where custanni.ccode = '" . $fromccode . "'
-			On Duplicate Key Update customer_anniversary.ANNIVERSARYDATE= custanni.anniversarydate,
-			customer_anniversary.storecode = custanni.storecode";
-        $GetData = $this->Customer->query($Sql);
+        // SQL update customer anniversary table for new customer code
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        $sqlstatements[] = "INSERT INTO customer_anniversary(ccode, anniversarycode, anniversarydate, storecode)
+			                SELECT '{$toccode}',
+                                    custanni.anniversarycode,
+                                    custanni.anniversarydate,
+                                    {$newstorecode}
+			                FROM customer_anniversary custanni
+			                WHERE custanni.ccode = '{$fromccode}'
+			                ON DUPLICATE KEY UPDATE
+                                customer_anniversary.ANNIVERSARYDATE= custanni.anniversarydate,
+			                    customer_anniversary.storecode = custanni.storecode";
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
         //--------------------------------------------------------------------------------------------------------------------------------------------------
-        //update customer anniversary table for old customer code set the delflug --------------------------------------------------------------------------
-        $GetData = "";
-        $Sql = "Update customer_anniversary set delflg = now() where ccode = '" . $fromccode . "'";
-        $GetData = $this->Customer->query($Sql);
+        // SQL to update customer anniversary table for old customer code set the delflag
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        $sqlstatements[] = "UPDATE customer_anniversary SET delflg = NOW() WHERE ccode = '{$fromccode}'";
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
         //--------------------------------------------------------------------------------------------------------------------------------------------------
-        //update customer free memo table for new customer code --------------------------------------------------------------------------------------------
-        $GetData = "";
-        $Sql = "Insert into freememo(ccode, memocode, `memo`)
-			Select '" . $toccode . "', custmemo.memocode, custmemo.memo
-			from freememo custmemo
-			where custmemo.ccode = '" . $fromccode . "'
-			On Duplicate Key Update freememo.memo = custmemo.memo";
-        $GetData = $this->Customer->query($Sql);
+        // SQL to update customer free memo table for new customer code --------------------------------------------------------------------------------------------
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        $sqlstatements[] = "INSERT INTO freememo(ccode, memocode, `memo`)
+			                SELECT
+                                '{$toccode}',
+                                custmemo.memocode,
+                                custmemo.memo
+			                FROM freememo custmemo
+			                WHERE custmemo.ccode = '{$fromccode}'
+			                ON DUPLICATE KEY UPDATE
+                                freememo.memo = custmemo.memo";
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
         //--------------------------------------------------------------------------------------------------------------------------------------------------
-        //update customer free memo table for old customer code set the delflug ----------------------------------------------------------------------------
-        $GetData = "";
-        $Sql = "Update freememo set delflg = now() where ccode = '" . $fromccode . "'";
-        $GetData = $this->Customer->query($Sql);
+        // SQL to update customer free memo table for old customer code set the delflug
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        $sqlstatements[] = "UPDATE freememo SET delflg = NOW() WHERE ccode = '{$fromccode}'";
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
         //--------------------------------------------------------------------------------------------------------------------------------------------------
-        //add memo to the current customer that the old customer was merge ---------------------------------------------------------------------------------
-        $GetData = "";
-        $Sql = "Insert into freememo(ccode, memocode, `memo`)
-                       Values('" . $toccode . "', f_get_memocode('" . $toccode . "'),
-	 	concat((select cnumber from customer where ccode = '" . $fromccode . "'), '-この顧客は別の顧客に統合されました。', now()))";
-        $GetData = $this->Customer->query($Sql);
+        // SQL to update memo to the current customer that the old customer was merge
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        $sqlstatements[] = "INSERT INTO freememo(ccode, memocode, `memo`)
+                            VALUES('{$toccode}',
+                                   f_get_memocode('{$toccode}'),
+	 	                           CONCAT((SELECT cnumber FROM customer WHERE ccode = '{$fromccode}'), '-この顧客は別の顧客に統合されました。', NOW())
+                                  )";
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
         //--------------------------------------------------------------------------------------------------------------------------------------------------
-        //update customer relation torelation code for new customer code -----------------------------------------------------------------------------------
-        $GetData = "";
-        $Sql = "Update customer_relation set TORELATIONCCODE = '" . $toccode . "' where TORELATIONCCODE = '" . $fromccode . "'";
-        $GetData = $this->Customer->query($Sql);
+        // SQL to update customer relation torelation code for new customer code
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        $sqlstatements[] = "UPDATE customer_relation SET TORELATIONCCODE = '{$toccode}' WHERE TORELATIONCCODE = '{$fromccode}'";
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
         //--------------------------------------------------------------------------------------------------------------------------------------------------
-        //update referralcode for new customer code -------------------------------------------------------------------------------------------------
-        $GetData = "";
-        $Sql = "Update customer set REFERRALCODE = '" . $toccode . "' where introducetype = 2 and REFERRALCODE = '" . $fromccode . "'";
-        $GetData = $this->Customer->query($Sql);
+        // SQL update referralcode for new customer code
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        $sqlstatements[] = "UPDATE customer SET REFERRALCODE = '{$toccode}' WHERE introducetype = 2 and REFERRALCODE = '{$fromccode}'";
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
         //--------------------------------------------------------------------------------------------------------------------------------------------------
         //update store transaction free customer referral code for new customer code -----------------------------------------------------------------------
-        $GetData = "";
-        $Sql = "Update store_transaction tr
-                Set tr.referralcode = '" . $toccode . "'
-                where tr.delflg is null and convert(substring(tr.ccode, 4), signed) = 0
-                      and tr.tempstatus = 0 and tr.introducetype = 2 and tr.referralcode = '" . $fromccode . "'";
-        $GetData = $this->Customer->query($Sql);
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        $sqlstatements[] = "UPDATE store_transaction tr
+                            SET tr.referralcode = '{$toccode}'
+                            WHERE tr.delflg is null
+                                AND convert(substring(tr.ccode, 4), signed) = 0
+                                AND tr.tempstatus = 0
+                                AND tr.introducetype = 2
+                                AND tr.referralcode = '{$fromccode}'";
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
         //--------------------------------------------------------------------------------------------------------------------------------------------------
-        //update delflug of customer to be merge -----------------------------------------------------------------------------------------------------------
-        $GetData = "";
-        $Sql = "update customer SET DELFLG = NOW() where ccode = '" . $fromccode . "'";
-        $GetData = $this->Customer->query($Sql);
+        // SQL to update delflag of customer to be merge
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        $sqlstatements[] = "UPDATE customer SET DELFLG = NOW() WHERE ccode = '{$fromccode}'";
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
         //--------------------------------------------------------------------------------------------------------------------------------------------------
-        //insert data into dcustomermerge table ------------------------------------------------------------------------------------------------------------
-        $GetData = "";
-        $Sql = "Insert into dcustomermerge(ccodeold, ccodenew, updatedate)
-                       Values('" . $fromccode . "', '" . $toccode . "', now())";
-        $GetData = $this->Customer->query($Sql);
+        // SQL to insert data into dcustomermerge table
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        $sqlstatements[] = "REPLACE dcustomermerge(ccodeold, ccodenew, updatedate)
+                            VALUES('{$fromccode}',
+                                   '{$toccode}',
+                                    NOW()
+                                   )";
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
         //--------------------------------------------------------------------------------------------------------------------------------------------------
-        //update note copy of the comment ------------------------------------------------------------------------------------------------------------------
-        $GetData = "";
-        $Sql = "update customer as cust1, (SELECT CAUTIONMEMO FROM customer where ccode = '" . $fromccode . "') as cust2
-                       set cust1.CAUTIONMEMO = concat(cust1.CAUTIONMEMO,' ', cust2.CAUTIONMEMO)
-                where cust1.ccode = '" . $toccode . "'";
-        $GetData = $this->Customer->query($Sql);
+        // SQL update note copy of the comment
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        $sqlstatements[] = "UPDATE customer as cust1, (SELECT CAUTIONMEMO FROM customer where ccode = '{$fromccode}') as cust2
+                            SET cust1.CAUTIONMEMO = concat(cust1.CAUTIONMEMO,' ', cust2.CAUTIONMEMO)
+                            WHERE cust1.ccode = '{$toccode}'";
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
-        return $newstorecode;
-    }
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        // SQL to update customer_merge table to new customer code
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        $images = $this->getImageToUpdate($companyid, $fromccode, $toccode);
+
+        if(!empty($images)){
+            $imgno_ctr = $images[0]['maximgno'];
+            $resetprimarypic = ($images[0]['resetprimarypic'] == 1 ? ', primarypic = 0' : '');
+
+            foreach($images as $image){
+
+                $imgno_ctr++;
+
+                $sqlstatements[] = "UPDATE sipssbeauty_img.customer_images
+                                    SET ccode = '{$toccode}',
+                                        imgno = {$imgno_ctr}
+                                        {$resetprimarypic}
+                                    WHERE companyid = {$companyid}
+                                    AND ccode = '{$fromccode}'
+                                    AND imgno = {$image['imgno']}
+                                    ";
+
+            }
+
+            unset($images, $imgno_ctr, $resetprimarypic);
+        }
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        // Execute all SQL Statements
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        $source = $this->Customer->getDataSource();
+
+        try {
+
+            $source->begin();
+
+            foreach($sqlstatements as $sqlstatement){
+
+                if ($this->Customer->query($sqlstatement) === false) {
+                    throw new Exception();
+                }
+
+            }
+
+            $source->commit();
+            unset($source, $sqlstatements);
+            return true;
+        }
+        catch (Exception $ex) {
+            $source->rollback();
+            unset($source, $sqlstatements);
+            return false;
+        }
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+
+    }//function close
+    //</editor-fold>
+
+    //<editor-fold defaultstate="collapsed" desc="getImageToUpdate">
+    /**
+     * Get Image to Update
+     * @author Marvin Cunanan Email:mcunanan@think-ahead.jp
+     * @created 2017-05-10 17:40
+     * Update:
+     *
+     * @param Int - $companyid - Company ID
+     * @param String - $fromccode - From Customer CCODE
+     * @param String - $toccode - To Customer CCODE
+     * @return Array
+     */
+    private function getImageToUpdate($companyid, $fromccode, $toccode) {
+
+        $sql = "SELECT
+                    custimagetbl.*
+                FROM(
+                    SELECT
+		                imgno,
+                        primarypic,
+		                maximgno,
+		                resetprimarypic
+                    FROM sipssbeauty_img.customer_images CI1
+                    LEFT JOIN(
+					            SELECT
+							        companyid,
+							        MAX(imgno) as maximgno,
+							        (MAX(primarypic) = 1) as resetprimarypic
+				                FROM sipssbeauty_img.customer_images
+					            WHERE ccode = '{$toccode}'
+					                AND companyid = {$companyid}
+					            ) as CI2
+		                ON CI2.companyid = CI2.companyid
+                    WHERE CI1.ccode = '{$fromccode}'
+                        AND CI1.companyid = {$companyid}
+                    ORDER BY CI1.imgno
+                    ) as custimagetbl";
+        $rawdata = $this->Customer->query($sql);
+
+        if(empty($rawdata)){
+            return null;
+        }
+
+        return $this->ParseDataToObjectArray($rawdata, 'custimagetbl');
+
+    }//function close
+    //</editor-fold>
 
 
     // wsGetReservationCounter -----------------------------------------------------------------------------------------------------------------------
@@ -8928,9 +9059,9 @@ class ServersController extends WebServicesController
      * @author Marvin marvin@think-ahead.jp
      * Date Created: 2012-01-25
      *
-     * @param Object $rs - result set
+     * @param mixed $rs - result set
      * @param String $tablename - table name
-     * @return Object - Object Array
+     * @return mixed - Object Array
      */
     function ParseDataToObjectArray($rs, $tablename) {
         //-------------------------------------------------------------------------------------------
@@ -9823,7 +9954,6 @@ class ServersController extends WebServicesController
     }
     //</editor-fold>
 
-
-}//end class ServersController
+    }//end class ServersController
 
 ?>
