@@ -2186,12 +2186,12 @@ class ServersController extends WebServicesController
         //--------------------------------------------------------------------------------------------------------------------------------------------------
         $sqlstatements[] = "UPDATE sipssbeauty_img.customer_images C1,
 			                    (SELECT
-					                @cnt := max(imgno) as imgno,
-                                    ccode,
-					                max(primarypic) as resetprimarypic
-			                    from sipssbeauty_img.customer_images
-			                    where companyid = {$companyid}
-			                    and ccode = '{$toccode}') as C2
+                                    '{$toccode}' as ccode,
+					                @cnt := IFNULL(max(imgno),0) as imgno,
+					                IFNULL(max(primarypic),0) as resetprimarypic
+			                    FROM sipssbeauty_img.customer_images
+			                    WHERE companyid = {$companyid}
+			                        AND ccode = '{$toccode}') as C2
                             SET C1.ccode = C2.ccode,
 		                        C1.imgno = (@cnt := @cnt + 1),
 		                        C1.primarypic = IF(C2.resetprimarypic = 1, 0, C1.primarypic)
