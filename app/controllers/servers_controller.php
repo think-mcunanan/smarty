@@ -1886,6 +1886,11 @@ class ServersController extends WebServicesController
      */
     function wsCustomerMergeSave($sessionid, $strcode, $fromccode, $toccode, $companyid, $params){
 
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        // NOTE: Please note that if ever changes are made with this function, you have to
+        //       consider changing the same function in TENPO.
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+
         //===================================================================================
         //(Verify Session and Get DB name)
         //-----------------------------------------------------------------------------------
@@ -2197,6 +2202,32 @@ class ServersController extends WebServicesController
 		                        C1.primarypic = IF(C2.resetprimarypic = 1, 0, C1.primarypic)
                             WHERE C1.companyid = {$companyid}
 		                        AND C1.ccode = '{$fromccode}'";
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        // SQL to update customer table firstdate field
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        $sqlstatements[] = "UPDATE customer C1,
+		                        (SELECT MIN(firstdate) as firstdate
+		                        FROM(
+				                    SELECT
+                                        firstdate
+				                    FROM customer
+				                    WHERE ccode IN('{$toccode}', '{$fromccode}')
+				                    UNION
+				                    SELECT
+							            min(transdate) as firstdate
+				                    FROM store_transaction
+				                    WHERE ccode = '{$toccode}'
+							            AND delflg IS NULL
+							            AND tempstatus = 0
+				                    ) as ST
+                                WHERE firstdate IS NOT NULL
+				                    AND firstdate <> '0000-00-00'
+		                        ) as ST
+                            SET C1.firstdate = ST.firstdate
+                            WHERE C1.ccode = '{$toccode}'
+		                        AND C1.delflg IS NULL";
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
 
