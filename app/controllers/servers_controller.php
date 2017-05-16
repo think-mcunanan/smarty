@@ -1917,6 +1917,11 @@ class ServersController extends WebServicesController
         }
 
         $sqlstatements = array();
+
+        /*
+        NOT REQUIRED CAUSING BUG IN INTRODUCE CUSTOMER
+        WILL UPDATE THIS FUNCTION IN OTHER REDMINE
+
         $newstoredate = "NULL";
         $newstaffinchargeselected = "NULL";
         $newagerange = "NULL";
@@ -1950,8 +1955,9 @@ class ServersController extends WebServicesController
             $newchristianera = $data[0]['CHRISTIAN_ERA'] !== NULL ? $data[0]['CHRISTIAN_ERA'] : 'NULL';
         }
         //--------------------------------------------------------------------------------------------------------------------------------------------------
+        */
 
-        $newbirthdate =  $params['BIRTHDATE'] <> '' ? "'{$params['BIRTHDATE']}'" : "NULL";
+        $newbirthdate =  ($params['BIRTHDATE'] <> '' && $params['BIRTHDATE'] <> '0000-00-00') ? "'{$params['BIRTHDATE']}'" : "NULL";
         $newcustname = $params['CNAME'];
 
         //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1980,13 +1986,13 @@ class ServersController extends WebServicesController
                                 BLOODTYPE = '{$params['BLOODTYPE']}',
                                 JOBINDUSTRYCODE = {$params['JOBINDUSTRYCODE']},
                                 HOWKNOWSCODE = {$params['HOWKNOWSCODE']},
-					            CREATEDFROMCODE = {$params['CREATEDFROMCODE']},
-                                CHRISTIAN_ERA = {$newchristianera},
+					            CREATEDFROMCODE = {$params['CREATEDFROMCODE']}
+                                /*CHRISTIAN_ERA = {$newchristianera},
                                 INTRODUCETYPE = {$newintroducetype},
                                 STOREDATE = {$newstoredate},
                                 REFERRALRELATIONCODE = {$newreferralrelationcode},
                                 AGERANGE = {$newagerange},
-                                STAFF_INCHARGE_SELECTED = {$newstaffinchargeselected}
+                                STAFF_INCHARGE_SELECTED = {$newstaffinchargeselected}*/
                             WHERE ccode = '{$toccode}'";
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
