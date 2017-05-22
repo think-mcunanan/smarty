@@ -6837,13 +6837,15 @@ class ServersController extends WebServicesController
                                 '' mail,
                                 s.staffname staffname,
                                 '' menu_info,
-                                hr.transcode transcode,
+                                hrk.transcode transcode,
                                 '' ccode
 
                             FROM store_transaction st
 
-                            JOIN hpb_reservation hr
-                            USING(transcode)
+                            JOIN hpb_reservation_key hrk USING(transcode)
+                            JOIN hpb_reservation hr 
+                                ON hr.RESERVE_ID = hrk.RESERVE_ID
+                                    AND hr.DELFLG IS NULL
 
                             LEFT JOIN staff s
                             ON hr.staff_id = s.staffcode
