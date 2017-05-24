@@ -858,6 +858,7 @@ class ServersController extends WebServicesController
                                         'TEL2'          => 'xsd:string',
                                         'BIRTHDATE'     => 'xsd:string',
                                         'CHRISTIAN_ERA' => 'xsd:int',
+                                        'AGERANGE'      => 'xsd:int',
                                         'MAILADDRESS1'  => 'xsd:string',
                                         'MAILADDRESS2'  => 'xsd:string',
                                         'MEMBERSCATEGORY' => 'xsd:int',
@@ -867,9 +868,6 @@ class ServersController extends WebServicesController
                                         'FIRSTDATE'     => 'xsd:string',
                                         'LASTSTAFFCODE' => 'xsd:int',
                                         'LASTSTAFFNAME' => 'xsd:string',
-                                    /*--------------------------------------------*/
-                                    /* add by albert for bm connection 2015-11-05 */
-                                    /*--------------------------------------------*/
                                         'BLOODTYPE'      => 'xsd:string',
                                         'BMCODE'         => 'xsd:string',
                                         'MEMBER_CODE'    => 'xsd:string',
@@ -877,12 +875,18 @@ class ServersController extends WebServicesController
                                         'DMKUBUN'        => 'xsd:int',
                                         'JOBINDUSTRYCODE'=> 'xsd:int',
                                         'JOBINDUSTRY'    => 'xsd:string',
-                                        'CREATEDFROMCODE'    => 'xsd:int',
+                                        'CREATEDFROMCODE'=> 'xsd:int',
 										'SystemDesc'     => 'xsd:string',
-                                    /*--------------------------------------------*/
-                                    /* add by albert for bm connection 2015-11-05 */
-                                    /*--------------------------------------------*/
-                                        'FULLADDRESS'   => 'xsd:string')),
+                                        'FULLADDRESS'    => 'xsd:string',
+                                        'INTRODUCETYPE'  => 'xsd:int',
+                                        'REFERRALCODE'   => 'xsd:string',
+                                        'REFERRALRELATIONCODE'          => 'xsd:int',
+                                        'STAFF_INCHARGE_SELECTED'       => 'xsd:int',
+                                        'REFERRALNAME'   => 'xsd:string',
+                                        'REFERRALRELATIONCODENAME'      => 'xsd:string',
+                                        'STAFF_INCHARGE_SELECTED_NAME'  => 'xsd:string',
+                                        'STOREDATE'      => 'xsd:string'
+                                        )),
                              '_customerInformation' => array(
                                         'array' => 'customerInformation'),
                              'return_customerInformation' => array('struct' => array(
@@ -1885,7 +1889,6 @@ class ServersController extends WebServicesController
      * @param mixed $params - Customer Object
      */
     function wsCustomerMergeSave($sessionid, $strcode, $fromccode, $toccode, $companyid, $params){
-
         //--------------------------------------------------------------------------------------------------------------------------------------------------
         // NOTE: Please note that if ever changes are made with this function, you have to
         //       consider changing the same function in TENPO.
@@ -1918,51 +1921,15 @@ class ServersController extends WebServicesController
 
         $sqlstatements = array();
 
-        /*
-        NOT REQUIRED CAUSING BUG IN INTRODUCE CUSTOMER
-        WILL UPDATE THIS FUNCTION IN OTHER REDMINE
-
-        $newstoredate = "NULL";
-        $newstaffinchargeselected = "NULL";
-        $newagerange = "NULL";
-        $newreferralrelationcode = "NULL";
-        $newintroducetype = "NULL";
-        $newchristianera = "NULL";
-
-
-        //--------------------------------------------------------------------------------------------------------------------------------------------------
-        // Get additional customer information
-        //--------------------------------------------------------------------------------------------------------------------------------------------------
-        $sql = "SELECT
-                    STAFF_INCHARGE_SELECTED,
-                    AGERANGE,
-                    REFERRALRELATIONCODE,
-                    INTRODUCETYPE,
-                    STOREDATE,
-                    CHRISTIAN_ERA
-                FROM customer
-                WHERE ccode = '{$fromccode}'";
-        $data = $this->Customer->query($sql);
-
-        if (!empty($data)){
-            $data = $this->ParseDataToObjectArray($data, 'customer');
-
-            $newstaffinchargeselected = $data[0]['STAFF_INCHARGE_SELECTED'] !== NULL ? $data[0]['STAFF_INCHARGE_SELECTED'] : 'NULL';
-            $newagerange = $data[0]['AGERANGE'] !== NULL ? $data[0]['AGERANGE'] : 'NULL';
-            $newreferralrelationcode = $data[0]['REFERRALRELATIONCODE'] !== NULL ? $data[0]['REFERRALRELATIONCODE'] : 'NULL';
-            $newintroducetype = $data[0]['INTRODUCETYPE'] !== NULL ? $data[0]['INTRODUCETYPE'] : 'NULL';
-            $newstoredate = $data[0]['STOREDATE'] <> '' ? "'{$data[0]['STOREDATE']}'" : 'NULL';
-            $newchristianera = $data[0]['CHRISTIAN_ERA'] !== NULL ? $data[0]['CHRISTIAN_ERA'] : 'NULL';
-        }
-        //--------------------------------------------------------------------------------------------------------------------------------------------------
-        */
-
-        $newbirthdate =  ($params['BIRTHDATE'] <> '' && $params['BIRTHDATE'] <> '0000-00-00') ? "'{$params['BIRTHDATE']}'" : "NULL";
-        $newcustname = $params['CNAME'];
-
         //--------------------------------------------------------------------------------------------------------------------------------------------------
         // SQL to update customer information table
         //--------------------------------------------------------------------------------------------------------------------------------------------------
+        $newbirthdate =  ($params['BIRTHDATE'] <> '' && $params['BIRTHDATE'] <> '0000-00-00') ? "'{$params['BIRTHDATE']}'" : "NULL";
+        $newcustname = $params['CNAME'];
+        $newstoredate = ($params['STOREDATE'] <> '' && $params['STOREDATE'] <> '0000-00-00') ? "'{$params['STOREDATE']}'" : "NULL";
+        $newreferralcode = (!empty($params['REFERRALCODE'])) ? "'{$params['REFERRALCODE']}'" : "NULL";
+
+
         $sqlstatements[] = "UPDATE customer
                             SET CNAME = '{$newcustname}',
                                 CNAMEKANA = '{$params['CNAMEKANA']}',
@@ -1980,19 +1947,20 @@ class ServersController extends WebServicesController
                                 MANSIONMEI = '{$params['MANSIONMEI']}',
                                 ADDRESS1 = '{$params['ADDRESS1']}',
                                 BIRTHDATE = {$newbirthdate},
+                                AGERANGE = {$params['AGERANGE']},
+                                CHRISTIAN_ERA = {$params['CHRISTIAN_ERA']},
                                 MEMBERSCATEGORY = {$params['MEMBERSCATEGORY']},
                                 DMKUBUN = {$params['DMKUBUN']},
                                 MAILKUBUN = {$params['MAILKUBUN']},
                                 BLOODTYPE = '{$params['BLOODTYPE']}',
                                 JOBINDUSTRYCODE = {$params['JOBINDUSTRYCODE']},
                                 HOWKNOWSCODE = {$params['HOWKNOWSCODE']},
-					            CREATEDFROMCODE = {$params['CREATEDFROMCODE']}
-                                /*CHRISTIAN_ERA = {$newchristianera},
-                                INTRODUCETYPE = {$newintroducetype},
+                                CREATEDFROMCODE = {$params['CREATEDFROMCODE']},
                                 STOREDATE = {$newstoredate},
-                                REFERRALRELATIONCODE = {$newreferralrelationcode},
-                                AGERANGE = {$newagerange},
-                                STAFF_INCHARGE_SELECTED = {$newstaffinchargeselected}*/
+                                INTRODUCETYPE = {$params['INTRODUCETYPE']},
+                                REFERRALCODE = {$newreferralcode},
+                                REFERRALRELATIONCODE = {$params['REFERRALRELATIONCODE']},
+                                STAFF_INCHARGE_SELECTED = {$params['STAFF_INCHARGE_SELECTED']}
                             WHERE ccode = '{$toccode}'";
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2059,16 +2027,18 @@ class ServersController extends WebServicesController
         //--------------------------------------------------------------------------------------------------------------------------------------------------
         // SQL to update customer relation table for new customer code
         //--------------------------------------------------------------------------------------------------------------------------------------------------
-        $sqlstatements[] = "INSERT IGNORE INTO customer_relation(CCODE, TORELATIONCCODE, RELATIONCODE, STORECODE, REMARKS, DELFLG)
-			                SELECT
-                                '{$toccode}',
-                                relation.TORELATIONCCODE,
-                                relation.RELATIONCODE,
-                                {$newstorecode},
-                                relation.REMARKS,
-                                relation.DELFLG
-			                FROM customer_relation relation
-			                WHERE relation.ccode = '{$fromccode}'";
+        $sqlstatements[] = "UPDATE IGNORE customer_relation SET ccode = '{$toccode}' WHERE ccode = '{$fromccode}'";
+
+        $sqlstatements[] = "UPDATE IGNORE customer_relation SET torelationccode = '{$toccode}' WHERE torelationccode = '{$fromccode}'";
+
+        $sqlstatements[] = "DELETE FROM customer_relation WHERE ccode = '{$fromccode}' OR torelationccode = '{$fromccode}'";
+
+        if(!empty($params['REFERRALCODE'])){
+            $sqlstatements[] = "UPDATE customer_relation
+                                    SET relationcode = {$params['REFERRALRELATIONCODE']}
+                                WHERE (ccode = '{$toccode}' AND torelationccode = '{$params['REFERRALCODE']}')
+		                        OR (ccode = '{$params['REFERRALCODE']}' AND torelationccode = '{$toccode}')";
+        }
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
         //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2844,9 +2814,10 @@ class ServersController extends WebServicesController
         $fields = array('CCODE', 'CNUMBER', 'CID', 'CSTORECODE', 'CNAME', 'CNAMEKANA',
                         'SEX', 'ZIPCODE1', 'KEN1', 'SITYO1', 'MANSIONMEI', 'SI1', 'REGULAR',
                         'TYO1', 'ADDRESS1', 'ADDRESS1_1', 'TEL1', 'TEL2', 'BIRTHDATE', 'MEMBERSCATEGORY',
-                        'CHRISTIAN_ERA', 'MAILADDRESS1', 'MAILADDRESS2', 'MAILKUBUN', 'FIRSTDATE',
+                        'CHRISTIAN_ERA', 'AGERANGE', 'MAILADDRESS1', 'MAILADDRESS2', 'MAILKUBUN', 'FIRSTDATE',
                         'HOWKNOWSCODE',
-                        'BLOODTYPE', 'MEMBER_CODE', 'SMOKING', 'DMKUBUN', 'JOBINDUSTRYCODE', 'CREATEDFROMCODE' //add by albert 2016-07-15 --> redmine 0650
+                        'BLOODTYPE', 'MEMBER_CODE', 'SMOKING', 'DMKUBUN', 'JOBINDUSTRYCODE', 'CREATEDFROMCODE', //add by albert 2016-07-15 --> redmine 0650
+                        'INTRODUCETYPE', 'REFERRALCODE', 'REFERRALRELATIONCODE', 'STAFF_INCHARGE_SELECTED', 'STOREDATE'
                         );
 
         if (!in_array($param['orderby'], $fields)) {
@@ -2918,13 +2889,51 @@ class ServersController extends WebServicesController
                 //------------------------------------------------------------------
             }//end for each
             //-----------------------------------------------------------------------
-        }//end if
-        //---------------------------------------------------------------------------
-        // Add last tantou staff code and last tantou staff name
-        // Added By: Marvin marvin@think-ahead.jp
-        // Date Added: 2012-08-17
-        //---------------------------------------------------------------------------
-        if (count($ret['records']) > 0) {
+
+
+            //Get REFERRALNAME, STAFF_INCHARGE_SELECTED_NAME and REFERRALRELATIONCODENAME
+            $ctr = 0;
+            foreach ($ret['records'] as &$rec) {
+                if($rec['INTRODUCETYPE'] == 0){
+                    continue;
+                }
+
+                $Sql = "SELECT *
+                        FROM(SELECT
+                                CASE WHEN {$rec['INTRODUCETYPE']} = 1 THEN
+                                        (SELECT staffname FROM staff WHERE staffcode = {$rec['REFERRALCODE']})
+                                     WHEN {$rec['INTRODUCETYPE']} = 2 THEN
+                                        (SELECT cname FROM customer WHERE ccode = '{$rec['REFERRALCODE']}')
+                                     ELSE ''
+                                END as REFERRALNAME,
+                                IF({$rec['STAFF_INCHARGE_SELECTED']} > 0,
+                                        (SELECT staffname FROM staff WHERE staffcode = {$rec['STAFF_INCHARGE_SELECTED']}),
+                                    '') as STAFF_INCHARGE_SELECTED_NAME,
+                                IF({$rec['REFERRALRELATIONCODE']} > 0,
+                                        (SELECT relationname FROM relation WHERE relationcode = {$rec['REFERRALRELATIONCODE']}),
+                                    '') as REFERRALRELATIONCODENAME
+                             ) as introducetbl";
+
+                $datarec = $this->Customer->query($Sql);
+
+                if(count($datarec) == 0){
+                    continue;
+                }
+
+                $datarec = $this->ParseDataToObjectArray($datarec, 'introducetbl');
+
+                $rec['REFERRALNAME'] = $datarec[0]['REFERRALNAME'];
+                $rec['STAFF_INCHARGE_SELECTED_NAME'] = $datarec[0]['STAFF_INCHARGE_SELECTED_NAME'];
+                $rec['REFERRALRELATIONCODENAME'] = $datarec[0]['REFERRALRELATIONCODENAME'];
+
+            }//end foreach
+
+
+            //---------------------------------------------------------------------------
+            // Add last tantou staff code and last tantou staff name
+            // Added By: Marvin marvin@think-ahead.jp
+            // Date Added: 2012-08-17
+            //---------------------------------------------------------------------------
             $ctr = 0;
             foreach ($ret['records'] as $rec) {
                 $Sql = "SELECT f_get_last_staffcodename(".$storeinfo['storecode'].", "."'".$rec['CCODE']."') AS laststaffcodename";
@@ -2939,13 +2948,11 @@ class ServersController extends WebServicesController
                 }//end if else
                 $ctr++;
             }//end foreach
-        }//end if
-        //---------------------------------------------------------------------------
-        // Updated By: Homer Pasamba 2013/02/05
-        // Comment: Set Customer Full Address
-        //---------------------------------------------------------------------------
 
-        if (count($ret['records']) > 0) {
+            //---------------------------------------------------------------------------
+            // Updated By: Homer Pasamba 2013/02/05
+            // Comment: Set Customer Full Address
+            //---------------------------------------------------------------------------
             $ctr = 0;
             foreach ($ret['records'] as $rec) {
                 $FullAddress['FULLADDRESS'] = '';
@@ -2956,13 +2963,11 @@ class ServersController extends WebServicesController
                 $ret['records'][$ctr] = array_merge($rec, $FullAddress);
                 $ctr++;
             }// End foreach ($ret['records'] as $rec)
-        }// End if (count($ret['records']) > 0)
-        //---------------------------------------------------------------------------
 
-        //---------------------------------------------------------------------------
-        // by albert 2015-10-27 for BM connection -------------------------------
-        //---------------------------------------------------------------------------
-        if (count($ret['records']) > 0) { //check and get BMCODE if the customer have BM record
+            //---------------------------------------------------------------------------
+            // by albert 2015-10-27 for BM connection -------------------------------
+            //---------------------------------------------------------------------------
+            //check and get BMCODE if the customer have BM record
             $ctr = 0;
             foreach($ret['records'] as $data) {
 
@@ -2997,9 +3002,9 @@ class ServersController extends WebServicesController
 
                 $ctr++;
             }
-        }
 
-        if (count($ret['records']) > 0) { //get jobindustry description
+
+            //get jobindustry description
             $ctr = 0;
 
             foreach($ret['records'] as $data) {
@@ -3193,6 +3198,19 @@ class ServersController extends WebServicesController
 
         // Remove REGULAR field so it will not update
         unset($param['REGULAR']);
+
+        //---------------------------------------------------------------
+        // Remove following fields as they are not required for update
+        // these fields where added for customer merge purpose only
+        //---------------------------------------------------------------
+        unset($param['INTRODUCETYPE'],
+              $param['REFERRALCODE'],
+              $param['STOREDATE'],
+              $param['REFERRALRELATIONCODE'],
+              $param['AGERANGE'],
+              $param['STAFF_INCHARGE_SELECTED']);
+        //---------------------------------------------------------------
+
 
         if ($param['ignoreSessionCheck'] <> 1) {
             //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
