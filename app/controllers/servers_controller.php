@@ -1409,6 +1409,7 @@ class ServersController extends WebServicesController
                                         'STORECODE'        => 'xsd:int',
                                         'IDNO'             => 'xsd:int',
                                         'TRANSDATE'        => 'xsd:string',
+                                        'UPDATEDATE'       => 'xsd:string',
                                         'YOYAKUTIME'       => 'xsd:string',
                                         'ENDTIME'          => 'xsd:string',
                                         'ADJUSTED_ENDTIME' => 'xsd:string',
@@ -6650,6 +6651,7 @@ class ServersController extends WebServicesController
                         transaction.NOTES, transaction.RANKING, transaction.PRIORITY, transaction.PRIORITYTYPE,
                         transaction.STAFFCODE, transaction.HASSERVICES, transaction.DELFLG, transaction.YOYAKU,
                         transaction.CUST_TELNO, transaction.CLAIMKYAKUFLG, transaction.UPDATEDATE, transaction.INCOMPLETE,
+                        transaction.UPDATEDATE,
                             details.STAFFCODE, details.STAFFCODESIMEI, details.ZEIKUBUN,
                             details.PRICE, details.CLAIMED, details.KASANPOINT1, details.KASANPOINT2,
                             details.KASANPOINT3, details.TRANTYPE, details.TRANSCODE, details.STARTTIME,
@@ -6861,7 +6863,7 @@ class ServersController extends WebServicesController
                             FROM store_transaction st
 
                             JOIN hpb_reservation_key hrk USING(transcode)
-                            JOIN hpb_reservation hr 
+                            JOIN hpb_reservation hr
                                 ON hr.RESERVE_ID = hrk.RESERVE_ID
                                     AND hr.DELFLG IS NULL
 
@@ -7007,6 +7009,16 @@ class ServersController extends WebServicesController
         }
         /*=============================================================================*/
 
+        //-- 会社データベースを設定する (Set the Company Database)
+        $this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction);
+
+        //-- 取引が最新であるかどうかを確認する (Check if Transaction is up to date)
+        if(!empty($param['TRANSCODE'])){
+            if(!$this->MiscFunction->IsTransUpToDate($this->StoreTransaction, $param['TRANSCODE'], $param['UPDATEDATE'])){
+                return array('TRANSCODE' => "RECORD_NOT_UPTO_DATE");
+            }
+        }
+
         //-- transactionの衝突を無視するかどうかチェックします (Checks if transaction will ignore conflicts or not)
         if ($param['ignoreConflict'] == 0) {
             $subparam['STARTTIME']    = $param['YOYAKUTIME'];
@@ -7036,13 +7048,11 @@ class ServersController extends WebServicesController
             $this->wsAddUpdateStaffRowsHistory($sessionid, $subparam);
         }
 
-        //-- 会社データベースを設定する (Set the Company Database)
-        $this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction);
-
         //---------------------------------------------------------------------------
         //-- 開始のデータベーストランザクション (Starts Database Transaction)
         $this->StoreTransaction->begin();
         $sqlctr = 0;
+
         //---------------------------------------------------------------------------
         //-- TRANSCODEとTRANSDATEの日付をチェックします (Check date on TRANSCODE and TRANSDATE)
 
