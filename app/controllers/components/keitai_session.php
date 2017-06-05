@@ -303,8 +303,8 @@ class KeitaiSessionComponent extends Object
             $carrier = 'emobile';
         } elseif (preg_match('/iPhone/', $userAgent)) {
             $carrier = 'iphone';
-//      } elseif (preg_match($smartphones, $userAgent)) { // Added by jonathanparel, 20160914; RM#1744;
-//          $carrier = 'smartphone';
+        } elseif (preg_match($smartphones, $userAgent)) { // Added by jonathanparel, 20160914; RM#1744;
+            $carrier = 'smartphone';
         } else {
             $carrier = 'pc';
         }
