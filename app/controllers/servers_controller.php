@@ -2034,6 +2034,8 @@ class ServersController extends WebServicesController
 
         $sqlstatements[] = "DELETE FROM customer_relation WHERE ccode = '{$fromccode}' OR torelationccode = '{$fromccode}'";
 
+        $sqlstatements[] = "DELETE FROM customer_relation WHERE ccode = torelationccode AND ccode = '{$toccode}'";
+
         if(!empty($params['REFERRALCODE'])){
             $sqlstatements[] = "UPDATE customer_relation
                                     SET relationcode = {$params['REFERRALRELATIONCODE']}
@@ -2119,12 +2121,6 @@ class ServersController extends WebServicesController
         // SQL to update customer relation torelation code for new customer code
         //--------------------------------------------------------------------------------------------------------------------------------------------------
         $sqlstatements[] = "UPDATE customer_relation SET TORELATIONCCODE = '{$toccode}' WHERE TORELATIONCCODE = '{$fromccode}'";
-        //--------------------------------------------------------------------------------------------------------------------------------------------------
-
-        //--------------------------------------------------------------------------------------------------------------------------------------------------
-        // SQL update referralcode for new customer code
-        //--------------------------------------------------------------------------------------------------------------------------------------------------
-        $sqlstatements[] = "UPDATE customer SET REFERRALCODE = '{$toccode}' WHERE introducetype = 2 and REFERRALCODE = '{$fromccode}'";
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
         //--------------------------------------------------------------------------------------------------------------------------------------------------
