@@ -823,19 +823,20 @@ class ServersController extends WebServicesController
 
                              // CUSTOMER --------------------------------------------
                              'customerSearchCriteria' => array('struct' => array(
-                                        'CSTORECODE'  => 'xsd:int',
-                                        'CCODE'       => 'xsd:string',
-                                        'CNUMBER'     => 'xsd:string',
-                                        'CNAME'       => 'xsd:string',
-                                        'CNAMEKANA'   => 'xsd:string',
-                                        'PHONE'       => 'xsd:string',
-                                        'MAILADDRESS' => 'xsd:string',
-                                        'ADDRESS'     => 'xsd:string',
-                                        'keyword'     => 'xsd:string',
-                                        'free_customer' => 'xsd:int',
-                                        'orderby'     => 'xsd:string',
-                                        'limit'       => 'xsd:int',
-                                        'page'        => 'xsd:int')),
+                                        'SEARCHSHAREDSTORE' => 'xsd:boolean',
+                                        'CSTORECODE'        => 'xsd:int',
+                                        'CCODE'             => 'xsd:string',
+                                        'CNUMBER'           => 'xsd:string',
+                                        'CNAME'             => 'xsd:string',
+                                        'CNAMEKANA'         => 'xsd:string',
+                                        'PHONE'             => 'xsd:string',
+                                        'MAILADDRESS'       => 'xsd:string',
+                                        'ADDRESS'           => 'xsd:string',
+                                        'keyword'           => 'xsd:string',
+                                        'free_customer'     => 'xsd:int',
+                                        'orderby'           => 'xsd:string',
+                                        'limit'             => 'xsd:int',
+                                        'page'              => 'xsd:int')),
 
                              'customerInformation' => array('struct' => array(
                                         'CCODE'         => 'xsd:string',
@@ -2717,7 +2718,10 @@ class ServersController extends WebServicesController
         $honbu = $this->StoreAccount->find('all', array(
                  'conditions' => array('StoreAccount.companyid' => $storeinfo['companyid'],
                                        'StoreAccount.honbu' => 1)));
-        if (count($honbu) > 0) {
+
+        $sharedStoreList = array();
+
+        if (count($honbu) > 0 && $param['SEARCHSHAREDSTORE']) {
             $this->loadModel('DataShare');
             $this->DataShare->set_company_database($storeinfo['dbname'], $this->DataShare, ConnectionServer::SLAVE);
 
@@ -2725,11 +2729,8 @@ class ServersController extends WebServicesController
             $condition['DELFLG'] = null;
             $datashare = $this->DataShare->find('all', array('conditions' => $condition));
 
-            $arrstorecode[] = $storeinfo['storecode'];
-            for ($i=0; $i<count($datashare); $i++) {
-                $arrstorecode[] = $datashare[$i]['DataShare']['SHARESTORECODE'];
-            }
-            $datashare = 1;
+            $sharedStoreList = set::extract($datashare, '{n}.DataShare.SHARESTORECODE');
+            $sharedStoreList[] = $storeinfo['storecode'];
         }
 
         //-- 会社データベースを設定する (Set the Company Database)
@@ -2741,7 +2742,7 @@ class ServersController extends WebServicesController
         unset($param['free_customer']);
 
         foreach ($param as $key => $val) {
-            if ((!empty($val) || $val === '0') && $key != 'limit' && $key != 'page' && $key != 'orderby') {
+            if ((!empty($val) || $val === '0') && $key != 'limit' && $key != 'page' && $key != 'orderby' && $key != 'SEARCHSHAREDSTORE') {
                 if ($key == "PHONE") {
                     $criteria['(TEL1 LIKE ? OR TEL2 LIKE ?)'] = array('%'.$val.'%', '%'.$val.'%');
                 } elseif ($key == "MAILADDRESS") {
@@ -2793,16 +2794,10 @@ class ServersController extends WebServicesController
             }
         }
 
-        if ($datashare == 1 && $criteria['CSTORECODE'] == -1) {
-            $criteria['CSTORECODE'] = $arrstorecode;
-        } elseif ($datashare == 1 && $criteria['CSTORECODE'] > 0) {
-            $criteria[] = array('CSTORECODE' => $criteria['CSTORECODE'],
-                                'CSTORECODE' => $arrstorecode);
+        if($param['SEARCHSHAREDSTORE']){
+            $criteria['CSTORECODE'] = $sharedStoreList;
         }
 
-        if ($criteria['CSTORECODE'] == -1) {
-            unset($criteria['CSTORECODE']);
-        }
 
         $criteria[] = array('CNAME <> ' => null,
                             'CNAME <> ' => '');
@@ -2828,6 +2823,7 @@ class ServersController extends WebServicesController
         if (intval($param['page']) == 0) {
             $param['page'] = DEFAULT_STARTPAGE;
         }
+
 
         if ($param['limit'] <> -1) {
             $v = $this->Customer->find('all', array('conditions' => $criteria,
