@@ -1326,6 +1326,8 @@ class ServersController extends WebServicesController
                                         'HIDE_RAITEN' => 'xsd:int',
                                         'OKOTOWARI_TIME' => 'xsd:int',
                                         'HIDECUSTOMERINFO_FLG' => 'xsd:int',
+                                        'USE_SIPSS_MENU' => 'xsd:int',
+                                        'USE_MENU_AVAILABILITY_LIMIT' => 'xsd:int',
                                         'JIKAIUPDATEOPTION_FLG' => 'xsd:int')),
                              //- ####################################################
 
@@ -6019,6 +6021,8 @@ class ServersController extends WebServicesController
         //-----------------------------------------------------
         $tmp .= "OPTIONNAME = 'YoyakuSettingsOption' OR ";
         //-----------------------------------------------------
+        $tmp .= "OPTIONNAME = 'USE_SIPSS_MENU' OR ";
+        $tmp .= "OPTIONNAME = 'USE_MENU_AVAILABILITY_LIMIT' OR ";
 
         $tmp .= "OPTIONNAME = 'YoyakuNoticeSecondSetting' OR ";
         $tmp .= "OPTIONNAME = 'FOLLOW_MAIL_SETTING' OR ";
@@ -6137,6 +6141,12 @@ class ServersController extends WebServicesController
                 case 'OKOTOWARI_TIME':
                     $settings_two['OKOTOWARI_TIME'] = $itm['StoreSettings']['OPTIONVALUEI'];
                     break;
+                case 'USE_SIPSS_MENU':
+                    $settings_two['USE_SIPSS_MENU'] = $itm['StoreSettings']['OPTIONVALUEI'];
+                    break;
+                case 'USE_MENU_AVAILABILITY_LIMIT':
+                    $settings_two['USE_MENU_AVAILABILITY_LIMIT'] = $itm['StoreSettings']['OPTIONVALUEI'];
+                    break;
             }
 
         }
@@ -6251,6 +6261,9 @@ class ServersController extends WebServicesController
             $this->StoreSettings->query($option_int."'HIDE_RAITEN','".intval($param['HIDE_RAITEN'])."')");
 
             $this->StoreSettings->query($option_int."'OKOTOWARI_TIME','".intval($param['OKOTOWARI_TIME'])."')");
+
+            $this->StoreSettings->query($option_int."'USE_SIPSS_MENU','".intval($param['USE_SIPSS_MENU'])."')");
+            $this->StoreSettings->query($option_int."'USE_MENU_AVAILABILITY_LIMIT','".intval($param['USE_MENU_AVAILABILITY_LIMIT'])."')");
 
             if ((int)$param['YOYAKU_MENU_TANTOU'] == 1) {
                 //-----------------------------------------------------------------------------------
