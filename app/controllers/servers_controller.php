@@ -2922,7 +2922,7 @@ class ServersController extends WebServicesController
                 $rec['REFERRALRELATIONCODENAME'] = $datarec[0]['REFERRALRELATIONCODENAME'];
 
             }//end foreach
-
+            unset($rec);
 
             //---------------------------------------------------------------------------
             // Add last tantou staff code and last tantou staff name
@@ -2958,7 +2958,7 @@ class ServersController extends WebServicesController
                 $ret['records'][$ctr] = array_merge($rec, $FullAddress);
                 $ctr++;
             }// End foreach ($ret['records'] as $rec)
-
+            unset($rec);
             //---------------------------------------------------------------------------
             // by albert 2015-10-27 for BM connection -------------------------------
             //---------------------------------------------------------------------------
