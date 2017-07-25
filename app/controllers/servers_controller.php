@@ -2181,18 +2181,22 @@ class ServersController extends WebServicesController
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
         //--------------------------------------------------------------------------------------------------------------------------------------------------
-        // SQL to update customer table firstdate field
+        // SQL to update customer table firstdate and lastdate field
         //--------------------------------------------------------------------------------------------------------------------------------------------------
         $sqlstatements[] = "UPDATE customer C1,
-		                        (SELECT MIN(firstdate) as firstdate
+		                        (SELECT
+                                    MIN(firstdate) as firstdate,
+                                    MAX(lastdate) as lastdate
 		                        FROM(
 				                    SELECT
-                                        firstdate
+                                        firstdate,
+                                        lastdate
 				                    FROM customer
 				                    WHERE ccode IN('{$toccode}', '{$fromccode}')
 				                    UNION
 				                    SELECT
-							            min(transdate) as firstdate
+							            MIN(transdate) as firstdate,
+                                        MAX(transdate) as lastdate
 				                    FROM store_transaction
 				                    WHERE ccode = '{$toccode}'
 							            AND delflg IS NULL
@@ -2201,7 +2205,8 @@ class ServersController extends WebServicesController
                                 WHERE firstdate IS NOT NULL
 				                    AND firstdate <> '0000-00-00'
 		                        ) as ST
-                            SET C1.firstdate = ST.firstdate
+                            SET C1.firstdate = ST.firstdate,
+                                C1.lastdate = ST.lastdate
                             WHERE C1.ccode = '{$toccode}'
 		                        AND C1.delflg IS NULL";
         //--------------------------------------------------------------------------------------------------------------------------------------------------
