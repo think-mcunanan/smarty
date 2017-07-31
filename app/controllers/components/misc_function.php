@@ -1534,5 +1534,33 @@ class MiscFunctionComponent extends Object
         return count($rec) > 0;
     }
     #end region
+
+    #Redion GetTransactionUpdateDate
+    /**
+     * Get the last update date
+     * @author Marvin Cunanan <mcunanan@think-ahead.jp>
+     * @datecreated 2017-07-31 15:53
+     * @param object $controller
+     * @param string $transcode
+     * @param DateTime $keyno
+     * @return boolean
+     */
+    function GetTransactionUpdateDate(&$controller, $transcode, $keyno){
+
+        $sql = "SELECT max(updatedate) as updatedate
+                FROM store_transaction
+                WHERE transcode = '{$transcode}'
+                    AND keyno = {$keyno}
+                    AND delflg IS NULL";
+
+        $rec = $controller->query($sql);
+
+        if(isset($rec{0})){
+            return $rec[0][0]['updatedate'];
+        }
+
+        return null;
+    }
+    #end region
 }
 ?>

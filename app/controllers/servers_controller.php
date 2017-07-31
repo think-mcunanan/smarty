@@ -1518,7 +1518,8 @@ class ServersController extends WebServicesController
                                         'KEYNO'         => 'xsd:int',
                                         'IDNO'          => 'xsd:int',
                                         'CCODE'         => 'xsd:string',
-                                        'CNUMBER'       => 'xsd:string')),
+                                        'CNUMBER'       => 'xsd:string',
+                                        'UPDATEDATE'    => 'xsd:string')),
                              //- ####################################################
 
                              'rejiMarketingInformation' => array('struct' => array(
@@ -7695,6 +7696,7 @@ class ServersController extends WebServicesController
         $ret['TRANSCODE'] = $param['TRANSCODE'];
         $ret['KEYNO']     = $param['KEYNO'];
         $ret['IDNO']      = $param['IDNO'];
+        $ret['UPDATEDATE'] = $this->MiscFunction->GetTransactionUpdateDate($this->StoreTransaction, $param['TRANSCODE'], $param['KEYNO']);
 
         //file_put_contents('../controllers/log_'.date("j.n.Y").'.txt', $log, FILE_APPEND);
 
