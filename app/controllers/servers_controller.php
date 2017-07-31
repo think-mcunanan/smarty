@@ -455,10 +455,10 @@ class ServersController extends WebServicesController
                             'input'  => array('sessionid'     => 'xsd:string',
                                               'storecode'     => 'xsd:int',
                                               'staffcode'     => 'xsd:int',
-                                              'gcode'     => 'xsd:int'),
+                                              'gcode'         => 'xsd:int'),
                             'output' => array('success'      => 'xsd:boolean',
-                                              'female_time'      => 'xsd:int',
-                                              'male_time'      => 'xsd:int')),
+                                              'female_time'   => 'xsd:int',
+                                              'male_time'     => 'xsd:int')),
                      //- ############################################################
 
 
@@ -8559,13 +8559,9 @@ class ServersController extends WebServicesController
      * @return Array - Object Array results
      */
     function wsGetStaffMenuServiceTime($sessionid,
-                                           $storecode,
-                                           $staffcode,
-                                           $gcode) {
-        //-----------------------------------------------------------------
-        $success = true;
-        $female_time = 0;
-        $male_time = 0;
+                                       $storecode,
+                                       $staffcode,
+                                       $gcode) {
         //-----------------------------------------------------------------
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $staffservicetime = $this->YoyakuSession->Check($this);
@@ -8574,6 +8570,11 @@ class ServersController extends WebServicesController
             $this->_soap_server->fault(1, '', INVALID_SESSION);
             return;
         }//end if
+
+        $sucess = true;
+        $female_time = 0;
+        $male_time = 0;
+
         //-----------------------------------------------------------------
         $this->YoyakuStaffServiceTime->set_company_database($staffservicetime['dbname'], $this->YoyakuStaffServiceTime, ConnectionServer::SLAVE);
         //-----------------------------------------------------------------
@@ -8586,20 +8587,13 @@ class ServersController extends WebServicesController
         //-----------------------------------------------------------------
         $rs = $this->YoyakuStaffServiceTime->query($Sql);
         //-----------------------------------------------------------------
-        if (count($rs) > 0) {
+        if (isset($rs{0})) {
             $female_time = $rs[0][0]['service_time'];
             $male_time = $rs[0][0]['service_time_male'];
         }//end if
+
         //-----------------------------------------------------------------
-        //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
-        //-----------------------------------------------------------------
-        $staffservicetime = $this->YoyakuSession->Check($this);
-        if ($staffservicetime == false) {
-            $this->_soap_server->fault(1, '', INVALID_SESSION);
-            $success = false;
-        }//end if
-        //-----------------------------------------------------------------
-        return array($success, $female_time, $male_time);
+        return array($sucess, $female_time, $male_time);
         //-----------------------------------------------------------------
     }
 
@@ -9793,6 +9787,7 @@ class ServersController extends WebServicesController
         //===================================================================================
     } // End Function
     //</editor-fold>
+
 
     //<editor-fold defaultstate="collapsed" desc="wsGetTransactionByTransCode">
     /**
