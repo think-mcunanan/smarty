@@ -1510,7 +1510,7 @@ class MiscFunctionComponent extends Object
     }
     #end region
 
-    #Redion IsTransUpToDate
+    #Region IsTransUpToDate
     /**
      * Check if Transaction is Up to Date
      * @author Marvin Cunanan <mcunanan@think-ahead.jp>
@@ -1535,7 +1535,7 @@ class MiscFunctionComponent extends Object
     }
     #end region
 
-    #Redion GetTransactionUpdateDate
+    #Region GetTransactionUpdateDate
     /**
      * Get the last update date
      * @author Marvin Cunanan <mcunanan@think-ahead.jp>
@@ -1560,6 +1560,53 @@ class MiscFunctionComponent extends Object
         }
 
         return null;
+    }
+    #end region
+
+
+    #Region GetKyakukubunByDateTime
+    /**
+     * Get Kyakukubun By Date and Time
+     * @author Marvin Cunanan <mcunanan@think-ahead.jp>
+     * @datecreated 2017-08-09 12:36
+     * @param object $storetransaction_model
+     * @param string $ccode
+     * @param string $datetime
+     * @return int
+     */
+    function GetKyakukubunByDateTime(&$storetransaction_model, $ccode, $datetime){
+
+        $kyakukubun = 0;
+        $sql = "select f_get_kyakukubun_by_datetime('{$ccode}', '{$datetime}') as kyakukubun";
+        $rec = $storetransaction_model->query($sql);
+
+        if(isset($rec{0})){
+            $kyakukubun = $rec[0][0]['kyakukubun'];
+        }
+
+        return $kyakukubun;
+    }
+    #end region
+
+    #Region IsRegularCustomer
+    /**
+     * Check if Regular Customer
+     * @author Marvin Cunanan <mcunanan@think-ahead.jp>
+     * @datecreated 2017-08-09 12:36
+     * @param object Customer Model
+     * @param string $ccode
+     * @return boolean
+     */
+    function IsRegularCustomer(&$customer_model, $ccode){
+
+        $slq = "select regular from customer where ccode = '{$ccode}'";
+        $rec = $customer_model->query($slq);
+
+        if(isset($rec{0})){
+            return $rec[0]['customer']['regular'] == 1;
+        }
+
+        return false;
     }
     #end region
 }
