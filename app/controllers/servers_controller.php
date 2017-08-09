@@ -694,9 +694,11 @@ class ServersController extends WebServicesController
                                               'strcode'     => 'xsd:int',
                                               'fromccode'   => 'xsd:string',
                                               'toccode'     => 'xsd:string',
+                                              'transcode'   => 'xsd:string',
+                                              'keyno'       => 'xsd:int',
                                               'companyid'   => 'xsd:int',
                                               'param'       => 'customerInformation'),
-                            'output' => array('return'      => 'xsd:int')),
+                            'output' => array('updatedate'      => 'xsd:string')),
 
                       'wsGetReservation' => array(
                             'doc'    => 'GetReservation',
@@ -1890,10 +1892,13 @@ class ServersController extends WebServicesController
      * @param int $strcode - Storecode
      * @param string $fromccode - From CCODE
      * @param string $toccode - To CCODE
+     * @param string $transcode - transcode
+     * @param int $keyno - keyno
      * @param int $companyid - Company ID
      * @param mixed $params - Customer Object
+     * @return mixed
      */
-    function wsCustomerMergeSave($sessionid, $strcode, $fromccode, $toccode, $companyid, $params){
+    function wsCustomerMergeSave($sessionid, $strcode, $fromccode, $toccode, $transcode, $keyno, $companyid, $params){
         //--------------------------------------------------------------------------------------------------------------------------------------------------
         // NOTE: Please note that if ever changes are made with this function, you have to
         //       consider changing the same function in TENPO.
@@ -2212,7 +2217,6 @@ class ServersController extends WebServicesController
 		                        AND C1.delflg IS NULL";
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
-
         //--------------------------------------------------------------------------------------------------------------------------------------------------
         // Execute all SQL Statements
         //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2232,12 +2236,12 @@ class ServersController extends WebServicesController
 
             $source->commit();
             unset($source, $sqlstatements);
-            return true;
+            return $this->MiscFunction->GetTransactionUpdateDate($this->Customer,  $transcode, $keyno);
         }
         catch (Exception $ex) {
             $source->rollback();
             unset($source, $sqlstatements);
-            return false;
+            return null;
         }
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 

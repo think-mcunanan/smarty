@@ -1542,7 +1542,7 @@ class MiscFunctionComponent extends Object
      * @datecreated 2017-07-31 15:53
      * @param object $controller
      * @param string $transcode
-     * @param DateTime $keyno
+     * @param integer $keyno
      * @return boolean
      */
     function GetTransactionUpdateDate(&$controller, $transcode, $keyno){
