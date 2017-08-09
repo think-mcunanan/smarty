@@ -2217,6 +2217,7 @@ class ServersController extends WebServicesController
 		                        AND C1.delflg IS NULL";
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
+
         //--------------------------------------------------------------------------------------------------------------------------------------------------
         // Execute all SQL Statements
         //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -7174,15 +7175,19 @@ class ServersController extends WebServicesController
 
             //-------------------------------------------------------------
             $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
-
+            $sql_regular = "select REGULAR from customer where ccode ='".$param['CCODE']."'";
+            $tmp_data = $this->Customer->query($sql_regular);
             $param['KYAKUKUBUN'] = 0;
             $param['REGULARCUSTOMER'] = 0;
 
-            if(!$this->MiscFunction->IsRegularCustomer($this->Customer, $param['CCODE'])){
-
-                $yoyakudatetime = date('Y-m-d H:i:s', strtotime($param['TRANSDATE'] . " " . $param['YOYAKUTIME']));
-
-                $param['KYAKUKUBUN'] = $this->MiscFunction->GetKyakukubunByDateTime($this->StoreTransaction, $param['CCODE'], $yoyakudatetime);
+            if($tmp_data[0]["customer"]['REGULAR']== 0){
+                //if ($param['REGULARCUSTOMER'] == 0){
+                //-------------------------------------------------------------
+                $sql_kyakukubun = "SELECT
+                        f_get_kyakukubun('". $param['CCODE']."',
+                                         '" . $param['TRANSCODE'] . "') as KYAKUKUBUN";
+                $tmp_kyaku = $this->StoreTransaction->query($sql_kyakukubun);
+                $param['KYAKUKUBUN'] = $tmp_kyaku[0][0]['KYAKUKUBUN'];
 
                 if ($param['KYAKUKUBUN'] == 0) {
                     $param['REGULARCUSTOMER'] = 1;
@@ -7194,7 +7199,6 @@ class ServersController extends WebServicesController
             }
 
             //-- 会社データベースを設定する (Set the Company Database)
-
             $this->StoreSettings->set_company_database($storeinfo['dbname'], $this->StoreSettings);
 
             $tmp  = "(OPTIONNAME = 'Tax' OR ";
