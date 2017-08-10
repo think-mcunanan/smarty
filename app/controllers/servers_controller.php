@@ -7175,9 +7175,6 @@ class ServersController extends WebServicesController
             //-------------------------------------------------------------
             $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
 
-            $param['KYAKUKUBUN'] = 0;
-            $param['REGULARCUSTOMER'] = 0;
-
             if(!$this->MiscFunction->IsRegularCustomer($this->Customer, $param['CCODE'])){
 
                 $yoyakudatetime = date('Y-m-d H:i:s', strtotime($param['TRANSDATE'] . " " . $param['YOYAKUTIME']));
@@ -7191,6 +7188,7 @@ class ServersController extends WebServicesController
                 }
             } else {
                 $param['KYAKUKUBUN'] = 0;
+                $param['REGULARCUSTOMER'] = 1;
             }
 
             //-- 会社データベースを設定する (Set the Company Database)
