@@ -686,6 +686,7 @@ class MiscFunctionComponent extends Object
             $arrList[$ctr]['STORECODE']   = $arrData[$i]['transaction']['STORECODE'];
             $arrList[$ctr]['IDNO']        = $arrData[$i]['transaction']['IDNO'];
             $arrList[$ctr]['TRANSDATE']   = $arrData[$i]['transaction']['TRANSDATE'];
+            $arrList[$ctr]['UPDATEDATE']       = $arrData[$i]['transaction']['UPDATEDATE'];
             $arrList[$ctr]['STARTTIME']   = substr($arrData[$i]['transaction']['STARTTIME'], 0, 5);
             $arrList[$ctr]['ENDTIME']     = substr($arrData[$i]['transaction']['ENDTIME'], 0, 5);
             $arrList[$ctr]['CCODE']       = $arrData[$i]['transaction']['CCODE'];
@@ -1506,6 +1507,106 @@ class MiscFunctionComponent extends Object
      */
     function IsPowerFlgOn($controller){
         return $this->GetReturningCustomerCountAll($controller) == 1;
+    }
+    #end region
+
+    #Region IsTransUpToDate
+    /**
+     * Check if Transaction is Up to Date
+     * @author Marvin Cunanan <mcunanan@think-ahead.jp>
+     * @datecreated 2017-05-31 13:22
+     * @param object $controller
+     * @param string $transcode
+     * @param DateTime $updatedate
+     * @return boolean
+     */
+    function IsTransUpToDate(&$controller, $transcode, $updatedate){
+
+        $sql = "SELECT transcode
+                FROM store_transaction
+                WHERE transcode = '{$transcode}'
+                    AND updatedate ='{$updatedate}'
+                    AND delflg IS NULL
+                LIMIT 1";
+
+        $rec = $controller->query($sql);
+
+        return count($rec) > 0;
+    }
+    #end region
+
+    #Region GetTransactionUpdateDate
+    /**
+     * Get the last update date
+     * @author Marvin Cunanan <mcunanan@think-ahead.jp>
+     * @datecreated 2017-07-31 15:53
+     * @param object $controller
+     * @param string $transcode
+     * @param integer $keyno
+     * @return boolean
+     */
+    function GetTransactionUpdateDate(&$controller, $transcode, $keyno){
+
+        $sql = "SELECT max(updatedate) as updatedate
+                FROM store_transaction
+                WHERE transcode = '{$transcode}'
+                    AND keyno = {$keyno}
+                    AND delflg IS NULL";
+
+        $rec = $controller->query($sql);
+
+        if(isset($rec{0})){
+            return $rec[0][0]['updatedate'];
+        }
+
+        return null;
+    }
+    #end region
+
+
+    #Region GetKyakukubunByDateTime
+    /**
+     * Get Kyakukubun By Date and Time
+     * @author Marvin Cunanan <mcunanan@think-ahead.jp>
+     * @datecreated 2017-08-09 12:36
+     * @param object $storetransaction_model
+     * @param string $ccode
+     * @param string $datetime
+     * @return int
+     */
+    function GetKyakukubunByDateTime(&$storetransaction_model, $ccode, $datetime){
+
+        $kyakukubun = 0;
+        $sql = "select f_get_kyakukubun_by_datetime('{$ccode}', '{$datetime}') as kyakukubun";
+        $rec = $storetransaction_model->query($sql);
+
+        if(isset($rec{0})){
+            $kyakukubun = $rec[0][0]['kyakukubun'];
+        }
+
+        return $kyakukubun;
+    }
+    #end region
+
+    #Region IsRegularCustomer
+    /**
+     * Check if Regular Customer
+     * @author Marvin Cunanan <mcunanan@think-ahead.jp>
+     * @datecreated 2017-08-09 12:36
+     * @param object Customer Model
+     * @param string $ccode
+     * @return boolean
+     */
+    function IsRegularCustomer(&$customer_model, $ccode){
+
+        $slq = "select regular from customer where ccode = '{$ccode}'";
+        $rec = $customer_model->query($slq);
+
+        if(isset($rec{0})){
+            return $rec[0]['customer']['regular'] == 1;
+        }
+
+        return false;
     }
     #end region
 }

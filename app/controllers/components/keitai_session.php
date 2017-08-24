@@ -497,7 +497,7 @@ class KeitaiSessionComponent extends Object
         if (empty($v)) {
             return false;
         }
-        
+
         $arrReturn = $v[0]['Store'];
         $arrReturn['dbname']  = $dbname;
         $arrReturn['logintype'] = $logintype;
@@ -572,7 +572,7 @@ class KeitaiSessionComponent extends Object
 
         return $arrReturn;
     }
-    
+
     // Added by jonathanparel, 20160930; RM#1789 -----------------------------------------------------ii
     /**
      * スタッフリストを読み込む
@@ -584,7 +584,7 @@ class KeitaiSessionComponent extends Object
      * @param string $dbname
      */
     function GetMobasuteStoreInfo(&$controller, $companyid, $storecode, $dbname = "") {
-        
+
         if(intval($companyid) == 0 || intval($storecode) == 0) {
             return false;
         }
@@ -639,7 +639,7 @@ class KeitaiSessionComponent extends Object
         return $arrReturn;
     }
     // Added by jonathanparel, 20160930; RM#1789 -----------------------------------------------------xx
-    
+
 
     /**
      * スタッフリストを読み込む
@@ -896,7 +896,7 @@ class KeitaiSessionComponent extends Object
 
         return $arrReturn;
     }
-    
+
      /**
      * メニューを読み込む
      * Gets Services
@@ -1309,21 +1309,18 @@ class KeitaiSessionComponent extends Object
                                            'date'      => $session_info['y_date'],
                                            'idno'      => $next_idno)  );
 
-        $sql_regular = "select REGULAR from customer where ccode ='".$session_info['ccode']."'";
-        $tmp_data = $controller->Customer->query($sql_regular);
-        $kyakukubun = 0;
-        $regularcustomer = 0;
+        if(!$controller->MiscFunction->IsRegularCustomer($controller->Customer, $session_info['ccode'])){
 
-        if($tmp_data[0]["customer"]['REGULAR']== 0){
-	        $tmp_kyaku = $controller->StoreTransaction->query(
-	                "SELECT f_get_kyakukubun('".$session_info['ccode']."', ".
-	                                        "'".$transcode."') as KYAKUKUBUN");
-	        $kyakukubun = $tmp_kyaku[0][0]['KYAKUKUBUN'];
-	        $regularcustomer = ($kyakukubun == 0)?1:0;
+            $yoyakudatetime = date('Y-m-d H:i:s', strtotime($sel_date . ' ' . $sel_time));
+
+            $kyakukubun = $controller->MiscFunction->GetKyakukubunByDateTime($controller->StoreTransaction, $session_info['ccode'], $yoyakudatetime);
+
+            $regularcustomer = ($kyakukubun == 0 ? 1 : 0);
         }
         else
         {
-	        $regularcustomer = $tmp_data[0]["customer"]['REGULAR'];
+            $kyakukubun = 0;
+	        $regularcustomer = 1;
         }
 
         // Store Settings
