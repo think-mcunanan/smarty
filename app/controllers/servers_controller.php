@@ -8572,7 +8572,6 @@ class ServersController extends WebServicesController
             return;
         }//end if
 
-        $sucess = true;
         $female_time = 0;
         $male_time = 0;
 
@@ -8591,8 +8590,9 @@ class ServersController extends WebServicesController
         if (isset($rs{0})) {
             $female_time = $rs[0][0]['service_time'];
             $male_time = $rs[0][0]['service_time_male'];
-        }//end if
-
+        }
+        //-----------------------------------------------------------------
+        $sucess = ($female_time + $male_time) > 0;
         //-----------------------------------------------------------------
         return array($sucess, $female_time, $male_time);
         //-----------------------------------------------------------------
