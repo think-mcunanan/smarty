@@ -2219,6 +2219,20 @@ class ServersController extends WebServicesController
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
         //--------------------------------------------------------------------------------------------------------------------------------------------------
+        // SQL to update customer ccode in sipssbeauty_yoyakuapp.customer_cache
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+        $sqlstatements[] = "UPDATE IGNORE sipssbeauty_yoyakuapp.customer_cache
+                                SET ccode = '{$toccode}'
+                            WHERE companyid = {$companyid}
+                                AND ccode = '{$fromccode}'";
+
+        $sqlstatements[] = "DELETE FROM sipssbeauty_yoyakuapp.customer_cache
+                            WHERE companyid = {$companyid}
+                                AND ccode = '{$fromccode}'";
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+        //--------------------------------------------------------------------------------------------------------------------------------------------------
         // Execute all SQL Statements
         //--------------------------------------------------------------------------------------------------------------------------------------------------
         $source = $this->Customer->getDataSource();
@@ -2374,7 +2388,7 @@ class ServersController extends WebServicesController
             $wherecond = " str_hdr.origination in (1, 2, 7, 8, 9, 11) ";
         }
 
-        
+
         if ($strcode > 0){
             $wherecond .= " and str_hdr.storecode = {$strcode}";
         }
@@ -2409,7 +2423,7 @@ class ServersController extends WebServicesController
             $orderby .= $ascsort == 0 ? ' desc ' : ' asc ';
         }
 
-        
+
         $curRec = $pageno == 0 ? 0 : $pageno * 50;
 
         $sql = "select *
