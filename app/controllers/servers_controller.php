@@ -2250,11 +2250,13 @@ class ServersController extends WebServicesController
     //</editor-fold>
 
 
-    // wsGetReservationCounter -----------------------------------------------------------------------------------------------------------------------
-    /* author : Albert 2015-12-16
-     * Get Reservation
-     * @param array $param
-     * @return reservation listing info counter
+    /**
+     * Summary of wsGetReservationCounter
+     * @param mixed $sessionid
+     * @param mixed $strcode
+     * @param mixed $datefr
+     * @param mixed $dateto
+     * @return array[]
      */
     function wsGetReservationCounter($sessionid, $strcode, $datefr, $dateto){
 
@@ -2269,62 +2271,69 @@ class ServersController extends WebServicesController
         $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer , ConnectionServer::SLAVE);
         //===================================================================================
 
-        //rule change
         /*
-        if ($dateto !== ""){
-        $datatransdate = " and str_hdr.transdate between '" . $datefr . "' and '" . $dateto . "' ";
-        }else{
-        $datatransdate = " and str_hdr.transdate = '" . $datefr . "' ";
-        }
+        STORE_TRANSACTION ORIGINATION
+        0: SIPSS店舗、もばすてPC予約、その他
+        1: もばすてWeb予約(モバイル)
+        2: もばすてWeb予約(PC)
+        7: Beauty Merit
+        8: Reservia
+        9: SIPSS HPB
+        10: SIPSS Tablet
+        11: Yoyaku App
          */
-        $datatransdate = ' and str_hdr.transdate >= date(now()) ';
 
-        $datastrcode = "";
-        if ($strcode > 0){
-            $datastrcode = " and str_hdr.storecode = " . $strcode;
-        }
-        //Bug: 1135 - Added By: MarvinC - Don't show servince if store dont have the industry (Beaty, Nail, Matsuke, Este)
-        //count all reservation -------------------------------------------------------------------------------------------
+        $storecodecond = $strcode > 0 ? " and str_hdr.storecode = {$strcode} " : '';
+
         $sql = "select bmr, wrkr
-            from (
-                    select count(if(origination in (7,8,9), transcode, null)) as bmr,
+                from (
+                      select
+                           count(if(origination in (7,8,9,11), transcode, null)) as bmr,
                            count(if(origination in (1,2), transcode, null)) as wrkr
-                    from (
-
-                            select str_hdr.transcode, str_hdr.origination, ifnull(str_trans2_hdr.read, 0) as yread
+                      from (
+                            select
+                                str_hdr.transcode,
+                                str_hdr.origination,
+                                ifnull(str_trans2_hdr.read, 0) as yread
                             from store_transaction as str_hdr
-                                    join store_transaction_details as str_dtl on str_hdr.transcode = str_dtl.transcode and str_hdr.keyno = str_dtl.keyno
-                                    left join store_services as str_svr on str_dtl.gcode = str_svr.gcode
-                                    left join services as svr on str_svr.gdcode = svr.gdcode
-                                    left join yoyaku_details as yk_dtl on str_hdr.transcode = yk_dtl.transcode
-                                    left join staff as stff on str_hdr.staffcode = stff.staffcode
-                                    join stafftype on stafftype.staffcode = stff.staffcode and stafftype.delflg is null or str_dtl.staffcode = 0
-                                    join storetype on storetype.delflg is null and storetype.storecode = str_hdr.storecode
-                                    left join store_transaction2 as str_trans2_hdr on str_hdr.transcode = str_trans2_hdr.transcode and str_hdr.keyno = str_trans2_hdr.keyno
-                            where str_hdr.origination in (1,2,7,8,9) " . $datastrcode . $datatransdate . "
+                            join store_transaction_details as str_dtl on str_hdr.transcode = str_dtl.transcode and str_hdr.keyno = str_dtl.keyno
+                            left join store_services as str_svr on str_dtl.gcode = str_svr.gcode
+                            left join services as svr on str_svr.gdcode = svr.gdcode
+                            left join yoyaku_details as yk_dtl on str_hdr.transcode = yk_dtl.transcode
+                            left join staff as stff on str_hdr.staffcode = stff.staffcode
+                            join stafftype on stafftype.staffcode = stff.staffcode and stafftype.delflg is null or str_dtl.staffcode = 0
+                            join storetype on storetype.delflg is null and storetype.storecode = str_hdr.storecode
+                            left join store_transaction2 as str_trans2_hdr on str_hdr.transcode = str_trans2_hdr.transcode and str_hdr.keyno = str_trans2_hdr.keyno
+                            where str_hdr.origination in (1,2,7,8,9,11)
+                                and str_hdr.transdate >= date(now())
+                                {$storecodecond}
                             group by str_hdr.transcode
                     ) tmptbl where yread = 0
-
-            ) as tblecount
-                                ";
+                ) as tblecount";
         //===================================================================================
         $GetData = $this->Customer->query($sql);
         $arr_reservation = $this->ParseDataToObjectArray($GetData, 'tblecount');
         //===================================================================================
         $ret = array();
         $ret['records'] = $arr_reservation;
-        //=================================================================================================================
-
+        //===================================================================================
         return $ret;
         //===================================================================================
     }
 
 
-    // wsGetReservation -----------------------------------------------------------------------------------------------------------------------
-    /* author : Albert 2015-12-02
-     * Get Reservation
-     * @param array $param
-     * @return reservationlistinginfo
+    /**
+     * Summary of wsGetReservation
+     * @param mixed $sessionid
+     * @param mixed $strcode
+     * @param mixed $origination
+     * @param mixed $datefr
+     * @param mixed $dateto
+     * @param mixed $pageno
+     * @param mixed $ascsort
+     * @param mixed $colsort
+     * @param mixed $syscode
+     * @return array[]
      */
     function wsGetReservation($sessionid, $strcode, $origination, $datefr, $dateto, $pageno, $ascsort, $colsort, $syscode){
 
@@ -2339,117 +2348,114 @@ class ServersController extends WebServicesController
         $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer, ConnectionServer::SLAVE);
         //===================================================================================
 
-        $sorting  = " desc ";
-		if ($ascsort == 0) { //albert redmine 2033 -->> 2017-01-24 (reverse the original rules of sorting to the excel type of sorting)
-			$sorting  = " desc ";
-		}else{
-			$sorting  = " asc ";
-		}
 
-		$orderby = " ";
-		if ($colsort == 0){
-			$orderby = ", alreadyread " . $sorting;
-		}elseif ($colsort == 1){
-			$orderby = ", transdate " . $sorting . ", reservationtm /*starttime*/ " . $sorting; //albert redmine 2033 -->> 2017-01-23
-		}elseif ($colsort == 2){
-			$orderby = ", starttime " . $sorting /*", transdate " . $sorting . ", reservationtm " . $sorting*/; //albert redmine 2033 -->> 2017-01-23
-		}elseif ($colsort == 3){
-			$orderby = ", cname " . $sorting;
-		}elseif ($colsort == 4){
-			$orderby = ", staffname " . $sorting;
-		}elseif ($colsort == 5){
-			$orderby = ", transstat " . $sorting;
-		}elseif ($colsort == 6){
-			$orderby = ", route " . $sorting;
-		}
+        $orderby = '';
+        $wherecond = '';
 
-        $opeAnd = "";
+        /*
+        STORE_TRANSACTION ORIGINATION
+        0: SIPSS店舗、もばすてPC予約、その他
+        1: もばすてWeb予約(モバイル)
+        2: もばすてWeb予約(PC)
+        7: Beauty Merit
+        8: Reservia
+        9: SIPSS HPB
+        10: SIPSS Tablet
+        11: Yoyaku App
+         */
 
-        $dataoriginate = "";
-        if ($origination == 0 ){
-            $dataoriginate = " str_hdr.origination in (1, 2, 7, 8, 9) ";
-            $opeAnd = " and ";
-        }elseif ($origination == 1){
-            $dataoriginate = " str_hdr.origination in (1) ";
-            $opeAnd = " and ";
+        if ($origination == 1){
+            $wherecond = " str_hdr.origination in (1) ";
         }elseif ($origination == 2){
-            $dataoriginate = " str_hdr.origination in (2) ";
-            $opeAnd = " and ";
+            $wherecond = " str_hdr.origination in (2) ";
         }elseif ($origination == 3){
-            $dataoriginate = " str_hdr.origination in (7, 8, 9) ";
-            $opeAnd = " and ";
-        }
-
-        $datastrcode = "";
-        if ($strcode > 0){
-            $datastrcode = $opeAnd . " str_hdr.storecode = " . $strcode;
-            $opeAnd = " and ";
-        }
-
-        $datatransdate = "";
-        if ($dateto !== ""){
-            $datatransdate = $opeAnd . " str_hdr.transdate between '" . $datefr . "' and '" . $dateto . "' ";
-            $opeAnd = " and ";
-        }
-
-        $sysCon = "";
-        if ($syscode !== 0){
-            $sysCon = $opeAnd . " svr.syscode in ({$syscode})";
-        }
-
-        if ($pageno == 0){
-            $curRec = 0;
-            $maxRec = 51;
+            $wherecond = " str_hdr.origination in (7, 8, 9, 11) ";
         }else{
-            $curRec = ($pageno * 50) + 1;
-            $maxRec = 50;
+            $wherecond = " str_hdr.origination in (1, 2, 7, 8, 9, 11) ";
         }
 
-        //Bug: 1135 - Added By: MarvinC - Don't show servince if store dont have the industry (Beaty, Nail, Matsuke, Este)
-        //main query ------------------------------------------------------------------------------------------------------
-        $sql = "select sql_calc_found_rows recctr, gnc, transcode, keyno, transdate, starttime, reservationdt, reservationtm, cname, staffname, transstat, route, alreadyread, syscode, origination
-            from (
+        
+        if ($strcode > 0){
+            $wherecond .= " and str_hdr.storecode = {$strcode}";
+        }
 
 
-            select 0 as recctr, gnc, transcode, keyno, transdate, starttime, reservationdt, reservationtm, cname, staffname, transstat, route, alreadyread, syscode, origination
-            from(
-                    select 0 as gnc, str_hdr.transcode, str_hdr.keyno, DATE_FORMAT(str_hdr.transdate, '%Y年%m月%d日') as transdate,
-                                                    if(ifnull(str_trans2_hdr.datetimecreated, '') <> '', DATE_FORMAT(str_trans2_hdr.datetimecreated, '%Y年%m月%d日 %H:%i'), '') as starttime,
-                                                    if(ifnull(yk_dtl.updatedate, '') <> '', DATE_FORMAT(yk_dtl.updatedate, '%Y年%m月%d日'), '') as reservationdt,
-                                                    if(ifnull(str_hdr.YOYAKUTIME, '') <> '', DATE_FORMAT(str_hdr.YOYAKUTIME, '%H:%i'), '') as reservationtm,
-                                                    str_hdr.cname, stff.staffname,
-                                                    case when str_hdr.delflg is not null then 'キャンセル' else '予約' end as transstat,
-                                                    if(str_hdr.origination in (7, 8, 9), '連携', 'もばすて') as route, ifnull(str_trans2_hdr.read, 0) as alreadyread,
-                                                    group_concat(distinct svr.syscode) as syscode, str_hdr.origination
-                    from store_transaction as str_hdr
-                                                    left join store_transaction_details as str_dtl on str_hdr.transcode = str_dtl.transcode and str_hdr.keyno = str_dtl.keyno
-                                                    left join store_services as str_svr on str_dtl.gcode = str_svr.gcode
-                                                    left join services as svr on str_svr.gdcode = svr.gdcode
-                                                    left join yoyaku_details as yk_dtl on str_hdr.transcode = yk_dtl.transcode
-                                                    left join staff as stff on str_dtl.staffcode = stff.staffcode
-                                                    join stafftype on stafftype.staffcode = stff.staffcode and stafftype.delflg is null or str_dtl.staffcode = 0
-                                                    join storetype on storetype.delflg is null and storetype.storecode = str_hdr.storecode
-                                                    left join store_transaction2 as str_trans2_hdr on str_hdr.transcode = str_trans2_hdr.transcode and str_hdr.keyno = str_trans2_hdr.keyno
-                    where " . $dataoriginate . $datastrcode . $datatransdate . $sysCon . "
-                    group by transcode
-                ) as tmptbl
+        if ($dateto !== ""){
+            $wherecond .= " and str_hdr.transdate between '{$datefr}' and '{$dateto}' ";
+        }
 
-            union all
+        if ($syscode !== 0){
+            $wherecond .= " and svr.syscode in ({$syscode})";
+        }
 
-                select found_rows() as recctr, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 
-            order by recctr desc " . $orderby . ", transcode desc, gnc
-            limit  " . $curRec . "," . $maxRec . "
-                        ) tbllist ";
-        //===================================================================================
+        if ($colsort == 0){
+			$orderby = ' alreadyread ';
+		}elseif ($colsort == 1){
+			$orderby = ' reservation_datetime ';
+		}elseif ($colsort == 2){
+			$orderby = ' starttime ';
+		}elseif ($colsort == 3){
+			$orderby = ' cname ';
+		}elseif ($colsort == 4){
+			$orderby = ' staffname ';
+		}elseif ($colsort == 5){
+			$orderby = ' transstat ';
+		}elseif ($colsort == 6){
+			$orderby = ' route ';
+		}
+
+        if(!empty($orderby)){
+            $orderby .= $ascsort == 0 ? ' desc ' : ' asc ';
+        }
+
+        
+        $curRec = $pageno == 0 ? 0 : $pageno * 50;
+
+        $sql = "select *
+                from (
+                    select
+                        FOUND_ROWS() as recctr,
+                        tmptbl.*
+                    from(
+                        select
+                            str_hdr.transcode,
+                            str_hdr.keyno,
+                            DATE_FORMAT(str_hdr.transdate, '%Y年%m月%d日') as transdate,
+                            if(ifnull(str_trans2_hdr.datetimecreated, '') <> '', DATE_FORMAT(str_trans2_hdr.datetimecreated, '%Y年%m月%d日 %H:%i'), '') as starttime,
+                            if(ifnull(yk_dtl.updatedate, '') <> '', DATE_FORMAT(yk_dtl.updatedate, '%Y年%m月%d日'), '') as reservationdt,
+                            if(ifnull(str_hdr.YOYAKUTIME, '') <> '', DATE_FORMAT(str_hdr.YOYAKUTIME, '%H:%i'), '') as reservationtm,
+                            str_hdr.cname,
+                            stff.staffname,
+                            case when str_hdr.delflg is not null then 'キャンセル' else '予約' end as transstat,
+                            if(str_hdr.origination in (7, 8, 9, 11), '連携', 'もばすて') as route,
+                            ifnull(str_trans2_hdr.read, 0) as alreadyread,
+                            group_concat(distinct svr.syscode) as syscode, str_hdr.origination,
+                            STR_TO_DATE(concat(str_hdr.transdate, ' ', ifnull(str_hdr.YOYAKUTIME,'')),'%Y-%m-%d %H:%i:%s') as reservation_datetime
+                        from store_transaction as str_hdr
+                        left join store_transaction_details as str_dtl on str_hdr.transcode = str_dtl.transcode and str_hdr.keyno = str_dtl.keyno
+                        left join store_services as str_svr on str_dtl.gcode = str_svr.gcode
+                        left join services as svr on str_svr.gdcode = svr.gdcode
+                        left join yoyaku_details as yk_dtl on str_hdr.transcode = yk_dtl.transcode
+                        left join staff as stff on str_dtl.staffcode = stff.staffcode
+                        join stafftype on stafftype.staffcode = stff.staffcode and stafftype.delflg is null or str_dtl.staffcode = 0
+                        join storetype on storetype.delflg is null and storetype.storecode = str_hdr.storecode
+                        left join store_transaction2 as str_trans2_hdr on str_hdr.transcode = str_trans2_hdr.transcode and str_hdr.keyno = str_trans2_hdr.keyno
+                        where {$wherecond}
+                        group by transcode
+                        ) as tmptbl
+                    order by {$orderby}, transcode desc
+                    limit {$curRec}, 50
+                ) as tblist";
+        //-----------------------------------------------------------------------------------
         $GetData = $this->Customer->query($sql);
-        $arr_reservation = $this->ParseDataToObjectArray($GetData, 'tbllist');
-        //===================================================================================
+        $arr_reservation = $this->ParseDataToObjectArray($GetData, 'tblist');
+        //-----------------------------------------------------------------------------------
         $ret = array();
         $ret['records'] = $arr_reservation;
-        //=================================================================================================================
+        //-----------------------------------------------------------------------------------
         return $ret;
-        //=================================================================================================================
+        //-----------------------------------------------------------------------------------
     }
 
 
