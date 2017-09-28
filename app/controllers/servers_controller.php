@@ -2436,7 +2436,7 @@ class ServersController extends WebServicesController
         }
 
 
-        $curRec = $pageno == 0 ? 0 : $pageno * 50;
+        $curRec = $pageno * 50;
 
         $sql = "select *
                 from (
