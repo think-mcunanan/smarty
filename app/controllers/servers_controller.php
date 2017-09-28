@@ -2378,16 +2378,20 @@ class ServersController extends WebServicesController
         11: Yoyaku App
          */
 
-        if ($origination == 1){
-            $wherecond = " str_hdr.origination in (1) ";
-        }elseif ($origination == 2){
-            $wherecond = " str_hdr.origination in (2) ";
-        }elseif ($origination == 3){
-            $wherecond = " str_hdr.origination in (7, 8, 9, 11) ";
-        }else{
-            $wherecond = " str_hdr.origination in (1, 2, 7, 8, 9, 11) ";
+        switch ($origination) {
+            case 1:
+                $wherecond = " str_hdr.origination in (1) ";
+                break;
+            case 2:
+                $wherecond = " str_hdr.origination in (2) ";
+                break;
+            case 3:
+                $wherecond = " str_hdr.origination in (7, 8, 9, 11) ";
+                break;
+            default:
+                $wherecond = " str_hdr.origination in (1, 2, 7, 8, 9, 11) ";
+                break;
         }
-
 
         if ($strcode > 0){
             $wherecond .= " and str_hdr.storecode = {$strcode}";
@@ -2403,21 +2407,29 @@ class ServersController extends WebServicesController
         }
 
 
-        if ($colsort == 0){
-			$orderby = ' alreadyread ';
-		}elseif ($colsort == 1){
-			$orderby = ' reservation_datetime ';
-		}elseif ($colsort == 2){
-			$orderby = ' starttime ';
-		}elseif ($colsort == 3){
-			$orderby = ' cname ';
-		}elseif ($colsort == 4){
-			$orderby = ' staffname ';
-		}elseif ($colsort == 5){
-			$orderby = ' transstat ';
-		}elseif ($colsort == 6){
-			$orderby = ' route ';
-		}
+        switch ($colsort){
+            case 1:
+                $orderby = ' reservation_datetime ';
+                break;
+            case 2:
+                $orderby = ' starttime ';
+                break;
+            case 3:
+                $orderby = ' cname ';
+                break;
+            case 4:
+                $orderby = ' staffname ';
+                break;
+            case 5:
+                $orderby = ' transstat ';
+                break;
+            case 6:
+                $orderby = ' route ';
+                break;
+        	default:
+                $orderby = ' alreadyread ';
+                break;
+        }
 
         if(!empty($orderby)){
             $orderby .= $ascsort == 0 ? ' desc ' : ' asc ';
