@@ -1283,7 +1283,8 @@ class KeitaiSessionComponent extends Object
         $session_info['storecode'],
         $session_info['dbname'],
         $services_arr,
-        $customer_info['SEX']
+        $customer_info['SEX'],
+        $session_info['y_staff']
         );
 
         $total_servicetime = 0;
