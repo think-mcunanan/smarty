@@ -6923,6 +6923,52 @@ class ServersController extends WebServicesController
                             AND st.delflg IS NULL
                             ".$transconde."
 
+                            UNION ALL
+
+                            SELECT
+                                11 origination,
+                                '' route,
+                                '' reservation_system,
+                                date_format(st2.datetimecreated, '%Y-%m-%d %H:%i') as reserve_date,
+                                st.transcode reserve_code,
+                                '' date,
+                                yr.menutime start,
+                                '' end,
+                                yr.couponname coupon_info,
+                                '' comment,
+                                '' shop_comment,
+                                '' site_customer_id,
+                                '' demand,
+                                '' next_coming_comment,
+                                0 price,
+                                0 nomination_fee,
+                                0 total_price,
+                                0 use_point,
+                                0 grant_point,
+                                0 visit_num,
+                                '' name_sei,
+                                '' name_kn_sei,
+                                0 sex,
+                                '' name_mei,
+                                '' name_kn_mei,
+                                '' tel,
+                                '' zipcode,
+                                '' address,
+                                '' mail,
+                                '' staffname,
+                                yr.menuname menu_info,
+                                st.transcode transcode,
+                                '' ccode
+
+                            FROM store_transaction st
+                            JOIN store_transaction2 as st2 USING (transcode, keyno)
+                            JOIN yoyakuapp_reservation yr USING(transcode)
+
+                            WHERE st.transdate = '".$param['date']."'
+                            AND st.origination = 11
+                            AND st.delflg IS NULL
+                            ".$transconde."
+
                               ) as bmtble on bmtble.transcode = transaction.TRANSCODE and bmtble.origination = transaction.origination
 
                             /*add by albert for bm connection 2015-10-29 */
