@@ -1514,7 +1514,8 @@ class KeitaiSessionComponent extends Object
             $session_info['storecode'],
             $session_info['dbname'],
             $services_arr,
-            $customer_info['SEX']
+            $customer_info['SEX'],
+            $session_info['y_staff']
          );
 
         //追加の総合計時間を再計算
