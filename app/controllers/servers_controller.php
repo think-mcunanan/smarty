@@ -6961,7 +6961,7 @@ class ServersController extends WebServicesController
                                 '' ccode
 
                             FROM store_transaction st
-                            JOIN store_transaction2 as st2 USING (transcode, keyno)
+                            JOIN store_transaction2 as st2 USING(transcode)
                             JOIN yoyakuapp_reservation yr USING(transcode)
 
                             WHERE st.transdate = '".$param['date']."'
