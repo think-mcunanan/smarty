@@ -6942,7 +6942,7 @@ class ServersController extends WebServicesController
                                 '' next_coming_comment,
                                 0 price,
                                 0 nomination_fee,
-                                0 total_price,
+                                yr.menuprice total_price,
                                 0 use_point,
                                 0 grant_point,
                                 0 visit_num,
