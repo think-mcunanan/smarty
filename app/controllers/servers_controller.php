@@ -2408,6 +2408,9 @@ class ServersController extends WebServicesController
 
 
         switch ($colsort){
+            case 0:
+                $orderby = ' alreadyread ';
+                break;
             case 1:
                 $orderby = ' reservation_datetime ';
                 break;
@@ -2425,9 +2428,6 @@ class ServersController extends WebServicesController
                 break;
             case 6:
                 $orderby = ' route ';
-                break;
-        	default:
-                $orderby = ' alreadyread ';
                 break;
         }
 
