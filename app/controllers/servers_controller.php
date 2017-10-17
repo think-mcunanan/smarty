@@ -2369,8 +2369,8 @@ class ServersController extends WebServicesController
         /*
         STORE_TRANSACTION ORIGINATION
         0: SIPSS店舗、もばすてPC予約、その他
-        1: もばすてWeb予約(モバイル)
-        2: もばすてWeb予約(PC)
+        1: もばすて電話予約
+        2: もばすてPC予約
         7: Beauty Merit
         8: Reservia
         9: SIPSS HPB
@@ -2386,7 +2386,10 @@ class ServersController extends WebServicesController
                 $wherecond = " str_hdr.origination in (2) ";
                 break;
             case 3:
-                $wherecond = " str_hdr.origination in (7, 8, 9, 11) ";
+                $wherecond = " str_hdr.origination in (7, 8, 9) ";
+                break;
+            case 4:
+                $wherecond = " str_hdr.origination in (11) ";
                 break;
             default:
                 $wherecond = " str_hdr.origination in (1, 2, 7, 8, 9, 11) ";
@@ -2454,7 +2457,10 @@ class ServersController extends WebServicesController
                             str_hdr.cname,
                             stff.staffname,
                             case when str_hdr.delflg is not null then 'キャンセル' else '予約' end as transstat,
-                            if(str_hdr.origination in (7, 8, 9, 11), '連携', 'もばすて') as route,
+                            case when str_hdr.origination in (7,8,9) then '連携'
+                                 when str_hdr.origination = 11 then 'SIPSSアプリ'
+                                 else 'もばすて'
+                            end as route,
                             ifnull(str_trans2_hdr.read, 0) as alreadyread,
                             group_concat(distinct svr.syscode) as syscode, str_hdr.origination,
                             STR_TO_DATE(concat(str_hdr.transdate, ' ', ifnull(str_hdr.YOYAKUTIME,'')),'%Y-%m-%d %H:%i:%s') as reservation_datetime
