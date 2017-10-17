@@ -2369,8 +2369,8 @@ class ServersController extends WebServicesController
         /*
         STORE_TRANSACTION ORIGINATION
         0: SIPSS店舗、もばすてPC予約、その他
-        1: もばすて電話予約
-        2: もばすてPC予約
+        1: もばすてWeb予約(モバイル)
+        2: もばすてWeb予約(PC)
         7: Beauty Merit
         8: Reservia
         9: SIPSS HPB
