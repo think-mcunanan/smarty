@@ -768,9 +768,30 @@ class ServersController extends WebServicesController
                       'wsGetReturningCustomerCountAll' => array(
                             'doc'    => 'wsGetReturningCustomerCountAll',
                             'input'  => array('sessionid'  => 'xsd:string'),
-                            'output' => array('return'     => 'xsd:int'))
+                            'output' => array('return'     => 'xsd:int')),
                      //- ############################################################
 
+                    // かんざし予約時間別予約可能数
+                    'wsSearchKanzashiCustomersLimit' => array(
+                        'doc'   => 'かんざし予約時間別予約可能数検索',
+                        'input' => array(
+                            'sessionid' => 'xsd:string',
+                            'storecode' => 'xsd:int',
+                            'ymd'       => 'xsd:date'
+                        ),
+                        'output' => array('return' => 'tns:return_kanzashiCustomersLimit')
+                    ),
+                    'wsUpdateKanzashiCustomersLimit' => array(
+                        'doc'   => 'かんざし予約時間別予約可能数更新',
+                        'input' => array(
+                            'sessionid'       => 'xsd:string',
+                            'storecode'       => 'xsd:int',
+                            'storeholiday'    => 'tns:storeHolidayInformation',
+                            'customerslimits' => 'tns:_kanzashiCustomersLimit'
+                        ),
+                        'output' => array('return' => 'xsd:boolean')
+                    )
+                    //- ############################################################
                      );
 
     //-- Complexタイプの参照 (Complex Type Definitions)
@@ -798,7 +819,8 @@ class ServersController extends WebServicesController
                                         'storemail'         => 'xsd:string',
                                         'oemflg'            => 'xsd:int',
                                         'storetype'         => 'tns:storetypeInformation',
-                                        'allstoretype'      => 'tns:AllStoreTypes')),
+                                        'allstoretype'      => 'tns:AllStoreTypes',
+                                        'kanzashiSalonId'   => 'xsd:int')),
 
                              '_AllStoreTypes' => array('struct' => array(
                                                         'STORECODE'       => 'xsd:int',
@@ -1806,6 +1828,25 @@ class ServersController extends WebServicesController
                             //by albert 2015-11-18
                             //==============================================================
 
+                            // かんざし予約時間別予約可能数
+                            'kanzashiCustomersLimit' => array(
+                                'struct' => array(
+                                    'ymd'       => 'xsd:date',
+                                    'begintime' => 'xsd:time',
+                                    'endtime'   => 'xsd:time',
+                                    'limit'     => 'xsd:int'
+                                )
+                            ),
+                            '_kanzashiCustomersLimit' => array(
+                                'array' => 'kanzashiCustomersLimit'
+                            ),
+                            'return_kanzashiCustomersLimit' => array(
+                                'struct' => array(
+                                    'storeholiday'    => 'tns:storeHolidayInformation',
+                                    'customerslimits' => 'tns:_kanzashiCustomersLimit'
+                                )
+                            )
+
                          );
 
 
@@ -2712,6 +2753,17 @@ class ServersController extends WebServicesController
             }//end if
             //------------------------------------------------------------------
             $arrReturn = array_merge($arrReturn, array("allstoretype" => $arr_storetypes_allstore));
+            //------------------------------------------------------------------
+            $sql = "
+                SELECT salonid
+                FROM sipssbeauty_kanzashi.store
+                WHERE
+                    companyid = ? AND
+                    storecode = ?
+            ";
+
+            $rs = $this->StoreSettings->query($sql, array($arrReturn['companyid'], $arrReturn['storecode']), false);
+            $arrReturn['kanzashiSalonId'] = $rs ? $rs[0]['KanzashiStore']['salonid'] : 0;
             //------------------------------------------------------------------
             return $arrReturn;
             //------------------------------------------------------------------
@@ -10053,6 +10105,103 @@ class ServersController extends WebServicesController
         return 0;
     }
     //</editor-fold>
+
+    /**
+     * かんざし予約時間別予約可能数検索
+     *
+     * @param string $sessionid
+     * @param int $storecode
+     * @param string $ymd
+     * @return return_kanzashiCustomersLimit
+     */
+    function wsSearchKanzashiCustomersLimit($sessionid, $storecode, $ymd) {
+        $result = array();
+        $ymd = new DateTime($ymd);
+
+        $param = array(
+            'storecode' => $storecode,
+            'year' => $ymd->format('Y'),
+            'month' => $ymd->format('m'),
+            'day' => 0
+        );        
+
+        $storeholiday = $this->wsSearchStoreHoliday($sessionid, $param);
+        $result['storeholiday'] = $storeholiday['records'];
+
+        $query = "
+            SELECT
+                ymd,
+                begintime,
+                endtime,
+                customerslimit `limit`
+            FROM kanzashi_customers_limit
+            WHERE
+                storecode = ? AND
+                ymd BETWEEN ? AND ?
+            ORDER BY
+                ymd,
+                begintime
+        ";
+        
+        $beginymd = $ymd->format('Y-m-01');
+        $endymd = $ymd->format('Y-m-t');
+        $param = array($storecode, $beginymd, $endymd);
+        $records = $this->StoreHoliday->query($query, $param, false);
+        $result['customerslimits'] = array();
+
+        foreach ($records as $record) {
+            $result['customerslimits'][] = $record['kanzashi_customers_limit'];
+        }
+
+        return $result;
+    }
+
+    /**
+     * かんざし予約時間別予約可能数更新
+     *
+     * @param string $sessionid
+     * @param int $storecode
+     * @param storeHolidayInformation $storeholiday
+     * @param _kanzashiCustomersLimit $customerslimits
+     */
+    function wsUpdateKanzashiCustomersLimit($sessionid, $storecode, $storeholiday, $customerslimits) {
+        $this->wsAddUpdateDeleteStoreHoliday($sessionid, $storeholiday);
+        $deletequery = array();
+        $insertquery = array();
+
+        foreach ($customerslimits as $customerslimit) {
+            $ymd = $customerslimit['ymd'];
+            $begintime = explode('.', $customerslimit['begintime']);
+            $endtime = explode('.', $customerslimit['endtime']);
+            $deletequery["'{$ymd}'"] = null;
+            $insertquery[] = "({$storecode}, '{$ymd}', '{$begintime[0]}', '{$endtime[0]}', {$customerslimit['limit']})";
+        }
+        
+        $deletequery = implode(',', array_keys($deletequery));
+
+        $query = "
+            DELETE FROM kanzashi_customers_limit
+            WHERE
+                storecode = {$storecode} AND
+                ymd IN ({$deletequery});
+        ";
+
+        $this->StoreHoliday->query($query);
+        $insertquery = implode(',', $insertquery);
+
+        $query = "
+            INSERT INTO kanzashi_customers_limit (
+                storecode,
+                ymd,
+                begintime,
+                endtime,
+                customerslimit
+            ) VALUES {$insertquery};
+        ";
+
+        $this->StoreHoliday->query($query);
+        return true;
+    }
 
     }//end class ServersController
 
