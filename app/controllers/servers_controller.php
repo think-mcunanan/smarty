@@ -10165,41 +10165,63 @@ class ServersController extends WebServicesController
      * @param _kanzashiCustomersLimit $customerslimits
      */
     function wsUpdateKanzashiCustomersLimit($sessionid, $storecode, $storeholiday, $customerslimits) {
-        $this->wsAddUpdateDeleteStoreHoliday($sessionid, $storeholiday);
+        if ($storeholiday['year'] && $storeholiday['month'] && $storeholiday['STORECODE']) {
+            $this->wsAddUpdateDeleteStoreHoliday($sessionid, $storeholiday);
+        } else {
+            $storeinfo = $this->YoyakuSession->Check($this);
+
+            if (!$storeinfo) {
+                $this->_soap_server->fault(1, '', INVALID_SESSION);
+                return;
+            }
+
+            $this->StoreHoliday->set_company_database($storeinfo['dbname'], $this->StoreHoliday);
+        }
+        
         $deletequery = array();
         $insertquery = array();
 
         foreach ($customerslimits as $customerslimit) {
             $ymd = $customerslimit['ymd'];
-            $begintime = explode('.', $customerslimit['begintime']);
-            $endtime = explode('.', $customerslimit['endtime']);
             $deletequery["'{$ymd}'"] = null;
-            $insertquery[] = "({$storecode}, '{$ymd}', '{$begintime[0]}', '{$endtime[0]}', {$customerslimit['limit']})";
+            $limit = $customerslimit['limit'];
+
+            if ($limit >= 0) {
+                $begintime = substr($customerslimit['begintime'], 0, 8);
+                $endtime = substr($customerslimit['endtime'], 0, 8);
+                $insertquery[] = "({$storecode}, '{$ymd}', '{$begintime}', '{$endtime}', {$limit})";
+            }
         }
         
-        $deletequery = implode(',', array_keys($deletequery));
+        if ($deletequery) {
+            $deletequery = implode(',', array_keys($deletequery));
 
-        $query = "
-            DELETE FROM kanzashi_customers_limit
-            WHERE
-                storecode = {$storecode} AND
-                ymd IN ({$deletequery});
-        ";
+            $query = "
+                DELETE FROM kanzashi_customers_limit
+                WHERE
+                    storecode = {$storecode} AND
+                    ymd IN ({$deletequery});
+            ";
+    
+            $this->StoreHoliday->query($query);
+        }
 
-        $this->StoreHoliday->query($query);
-        $insertquery = implode(',', $insertquery);
+        if ($insertquery) {
+            $insertquery = implode(',', $insertquery);
 
-        $query = "
-            INSERT INTO kanzashi_customers_limit (
-                storecode,
-                ymd,
-                begintime,
-                endtime,
-                customerslimit
-            ) VALUES {$insertquery};
-        ";
+            $query = "
+                INSERT INTO kanzashi_customers_limit (
+                    storecode,
+                    ymd,
+                    begintime,
+                    endtime,
+                    customerslimit
+                ) VALUES {$insertquery};
+            ";
+    
+            $this->StoreHoliday->query($query);
+        }
 
-        $this->StoreHoliday->query($query);
         return true;
     }
 
