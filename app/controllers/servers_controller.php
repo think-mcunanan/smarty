@@ -786,8 +786,8 @@ class ServersController extends WebServicesController
                         'input' => array(
                             'sessionid'       => 'xsd:string',
                             'storecode'       => 'xsd:int',
-                            'storeholiday'    => 'tns:storeHolidayInformation',
-                            'customerslimits' => 'tns:_kanzashiCustomersLimit'
+                            'store_holiday'    => 'tns:storeHolidayInformation',
+                            'customers_limits' => 'tns:_kanzashiCustomersLimit'
                         ),
                         'output' => array('return' => 'xsd:boolean')
                     )
@@ -1831,10 +1831,10 @@ class ServersController extends WebServicesController
                             // かんざし予約時間別予約可能数
                             'kanzashiCustomersLimit' => array(
                                 'struct' => array(
-                                    'ymd'       => 'xsd:date',
-                                    'begintime' => 'xsd:time',
-                                    'endtime'   => 'xsd:time',
-                                    'limit'     => 'xsd:int'
+                                    'ymd'         => 'xsd:date',
+                                    'begin_time'  => 'xsd:time',
+                                    'end_time'    => 'xsd:time',
+                                    'limit_count' => 'xsd:int'
                                 )
                             ),
                             '_kanzashiCustomersLimit' => array(
@@ -1842,8 +1842,8 @@ class ServersController extends WebServicesController
                             ),
                             'return_kanzashiCustomersLimit' => array(
                                 'struct' => array(
-                                    'storeholiday'    => 'tns:storeHolidayInformation',
-                                    'customerslimits' => 'tns:_kanzashiCustomersLimit'
+                                    'store_holiday'    => 'tns:storeHolidayInformation',
+                                    'customers_limits' => 'tns:_kanzashiCustomersLimit'
                                 )
                             )
 
@@ -2755,15 +2755,15 @@ class ServersController extends WebServicesController
             $arrReturn = array_merge($arrReturn, array("allstoretype" => $arr_storetypes_allstore));
             //------------------------------------------------------------------
             $sql = "
-                SELECT salonid
+                SELECT salon_id
                 FROM sipssbeauty_kanzashi.store
                 WHERE
                     companyid = ? AND
                     storecode = ?
             ";
-
-            $rs = $this->StoreSettings->query($sql, array($arrReturn['companyid'], $arrReturn['storecode']), false);
-            $arrReturn['kanzashiSalonId'] = $rs ? $rs[0]['KanzashiStore']['salonid'] : 0;
+            $param = array($arrReturn['companyid'], $arrReturn['storecode']);
+            $rs = $this->StoreSettings->query($sql, $param, false);
+            $arrReturn['kanzashiSalonId'] = $rs ? $rs[0]['KanzashiStore']['salon_id'] : 0;
             //------------------------------------------------------------------
             return $arrReturn;
             //------------------------------------------------------------------
@@ -10125,32 +10125,32 @@ class ServersController extends WebServicesController
             'day' => 0
         );        
 
-        $storeholiday = $this->wsSearchStoreHoliday($sessionid, $param);
-        $result['storeholiday'] = $storeholiday['records'];
+        $store_holiday = $this->wsSearchStoreHoliday($sessionid, $param);
+        $result['store_holiday'] = $store_holiday['records'];
 
         $query = "
             SELECT
                 ymd,
-                begintime,
-                endtime,
-                customerslimit `limit`
+                begin_time,
+                end_time,
+                limit_count
             FROM kanzashi_customers_limit
             WHERE
                 storecode = ? AND
                 ymd BETWEEN ? AND ?
             ORDER BY
                 ymd,
-                begintime
+                begin_time
         ";
         
-        $beginymd = $ymd->format('Y-m-01');
-        $endymd = $ymd->format('Y-m-t');
-        $param = array($storecode, $beginymd, $endymd);
+        $begin_ymd = $ymd->format('Y-m-01');
+        $end_ymd = $ymd->format('Y-m-t');
+        $param = array($storecode, $begin_ymd, $end_ymd);
         $records = $this->StoreHoliday->query($query, $param, false);
-        $result['customerslimits'] = array();
+        $result['customers_limits'] = array();
 
         foreach ($records as $record) {
-            $result['customerslimits'][] = $record['kanzashi_customers_limit'];
+            $result['customers_limits'][] = $record['kanzashi_customers_limit'];
         }
 
         return $result;
@@ -10161,62 +10161,62 @@ class ServersController extends WebServicesController
      *
      * @param string $sessionid
      * @param int $storecode
-     * @param storeHolidayInformation $storeholiday
-     * @param _kanzashiCustomersLimit $customerslimits
+     * @param storeHolidayInformation $store_holiday
+     * @param _kanzashiCustomersLimit $customers_limits
      */
-    function wsUpdateKanzashiCustomersLimit($sessionid, $storecode, $storeholiday, $customerslimits) {
-        if ($storeholiday['year'] && $storeholiday['month'] && $storeholiday['STORECODE']) {
-            $this->wsAddUpdateDeleteStoreHoliday($sessionid, $storeholiday);
+    function wsUpdateKanzashiCustomersLimit($sessionid, $storecode, $store_holiday, $customers_limits) {
+        if ($store_holiday['year'] && $store_holiday['month'] && $store_holiday['STORECODE']) {
+            $this->wsAddUpdateDeleteStoreHoliday($sessionid, $store_holiday);
         } else {
-            $storeinfo = $this->YoyakuSession->Check($this);
+            $store_info = $this->YoyakuSession->Check($this);
 
-            if (!$storeinfo) {
+            if (!$store_info) {
                 $this->_soap_server->fault(1, '', INVALID_SESSION);
                 return;
             }
 
-            $this->StoreHoliday->set_company_database($storeinfo['dbname'], $this->StoreHoliday);
+            $this->StoreHoliday->set_company_database($store_info['dbname'], $this->StoreHoliday);
         }
         
-        $deletequery = array();
-        $insertquery = array();
+        $delete_query = array();
+        $insert_query = array();
 
-        foreach ($customerslimits as $customerslimit) {
-            $ymd = $customerslimit['ymd'];
-            $deletequery["'{$ymd}'"] = null;
-            $limit = $customerslimit['limit'];
+        foreach ($customers_limits as $customers_limit) {
+            $ymd = $customers_limit['ymd'];
+            $delete_query["'{$ymd}'"] = null;
+            $limit_count = $customers_limit['limit_count'];
 
-            if ($limit >= 0) {
-                $begintime = substr($customerslimit['begintime'], 0, 8);
-                $endtime = substr($customerslimit['endtime'], 0, 8);
-                $insertquery[] = "({$storecode}, '{$ymd}', '{$begintime}', '{$endtime}', {$limit})";
+            if ($limit_count >= 0) {
+                $begin_time = substr($customers_limit['begin_time'], 0, 8);
+                $end_time = substr($customers_limit['end_time'], 0, 8);
+                $insert_query[] = "({$storecode}, '{$ymd}', '{$begin_time}', '{$end_time}', {$limit_count})";
             }
         }
         
-        if ($deletequery) {
-            $deletequery = implode(',', array_keys($deletequery));
+        if ($delete_query) {
+            $delete_query = implode(',', array_keys($delete_query));
 
             $query = "
                 DELETE FROM kanzashi_customers_limit
                 WHERE
                     storecode = {$storecode} AND
-                    ymd IN ({$deletequery});
+                    ymd IN ({$delete_query});
             ";
     
             $this->StoreHoliday->query($query);
         }
 
-        if ($insertquery) {
-            $insertquery = implode(',', $insertquery);
+        if ($insert_query) {
+            $insert_query = implode(',', $insert_query);
 
             $query = "
                 INSERT INTO kanzashi_customers_limit (
                     storecode,
                     ymd,
-                    begintime,
-                    endtime,
-                    customerslimit
-                ) VALUES {$insertquery};
+                    begin_time,
+                    end_time,
+                    limit_count
+                ) VALUES {$insert_query};
             ";
     
             $this->StoreHoliday->query($query);
