@@ -528,6 +528,7 @@ class MiscFunctionComponent extends Object
                     $arrList[$ctr]['details'][$dtl]['ENDTIME']          = $transd_data['details']['ENDTIME'];
                     //--------------------------------------------------------------------------------------------
                     $arrList[$ctr]['details'][$dtl]['SYSCODE']          = $transd_data['services']['SYSCODE'];
+                    $arrList[$ctr]['details'][$dtl]['ISMENUDELETED']   = $transd_data['service']['DELFLG'] <> '' ? 1 : 0;
                     $dtl++;
                     //--------------------------------------------------------------------------------------------
                 }//end if
@@ -539,15 +540,6 @@ class MiscFunctionComponent extends Object
             $arrList[$ctr]['SERVICESNAME'] .= $arrData[$i]['servicessys']['servicesname'] . ",";
             #-----------------------------------------------------------------------------------------------------
         }//end for
-
-        //        #-----------------------------------------------------------------------------------------------------
-        //        #Added by MarvinC - 2015-06-18
-        //        #-----------------------------------------------------------------------------------------------------
-        //        $arrList[$ctr]['SERVICESNAME'] = rtrim($servicesname,",");
-        //        $servicesname = "";
-        //        #-----------------------------------------------------------------------------------------------------
-        $arrList[0]['checked_times'] = $checked_times;
-        //-------------------------------------------------------------------------------------------------------
         return $arrList;
         //-------------------------------------------------------------------------------------------------------
     }//end function
@@ -902,11 +894,12 @@ class MiscFunctionComponent extends Object
                     //--------------------------------------------------------------------------------------------
                     //temporary added start end time - not yet used
                     //--------------------------------------------------------------------------------------------
-                    $arrList[$ctr]['details'][$dtl]['TRANSCODE']        = $transd_data['details']['TRANSCODE'];
-                    $arrList[$ctr]['details'][$dtl]['STARTTIME']        = $transd_data['details']['STARTTIME'];
+                    $arrList[$ctr]['details'][$dtl]['TRANSCODE']      = $transd_data['details']['TRANSCODE'];
+                    $arrList[$ctr]['details'][$dtl]['STARTTIME']      = $transd_data['details']['STARTTIME'];
                     $arrList[$ctr]['details'][$dtl]['ENDTIME']        = $transd_data['details']['ENDTIME'];
                     //--------------------------------------------------------------------------------------------
                     $arrList[$ctr]['details'][$dtl]['SYSCODE']        = $transd_data['services']['SYSCODE'];
+                    $arrList[$ctr]['details'][$dtl]['ISMENUDELETED']  = ($transd_data['service']['DELFLG'] <> '' ? 1 : 0);
                     //--------------------------------------------------------------------------------------------
                     $dtl++;
                     //--------------------------------------------------------------------------------------------

@@ -1426,7 +1426,8 @@ class ServersController extends WebServicesController
                                         'TAX'              => 'xsd:int',
                                         'QUANTITY'         => 'xsd:int',
                                         'TOTALTAX'         => 'xsd:int',
-                                        'PRICETAXINC'      => 'xsd:int')),
+                                        'PRICETAXINC'      => 'xsd:int',
+                                        'ISMENUDELETED'    => 'xsd:int')),
                              '_storeTransactionDetailInformation' => array(
                                         'array' => 'storeTransactionDetailInformation'),
 
@@ -6706,6 +6707,8 @@ class ServersController extends WebServicesController
         $condition = "";
         $transconde = "";
         $storecond = "";
+        $misc_order = "";
+        $order_trantype = "";
         $trantype1 = " AND details.TRANTYPE = 1 ";
         //---------------------------------------------------------------------------------------------------------------------
         if ($param['STORECODE'] <> 0) {
@@ -6748,7 +6751,8 @@ class ServersController extends WebServicesController
         }//end if
         //---------------------------------------------------------------------------------------------------------------------
         $sql = "/*wsSearchStoreTransaction 1*/
-                SELECT  tbld.min_staffcode, tbld.max_staffcode,
+                SELECT
+                        tbld.min_staffcode, tbld.max_staffcode,
                         transaction.TRANSCODE, transaction.KEYNO, transaction.STORECODE, transaction.STARTTIME,
                         transaction.IDNO, transaction.TRANSDATE, transaction.YOYAKUTIME, transaction.STARTSERVICETIME,
                         transaction.ENDTIME, transaction.CCODE, transaction.REGULARCUSTOMER,
@@ -6758,29 +6762,25 @@ class ServersController extends WebServicesController
                         transaction.STAFFCODE, transaction.HASSERVICES, transaction.DELFLG, transaction.YOYAKU,
                         transaction.CUST_TELNO, transaction.CLAIMKYAKUFLG, transaction.UPDATEDATE, transaction.INCOMPLETE,
                         transaction.UPDATEDATE,
-                            details.STAFFCODE, details.STAFFCODESIMEI, details.ZEIKUBUN,
-                            details.PRICE, details.CLAIMED, details.KASANPOINT1, details.KASANPOINT2,
-                            details.KASANPOINT3, details.TRANTYPE, details.TRANSCODE, details.STARTTIME,
-                            details.ENDTIME, details.GCODE, details.ROWNO, customer.CNUMBER,
-                                customer.CCODE, customer.CNAME, customer.CNAMEKANA,
-                                customer.CSTORECODE, customer.SEX, customer.TEL1, customer.TEL2,
-                                customer.BIRTHDATE, customer.MEMBERSCATEGORY,
-                       howknows_thestore.HOWKNOWSCODE, howknows_thestore.HOWKNOWS,
-                            service.MENUNAME, service.YOYAKUMARK,
-                            service.SERVICETIME_MALE, service.SERVICETIME, service.KEYCODE,
-                       services.GDCODE, services.BUNRUINAME, services.SYSCODE,
-                       product.PRODUCTNAME,
-                       jikaiyoyaku.TRANSCODE,
-                       staff.STAFFNAME,
-                       yoyaku.UKETSUKEDATE, yoyaku.UKETSUKESTAFF, yoyaku.CANCEL, staff2.staffname as UKETSUKESTAFFNAME,
-                       #---------------------------------------------------------------------------------
-                        #Added By MarvinC - 2015-07-06
+                        details.STAFFCODE, details.STAFFCODESIMEI, details.ZEIKUBUN,
+                        details.PRICE, details.CLAIMED, details.KASANPOINT1, details.KASANPOINT2,
+                        details.KASANPOINT3, details.TRANTYPE, details.TRANSCODE, details.STARTTIME,
+                        details.ENDTIME, details.GCODE, details.ROWNO, customer.CNUMBER,
+                        customer.CCODE, customer.CNAME, customer.CNAMEKANA,
+                        customer.CSTORECODE, customer.SEX, customer.TEL1, customer.TEL2,
+                        customer.BIRTHDATE, customer.MEMBERSCATEGORY,
+                        howknows_thestore.HOWKNOWSCODE, howknows_thestore.HOWKNOWS,
+                        service.MENUNAME, service.YOYAKUMARK,
+                        service.SERVICETIME_MALE, service.SERVICETIME, service.KEYCODE,
+                        service.DELFLG,
+                        services.GDCODE, services.BUNRUINAME, services.SYSCODE,
+                        product.PRODUCTNAME,
+                        jikaiyoyaku.TRANSCODE,
+                        staff.STAFFNAME,
+                        yoyaku.UKETSUKEDATE, yoyaku.UKETSUKESTAFF, yoyaku.CANCEL, staff2.staffname as UKETSUKESTAFFNAME,
                         YND.YOYAKU_STATUS,
                         YND.NEXTCODE,
-                        #---------------------------------------------------------------------------------
                         drejimarketing.MARKETINGID as WITHMARKETING,
-                        #---------------------------------------------------------------------------------
-                        /* add by albert for bm connection 2015-10-29 */
                         bmtble.route, bmtble.reservation_system, bmtble.reserve_date, bmtble.reserve_code,
                         bmtble.date as v_date, bmtble.start as start_time, bmtble.end as end_time, bmtble.coupon_info,
                         bmtble.comment, bmtble.shop_comment, bmtble.next_coming_comment, bmtble.demand, bmtble.site_customer_id,
@@ -6789,7 +6789,6 @@ class ServersController extends WebServicesController
                         bmtble.sex as bmsex, bmtble.name_kn_sei as knfirstname, bmtble.name_kn_mei as knlastname, bmtble.tel as bmtel,
 			            bmtble.zipcode as bmzip, bmtble.address as bmaddress, bmtble.mail as bmmail, bmtble.menu_info,
                         transaction.origination, bmtble.staffname as bmstaff, str_bm_notes.secondnote as secondnote
-                        /* add by albert for bm connection 2015-10-29 */
                 FROM store_transaction as transaction
                     LEFT JOIN store_transaction_details as details ON
                         transaction.TRANSCODE = details.TRANSCODE AND
@@ -6815,12 +6814,9 @@ class ServersController extends WebServicesController
                         AND details.TRANTYPE = 1
                     LEFT JOIN services as services ON
                         services.GDCODE = service.GDCODE
-                    #---------------------------------------------------------------------------------
-                    #Added By MarvinC - 2015-07-06
                     LEFT JOIN yoyaku_next_details as YND USE INDEX (NEXTCODE)
                         ON YND.NEXTCODE = details.TRANSCODE
                         AND if(YND.syscode = 0 and YND.yoyaku_status = 2, YND.syscode = 0,YND.syscode = services.syscode)
-                    #---------------------------------------------------------------------------------
                     LEFT JOIN store_products as product ON
                         product.PRODUCTCODE = details.GCODE
                         AND details.TRANTYPE = 2
@@ -6831,11 +6827,8 @@ class ServersController extends WebServicesController
                         yoyaku.TRANSCODE = details.TRANSCODE
                     LEFT JOIN staff as staff2 ON
                         yoyaku.uketsukestaff = staff2.staffcode
-
-                    /* add by albert for bm connection 2015-10-29 */
                     left join store_transaction_second_notes as str_bm_notes on
                         transaction.transcode = str_bm_notes.transcode and transaction.keyno = str_bm_notes.keyno
-
                     left join (select 7 as origination,
                                         bm_reservation.route,
                                         bm_reservation.reservation_system,
@@ -7026,10 +7019,7 @@ class ServersController extends WebServicesController
                             AND st.origination = 11
                             AND st.delflg IS NULL
                             ".$transconde."
-
-                              ) as bmtble on bmtble.transcode = transaction.TRANSCODE and bmtble.origination = transaction.origination
-
-                            /*add by albert for bm connection 2015-10-29 */
+                            ) as bmtble on bmtble.transcode = transaction.TRANSCODE and bmtble.origination = transaction.origination
                 LEFT JOIN drejimarketing
 					ON drejimarketing.TRANSCODE = `transaction`.TRANSCODE
 					AND drejimarketing.KEYNO = `transaction`.KEYNO
@@ -8918,7 +8908,6 @@ class ServersController extends WebServicesController
         $this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction, ConnectionServer::SLAVE);
 
         $condition = "";
-        $trantype1 = " AND details.TRANTYPE = 1 ";
 
         if ($storecode <> 0) {
         	$condition .= " AND `transaction`.STORECODE = {$storecode}";
@@ -8987,6 +8976,7 @@ class ServersController extends WebServicesController
                     service.SERVICETIME,
                     service.SERVICETIME_MALE,
                     service.YOYAKUMARK,
+                    service.DELFLG,
                     services.GDCODE,
                     services.SYSCODE,
                     services.BUNRUINAME,
@@ -9016,8 +9006,10 @@ class ServersController extends WebServicesController
                     ON howknows_thestore.howknowscode = customer.howknowscode
                 LEFT JOIN staff as staff ON
                     details.STAFFCODE = staff.STAFFCODE
-                WHERE `transaction`.DELFLG IS NULL AND details.DELFLG IS NULL
-                    " . $trantype1 . $condition . "
+                WHERE `transaction`.DELFLG IS NULL
+                    AND details.DELFLG IS NULL
+                    AND details.TRANTYPE = 1
+                    {$condition}
                 GROUP BY `transaction`.TRANSCODE, details.ROWNO
                 ORDER BY `transaction`.transdate, `transaction`.TRANSCODE, details.ROWNO";
 
@@ -9025,18 +9017,8 @@ class ServersController extends WebServicesController
 
         $data = $this->MiscFunction->ParseJikaiYoyakuTransactionData($this, $v, null);
         $ret = array();
-        $ret['records']      = $data;
-
-        $ret['record_count'] = count($data); //count($v) -> count($data)
-        if (count($v) > 0){
-            $ret['record_count'] = count($data);
-        }else{
-            $ret['record_count'] = 0;
-        }
-
-        if (count($data) > 0) {
-            $ret['checked_times'] = $data[0]['checked_times'];
-        }
+        $ret['records'] = $data;
+        $ret['record_count'] = count($data);
 
         return $ret;
     }
@@ -10123,7 +10105,7 @@ class ServersController extends WebServicesController
             'year' => $ymd->format('Y'),
             'month' => $ymd->format('m'),
             'day' => 0
-        );        
+        );
 
         $store_holiday = $this->wsSearchStoreHoliday($sessionid, $param);
         $result['store_holiday'] = $store_holiday['records'];
@@ -10142,7 +10124,7 @@ class ServersController extends WebServicesController
                 ymd,
                 begin_time
         ";
-        
+
         $begin_ymd = $ymd->format('Y-m-01');
         $end_ymd = $ymd->format('Y-m-t');
         $param = array($storecode, $begin_ymd, $end_ymd);
@@ -10177,7 +10159,7 @@ class ServersController extends WebServicesController
 
             $this->StoreHoliday->set_company_database($store_info['dbname'], $this->StoreHoliday);
         }
-        
+
         $delete_query = array();
         $insert_query = array();
 
@@ -10192,7 +10174,7 @@ class ServersController extends WebServicesController
                 $insert_query[] = "({$storecode}, '{$ymd}', '{$begin_time}', '{$end_time}', {$limit_count})";
             }
         }
-        
+
         if ($delete_query) {
             $delete_query = implode(',', array_keys($delete_query));
 
@@ -10202,7 +10184,7 @@ class ServersController extends WebServicesController
                     storecode = {$storecode} AND
                     ymd IN ({$delete_query});
             ";
-    
+
             $this->StoreHoliday->query($query);
         }
 
@@ -10218,7 +10200,7 @@ class ServersController extends WebServicesController
                     limit_count
                 ) VALUES {$insert_query};
             ";
-    
+
             $this->StoreHoliday->query($query);
         }
 
