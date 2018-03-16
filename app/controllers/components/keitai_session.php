@@ -1337,6 +1337,8 @@ class KeitaiSessionComponent extends Object
             switch ($itm['StoreSettings']['OPTIONNAME']) {
                 case 'Tax':
                     $ratetax = $itm['StoreSettings']['OPTIONVALUEI'];
+                    $ratetax = (float)$ratetax;
+                    $ratetax = $ratetax/100;
                     break;
                 case 'TaxOption':
                     $zeioption = $itm['StoreSettings']['OPTIONVALUEI'];
