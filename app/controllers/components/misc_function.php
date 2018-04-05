@@ -1602,5 +1602,53 @@ class MiscFunctionComponent extends Object
         return false;
     }
     #end region
+
+    /**
+     * cUrlコマンドを実行する
+     * @param string $url
+     * @param array $options
+     * @return string
+     */
+    function Curl($url, $options = array()) {
+        $response = "";
+
+        $options += array(
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_TIMEOUT => 5
+        );
+
+        if ($options[CURLOPT_PROXY] && substr($url, 0, 5) === 'https') {
+            $options += array(CURLOPT_HTTPPROXYTUNNEL => true);
+        }
+
+        $curl = curl_init();
+        curl_setopt_array($curl, $options);
+        $response = curl_exec($curl);
+
+        if ($response === false) {
+            $response = curl_errno($curl);
+        }
+
+        curl_close($curl);
+        return $response;
+    }
+
+    /**
+     * cUrl POSTコマンドを実行する
+     * @param string $url
+     * @param array $data
+     * @return string
+     */
+    function CurlPost($url, $data = array()) {
+        $options = array(
+            CURLOPT_POST => TRUE,
+            CURLOPT_POSTFIELDS => http_build_query($data)
+        );
+
+        return $this->Curl($url, $options);
+    }
+
 }
 ?>

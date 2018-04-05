@@ -771,26 +771,92 @@ class ServersController extends WebServicesController
                             'output' => array('return'     => 'xsd:int')),
                      //- ############################################################
 
-                    // かんざし予約時間別予約可能数
-                    'wsSearchKanzashiCustomersLimit' => array(
-                        'doc'   => 'かんざし予約時間別予約可能数検索',
-                        'input' => array(
+                    'wsGetDailyKanzashiCustomersLimit' => array(
+                        'doc'    => '日毎かんざし時間別予約可能数取得',
+                        'input'  => array(
                             'sessionid' => 'xsd:string',
                             'storecode' => 'xsd:int',
                             'ymd'       => 'xsd:date'
                         ),
-                        'output' => array('return' => 'tns:return_kanzashiCustomersLimit')
+                        'output' => array('return' => 'tns:kanzashiCustomersLimit')
+                    ),
+                    'wsGetMonthlyKanzashiSalonHours' => array(
+                        'doc'    => '月毎かんざしサロン営業時間取得',
+                        'input'  => array(
+                            'sessionid' => 'xsd:string',
+                            'storecode' => 'xsd:int',
+                            'ymd'       => 'xsd:date'
+                        ),
+                        'output' => array('return' => 'tns:return_monthlyKanzashiSalonHours')
                     ),
                     'wsUpdateKanzashiCustomersLimit' => array(
-                        'doc'   => 'かんざし予約時間別予約可能数更新',
-                        'input' => array(
-                            'sessionid'       => 'xsd:string',
-                            'storecode'       => 'xsd:int',
+                        'doc'    => 'かんざし時間別予約可能数更新',
+                        'input'  => array(
+                            'sessionid'        => 'xsd:string',
+                            'storecode'        => 'xsd:int',
                             'store_holiday'    => 'tns:storeHolidayInformation',
                             'customers_limits' => 'tns:_kanzashiCustomersLimit'
                         ),
                         'output' => array('return' => 'xsd:boolean')
+                    ),
+                    'wsGetKanzashiSalon' => array(
+                        'doc'    => 'かんざしサロン取得',
+                        'input'  => array(
+                            'sessionid'       => 'xsd:string',
+                            'kanzashisalonid' => 'xsd:int',
+                            'synchronize'     => 'xsd:bool'
+                        ),
+                        'output' => array('return' => 'xsd:string')
+                    ),
+                    'wsPushKanzashiInitialData' => array(
+                        'doc'    => 'かんざし初回PUSH',
+                        'input'  => array(
+                            'sessionid'       => 'xsd:string',
+                            'kanzashisalonid' => 'xsd:int'
+                        ),
+                        'output' => array('return' => 'xsd:string')
+                    ),
+                    'wsPushKanzashiStylist' => array(
+                        'doc'    => 'かんざしスタイリストPUSH',
+                        'input'  => array(
+                            'sessionid'       => 'xsd:string',
+                            'kanzashisalonid' => 'xsd:int'
+                        ),
+                        'output' => array('return' => 'xsd:string')
+                    ),
+                    'wsPushKanzashiSalonDutyHours' => array(
+                        'doc'    => 'かんざしサロン営業時間PUSH',
+                        'input'  => array(
+                            'sessionid'       => 'xsd:string',
+                            'kanzashisalonid' => 'xsd:int'
+                        ),
+                        'output' => array('return' => 'xsd:string')
+                    ),
+                    'wsPushKanzashiStylistDutyHours' => array(
+                        'doc'    => 'かんざしスタイリスト勤務時間PUSH',
+                        'input'  => array(
+                            'sessionid'       => 'xsd:string',
+                            'kanzashisalonid' => 'xsd:int'
+                        ),
+                        'output' => array('return' => 'xsd:string')
+                    ),
+                    'wsPushKanzashiReservation' => array(
+                        'doc'    => 'かんざし予約PUSH',
+                        'input'  => array(
+                            'sessionid'       => 'xsd:string',
+                            'kanzashisalonid' => 'xsd:int'
+                        ),
+                        'output' => array('return' => 'xsd:string')
+                    ),
+                    'wsPushSalonBasicSetting' => array(
+                        'doc'    => 'かんざしサロン基本設定PUSH',
+                        'input'  => array(
+                            'sessionid'       => 'xsd:string',
+                            'kanzashisalonid' => 'xsd:int'
+                        ),
+                        'output' => array('return' => 'xsd:string')
                     )
+
                     //- ############################################################
                      );
 
@@ -820,7 +886,8 @@ class ServersController extends WebServicesController
                                         'oemflg'            => 'xsd:int',
                                         'storetype'         => 'tns:storetypeInformation',
                                         'allstoretype'      => 'tns:AllStoreTypes',
-                                        'kanzashiSalonId'   => 'xsd:int')),
+                                        'kanzashiSalonId'   => 'xsd:int',
+                                        'kanzashiSigninUrl' => 'xsd:string')),
 
                              '_AllStoreTypes' => array('struct' => array(
                                                         'STORECODE'       => 'xsd:int',
@@ -1610,7 +1677,8 @@ class ServersController extends WebServicesController
                                         'STAFFCODE'   => 'xsd:int',
                                         'useYoyakuMessage'   => 'xsd:int',
                                         'date'        => 'xsd:string',
-                                        'PRIORITYTYPE'        => 'xsd:int')),
+                                        'PRIORITYTYPE'        => 'xsd:int',
+                                        'kanzashiSalonId' => 'xsd:int')),
 
                              'return_dataOfTheDayInformation' => array('struct' => array(
                                         'store'       => 'tns:basicInformation',
@@ -1829,7 +1897,7 @@ class ServersController extends WebServicesController
                             //by albert 2015-11-18
                             //==============================================================
 
-                            // かんざし予約時間別予約可能数
+                            // かんざし時間別予約可能数
                             'kanzashiCustomersLimit' => array(
                                 'struct' => array(
                                     'ymd'         => 'xsd:date',
@@ -1841,7 +1909,7 @@ class ServersController extends WebServicesController
                             '_kanzashiCustomersLimit' => array(
                                 'array' => 'kanzashiCustomersLimit'
                             ),
-                            'return_kanzashiCustomersLimit' => array(
+                            'return_monthlyKanzashiSalonHours' => array(
                                 'struct' => array(
                                     'store_holiday'    => 'tns:storeHolidayInformation',
                                     'customers_limits' => 'tns:_kanzashiCustomersLimit'
@@ -2756,15 +2824,16 @@ class ServersController extends WebServicesController
             $arrReturn = array_merge($arrReturn, array("allstoretype" => $arr_storetypes_allstore));
             //------------------------------------------------------------------
             $sql = "
-                SELECT salon_id
-                FROM sipssbeauty_kanzashi.store
+                SELECT kanzashi_id
+                FROM sipssbeauty_kanzashi.salon
                 WHERE
                     companyid = ? AND
                     storecode = ?
             ";
             $param = array($arrReturn['companyid'], $arrReturn['storecode']);
             $rs = $this->StoreSettings->query($sql, $param, false);
-            $arrReturn['kanzashiSalonId'] = $rs ? $rs[0]['KanzashiStore']['salon_id'] : 0;
+            $arrReturn['kanzashiSalonId'] = $rs ? $rs[0]['salon']['kanzashi_id'] : 0;
+            $arrReturn['kanzashiSigninUrl'] = defined('KANZASHI_SIGNIN_URL') ? KANZASHI_SIGNIN_URL : '';
             //------------------------------------------------------------------
             return $arrReturn;
             //------------------------------------------------------------------
@@ -3757,6 +3826,10 @@ class ServersController extends WebServicesController
         if ($param['STAFFCODE'] > -1) {
             $extra = " AND StaffAssignToStore.STAFFCODE = " . $param['STAFFCODE'];
         }
+
+        if ($param['kanzashiSalonId'] <= 0) {
+            $staff_rows_history_extra = " AND StaffRowsHistory.DATECHANGE <= '{$param['date']}'";
+        }
         //----------------------------------------------------------------------------------------------------------------------------
         $sql = "/*wsSearchAvailableStaff*/
                 SELECT DISTINCT
@@ -3807,7 +3880,7 @@ class ServersController extends WebServicesController
                             SELECT *
                                 FROM staffrowshistory as StaffRowsHistory
                                 WHERE StaffRowsHistory.STORECODE = " . $param['STORECODE'] ."
-                                    AND StaffRowsHistory.DATECHANGE <= '". $param['date'] ."'
+                                    {$staff_rows_history_extra}
                                 ORDER BY StaffRowsHistory.DATECHANGE DESC
                                 ) as TMPTBL
                             GROUP BY TMPTBL.staffcode
@@ -10089,14 +10162,50 @@ class ServersController extends WebServicesController
     //</editor-fold>
 
     /**
-     * かんざし予約時間別予約可能数検索
+     * 日毎かんざし時間別予約可能数取得
      *
-     * @param string $sessionid
-     * @param int $storecode
-     * @param string $ymd
-     * @return return_kanzashiCustomersLimit
+     * @param string $sessionid セッションID
+     * @param int $storecode 店舗コード
+     * @param string $ymd 年月日
+     * @return kanzashiCustomersLimit かんざし時間別予約可能数
      */
-    function wsSearchKanzashiCustomersLimit($sessionid, $storecode, $ymd) {
+    function wsGetDailyKanzashiCustomersLimit($sessionid, $storecode, $ymd) {
+        $storeinfo = $this->YoyakuSession->Check($this);
+
+        if ($storeinfo == false) {
+            $this->_soap_server->fault(1, '', INVALID_SESSION);
+            return;
+        }
+
+        $this->StoreHoliday->set_company_database($storeinfo['dbname'], $this->StoreHoliday, ConnectionServer::SLAVE);
+
+        $query = "
+            SELECT
+                ymd,
+                MIN(begin_time) begin_time,
+                MAX(end_time) end_time,
+                CAST(AVG(limit_count) AS UNSIGNED) limit_count
+            FROM kanzashi_customers_limit
+            WHERE
+                storecode = ? AND
+                ymd = ?
+            GROUP BY ymd
+        ";
+        
+        $param = array($storecode, $ymd);
+        $records = $this->StoreHoliday->query($query, $param, false);
+        return $records ? $records[0]['kanzashi_customers_limit'] + $records[0][0] : null;
+    }
+
+    /**
+     * 月毎かんざしサロン営業時間取得
+     *
+     * @param string $sessionid セッションID
+     * @param int $storecode 店舗コード
+     * @param string $ymd 年月
+     * @return return_monthlyKanzashiSalonHours 月毎かんざしサロン営業時間
+     */
+    function wsGetMonthlyKanzashiSalonHours($sessionid, $storecode, $ymd) {
         $result = array();
         $ymd = new DateTime($ymd);
 
@@ -10139,12 +10248,12 @@ class ServersController extends WebServicesController
     }
 
     /**
-     * かんざし予約時間別予約可能数更新
+     * かんざし時間別予約可能数更新
      *
-     * @param string $sessionid
-     * @param int $storecode
-     * @param storeHolidayInformation $store_holiday
-     * @param _kanzashiCustomersLimit $customers_limits
+     * @param string $sessionid セッションID
+     * @param int $storecode 店舗コード
+     * @param storeHolidayInformation $store_holiday 店舗休日のオブジェクト
+     * @param _kanzashiCustomersLimit $customers_limits かんざし時間別予約可能数のオブジェクト配列
      */
     function wsUpdateKanzashiCustomersLimit($sessionid, $storecode, $store_holiday, $customers_limits) {
         if ($store_holiday['year'] && $store_holiday['month'] && $store_holiday['STORECODE']) {
@@ -10205,6 +10314,91 @@ class ServersController extends WebServicesController
         }
 
         return true;
+    }
+
+    /**
+     * かんざしサロン取得
+     *
+     * @param string $sessionid セッションID
+     * @param int $kanzashisalonid かんざしサロンID
+     * @param bool $synchronize 最新のかんざしサロンをかんざし側から取得するかどうかの値
+     * @return string かんざしサロンを表すJSON
+     */
+    function wsGetKanzashiSalon($sessionid, $kanzashisalonid, $synchronize = false) {
+        $url = KANZASHI_PATH.'/salons/'.$kanzashisalonid.'?sync='.($synchronize ? 'true' : 'false');
+        return $this->MiscFunction->Curl($url);
+    }
+
+    /**
+     * かんざし初回PUSH
+     *
+     * @param string $sessionid セッションID
+     * @param int $kanzashisalonid かんざしサロンID
+     * @return string かんざし側からのレスポンスを表すJSON
+     */
+    function wsPushKanzashiInitialData($sessionid, $kanzashisalonid) {
+        $url = KANZASHI_PATH.'/initial-push/'.$kanzashisalonid;
+        return $this->MiscFunction->Curl($url);
+    }
+
+    /**
+     * かんざしスタイリストPUSH
+     *
+     * @param string $sessionid セッションID
+     * @param int $kanzashisalonid かんざしサロンID
+     * @return string かんざし側からのレスポンスを表すJSON
+     */
+    function wsPushKanzashiStylist($sessionid, $kanzashisalonid) {
+        $url = KANZASHI_PATH.'/salons/'.$kanzashisalonid.'/stylists';
+        return $this->MiscFunction->CurlPost($url);
+    }
+
+    /**
+     * かんざしサロン営業時間PUSH
+     *
+     * @param string $sessionid セッションID
+     * @param int $kanzashisalonid かんざしサロンID
+     * @return string かんざし側からのレスポンスを表すJSON
+     */
+    function wsPushKanzashiSalonDutyHours($sessionid, $kanzashisalonid) {
+        $url = KANZASHI_PATH.'/salons/'.$kanzashisalonid.'/duty-hours';
+        return $this->MiscFunction->CurlPost($url);
+    }
+
+    /**
+     * かんざしスタイリスト勤務時間PUSH
+     *
+     * @param string $sessionid セッションID
+     * @param int $kanzashisalonid かんざしサロンID
+     * @return string かんざし側からのレスポンスを表すJSON
+     */
+    function wsPushKanzashiStylistDutyHours($sessionid, $kanzashisalonid) {
+        $url = KANZASHI_PATH.'/salons/'.$kanzashisalonid.'/stylist-duty-hours';
+        return $this->MiscFunction->CurlPost($url);
+    }
+
+    /**
+     * かんざし予約PUSH
+     *
+     * @param string $sessionid セッションID
+     * @param int $kanzashisalonid かんざしサロンID
+     * @return string かんざし側からのレスポンスを表すJSON
+     */
+    function wsPushKanzashiReservation($sessionid, $kanzashisalonid) {
+        $url = KANZASHI_PATH.'/salons/'.$kanzashisalonid.'/reservations';
+        return $this->MiscFunction->CurlPost($url);
+    }
+
+    /**
+     * かんざしサロン基本設定PUSH
+     *
+     * @param string $sessionid セッションID
+     * @param int $kanzashisalonid かんざしサロンID
+     * @return string かんざし側からのレスポンスを表すJSON
+     */
+    function wsPushSalonBasicSetting($sessionid, $kanzashisalonid) {
+        $url = KANZASHI_PATH.'/salons/'.$kanzashisalonid.'/basic-settings';
+        return $this->MiscFunction->CurlPost($url);
     }
 
     }//end class ServersController
