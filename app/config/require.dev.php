@@ -16,4 +16,6 @@ define('MOBASUTE_PATH', 'http://www.bmy.jp/');
 
 define('EMAIL_DOMAIN', 'rctest.bmy.jp');
 
-?>
+//-- かんざし設定 --//
+define('KANZASHI_SIGNIN_URL', 'https://kanzashi-stg.pp-dev.org/signin');
+define('KANZASHI_PATH', 'https://rckanzashiapi.sipss.jp');

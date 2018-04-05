@@ -11,4 +11,6 @@ define('MAILSERVER_ADDRESS', '192.168.88.253');
 define('MOBASUTE_PATH_LOCAL', '/var/www/webyan-sipss3/');
 define('MOBASUTE_PATH', 'http://192.168.11.67/webyan-sipss3/');
 
-?>
+//-- かんざし設定 --//
+define('KANZASHI_SIGNIN_URL', 'https://kanzashi-stg.pp-dev.org/signin');
+define('KANZASHI_PATH', 'https://rckanzashiapi.sipss.jp');
