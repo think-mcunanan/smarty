@@ -7103,14 +7103,14 @@ class ServersController extends WebServicesController
 
                             SELECT
                                 12 origination,
-                                kr.via route,
-                                kr.original_media reservation_system,
-                                date_format(kr.created_at, '%Y-%m-%d %H:%i') as reserve_date,
-                                st.transcode reserve_code,
+                                '' route,
+                                '' reservation_system,
+                                '' reserve_date,
+                                '' reserve_code,
                                 '' date,
-                                0 start,
+                                '' start,
                                 '' end,
-                                kr.coupon_title coupon_info,
+                                '' coupon_info,
                                 kr.payload comment,
                                 '' shop_comment,
                                 '' site_customer_id,
@@ -7118,7 +7118,7 @@ class ServersController extends WebServicesController
                                 '' next_coming_comment,
                                 0 price,
                                 0 nomination_fee,
-                                st.servicetotal + st.productstotal + st.tax total_price,
+                                0 total_price,
                                 0 use_point,
                                 0 grant_point,
                                 0 visit_num,
@@ -7132,9 +7132,9 @@ class ServersController extends WebServicesController
                                 '' address,
                                 '' mail,
                                 '' staffname,
-                                kr.menu_title menu_info,
+                                '' menu_info,
                                 st.transcode transcode,
-                                '' ccode
+                                st.ccode ccode
 
                             FROM store_transaction st
                             JOIN kanzashi_reservation kr USING(transcode)
