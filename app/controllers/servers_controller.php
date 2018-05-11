@@ -10412,7 +10412,7 @@ class ServersController extends WebServicesController
      * @return string かんざし側からのレスポンスを表すJSON
      */
     function wsPushKanzashiSalonDutyHours($sessionid, $kanzashisalonid) {
-        $url = KANZASHI_PATH.'/salons/'.$kanzashisalonid.'/duty-hours';
+        $url = KANZASHI_PATH.'/salons/'.$kanzashisalonid.'/daily-hours';
         return $this->MiscFunction->CurlPost($url);
     }
 
