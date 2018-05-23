@@ -802,7 +802,6 @@ class ServersController extends WebServicesController
                     'wsGetKanzashiSalon' => array(
                         'doc'    => 'かんざしサロン取得',
                         'input'  => array(
-                            'sessionid'       => 'xsd:string',
                             'kanzashisalonid' => 'xsd:int',
                             'synchronize'     => 'xsd:bool'
                         ),
@@ -811,7 +810,6 @@ class ServersController extends WebServicesController
                     'wsPushKanzashiInitialData' => array(
                         'doc'    => 'かんざし初回PUSH',
                         'input'  => array(
-                            'sessionid'       => 'xsd:string',
                             'kanzashisalonid' => 'xsd:int'
                         ),
                         'output' => array('return' => 'xsd:string')
@@ -819,15 +817,13 @@ class ServersController extends WebServicesController
                     'wsPushKanzashiStylist' => array(
                         'doc'    => 'かんざしスタイリストPUSH',
                         'input'  => array(
-                            'sessionid'       => 'xsd:string',
                             'kanzashisalonid' => 'xsd:int'
                         ),
                         'output' => array('return' => 'xsd:string')
                     ),
-                    'wsPushKanzashiSalonDutyHours' => array(
+                    'wsPushKanzashiSalonDailyHours' => array(
                         'doc'    => 'かんざしサロン営業時間PUSH',
                         'input'  => array(
-                            'sessionid'       => 'xsd:string',
                             'kanzashisalonid' => 'xsd:int'
                         ),
                         'output' => array('return' => 'xsd:string')
@@ -835,7 +831,6 @@ class ServersController extends WebServicesController
                     'wsPushKanzashiStylistDutyHours' => array(
                         'doc'    => 'かんざしスタイリスト勤務時間PUSH',
                         'input'  => array(
-                            'sessionid'       => 'xsd:string',
                             'kanzashisalonid' => 'xsd:int'
                         ),
                         'output' => array('return' => 'xsd:string')
@@ -843,7 +838,6 @@ class ServersController extends WebServicesController
                     'wsPushKanzashiReservation' => array(
                         'doc'    => 'かんざし予約PUSH',
                         'input'  => array(
-                            'sessionid'       => 'xsd:string',
                             'kanzashisalonid' => 'xsd:int'
                         ),
                         'output' => array('return' => 'xsd:string')
@@ -851,7 +845,6 @@ class ServersController extends WebServicesController
                     'wsPushSalonBasicSetting' => array(
                         'doc'    => 'かんざしサロン基本設定PUSH',
                         'input'  => array(
-                            'sessionid'       => 'xsd:string',
                             'kanzashisalonid' => 'xsd:int'
                         ),
                         'output' => array('return' => 'xsd:string')
@@ -10319,12 +10312,11 @@ class ServersController extends WebServicesController
     /**
      * かんざしサロン取得
      *
-     * @param string $sessionid セッションID
      * @param int $kanzashisalonid かんざしサロンID
      * @param bool $synchronize 最新のかんざしサロンをかんざし側から取得するかどうかの値
      * @return string かんざしサロンを表すJSON
      */
-    function wsGetKanzashiSalon($sessionid, $kanzashisalonid, $synchronize = false) {
+    function wsGetKanzashiSalon($kanzashisalonid, $synchronize = false) {
         $url = KANZASHI_PATH.'/salons/'.$kanzashisalonid.'?sync='.($synchronize ? 'true' : 'false');
         return $this->MiscFunction->Curl($url);
     }
@@ -10332,11 +10324,10 @@ class ServersController extends WebServicesController
     /**
      * かんざし初回PUSH
      *
-     * @param string $sessionid セッションID
      * @param int $kanzashisalonid かんざしサロンID
      * @return string かんざし側からのレスポンスを表すJSON
      */
-    function wsPushKanzashiInitialData($sessionid, $kanzashisalonid) {
+    function wsPushKanzashiInitialData($kanzashisalonid) {
         $url = KANZASHI_PATH.'/initial-push/'.$kanzashisalonid;
         return $this->MiscFunction->Curl($url);
     }
@@ -10344,35 +10335,32 @@ class ServersController extends WebServicesController
     /**
      * かんざしスタイリストPUSH
      *
-     * @param string $sessionid セッションID
      * @param int $kanzashisalonid かんざしサロンID
      * @return string かんざし側からのレスポンスを表すJSON
      */
-    function wsPushKanzashiStylist($sessionid, $kanzashisalonid) {
+    function wsPushKanzashiStylist($kanzashisalonid) {
         $url = KANZASHI_PATH.'/salons/'.$kanzashisalonid.'/stylists';
         return $this->MiscFunction->CurlPost($url);
     }
 
     /**
      * かんざしサロン営業時間PUSH
-     *
-     * @param string $sessionid セッションID
+     * 
      * @param int $kanzashisalonid かんざしサロンID
      * @return string かんざし側からのレスポンスを表すJSON
      */
-    function wsPushKanzashiSalonDutyHours($sessionid, $kanzashisalonid) {
-        $url = KANZASHI_PATH.'/salons/'.$kanzashisalonid.'/duty-hours';
+    function wsPushKanzashiSalonDailyHours($kanzashisalonid) {
+        $url = KANZASHI_PATH.'/salons/'.$kanzashisalonid.'/daily-hours';
         return $this->MiscFunction->CurlPost($url);
     }
 
     /**
      * かんざしスタイリスト勤務時間PUSH
      *
-     * @param string $sessionid セッションID
      * @param int $kanzashisalonid かんざしサロンID
      * @return string かんざし側からのレスポンスを表すJSON
      */
-    function wsPushKanzashiStylistDutyHours($sessionid, $kanzashisalonid) {
+    function wsPushKanzashiStylistDutyHours($kanzashisalonid) {
         $url = KANZASHI_PATH.'/salons/'.$kanzashisalonid.'/stylist-duty-hours';
         return $this->MiscFunction->CurlPost($url);
     }
@@ -10380,11 +10368,10 @@ class ServersController extends WebServicesController
     /**
      * かんざし予約PUSH
      *
-     * @param string $sessionid セッションID
      * @param int $kanzashisalonid かんざしサロンID
      * @return string かんざし側からのレスポンスを表すJSON
      */
-    function wsPushKanzashiReservation($sessionid, $kanzashisalonid) {
+    function wsPushKanzashiReservation($kanzashisalonid) {
         $url = KANZASHI_PATH.'/salons/'.$kanzashisalonid.'/reservations';
         return $this->MiscFunction->CurlPost($url);
     }
@@ -10392,11 +10379,10 @@ class ServersController extends WebServicesController
     /**
      * かんざしサロン基本設定PUSH
      *
-     * @param string $sessionid セッションID
      * @param int $kanzashisalonid かんざしサロンID
      * @return string かんざし側からのレスポンスを表すJSON
      */
-    function wsPushSalonBasicSetting($sessionid, $kanzashisalonid) {
+    function wsPushSalonBasicSetting($kanzashisalonid) {
         $url = KANZASHI_PATH.'/salons/'.$kanzashisalonid.'/basic-settings';
         return $this->MiscFunction->CurlPost($url);
     }
