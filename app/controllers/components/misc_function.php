@@ -724,38 +724,112 @@ class MiscFunctionComponent extends Object
             /*----------------------------------------------------------------------------------------------------------------------*/
             /*add by albert 2015-10-30 BM connection information -------------------------------------------------------------------*/
             /*----------------------------------------------------------------------------------------------------------------------*/
-            $arrList[$ctr]['route']                 = $arrData[$i]['bmtble']['route'];
-            $arrList[$ctr]['reservation_system']    = $arrData[$i]['bmtble']['reservation_system'];
-            $arrList[$ctr]['reserve_date']          = $arrData[$i]['bmtble']['reserve_date'];
-            $arrList[$ctr]['reserve_code']          = $arrData[$i]['bmtble']['reserve_code'];
-            $arrList[$ctr]['v_date']                = $arrData[$i]['bmtble']['v_date'];
-            $arrList[$ctr]['start_time']            = $arrData[$i]['bmtble']['start_time'];
-            $arrList[$ctr]['end_time']              = $arrData[$i]['bmtble']['end_time'];
-            $arrList[$ctr]['coupon_info']           = $arrData[$i]['bmtble']['coupon_info'];
-            $arrList[$ctr]['comment']               = $arrData[$i]['bmtble']['comment'];
-            $arrList[$ctr]['shop_comment']          = $arrData[$i]['bmtble']['shop_comment'];
-            $arrList[$ctr]['next_coming_comment']   = $arrData[$i]['bmtble']['next_coming_comment'];
-            $arrList[$ctr]['demand']                = $arrData[$i]['bmtble']['demand'];
-            $arrList[$ctr]['site_customer_id']      = $arrData[$i]['bmtble']['site_customer_id'];
-            $arrList[$ctr]['bmPrice']               = $arrData[$i]['bmtble']['bmPrice'];
-            $arrList[$ctr]['nomination_fee']        = $arrData[$i]['bmtble']['nomination_fee'];
-            $arrList[$ctr]['bmTprice']              = $arrData[$i]['bmtble']['bmTprice'];
-            $arrList[$ctr]['use_point']             = $arrData[$i]['bmtble']['use_point'];
-            $arrList[$ctr]['grant_point']           = $arrData[$i]['bmtble']['grant_point'];
-            $arrList[$ctr]['visit_num']             = $arrData[$i]['bmtble']['visit_num'];
-            $arrList[$ctr]['firstname']             = $arrData[$i]['bmtble']['firstname'];
-            $arrList[$ctr]['lastname']              = $arrData[$i]['bmtble']['lastname'];
-            $arrList[$ctr]['bmsex']                 = $arrData[$i]['bmtble']['bmsex'];
-            $arrList[$ctr]['knfirstname']           = $arrData[$i]['bmtble']['knfirstname'];
-            $arrList[$ctr]['knlastname']            = $arrData[$i]['bmtble']['knlastname'];
-            $arrList[$ctr]['bmtel']                 = $arrData[$i]['bmtble']['bmtel'];
-            $arrList[$ctr]['bmzip']                 = $arrData[$i]['bmtble']['bmzip'];
-            $arrList[$ctr]['bmaddress']             = $arrData[$i]['bmtble']['bmaddress'];
-            $arrList[$ctr]['bmmail']                = $arrData[$i]['bmtble']['bmmail'];
-            $arrList[$ctr]['menu_info']             = $arrData[$i]['bmtble']['menu_info'];
-            $arrList[$ctr]['origination']           = $arrData[$i]['transaction']['origination'];
-            $arrList[$ctr]['bmstaff']               = $arrData[$i]['bmtble']['bmstaff'];
-            $arrList[$ctr]['secondnote']            = $arrData[$i]['str_bm_notes']['secondnote'];
+            if ($arrData[$i]['transaction']['origination'] !== '12') {
+                // かんざし連携以外の場合
+                $arrList[$ctr]['route']                 = $arrData[$i]['bmtble']['route'];
+                $arrList[$ctr]['reservation_system']    = $arrData[$i]['bmtble']['reservation_system'];
+                $arrList[$ctr]['reserve_date']          = $arrData[$i]['bmtble']['reserve_date'];
+                $arrList[$ctr]['reserve_code']          = $arrData[$i]['bmtble']['reserve_code'];
+                $arrList[$ctr]['v_date']                = $arrData[$i]['bmtble']['v_date'];
+                $arrList[$ctr]['start_time']            = $arrData[$i]['bmtble']['start_time'];
+                $arrList[$ctr]['end_time']              = $arrData[$i]['bmtble']['end_time'];
+                $arrList[$ctr]['coupon_info']           = $arrData[$i]['bmtble']['coupon_info'];
+                $arrList[$ctr]['comment']               = $arrData[$i]['bmtble']['comment'];
+                $arrList[$ctr]['shop_comment']          = $arrData[$i]['bmtble']['shop_comment'];
+                $arrList[$ctr]['next_coming_comment']   = $arrData[$i]['bmtble']['next_coming_comment'];
+                $arrList[$ctr]['demand']                = $arrData[$i]['bmtble']['demand'];
+                $arrList[$ctr]['site_customer_id']      = $arrData[$i]['bmtble']['site_customer_id'];
+                $arrList[$ctr]['bmPrice']               = $arrData[$i]['bmtble']['bmPrice'];
+                $arrList[$ctr]['nomination_fee']        = $arrData[$i]['bmtble']['nomination_fee'];
+                $arrList[$ctr]['bmTprice']              = $arrData[$i]['bmtble']['bmTprice'];
+                $arrList[$ctr]['use_point']             = $arrData[$i]['bmtble']['use_point'];
+                $arrList[$ctr]['grant_point']           = $arrData[$i]['bmtble']['grant_point'];
+                $arrList[$ctr]['visit_num']             = $arrData[$i]['bmtble']['visit_num'];
+                $arrList[$ctr]['firstname']             = $arrData[$i]['bmtble']['firstname'];
+                $arrList[$ctr]['lastname']              = $arrData[$i]['bmtble']['lastname'];
+                $arrList[$ctr]['bmsex']                 = $arrData[$i]['bmtble']['bmsex'];
+                $arrList[$ctr]['knfirstname']           = $arrData[$i]['bmtble']['knfirstname'];
+                $arrList[$ctr]['knlastname']            = $arrData[$i]['bmtble']['knlastname'];
+                $arrList[$ctr]['bmtel']                 = $arrData[$i]['bmtble']['bmtel'];
+                $arrList[$ctr]['bmzip']                 = $arrData[$i]['bmtble']['bmzip'];
+                $arrList[$ctr]['bmaddress']             = $arrData[$i]['bmtble']['bmaddress'];
+                $arrList[$ctr]['bmmail']                = $arrData[$i]['bmtble']['bmmail'];
+                $arrList[$ctr]['menu_info']             = $arrData[$i]['bmtble']['menu_info'];
+                $arrList[$ctr]['origination']           = $arrData[$i]['transaction']['origination'];
+                $arrList[$ctr]['bmstaff']               = $arrData[$i]['bmtble']['bmstaff'];
+                $arrList[$ctr]['secondnote']            = $arrData[$i]['str_bm_notes']['secondnote'];
+            } else {
+                // かんざし連携の場合
+                $json                                 = json_decode($arrData[$i]['bmtble']['comment']);
+                $arrList[$ctr]['route']               = $json->via;
+                $arrList[$ctr]['reservation_system']  = $json->reservation_media_keys[0]->media;
+                $arrList[$ctr]['reserve_code']        = $json->reservation_media_keys[0]->key;
+                $arrList[$ctr]['v_date']              = str_replace('/', '-', $json->date);
+                $arrList[$ctr]['start_time']          = $json->start_time;
+                $arrList[$ctr]['end_time']            = $json->end_time;
+                $arrList[$ctr]['coupon_info']         = $json->coupon_title;
+                $arrList[$ctr]['comment']             = $json->remarks;
+                $arrList[$ctr]['shop_comment']        = '';
+                $arrList[$ctr]['next_coming_comment'] = '';
+                $arrList[$ctr]['site_customer_id']    = $json->customer->customer_media_key->key;
+                $arrList[$ctr]['bmPrice']             = $json->price;
+                $arrList[$ctr]['nomination_fee']      = 0;
+                $arrList[$ctr]['bmTprice']            = $json->price;
+                $arrList[$ctr]['use_point']           = 0;
+                $arrList[$ctr]['grant_point']         = $json->point;
+                $arrList[$ctr]['visit_num']           = 0;
+                $arrList[$ctr]['firstname']           = $json->customer->name;
+                $arrList[$ctr]['lastname']            = '';
+                $arrList[$ctr]['bmsex']               = $json->customer->gender !== 'male' ? 0 : 1;
+                $arrList[$ctr]['knfirstname']         = $json->customer->kana;
+                $arrList[$ctr]['knlastname']          = '';
+                $arrList[$ctr]['bmtel']               = '';
+                $arrList[$ctr]['bmzip']               = '';
+                $arrList[$ctr]['bmaddress']           = '';
+                $arrList[$ctr]['bmmail']              = '';
+                $arrList[$ctr]['menu_info']           = $json->menu_title;
+                $arrList[$ctr]['origination']         = 12;
+                $arrList[$ctr]['secondnote']          = '';
+
+                $reserve_date = new DateTime($json->media_acquired_at);
+                $arrList[$ctr]['reserve_date'] = $reserve_date->format('Y/m/d H:i:s');
+
+                if ($json->demands) {
+                    $demands = array();
+
+                    foreach ($json->demands as $k => $v) {
+                        $demands[] = '"'.str_replace('"', '\"', $k).'":"'.str_replace('"', '\"', $v).'"';
+                    }
+
+                    $arrList[$ctr]['demand'] = '{'.implode(',', $demands).'}';
+                }
+
+                $stylist_ids = array();
+
+                foreach ($json->stylist_times as $stylist_time) {
+                    $stylist_ids[] = $stylist_time->stylist_id;
+                }
+
+                $stylist_ids_query = implode(',', $stylist_ids);
+
+                $query = "
+                    SELECT staff.staffname
+                    FROM kanzashi_stylist
+                    JOIN staff
+                    USING (storecode, staffcode)
+                    WHERE kanzashi_stylist.kanzashi_id IN ({$stylist_ids_query})
+                    ORDER BY FIELD(kanzashi_stylist.kanzashi_id, {$stylist_ids_query})
+                ";
+                
+                $records = $controller->StoreTransaction->query($query);
+                $staff_names = array();
+
+                foreach ($records as $record) {
+                    $staff_names[] = '"'.str_replace('"', '\"', $record["staff"]["staffname"]).'"';
+                }
+
+                $arrList[$ctr]['bmstaff'] = '['.implode(',', $staff_names).']';
+            }
             /*----------------------------------------------------------------------------------------------------------------------*/
             /*add by albert 2015-10-30 BM connection information -------------------------------------------------------------------*/
             /*----------------------------------------------------------------------------------------------------------------------*/

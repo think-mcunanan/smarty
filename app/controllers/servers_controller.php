@@ -2398,6 +2398,7 @@ class ServersController extends WebServicesController
         9: SIPSS HPB
         10: SIPSS Tablet
         11: Yoyaku App
+        12: かんざし連携
          */
 
         $storecodecond = $strcode > 0 ? " and str_hdr.storecode = {$strcode} " : '';
@@ -2405,7 +2406,7 @@ class ServersController extends WebServicesController
         $sql = "select bmr, wrkr
                 from (
                       select
-                           count(if(origination in (7,8,9,11), transcode, null)) as bmr,
+                           count(if(origination in (7,8,9,11,12), transcode, null)) as bmr,
                            count(if(origination in (1,2), transcode, null)) as wrkr
                       from (
                             select
@@ -2421,7 +2422,7 @@ class ServersController extends WebServicesController
                             join stafftype on stafftype.staffcode = stff.staffcode and stafftype.delflg is null or str_dtl.staffcode = 0
                             join storetype on storetype.delflg is null and storetype.storecode = str_hdr.storecode
                             left join store_transaction2 as str_trans2_hdr on str_hdr.transcode = str_trans2_hdr.transcode and str_hdr.keyno = str_trans2_hdr.keyno
-                            where str_hdr.origination in (1,2,7,8,9,11)
+                            where str_hdr.origination in (1,2,7,8,9,11,12)
                                 and str_hdr.transdate >= date(now())
                                 {$storecodecond}
                             group by str_hdr.transcode
@@ -2479,6 +2480,7 @@ class ServersController extends WebServicesController
         9: SIPSS HPB
         10: SIPSS Tablet
         11: Yoyaku App
+        12: かんざし連携
          */
 
         switch ($origination) {
@@ -2494,8 +2496,11 @@ class ServersController extends WebServicesController
             case 4:
                 $wherecond = " str_hdr.origination in (11) ";
                 break;
+            case 5:
+                $wherecond = " str_hdr.origination in (12) ";
+                break;
             default:
-                $wherecond = " str_hdr.origination in (1, 2, 7, 8, 9, 11) ";
+                $wherecond = " str_hdr.origination in (1, 2, 7, 8, 9, 11, 12) ";
                 break;
         }
 
@@ -2562,6 +2567,7 @@ class ServersController extends WebServicesController
                             case when str_hdr.delflg is not null then 'キャンセル' else '予約' end as transstat,
                             case when str_hdr.origination in (7,8,9) then '連携'
                                  when str_hdr.origination = 11 then 'SIPSSアプリ'
+                                 when str_hdr.origination = 12 then 'かんざし連携'
                                  else 'もばすて'
                             end as route,
                             ifnull(str_trans2_hdr.read, 0) as alreadyread,
@@ -7085,6 +7091,51 @@ class ServersController extends WebServicesController
                             AND st.origination = 11
                             AND st.delflg IS NULL
                             ".$transconde."
+
+                            UNION ALL
+
+                            SELECT
+                                12 origination,
+                                '' route,
+                                '' reservation_system,
+                                '' reserve_date,
+                                '' reserve_code,
+                                '' date,
+                                '' start,
+                                '' end,
+                                '' coupon_info,
+                                kr.payload comment,
+                                '' shop_comment,
+                                '' site_customer_id,
+                                '' demand,
+                                '' next_coming_comment,
+                                0 price,
+                                0 nomination_fee,
+                                0 total_price,
+                                0 use_point,
+                                0 grant_point,
+                                0 visit_num,
+                                '' name_sei,
+                                '' name_kn_sei,
+                                0 sex,
+                                '' name_mei,
+                                '' name_kn_mei,
+                                '' tel,
+                                '' zipcode,
+                                '' address,
+                                '' mail,
+                                '' staffname,
+                                '' menu_info,
+                                st.transcode transcode,
+                                st.ccode ccode
+
+                            FROM store_transaction st
+                            JOIN kanzashi_reservation kr USING(transcode)
+
+                            WHERE st.transdate = '".$param['date']."'
+                            AND st.origination = 12
+                            AND st.delflg IS NULL
+                            ".$transconde."
                             ) as bmtble on bmtble.transcode = transaction.TRANSCODE and bmtble.origination = transaction.origination
                 LEFT JOIN drejimarketing
 					ON drejimarketing.TRANSCODE = `transaction`.TRANSCODE
@@ -10388,5 +10439,3 @@ class ServersController extends WebServicesController
     }
 
     }//end class ServersController
-
-?>
