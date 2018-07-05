@@ -1584,6 +1584,7 @@ class ServersController extends WebServicesController
                                         'bmaddress'         => 'xsd:string',
                                         'bmmail'            => 'xsd:string',
                                         'menu_info'         => 'xsd:string',
+                                        'memo'              => 'xsd:string',
                                         'origination'       => 'xsd:int',
                                         'bmstaff'           => 'xsd:string',
                                         'secondnote'        => 'xsd:string',
@@ -6859,7 +6860,7 @@ class ServersController extends WebServicesController
                         bmtble.price as bmPrice, bmtble.nomination_fee, bmtble.total_price as bmTprice, bmtble.use_point,
                         bmtble.grant_point, bmtble.visit_num, bmtble.name_sei as firstname, bmtble.name_mei as lastname,
                         bmtble.sex as bmsex, bmtble.name_kn_sei as knfirstname, bmtble.name_kn_mei as knlastname, bmtble.tel as bmtel,
-			            bmtble.zipcode as bmzip, bmtble.address as bmaddress, bmtble.mail as bmmail, bmtble.menu_info,
+			            bmtble.zipcode as bmzip, bmtble.address as bmaddress, bmtble.mail as bmmail, bmtble.menu_info, bmtble.memo,
                         transaction.origination, bmtble.staffname as bmstaff, str_bm_notes.secondnote as secondnote
                 FROM store_transaction as transaction
                     LEFT JOIN store_transaction_details as details ON
@@ -6932,6 +6933,7 @@ class ServersController extends WebServicesController
                                         bm_reservation.mail,
                                         stf.staffname,
                                         bm_reservation.menu_info,
+                                        '' AS memo,
                                         bm_reservation.transcode,
                                         bm_reservation.ccode
                               from bm_reservation
@@ -6980,7 +6982,7 @@ class ServersController extends WebServicesController
                                          from rv_reservation_menu rvResMenu
                                               left join store_services as strSvcs on rvResMenu.menuid = strSvcs.GCODE
                                          where rvResMenu.alliance_reserve_id = rvRes.alliance_reserve_id and rvRes.delflg is null) as menu_info,
-
+                                         '' AS memo,
                                         rvKey.transcode,
                                         '' as ccode
                             from rv_reservation_key as rvKey
@@ -7028,6 +7030,7 @@ class ServersController extends WebServicesController
                                 '' mail,
                                 s.staffname staffname,
                                 '' menu_info,
+                                '' AS memo,
                                 hrk.transcode transcode,
                                 '' ccode
 
@@ -7080,6 +7083,7 @@ class ServersController extends WebServicesController
                                 '' mail,
                                 '' staffname,
                                 yr.menuname menu_info,
+                                yr.memo,
                                 st.transcode transcode,
                                 '' ccode
 
@@ -7126,6 +7130,7 @@ class ServersController extends WebServicesController
                                 '' mail,
                                 '' staffname,
                                 '' menu_info,
+                                '' AS memo,
                                 st.transcode transcode,
                                 st.ccode ccode
 

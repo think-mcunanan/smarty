@@ -755,6 +755,7 @@ class MiscFunctionComponent extends Object
                 $arrList[$ctr]['bmaddress']             = $arrData[$i]['bmtble']['bmaddress'];
                 $arrList[$ctr]['bmmail']                = $arrData[$i]['bmtble']['bmmail'];
                 $arrList[$ctr]['menu_info']             = $arrData[$i]['bmtble']['menu_info'];
+                $arrList[$ctr]['memo']                  = $arrData[$i]['bmtble']['memo'];
                 $arrList[$ctr]['origination']           = $arrData[$i]['transaction']['origination'];
                 $arrList[$ctr]['bmstaff']               = $arrData[$i]['bmtble']['bmstaff'];
                 $arrList[$ctr]['secondnote']            = $arrData[$i]['str_bm_notes']['secondnote'];
