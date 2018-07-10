@@ -800,12 +800,22 @@ class ServersController extends WebServicesController
                         'output' => array('return' => 'xsd:boolean')
                     ),
                     'wsGetKanzashiSalon' => array(
-                        'doc'    => 'かんざしサロン取得',
-                        'input'  => array(
+                        'doc'   => 'かんざしサロン取得',
+                        'input' => array(
+                            'sessionid'       => 'xsd:string',
                             'kanzashisalonid' => 'xsd:int',
                             'synchronize'     => 'xsd:bool'
                         ),
-                        'output' => array('return' => 'xsd:string')
+                        'output' => array('return' => 'kanzashiSalon')
+                    ),
+                    'wsGetKanzashiSalons' => array(
+                        'doc'   => 'かんざしサロン配列取得',
+                        'input' => array(
+                            'sessionid' => 'xsd:string',
+                            'companyid' => 'xsd:int',
+                            'storecode' => 'xsd:int'
+                        ),
+                        'output' => array('return' => 'kanzashiSalons')
                     ),
                     'wsPushKanzashiInitialData' => array(
                         'doc'    => 'かんざし初回PUSH',
@@ -1890,6 +1900,21 @@ class ServersController extends WebServicesController
                             //customer search listing for Integration
                             //by albert 2015-11-18
                             //==============================================================
+
+                            // かんざしサロン
+                            'kanzashiSalon' => array(
+                                'struct' => array(
+                                    'kanzashi_id'   => 'xsd:int',
+                                    'pos_id'        => 'xsd:int',
+                                    'companyid'     => 'xsd:int',
+                                    'storecode'     => 'xsd:int',
+                                    'kanzashi_name' => 'xsd:string',
+                                    'status'        => 'xsd:int'
+                                )
+                            ),
+                            'kanzashiSalons' => array(
+                                'array' => 'kanzashiSalon'
+                            ),
 
                             // かんざし時間別予約可能数
                             'kanzashiCustomersLimit' => array(
@@ -10368,13 +10393,84 @@ class ServersController extends WebServicesController
     /**
      * かんざしサロン取得
      *
+     * @param string $sessionid セッションID
      * @param int $kanzashisalonid かんざしサロンID
      * @param bool $synchronize 最新のかんざしサロンをかんざし側から取得するかどうかの値
-     * @return string かんざしサロンを表すJSON
+     * @return kanzashiSalon かんざしサロン
      */
-    function wsGetKanzashiSalon($kanzashisalonid, $synchronize = false) {
+    function wsGetKanzashiSalon($sessionid, $kanzashisalonid, $synchronize = false) {
+        $storeinfo = $this->YoyakuSession->Check($this);
+
+        if ($storeinfo == false) {
+            $this->_soap_server->fault(1, '', INVALID_SESSION);
+            return;
+        }
+
         $url = KANZASHI_PATH.'/salons/'.$kanzashisalonid.'?sync='.($synchronize ? 'true' : 'false');
-        return $this->MiscFunction->Curl($url);
+        $this->MiscFunction->Curl($url);
+        $this->StoreHoliday->set_company_database($storeinfo['dbname'], $this->StoreHoliday, ConnectionServer::SLAVE);
+
+        $query = '
+            SELECT
+                kanzashi_id,
+                pos_id,
+                companyid,
+                storecode,
+                kanzashi_name,
+                status
+            FROM sipssbeauty_kanzashi.salon
+            WHERE kanzashi_id = ?
+        ';
+        
+        $param = array($kanzashisalonid);
+        $records = $this->StoreHoliday->query($query, $param, false);
+        return $records ? $records[0]['salon'] : null;
+    }
+
+    /**
+     * かんざしサロン配列取得
+     *
+     * @param string $sessionid セッションID
+     * @param int $companyid 会社ID
+     * @param int $storecode 店舗コード
+     * @return kanzashiSalons かんざしサロン配列
+     */
+    function wsGetKanzashiSalons($sessionid, $companyid, $storecode = 0) {
+        $storeinfo = $this->YoyakuSession->Check($this);
+
+        if ($storeinfo == false) {
+            $this->_soap_server->fault(1, '', INVALID_SESSION);
+            return;
+        }
+
+        $this->StoreHoliday->set_company_database($storeinfo['dbname'], $this->StoreHoliday, ConnectionServer::SLAVE);
+
+        $query = '
+            SELECT
+                kanzashi_id,
+                pos_id,
+                companyid,
+                storecode,
+                kanzashi_name,
+                status
+            FROM sipssbeauty_kanzashi.salon
+            WHERE
+'.($storecode > 0 ? '
+                storecode = ? AND
+' : '').'
+                companyid = ?
+            ORDER BY storecode
+        ';
+        
+        $param = $storecode > 0 ? array($storecode, $companyid) : array($companyid);
+        $records = $this->StoreHoliday->query($query, $param, false);
+        $result = array();
+
+        foreach ($records as $record) {
+            $result[] = $record['salon'];
+        }
+
+        return $result;
     }
 
     /**
