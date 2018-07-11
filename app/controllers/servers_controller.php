@@ -852,7 +852,7 @@ class ServersController extends WebServicesController
                         ),
                         'output' => array('return' => 'xsd:string')
                     ),
-                    'wsPushSalonBasicSetting' => array(
+                    'wsPushKanzashiSalonBasicSetting' => array(
                         'doc'    => 'かんざしサロン基本設定PUSH',
                         'input'  => array(
                             'kanzashisalonid' => 'xsd:int'
@@ -10534,7 +10534,7 @@ class ServersController extends WebServicesController
      * @param int $kanzashisalonid かんざしサロンID
      * @return string かんざし側からのレスポンスを表すJSON
      */
-    function wsPushSalonBasicSetting($kanzashisalonid) {
+    function wsPushKanzashiSalonBasicSetting($kanzashisalonid) {
         $url = KANZASHI_PATH.'/salons/'.$kanzashisalonid.'/basic-settings';
         return $this->MiscFunction->CurlPost($url);
     }
