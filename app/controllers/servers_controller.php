@@ -10480,7 +10480,7 @@ class ServersController extends WebServicesController
      * @return string かんざし側からのレスポンスを表すJSON
      */
     function wsPushKanzashiInitialData($kanzashisalonid) {
-        $url = KANZASHI_PATH.'/initial-push/'.$kanzashisalonid;
+        $url = KANZASHI_PATH."/initial-push/{$kanzashisalonid}";
         return $this->MiscFunction->Curl($url);
     }
 
@@ -10491,7 +10491,7 @@ class ServersController extends WebServicesController
      * @return string かんざし側からのレスポンスを表すJSON
      */
     function wsPushKanzashiStylist($kanzashisalonid) {
-        $url = KANZASHI_PATH.'/salons/'.$kanzashisalonid.'/stylists';
+        $url = KANZASHI_PATH."/salons/{$kanzashisalonid}/stylists";
         return $this->MiscFunction->CurlPost($url);
     }
 
@@ -10502,7 +10502,7 @@ class ServersController extends WebServicesController
      * @return string かんざし側からのレスポンスを表すJSON
      */
     function wsPushKanzashiSalonDailyHours($kanzashisalonid) {
-        $url = KANZASHI_PATH.'/salons/'.$kanzashisalonid.'/daily-hours';
+        $url = KANZASHI_PATH."/salons/{$kanzashisalonid}/daily-hours";
         return $this->MiscFunction->CurlPost($url);
     }
 
@@ -10513,7 +10513,7 @@ class ServersController extends WebServicesController
      * @return string かんざし側からのレスポンスを表すJSON
      */
     function wsPushKanzashiStylistDutyHours($kanzashisalonid) {
-        $url = KANZASHI_PATH.'/salons/'.$kanzashisalonid.'/stylist-duty-hours';
+        $url = KANZASHI_PATH."/salons/{$kanzashisalonid}/stylist-duty-hours";
         return $this->MiscFunction->CurlPost($url);
     }
 
@@ -10524,7 +10524,7 @@ class ServersController extends WebServicesController
      * @return string かんざし側からのレスポンスを表すJSON
      */
     function wsPushKanzashiReservation($kanzashisalonid) {
-        $url = KANZASHI_PATH.'/salons/'.$kanzashisalonid.'/reservations';
+        $url = KANZASHI_PATH."/salons/{$kanzashisalonid}/reservations";
         return $this->MiscFunction->CurlPost($url);
     }
 
@@ -10535,7 +10535,7 @@ class ServersController extends WebServicesController
      * @return string かんざし側からのレスポンスを表すJSON
      */
     function wsPushKanzashiSalonBasicSetting($kanzashisalonid) {
-        $url = KANZASHI_PATH.'/salons/'.$kanzashisalonid.'/basic-settings';
+        $url = KANZASHI_PATH."/salons/{$kanzashisalonid}/basic-settings";
         return $this->MiscFunction->CurlPost($url);
     }
 
