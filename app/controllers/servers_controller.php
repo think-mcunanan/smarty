@@ -834,7 +834,9 @@ class ServersController extends WebServicesController
                     'wsPushKanzashiSalonDailyHours' => array(
                         'doc'    => 'かんざしサロン営業時間PUSH',
                         'input'  => array(
-                            'kanzashisalonid' => 'xsd:int'
+                            'kanzashisalonid' => 'xsd:int',
+                            'year' => 'xsd:int',
+                            'month' => 'xsd:int'
                         ),
                         'output' => array('return' => 'xsd:string')
                     ),
@@ -10502,10 +10504,17 @@ class ServersController extends WebServicesController
      * かんざしサロン営業時間PUSH
      * 
      * @param int $kanzashisalonid かんざしサロンID
+     * @param int $year 年
+     * @param int $month 月
      * @return string かんざし側からのレスポンスを表すJSON
      */
-    function wsPushKanzashiSalonDailyHours($kanzashisalonid) {
+    function wsPushKanzashiSalonDailyHours($kanzashisalonid, $year, $month) {
         $url = KANZASHI_PATH."/salons/{$kanzashisalonid}/daily-hours";
+
+        if ($year && $month) {
+            $url .= "/{$year}/{$month}";
+        }
+
         return $this->MiscFunction->CurlPost($url);
     }
 
