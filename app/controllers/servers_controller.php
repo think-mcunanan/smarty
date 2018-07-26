@@ -10485,8 +10485,8 @@ class ServersController extends WebServicesController
      * @return string かんざし側からのレスポンスを表すJSON
      */
     function wsPushKanzashiInitialData($kanzashisalonid) {
-        $url = KANZASHI_PATH."/initial-push/{$kanzashisalonid}";
-        return $this->MiscFunction->Curl($url);
+        $url = KANZASHI_PATH.'/salons/'.$kanzashisalonid.'/initial-push';
+        return $this->MiscFunction->CurlPost($url);
     }
 
     /**
