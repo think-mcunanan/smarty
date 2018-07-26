@@ -1135,11 +1135,12 @@ class ServersController extends WebServicesController
 
                              // STORE -----------------------------------------------
                              'storeSearchCriteria' => array('struct' => array(
-                                        'STORECODE'   => 'xsd:int',
-                                        'STORENAME'   => 'xsd:string',
-                                        'orderby'     => 'xsd:string',
-                                        'limit'       => 'xsd:int',
-                                        'page'        => 'xsd:int')),
+                                        'STORECODE'         => 'xsd:int',
+                                        'STORENAME'         => 'xsd:string',
+                                        'getSharedStoreList'    => 'xsd:boolean',
+                                        'orderby'           => 'xsd:string',
+                                        'limit'             => 'xsd:int',
+                                        'page'              => 'xsd:int')),
 
                              'storeInformation' => array('struct' => array(
                                         'STORECODE'       => 'xsd:int',
@@ -2999,7 +3000,7 @@ class ServersController extends WebServicesController
 
         if($param['SEARCHSHAREDSTORE']){
             $criteria['CSTORECODE'] = $sharedStoreList;
-        }
+         }
 
 
         $criteria[] = array('CNAME <> ' => null,
@@ -4830,6 +4831,19 @@ class ServersController extends WebServicesController
             $param['limit']      = -1;
         }
 
+        $sharedStoreList = array();
+
+        if ($param['getSharedStoreList']) {
+            $this->loadModel('DataShare');
+            $this->DataShare->set_company_database($storeinfo['dbname'], $this->DataShare, ConnectionServer::SLAVE);
+
+            $condition['STORECODE'] = $storeinfo['storecode'];
+            $condition['DELFLG'] = null;
+            $datashare = $this->DataShare->find('all', array('conditions' => $condition));
+
+            $sharedStoreList = set::extract($datashare, '{n}.DataShare.SHARESTORECODE');
+            $sharedStoreList[] = $storeinfo['storecode'];
+        }
         //-- 会社データベースを設定する (Set the Company Database)
         $this->Store->set_company_database($storeinfo['dbname'], $this->Store, ConnectionServer::SLAVE);
 
@@ -4846,7 +4860,7 @@ class ServersController extends WebServicesController
         }
 
         foreach ($param as $key => $val) {
-            if (!empty($val) && $key != 'limit' && $key != 'page' && $key != 'orderby') {
+            if (!empty($val) && $key != 'limit' && $key != 'page' && $key != 'orderby' && $key !='getSharedStoreList') {
                 if ($key == "STORENAME") {
                     $criteria['(STORENAME LIKE ?)'] = array('%'.$val.'%');
                 } else {
@@ -4860,7 +4874,9 @@ class ServersController extends WebServicesController
         //$criteria['(STORECODE <> ? )'] = array(0);
 
         $criteria['DELFLG'] = null;
-
+        if ($param['getSharedStoreList']) {
+            $criteria['STORECODE'] = $sharedStoreList;
+        }
         if ($param['limit'] <> -1) {
             $v = $this->Store->find('all', array('conditions' => $criteria,
                                                  'order'      => array($param['orderby']),
