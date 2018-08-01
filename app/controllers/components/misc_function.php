@@ -763,8 +763,8 @@ class MiscFunctionComponent extends Object
                 // かんざし連携の場合
                 $json                                 = json_decode($arrData[$i]['bmtble']['comment']);
                 $arrList[$ctr]['route']               = $json->via;
-                $arrList[$ctr]['reservation_system']  = $json->reservation_media_keys[0]->media;
-                $arrList[$ctr]['reserve_code']        = $json->reservation_media_keys[0]->key;
+                $arrList[$ctr]['reservation_system']  = $json->original_media;
+                $arrList[$ctr]['reserve_code']        = '';
                 $arrList[$ctr]['v_date']              = str_replace('/', '-', $json->date);
                 $arrList[$ctr]['start_time']          = $json->start_time;
                 $arrList[$ctr]['end_time']            = $json->end_time;
@@ -776,8 +776,8 @@ class MiscFunctionComponent extends Object
                 $arrList[$ctr]['bmPrice']             = $json->price;
                 $arrList[$ctr]['nomination_fee']      = 0;
                 $arrList[$ctr]['bmTprice']            = $json->price;
-                $arrList[$ctr]['use_point']           = 0;
-                $arrList[$ctr]['grant_point']         = $json->point;
+                $arrList[$ctr]['use_point']           = $json->point;
+                $arrList[$ctr]['grant_point']         = 0;
                 $arrList[$ctr]['visit_num']           = 0;
                 $arrList[$ctr]['firstname']           = $json->customer->name;
                 $arrList[$ctr]['lastname']            = '';
