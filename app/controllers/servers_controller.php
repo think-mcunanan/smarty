@@ -2126,6 +2126,7 @@ class ServersController extends WebServicesController
                             "karte",
                             "bm_reservation",
                             "rv_customer",
+                            "kanzashi_customer",
                             "yoyakuapp_user",
                             "cti"
                             );
