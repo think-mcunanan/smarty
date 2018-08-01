@@ -795,38 +795,49 @@ class MiscFunctionComponent extends Object
                 $reserve_date = new DateTime($json->media_acquired_at);
                 $arrList[$ctr]['reserve_date'] = $reserve_date->format('Y/m/d H:i:s');
 
-                if ($json->demands) {
-                    $demands = array();
+                $demands = array();
 
-                    foreach ($json->demands as $k => $v) {
-                        $demands[] = '"'.str_replace('"', '\"', $k).'":"'.str_replace('"', '\"', $v).'"';
-                    }
-
-                    $arrList[$ctr]['demand'] = '{'.implode(',', $demands).'}';
+                foreach ($json->demands as $k => $v) {
+                    $demands[] = '"'.str_replace('"', '\"', $k).'":"'.str_replace('"', '\"', $v).'"';
                 }
 
-                $stylist_ids = array();
+                $arrList[$ctr]['demand'] = '{'.implode(',', $demands).'}';
+
+                $stylist_pos_ids = array();
 
                 foreach ($json->stylist_times as $stylist_time) {
-                    $stylist_ids[] = $stylist_time->stylist_id;
+                    $stylist_pos_ids[] = +$stylist_time->stylist_pos_id;
                 }
 
-                $stylist_ids_query = implode(',', $stylist_ids);
+                $stylist_pos_ids_query = implode(',', $stylist_pos_ids);
 
                 $query = "
-                    SELECT staff.staffname
-                    FROM kanzashi_stylist
-                    JOIN staff
+                    SELECT s.staffname
+                    FROM (
+                        SELECT *
+                        FROM kanzashi_stylist
+                        
+                        UNION ALL
+                        
+                        SELECT 
+                            0 PosId,
+                            0 StoreId,
+                            0 StaffId,
+                            0 IsDisabled,
+                            '1000-01-01 00:00:00' CreatedAt,
+                            '1000-01-01 00:00:00' UpdatedAt
+                    ) ks
+                    JOIN staff s
                     USING (storecode, staffcode)
-                    WHERE kanzashi_stylist.kanzashi_id IN ({$stylist_ids_query})
-                    ORDER BY FIELD(kanzashi_stylist.kanzashi_id, {$stylist_ids_query})
+                    WHERE ks.pos_id IN ({$stylist_pos_ids_query})
+                    ORDER BY FIELD(ks.pos_id, {$stylist_pos_ids_query})
                 ";
                 
                 $records = $controller->StoreTransaction->query($query);
                 $staff_names = array();
 
                 foreach ($records as $record) {
-                    $staff_names[] = '"'.str_replace('"', '\"', $record["staff"]["staffname"]).'"';
+                    $staff_names[] = '"'.str_replace('"', '\"', $record["s"]["staffname"]).'"';
                 }
 
                 $arrList[$ctr]['bmstaff'] = '['.implode(',', $staff_names).']';
