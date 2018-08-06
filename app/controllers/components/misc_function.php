@@ -828,7 +828,7 @@ class MiscFunctionComponent extends Object
                             '1000-01-01 00:00:00' UpdatedAt
                     ) ks
                     JOIN staff s
-                    USING (storecode, staffcode)
+                    USING (staffcode)
                     WHERE ks.pos_id IN ({$stylist_pos_ids_query})
                     ORDER BY FIELD(ks.pos_id, {$stylist_pos_ids_query})
                 ";
