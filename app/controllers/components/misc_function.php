@@ -799,7 +799,7 @@ class MiscFunctionComponent extends Object
                 $stylist_pos_ids = array();
 
                 foreach ($json->stylist_times as $stylist_time) {
-                    $stylist_pos_ids[] = +$stylist_time->stylist_pos_id;
+                    $stylist_pos_ids[] = $stylist_time->stylist_pos_id !== 'フリー' ? $stylist_time->stylist_pos_id : 0;
                 }
 
                 $stylist_pos_ids_query = implode(',', $stylist_pos_ids);
