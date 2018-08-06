@@ -1137,7 +1137,7 @@ class ServersController extends WebServicesController
                              'storeSearchCriteria' => array('struct' => array(
                                         'STORECODE'         => 'xsd:int',
                                         'STORENAME'         => 'xsd:string',
-                                        'getSharedStoreList'    => 'xsd:boolean',
+                                        'OnlySharedStore'    => 'xsd:boolean',
                                         'orderby'           => 'xsd:string',
                                         'limit'             => 'xsd:int',
                                         'page'              => 'xsd:int')),
@@ -2927,15 +2927,7 @@ class ServersController extends WebServicesController
         $sharedStoreList = array();
 
         if (count($honbu) > 0 && $param['SEARCHSHAREDSTORE']) {
-            $this->loadModel('DataShare');
-            $this->DataShare->set_company_database($storeinfo['dbname'], $this->DataShare, ConnectionServer::SLAVE);
-
-            $condition['STORECODE'] = $storeinfo['storecode'];
-            $condition['DELFLG'] = null;
-            $datashare = $this->DataShare->find('all', array('conditions' => $condition));
-
-            $sharedStoreList = set::extract($datashare, '{n}.DataShare.SHARESTORECODE');
-            $sharedStoreList[] = $storeinfo['storecode'];
+            $sharedStoreList = $this->GetSharedStoreCode($storeinfo['dbname'], $storeinfo['storecode']);
         }
 
         //-- 会社データベースを設定する (Set the Company Database)
@@ -3228,6 +3220,20 @@ class ServersController extends WebServicesController
         //---------------------------------------------------------------------------
     }//end function
 
+    private function GetSharedStoreCode($dbName, $storeCode)
+    {
+        $sharedStoreList = array();
+        $this->loadModel('DataShare');
+        $this->DataShare->set_company_database($dbName, $this->DataShare, ConnectionServer::SLAVE);
+
+        $condition['STORECODE'] = $storeCode;
+        $condition['DELFLG'] = null;
+        $datashare = $this->DataShare->find('all', array('conditions' => $condition));
+
+        $sharedStoreList = set::extract($datashare, '{n}.DataShare.SHARESTORECODE');
+        $sharedStoreList[] = $storeCode;
+        return $sharedStoreList;
+    }
 
     /**
      * 顧客歴史検索機能
@@ -4834,16 +4840,8 @@ class ServersController extends WebServicesController
 
         $sharedStoreList = array();
 
-        if ($param['getSharedStoreList']) {
-            $this->loadModel('DataShare');
-            $this->DataShare->set_company_database($storeinfo['dbname'], $this->DataShare, ConnectionServer::SLAVE);
-
-            $condition['STORECODE'] = $storeinfo['storecode'];
-            $condition['DELFLG'] = null;
-            $datashare = $this->DataShare->find('all', array('conditions' => $condition));
-
-            $sharedStoreList = set::extract($datashare, '{n}.DataShare.SHARESTORECODE');
-            $sharedStoreList[] = $storeinfo['storecode'];
+        if ($param['OnlySharedStore']) {
+            $sharedStoreList = $this->GetSharedStoreCode($storeinfo['dbname'], $storeinfo['storecode']);
         }
         //-- 会社データベースを設定する (Set the Company Database)
         $this->Store->set_company_database($storeinfo['dbname'], $this->Store, ConnectionServer::SLAVE);
@@ -4861,7 +4859,7 @@ class ServersController extends WebServicesController
         }
 
         foreach ($param as $key => $val) {
-            if (!empty($val) && $key != 'limit' && $key != 'page' && $key != 'orderby' && $key !='getSharedStoreList') {
+            if (!empty($val) && $key != 'limit' && $key != 'page' && $key != 'orderby' && $key !='OnlySharedStore') {
                 if ($key == "STORENAME") {
                     $criteria['(STORENAME LIKE ?)'] = array('%'.$val.'%');
                 } else {
@@ -4875,7 +4873,7 @@ class ServersController extends WebServicesController
         //$criteria['(STORECODE <> ? )'] = array(0);
 
         $criteria['DELFLG'] = null;
-        if ($param['getSharedStoreList']) {
+        if ($param['OnlySharedStore']) {
             $criteria['STORECODE'] = $sharedStoreList;
         }
         if ($param['limit'] <> -1) {
