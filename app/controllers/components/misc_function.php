@@ -814,18 +814,16 @@ class MiscFunctionComponent extends Object
                 $query = "
                     SELECT s.staffname
                     FROM (
-                        SELECT *
+                        SELECT
+                            pos_id,
+                            staffcode
                         FROM kanzashi_stylist
                         
                         UNION ALL
                         
                         SELECT 
-                            0 PosId,
-                            0 StoreId,
-                            0 StaffId,
-                            0 IsDisabled,
-                            '1000-01-01 00:00:00' CreatedAt,
-                            '1000-01-01 00:00:00' UpdatedAt
+                            0 pos_id,
+                            0 staffcode
                     ) ks
                     JOIN staff s
                     USING (staffcode)
