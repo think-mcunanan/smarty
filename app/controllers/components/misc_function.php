@@ -772,6 +772,7 @@ class MiscFunctionComponent extends Object
                 $arrList[$ctr]['comment']             = $json->remarks;
                 $arrList[$ctr]['shop_comment']        = '';
                 $arrList[$ctr]['next_coming_comment'] = '';
+                $arrList[$ctr]['demand']              = json_encode($json->demands);
                 $arrList[$ctr]['site_customer_id']    = $json->customer->customer_media_key->key;
                 $arrList[$ctr]['bmPrice']             = $json->price;
                 $arrList[$ctr]['nomination_fee']      = 0;
@@ -794,14 +795,6 @@ class MiscFunctionComponent extends Object
 
                 $reserve_date = new DateTime($json->media_acquired_at);
                 $arrList[$ctr]['reserve_date'] = $reserve_date->format('Y/m/d H:i:s');
-
-                $demands = array();
-
-                foreach ($json->demands as $k => $v) {
-                    $demands[] = '"'.str_replace('"', '\"', $k).'":"'.str_replace('"', '\"', $v).'"';
-                }
-
-                $arrList[$ctr]['demand'] = '{'.implode(',', $demands).'}';
 
                 $stylist_pos_ids = array();
 
@@ -835,10 +828,10 @@ class MiscFunctionComponent extends Object
                 $staff_names = array();
 
                 foreach ($records as $record) {
-                    $staff_names[] = '"'.str_replace('"', '\"', $record["s"]["staffname"]).'"';
+                    $staff_names[] = $record["s"]["staffname"];
                 }
 
-                $arrList[$ctr]['bmstaff'] = '['.implode(',', $staff_names).']';
+                $arrList[$ctr]['bmstaff'] = json_encode($staff_names);
             }
             /*----------------------------------------------------------------------------------------------------------------------*/
             /*add by albert 2015-10-30 BM connection information -------------------------------------------------------------------*/
