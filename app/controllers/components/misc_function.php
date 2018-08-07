@@ -720,10 +720,8 @@ class MiscFunctionComponent extends Object
             $arrList[$ctr]['YOYAKU_STATUS'] = $arrData[$i]['YND']['YOYAKU_STATUS'];
             $arrList[$ctr]['WITHMARKETING'] = $arrData[$i]['drejimarketing']['WITHMARKETING'];
             #------------------------------------------------------------------------------------------------------------------------
+            $arrList[$ctr]['secondnote'] = $arrData[$i]['str_bm_notes']['secondnote'];
 
-            /*----------------------------------------------------------------------------------------------------------------------*/
-            /*add by albert 2015-10-30 BM connection information -------------------------------------------------------------------*/
-            /*----------------------------------------------------------------------------------------------------------------------*/
             if ($arrData[$i]['transaction']['origination'] !== '12') {
                 // かんざし連携以外の場合
                 $arrList[$ctr]['route']                 = $arrData[$i]['bmtble']['route'];
@@ -758,7 +756,6 @@ class MiscFunctionComponent extends Object
                 $arrList[$ctr]['memo']                  = $arrData[$i]['bmtble']['memo'];
                 $arrList[$ctr]['origination']           = $arrData[$i]['transaction']['origination'];
                 $arrList[$ctr]['bmstaff']               = $arrData[$i]['bmtble']['bmstaff'];
-                $arrList[$ctr]['secondnote']            = $arrData[$i]['str_bm_notes']['secondnote'];
             } else {
                 // かんざし連携の場合
                 $json                                 = json_decode($arrData[$i]['bmtble']['comment']);
@@ -791,7 +788,6 @@ class MiscFunctionComponent extends Object
                 $arrList[$ctr]['bmmail']              = '';
                 $arrList[$ctr]['menu_info']           = $json->menu_title;
                 $arrList[$ctr]['origination']         = 12;
-                $arrList[$ctr]['secondnote']          = '';
 
                 $reserve_date = new DateTime($json->media_acquired_at);
                 $arrList[$ctr]['reserve_date'] = $reserve_date->format('Y/m/d H:i:s');
@@ -833,9 +829,6 @@ class MiscFunctionComponent extends Object
 
                 $arrList[$ctr]['bmstaff'] = json_encode($staff_names);
             }
-            /*----------------------------------------------------------------------------------------------------------------------*/
-            /*add by albert 2015-10-30 BM connection information -------------------------------------------------------------------*/
-            /*----------------------------------------------------------------------------------------------------------------------*/
 
             /////////////////////////////////////////////////////////////////////
             $arrList[$ctr]['YOYAKUTIME'] = substr($arrData[$i]['details']['STARTTIME'], 0, 5); //substr($arrData[$i]['transaction']['STARTTIME'], 0, 5);
