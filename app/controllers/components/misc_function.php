@@ -1689,10 +1689,6 @@ class MiscFunctionComponent extends Object
             CURLOPT_TIMEOUT => 5
         );
 
-        if ($options[CURLOPT_PROXY] && substr($url, 0, 5) === 'https') {
-            $options += array(CURLOPT_HTTPPROXYTUNNEL => true);
-        }
-
         $curl = curl_init();
         curl_setopt_array($curl, $options);
         $response = curl_exec($curl);
