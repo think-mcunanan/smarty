@@ -1686,6 +1686,7 @@ class MiscFunctionComponent extends Object
             CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_SSL_VERIFYHOST => false,
             CURLOPT_TIMEOUT => 5
         );
 
