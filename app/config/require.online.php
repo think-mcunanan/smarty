@@ -18,3 +18,7 @@ define('EMAIL_DOMAIN', 'bmy.jp');
 //-- かんざし設定 --//
 define('KANZASHI_SIGNIN_URL', 'https://kanzashi.com/signin');
 define('KANZASHI_PATH', 'https://kanzashiapi.sipss.jp');
+
+//-- Webプロキシ --//
+putenv("http_proxy=http://192.168.88.13:10080");
+putenv("https_proxy=http://192.168.88.13:10080");
