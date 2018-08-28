@@ -894,8 +894,7 @@ class ServersController extends WebServicesController
                                         'oemflg'            => 'xsd:int',
                                         'storetype'         => 'tns:storetypeInformation',
                                         'allstoretype'      => 'tns:AllStoreTypes',
-                                        'kanzashiSalonId'   => 'xsd:int',
-                                        'kanzashiSigninUrl' => 'xsd:string')),
+                                        'KanzashiInfo'      => 'tns:KanzashiInfo')),
 
                              '_AllStoreTypes' => array('struct' => array(
                                                         'STORECODE'       => 'xsd:int',
@@ -911,6 +910,16 @@ class ServersController extends WebServicesController
                                                     'DESCRIPTION'     => 'xsd:string')),
                              'storetypeInformation' => array(
                                         'array' => '_storetypeInformation'),
+
+                             'KanzashiInfo' => array(
+                                 'struct' => array(
+                                     'SalonId'       => 'xsd:int',
+                                     'SigninUrl'     => 'xsd:string',
+                                     'SigninHashKey' => 'xsd:string',
+                                     'SigninMedia'   => 'xsd:string',
+                                     'SigninVersion' => 'xsd:string'
+                                 )
+                             ),
 
                              'loginInfo' => array('struct' => array(
                                         'username'     => 'xsd:string',
@@ -2864,8 +2873,19 @@ class ServersController extends WebServicesController
             ";
             $param = array($arrReturn['companyid'], $arrReturn['storecode']);
             $rs = $this->StoreSettings->query($sql, $param, false);
-            $arrReturn['kanzashiSalonId'] = $rs ? $rs[0]['salon']['kanzashi_id'] : 0;
-            $arrReturn['kanzashiSigninUrl'] = defined('KANZASHI_SIGNIN_URL') ? KANZASHI_SIGNIN_URL : '';
+            $kanzashi_salon_id = $rs ? $rs[0]['salon']['kanzashi_id'] : 0;
+
+            if ($kanzashi_salon_id > 0) {
+                $arrReturn['KanzashiInfo'] = array(
+                    'SalonId'       => $kanzashi_salon_id,
+                    'SigninUrl'     => KANZASHI_SIGNIN_URL,
+                    'SigninHashKey' => KANZASHI_SIGNIN_HASH_KEY,
+                    'SigninMedia'   => KANZASHI_SIGNIN_MEDIA,
+                    'SigninVersion' => KANZASHI_SIGNIN_VERSION
+                );
+            } else {
+                $arrReturn['KanzashiInfo'] = array();
+            }
             //------------------------------------------------------------------
             return $arrReturn;
             //------------------------------------------------------------------
