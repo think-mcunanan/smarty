@@ -20,6 +20,8 @@ App::import('Vendor', 'WebServicesController');
 
 class ServersController extends WebServicesController
 {
+    const REGULAR_WORKING_DAY = 4;
+
     var $name           = 'Servers';
 
     var $uses           = array('Login', 'LogSession', 'Customer', 'Store', 'Staff',
@@ -59,7 +61,11 @@ class ServersController extends WebServicesController
                             'output' => array('return'    => 'xsd:boolean')),
                      //- ############################################################
 
-
+                     // MISC FUNCTION -----------------------------------------------
+                     'wsGetServerDateTime' => array(
+                            'doc'    => 'サーバーの日付時刻を取得する',
+                            'input'  => array('sessionid'   => 'xsd:string'),
+                            'output' => array('return'      => 'xsd:string')),
 
                      // CUSTOMER FUNCTIONS ------------------------------------------
                      'wsSearchCustomer' => array(
@@ -4766,17 +4772,27 @@ class ServersController extends WebServicesController
             //- 日間の配列をループ処理　(Loops through the array of Days)
             for ($i = 0; $i < count($arrDays); $i++) {
                 $day = $i + 1;
-                $this->date = $param[$ctr]['year'] . "-" . $param[$ctr]['month'] . "-" . $day;
+                $year = $param[$ctr]['year'];
+                $month = $param[$ctr]['month'];
+                $this->date = "{$year}-{$month}-{$day}";
+                $storeCode = $param[$ctr]['STORECODE'];
+                $staffCode = $param[$ctr]['STAFFCODE'];
+                $holidayType = substr($param[$ctr][$arrDays[$i]],0,1);
+
+
                 //-----------------------------------------------------------------
                 //Mark or Delete the existing data
                 //-----------------------------------------------------------------
                 $SqlMark = "DELETE FROM staff_holiday
-                            WHERE STORECODE = " . $param[$ctr]['STORECODE'] . "
-                                AND STAFFCODE = " . $param[$ctr]['STAFFCODE'] . "
-                                AND YMD = '" . $this->date . "'";
+                            WHERE STORECODE = {$storeCode}
+                                AND STAFFCODE = {$staffCode}
+                                AND YMD = '{$this->date}'";
                 $this->StaffShift->query($SqlMark);
                 //-----------------------------------------------------------------
-                if (checkdate($param[$ctr]['month'], $day, $param[$ctr]['year']) &&
+
+                $this->UpdateStaffTimeCardWorkingType($storeCode, $staffCode, $holidayType);
+
+                if (checkdate($month, $day, $year) &&
                     $param[$ctr][$arrDays[$i]] <> "") {
                     $hasData = $this->MiscFunction->CheckStaffShiftData($this, $param[$ctr]);
                     $sql = "";
@@ -4787,9 +4803,11 @@ class ServersController extends WebServicesController
                         $shift_value = substr($param[$ctr][$arrDays[$i]],2);
                     }
 
+
+
                     if ($hasData == true) {
                         //準備UPDATE SQLステートメント (Prepare UPDATE Sql Statement)
-                        $extra = "HOLIDAYTYPE = " . substr($param[$ctr][$arrDays[$i]],0,1) .
+                        $extra = "HOLIDAYTYPE = " . $holidayType .
                                  ", SHIFT     = " . $shift_value;
                         $sql = "UPDATE staff_holiday SET " . $extra . "
                                     WHERE STORECODE = " . $param[$ctr]['STORECODE'] . "
@@ -4802,7 +4820,7 @@ class ServersController extends WebServicesController
                         $values = $param[$ctr]['STORECODE'] . ", " .
                                   $param[$ctr]['STAFFCODE'] . ", '" .
                                   $this->date . "', " .
-                                  substr($param[$ctr][$arrDays[$i]],0,1) . ", " .
+                                  $holidayType . ", " .
                                   $shift_value;
 
                         $sql = "INSERT INTO staff_holiday (" . $fields . ")
@@ -4811,7 +4829,7 @@ class ServersController extends WebServicesController
 
                     $this->StaffShift->query($sql);
 
-                } elseif (checkdate($param[$ctr]['month'], $day, $param[$ctr]['year']) &&
+                } elseif (checkdate($month, $day, $year) &&
                           $param[$ctr][$arrDays[$i]] == "") {
                     $sql = "DELETE FROM staff_holiday
                                 WHERE STORECODE = " . $param[$ctr]['STORECODE'] . "
@@ -4832,9 +4850,27 @@ class ServersController extends WebServicesController
     }
     //- #############################################################################
 
+    /**
+     * Summary of UpdateStaffTimeCardWorkingType
+     * @param mixed $storeCode 
+     * @param mixed $staffCode 
+     * @param mixed $workingType 
+     */
+    private function UpdateStaffTimeCardWorkingType($storeCode, $staffCode, $workingType) {
 
+        $workType = $workingType ? $workingType : self::REGULAR_WORKING_DAY;
+        $sql = "
+            UPDATE timecard
+                SET workingtype = {$workType}
+            WHERE
+                storecode = {$storeCode}
+                AND staffcode = {$staffCode}
+                AND ymd = '{$this->date}'
+        ";
 
-
+        $this->StaffShift->query($sql);
+    }
+       
     // STORE FUNCTIONS --------------------------------------------------------------
     /**
      * 店舗検索機能
@@ -10305,7 +10341,7 @@ class ServersController extends WebServicesController
                 ymd = ?
             GROUP BY ymd
         ";
-        
+
         $param = array($storecode, $ymd);
         $records = $this->StoreHoliday->query($query, $param, false);
         return $records ? $records[0]['kanzashi_customers_limit'] + $records[0][0] : null;
@@ -10461,7 +10497,7 @@ class ServersController extends WebServicesController
             FROM sipssbeauty_kanzashi.salon
             WHERE kanzashi_id = ?
         ';
-        
+
         $param = array($kanzashisalonid);
         $records = $this->StoreHoliday->query($query, $param, false);
         return $records ? $records[0]['salon'] : null;
@@ -10501,7 +10537,7 @@ class ServersController extends WebServicesController
                 companyid = ?
             ORDER BY storecode
         ';
-        
+
         $param = $storecode > 0 ? array($storecode, $companyid) : array($companyid);
         $records = $this->StoreHoliday->query($query, $param, false);
         $result = array();
@@ -10537,7 +10573,7 @@ class ServersController extends WebServicesController
 
     /**
      * かんざしサロン営業時間PUSH
-     * 
+     *
      * @param int $kanzashisalonid かんざしサロンID
      * @param int $year 年
      * @param int $month 月
@@ -10596,4 +10632,20 @@ class ServersController extends WebServicesController
         return $this->MiscFunction->CurlPost($url);
     }
 
-    }//end class ServersController
+    /**
+     * Summary of wsGetServerDateTime
+     * @param mixed $sessionID
+     * @return string Server Date Time
+     */
+    function wsGetServerDateTime($sessionid) {
+
+        $storeinfo = $this->YoyakuSession->Check($this);
+        if ($storeinfo == false) {
+            $this->_soap_server->fault(1, '', INVALID_SESSION);
+            return;
+        }
+
+        return date('Y-m-d h:i:s');
+    }
+
+}//end class ServersController
