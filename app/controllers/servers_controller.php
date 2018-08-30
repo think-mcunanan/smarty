@@ -6692,6 +6692,15 @@ class ServersController extends WebServicesController
             $replace_str = "REPLACE INTO store_settings (STORECODE, OPTIONNAME, OPTIONVALUES) VALUES ({$storeinfo["storecode"]}, ";
             $delete_str = "DELETE FROM store_settings WHERE STORECODE = {$storeinfo["storecode"]} AND OPTIONNAME = ";
 
+            $store = $this->MiscFunction->GetStoreForMail($this, $storeinfo);
+
+            if(!isset($param["MAILNOTICE"]))            $param["MAILNOTICE"] = $this->MiscFunction->GetMailNotice();
+            if(!isset($param["MAILNOTICESECOND"]))      $param["MAILNOTICESECOND"] = $this->MiscFunction->GetMailNoticeSecond($store);
+            if(!isset($param["MODIFYING_MAIL_MSG"]))    $param["MODIFYING_MAIL_MSG"] = $this->MiscFunction->GetMailModifying();
+            if(!isset($param["FOLLOW_MAIL_MSG"]))       $param["FOLLOW_MAIL_MSG"] = $this->MiscFunction->GetMailFollow($store);
+            if(!isset($param["MAILSIGNATURE"]))         $param["MAILSIGNATURE"] = $this->MiscFunction->GetMailSignature($store);
+
+
             $queryParams = array(
                 "YoyakuRegistration" => $param["REGISTRATION"],
                 "YoyakuNewYoyaku" => $param["NEWYOYAKU"],
