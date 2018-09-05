@@ -2001,20 +2001,67 @@ class ServersController extends WebServicesController
         //===================================================================================
         // Get GetCustomerList Data
         //-----------------------------------------------------------------------------------
-        $totalrec = "select count(ccode)
-                 from customer
-                 where delflg is null and ccode <> '" . $tmpccode . "' and ccode <> '" . $basecode . "'" . $strcond .  $filename1 . $firstdatecond;
+        $totalrec = "
+            SELECT COUNT(ccode)
+            FROM customer
+            WHERE 
+                delflg IS NULL 
+                AND ccode <> '{$tmpccode}'
+                AND ccode <> '{$basecode}'
+                {$strcond}
+                {$filename1} 
+                {$firstdatecond}";
 
-        $Sql = "select ccode, cnumber, cname, cnamekana, sex, tel1, tel2, birthdate, christian_era,
-                     mailaddress1, mailaddress2, zipcode1, address1, mansionmei, cstorecode, firstdate, lastdate,
-                     ($totalrec) as totalrecords
-            from
-                    (select ccode, cnumber, cname, cnamekana, ifnull(sex, 0) as sex, tel1, tel2, birthdate, christian_era,
-                            mailaddress1, mailaddress2, zipcode1, address1, mansionmei, cstorecode, firstdate, lastdate
-                    from customer
-                    where delflg is null and ccode <> '" . $tmpccode . "' and ccode <> '" . $basecode . "'" . $strcond . $filename1 . $firstdatecond . "
-                    order by cnamekana, firstdate
-                    limit " . ($pageindex * 50) . ", 50) tblresult";
+        $Sql = "
+            SELECT 
+                ccode, 
+                cnumber, 
+                cname, 
+                cnamekana, 
+                sex, 
+                tel1, 
+                tel2, 
+                birthdate, 
+                christian_era,
+                mailaddress1, 
+                mailaddress2, 
+                zipcode1, 
+                address1, 
+                mansionmei, 
+                cstorecode, 
+                firstdate, 
+                lastdate,
+                ({$totalrec}) as totalrecords
+            FROM (
+                SELECT
+                    ccode,
+                    cnumber,
+                    cname,
+                    cnamekana,
+                    IFNULL(sex, 0) as sex,
+                    IFNULL(tel1, '') as tel1,
+                    IFNULL(tel2, '') as tel2,
+                    birthdate,
+                    christian_era,
+                    IFNULL(mailaddress1, '') as mailaddress1,
+                    IFNULL(mailaddress2, '') as mailaddress2,
+                    IFNULL(zipcode1, '') as zipcode1,
+                    IFNULL(address1, '') as address1,
+                    IFNULL(mansionmei, '') as mansionmei, 
+                    cstorecode,
+                    firstdate,
+                    lastdate
+                FROM customer
+                WHERE 
+                    delflg IS NULL 
+                    AND ccode <> '{$tmpccode}'
+                    AND ccode <> '{$basecode}'
+                    {$strcond}
+                    {$filename1} 
+                    {$firstdatecond}
+                ORDER BY cnamekana, firstdate
+                LIMIT " . ($pageindex * 50) . ", 50
+            ) tblresult";
         //-----------------------------------------------------------------------------------
         $GetData = $this->Customer->query($Sql);
         //===================================================================================
@@ -4852,9 +4899,9 @@ class ServersController extends WebServicesController
 
     /**
      * Summary of UpdateStaffTimeCardWorkingType
-     * @param mixed $storeCode 
-     * @param mixed $staffCode 
-     * @param mixed $workingType 
+     * @param mixed $storeCode
+     * @param mixed $staffCode
+     * @param mixed $workingType
      */
     private function UpdateStaffTimeCardWorkingType($storeCode, $staffCode, $workingType) {
 
@@ -4870,7 +4917,7 @@ class ServersController extends WebServicesController
 
         $this->StaffShift->query($sql);
     }
-       
+
     // STORE FUNCTIONS --------------------------------------------------------------
     /**
      * 店舗検索機能
