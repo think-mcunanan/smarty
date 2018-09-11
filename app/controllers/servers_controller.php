@@ -2936,8 +2936,6 @@ class ServersController extends WebServicesController
                     'SigninMedia'   => KANZASHI_SIGNIN_MEDIA,
                     'SigninVersion' => KANZASHI_SIGNIN_VERSION
                 );
-            } else {
-                $arrReturn['KanzashiInfo'] = array();
             }
             //------------------------------------------------------------------
             return $arrReturn;
