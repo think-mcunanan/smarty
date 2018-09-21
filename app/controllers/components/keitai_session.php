@@ -1918,6 +1918,8 @@ class KeitaiSessionComponent extends Object
             }
         //--------- END Break Times -----------------------------------------------//
 
+
+        // START --- Count existing transaction ----------------------------------//
         $query = "select transaction.TRANSCODE ,transaction.YOYAKUTIME,transaction.PRIORITYTYPE,details.STAFFCODE, details.STARTTIME,details.ENDTIME from store_transaction as transaction
                   LEFT JOIN store_transaction_details as details ON
                         transaction.TRANSCODE = details.TRANSCODE AND
@@ -1980,8 +1982,8 @@ class KeitaiSessionComponent extends Object
                  }
            }
         }
+        // END --- Count existing transaction ----------------------------------//
 
-        //--------- END Existing Transactions -------------------------------------//
         $time_arr_reserves = array();
         $time_arr_reserves_yoyaku = array();
         $time_arr = array(); //・・・reset????
