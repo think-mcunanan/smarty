@@ -81,27 +81,27 @@ class DATABASE_CONFIG {
 	var $default = array(
         'driver' => 'mysql',
         'persistent' => false,
-        'host' => '192.168.11.50',
+        'host' => '192.168.88.91',
         'login' => 'marvin',
-        'password' => 'marvin1',
+        'password' => 'p3WD40asdf455',
         'database' => 'sipssbeauty_server',
         'encoding' => 'UTF8',
         'prefix' => '',
-        'con'   => ConnectionServer::MASTER,
-        'dynamichost' => '192.168.11.50'
+		'con'   => ConnectionServer::MASTER,
+        'dynamichost' => '192.168.88.91',
     );
 
 	var $database_schema = array(
-	'driver' => 'mysql',
+		'driver' => 'mysql',
         'persistent' => false,
-        'host' => '192.168.11.50',
+        'host' => '192.168.88.91',
         'login' => 'marvin',
-        'password' => 'marvin1',
+        'password' => 'p3WD40asdf455',
         'database' => 'sipssbeauty_schema',
         'encoding' => 'UTF8',
         'prefix' => '',
-        'con'   => ConnectionServer::MASTER,
-        'dynamichost' => '192.168.11.50'
+		'con'   => ConnectionServer::MASTER,
+        'dynamichost' => '192.168.88.91',
 	);
 }
 
