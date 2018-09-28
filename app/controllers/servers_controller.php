@@ -814,22 +814,6 @@ class ServersController extends WebServicesController
                         ),
                         'output' => array('return' => 'kanzashiSalon')
                     ),
-                    'wsGetKanzashiSalons' => array(
-                        'doc'   => 'かんざしサロン配列取得',
-                        'input' => array(
-                            'sessionid' => 'xsd:string',
-                            'companyid' => 'xsd:int',
-                            'storecode' => 'xsd:int'
-                        ),
-                        'output' => array('return' => 'kanzashiSalons')
-                    ),
-                    'wsPushKanzashiInitialData' => array(
-                        'doc'    => 'かんざし初回PUSH',
-                        'input'  => array(
-                            'kanzashisalonid' => 'xsd:int'
-                        ),
-                        'output' => array('return' => 'xsd:string')
-                    ),
                     'wsPushKanzashiStylist' => array(
                         'doc'    => 'かんざしスタイリストPUSH',
                         'input'  => array(
@@ -853,13 +837,6 @@ class ServersController extends WebServicesController
                             'year' => 'xsd:int',
                             'month' => 'xsd:int',
                             'staffcode' => 'xsd:int'
-                        ),
-                        'output' => array('return' => 'xsd:string')
-                    ),
-                    'wsPushKanzashiReservation' => array(
-                        'doc'    => 'かんざし予約PUSH',
-                        'input'  => array(
-                            'kanzashisalonid' => 'xsd:int'
                         ),
                         'output' => array('return' => 'xsd:string')
                     ),
@@ -1932,9 +1909,6 @@ class ServersController extends WebServicesController
                                     'kanzashi_name' => 'xsd:string',
                                     'status'        => 'xsd:int'
                                 )
-                            ),
-                            'kanzashiSalons' => array(
-                                'array' => 'kanzashiSalon'
                             ),
 
                             // かんざし時間別予約可能数
@@ -10558,63 +10532,6 @@ class ServersController extends WebServicesController
     }
 
     /**
-     * かんざしサロン配列取得
-     *
-     * @param string $sessionid セッションID
-     * @param int $companyid 会社ID
-     * @param int $storecode 店舗コード
-     * @return kanzashiSalons かんざしサロン配列
-     */
-    function wsGetKanzashiSalons($sessionid, $companyid, $storecode = 0) {
-        $storeinfo = $this->YoyakuSession->Check($this);
-
-        if ($storeinfo == false) {
-            $this->_soap_server->fault(1, '', INVALID_SESSION);
-            return;
-        }
-
-        $this->StoreHoliday->set_company_database($storeinfo['dbname'], $this->StoreHoliday, ConnectionServer::SLAVE);
-
-        $query = '
-            SELECT
-                kanzashi_id,
-                pos_id,
-                companyid,
-                storecode,
-                kanzashi_name,
-                status
-            FROM sipssbeauty_kanzashi.salon
-            WHERE
-'.($storecode > 0 ? '
-                storecode = ? AND
-' : '').'
-                companyid = ?
-            ORDER BY storecode
-        ';
-
-        $param = $storecode > 0 ? array($storecode, $companyid) : array($companyid);
-        $records = $this->StoreHoliday->query($query, $param, false);
-        $result = array();
-
-        foreach ($records as $record) {
-            $result[] = $record['salon'];
-        }
-
-        return $result;
-    }
-
-    /**
-     * かんざし初回PUSH
-     *
-     * @param int $kanzashisalonid かんざしサロンID
-     * @return string かんざし側からのレスポンスを表すJSON
-     */
-    function wsPushKanzashiInitialData($kanzashisalonid) {
-        $url = KANZASHI_PATH.'/salons/'.$kanzashisalonid.'/initial-push';
-        return $this->MiscFunction->CurlPost($url);
-    }
-
-    /**
      * かんざしスタイリストPUSH
      *
      * @param int $kanzashisalonid かんざしサロンID
@@ -10661,17 +10578,6 @@ class ServersController extends WebServicesController
             $url .= "/{$year}/{$month}";
         }
 
-        return $this->MiscFunction->CurlPost($url);
-    }
-
-    /**
-     * かんざし予約PUSH
-     *
-     * @param int $kanzashisalonid かんざしサロンID
-     * @return string かんざし側からのレスポンスを表すJSON
-     */
-    function wsPushKanzashiReservation($kanzashisalonid) {
-        $url = KANZASHI_PATH."/salons/{$kanzashisalonid}/reservations";
         return $this->MiscFunction->CurlPost($url);
     }
 
