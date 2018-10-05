@@ -498,11 +498,13 @@ class KeitaiSessionComponent extends Object
             return false;
         }
 
+
         $arrReturn = $v[0]['Store'];
         $arrReturn['dbname']  = $dbname;
         $arrReturn['logintype'] = $logintype;
         $arrReturn['storeid'] = $account_data[0]['WebyanAccount']['storeid'];
         $arrReturn['tosflg'] = $account_data[0]['WebyanAccount']['tos_flg'];
+        $arrReturn['KanzashiFlag'] = $this->GetKanzashiFlag($controller, $companyid, $storecode);
 
         $controller->StoreSettings->set_company_database($dbname, $controller->StoreSettings);
         $criteria   = array('STORECODE' => $storecode);
@@ -1653,75 +1655,31 @@ class KeitaiSessionComponent extends Object
         $controller->StaffShift->set_company_database($session_info['dbname'], $controller->StaffShift);
         $controller->Shift->set_company_database($session_info['dbname'], $controller->Shift);
         $controller->BreakTime->set_company_database($session_info['dbname'], $controller->BreakTime);
-        //$controller->StoreTransaction->set_company_database($session_info['$dbname'], $controller->StoreTransaction);
-        $controller->StaffAssignToStore->set_company_database($session_info['dbname'], $controller->StaffAssignToStore); //add
-        $controller->StoreTransactionDetails->set_company_database($session_info['dbname'], $controller->StoreTransactionDetails); //add
+        $controller->StaffAssignToStore->set_company_database($session_info['dbname'], $controller->StaffAssignToStore);
+        $controller->StoreTransactionDetails->set_company_database($session_info['dbname'], $controller->StoreTransactionDetails);
 
         $sel_date = sprintf("%04s-%02s-%02s", substr($session_info['y_date'], 0, 4), substr($session_info['y_date'], 4, 2), substr($session_info['y_date'], 6, 2));
-        //---------- Get all Staff Capacity -------------------------------------------//
-        //----------add all staff capacity--------
-        //「当日稼働していて、予約可能なスタッフを表示
-        $sql = "SELECT Staff.STORECODE,
-                    StaffAssignToStore.STAFFCODE,
-                    Staff.STAFFNAME,
-                    Store.STORENAME,
-                    if(Staff.STORECODE = ".$session_info['storecode'].",
-                    StaffAssignToStore.WEBYAN_DISPLAY,
-                    if(Staff.STAFFCODE = 0,  StaffAssignToStore.WEBYAN_DISPLAY, 1)) as WEBYAN_DISPLAY,
-                    IF(StaffRowsHistory.ROWS > 0,StaffRowsHistory.ROWS , ".DEFAULT_ROWS.") as ROWS
-                FROM staff_assign_to_store as StaffAssignToStore
-                    LEFT JOIN staff as Staff ON StaffAssignToStore.STAFFCODE = Staff.STAFFCODE
-                    LEFT JOIN store as Store ON Staff.STORECODE = Store.STORECODE
-                    LEFT JOIN (SELECT *
-                               FROM(SELECT *
-                                    FROM staffrowshistory as StaffRowsHistory
-                                    WHERE StaffRowsHistory.STORECODE = ".$session_info['storecode']."
-                                       AND StaffRowsHistory.DATECHANGE <= '".$sel_date."'
-                                    ORDER BY StaffRowsHistory.DATECHANGE DESC
-                                    ) as TMPTBL
-                                GROUP BY staffcode
-                               ) as StaffRowsHistory ON StaffRowsHistory.STAFFCODE = Staff.STAFFCODE
-                    /* LEFT JOIN store_settings as Settings
-                        ON Settings.STORECODE = StaffAssignToStore.STORECODE
-                            AND Settings.OPTIONNAME = 'HIDE_HOLIDAY_STAFF' */
-                    LEFT JOIN ((SELECT STAFFCODE,YMD,MIN(HOLIDAYTYPE) as HOLIDAYTYPE,BIKOU,UPDATEDATE, DELFLG,UPDATE_INDEX,STORECODE,SHIFT
-                        FROM staff_holiday
-                        where YMD = '".$sel_date."' and storecode = ".$session_info['storecode']." and staff_holiday.delflg is null
-                        group by storecode,YMD,staffcode)
-            		) as Holiday
-                        ON Holiday.STAFFCODE = Staff.STAFFCODE
-                            AND Holiday.YMD = '".$sel_date."'
-                WHERE StaffAssignToStore.STORECODE = ".$session_info['storecode']."
-                    AND (Staff.STORECODE =".$session_info['storecode']." OR (Staff.STORECODE = 0 AND Staff.Staffcode = 0))
-                    AND StaffAssignToStore.ASSIGN_YOYAKU = 1
-                    AND Staff.DELFLG IS NULL
-                    AND (Staff.HIREDATE IS NULL OR Staff.HIREDATE <= '".$sel_date."')
-                    AND (Staff.RETIREDATE IS NULL OR Staff.RETIREDATE >= '".$sel_date."')
-                    AND NOT (
-                        /*COALESCE(Settings.OPTIONVALUEI, 0) = 1 AND */
-                            COALESCE(Holiday.HOLIDAYTYPE, 4) < 4
-                            AND Holiday.DELFLG IS NULL
-                    )
-                GROUP BY StaffAssignToStore.STAFFCODE
-                having WEBYAN_DISPLAY >0 and ROWS > 0";
 
-                $v2 = $controller->StaffAssignToStore->query($sql);
+        $storecode = $session_info['storecode'];
+        $kanzashiFlag = $session_info['kanzashiflag'];
 
-                $total_staff_capacity = 0;
-                for ($i = 0; $i < count($v2); $i++) {
-                    if($v2[$i]['StaffAssignToStore']['STAFFCODE'] > 0){
-                         //スタッフ全体のキャパ
-                         $total_staff_capacity += $v2[$i][0]['ROWS'];
-                    }
-                    //選択したスタッフの予約列のキャパシティ
-                    if($v2[$i]['StaffAssignToStore']['STAFFCODE'] == $session_info['y_staff'] )
-                    {
-                        $staff_capacity = intval($v2[$i][0]['ROWS']);
-                        if ($staff_capacity == 0) {
-                            $staff_capacity = 1; // Default?
-                        }
-                    }
+        $availableStaffs = $this->GetAvailableStaffDetails($controller, $storecode, $sel_date, $kanzashiFlag);
+
+        $total_staff_capacity = 0;
+        for ($i = 0; $i < count($availableStaffs); $i++) {
+            if($availableStaffs[$i]['StaffAssignToStore']['STAFFCODE'] > 0){
+                //スタッフ全体のキャパ
+                $total_staff_capacity += $availableStaffs[$i][0]['ROWS'];
+            }
+            //選択したスタッフの予約列のキャパシティ
+            if($availableStaffs[$i]['StaffAssignToStore']['STAFFCODE'] == $session_info['y_staff'] )
+            {
+                $staff_capacity = intval($availableStaffs[$i][0]['ROWS']);
+                if ($staff_capacity == 0) {
+                    $staff_capacity = 1; // Default?
                 }
+            }
+        }
 
         // 予約可能顧客数。デフォルトは99とする
         $yoyakuCustomersLimit = 99;
@@ -1785,10 +1743,10 @@ class KeitaiSessionComponent extends Object
         //------------------------------------------------------------------
         if ($yoyakustart_satsun == "") {
             $yoyakustart_satsun = $yoyakustart;
-        }//end if
+        }
         if ($yoyakuend_satsun == "") {
             $yoyakuend_satsun = $yoyakuend;
-        }//end if
+        }
         //------------------------------------------------------------------
         // Use Store Settings
         //-----------------------------------------------------------------------------------
@@ -1796,21 +1754,17 @@ class KeitaiSessionComponent extends Object
         //-----------------------------------------------------------------------------------
         if (strtolower($dayOfWeek) == "saturday" || strtolower($dayOfWeek) == "sunday") {
             //-------------------------------------------------------------------------------
-            //$tmp_start = (intval($yoyakustart_satsun) > intval($openstart))?$yoyakustart_satsun:$openstart;
             $tmp_start = $yoyakustart_satsun;
             //-------------------------------------------------------------------------------
-            //$tmp_end   = (intval($yoyakuend_satsun) < intval($openend))?$yoyakuend_satsun:$openend;
             $tmp_end = $yoyakuend_satsun;
             //-------------------------------------------------------------------------------
         } else {
             //-------------------------------------------------------------------------------
-            //$tmp_start = (intval($yoyakustart) > intval($openstart))?$yoyakustart:$openstart;
             $tmp_start = $yoyakustart;
             //-------------------------------------------------------------------------------
-            //$tmp_end   = (intval($yoyakuend) < intval($openend))?$yoyakuend:$openend;
             $tmp_end = $yoyakuend;
             //-------------------------------------------------------------------------------
-        }//end if
+        }
         //-----------------------------------------------------------------------------------
         $start_time = intval(substr($tmp_start, 0, 2)) * 4;
         $start_min = intval(substr($tmp_start, 2, 2));
@@ -1838,16 +1792,14 @@ class KeitaiSessionComponent extends Object
                                 'StaffShift.DELFLG IS NULL'),
             'fields' => array('Shift.STARTTIME','Shift.ENDTIME','StaffShift.STAFFCODE')  ));
 
-         // 時間ごとの予約件数
-        //$time_arr_reserves = array();
+        // 時間ごとの予約件数
         $time_arr_reserves_staff = array();
 
-        //if (!empty($v)) {
-        for ($i = 0; $i < count($v2); $i++) {
+        for ($i = 0; $i < count($availableStaffs); $i++) {
                 $itm = NULL;
                 if (!empty($v)) {
                     foreach ($v as $item) {
-                        if($v2[$i]['StaffAssignToStore']['STAFFCODE'] == $item['StaffShift']['STAFFCODE']) {
+                        if($availableStaffs[$i]['StaffAssignToStore']['STAFFCODE'] == $item['StaffShift']['STAFFCODE']) {
                             $itm = $item;
                             break;
                         }
@@ -1900,24 +1852,22 @@ class KeitaiSessionComponent extends Object
                 }
             }
 
-            if ($v2[$i]['StaffAssignToStore']['STAFFCODE'] == $session_info['y_staff']) {
+            if ($availableStaffs[$i]['StaffAssignToStore']['STAFFCODE'] == $session_info['y_staff']) {
                 //選択したスタッフの開始、終了時間を保持
                 $start_time_staff = $start_time;
                 $end_time_staff = $end_time;
              }
 
             //シフト時間外は、スタッフが「稼働中」とみなす。
-            //for ($i = 0; $i < count($v2); $i++) {
-                //if($v2[$i]['StaffAssignToStore']['STAFFCODE'] == $itm['StaffShift']['STAFFCODE']){
-            $staffcode = $v2[$i]['StaffAssignToStore']['STAFFCODE'];//$itm['StaffShift']['STAFFCODE'];
+            $staffcode = $availableStaffs[$i]['StaffAssignToStore']['STAFFCODE'];
 
             //開始時間までを埋める
             for ($b = 0; $b < $start_time; $b++) {
-                    $time_arr_reserves_staff[$staffcode][$b] = intval($v2[$i][0]['ROWS']);
+                    $time_arr_reserves_staff[$staffcode][$b] = intval($availableStaffs[$i][0]['ROWS']);
             }
             //終了時間までを埋める
             for ($b = $end_time; $b <= (23*4) + 3 ; $b++) {
-                    $time_arr_reserves_staff[$staffcode][$b] = intval($v2[$i][0]['ROWS']);
+                    $time_arr_reserves_staff[$staffcode][$b] = intval($availableStaffs[$i][0]['ROWS']);
             }
          }
 
@@ -1928,9 +1878,7 @@ class KeitaiSessionComponent extends Object
         //--------- START Break Times ---------------------------------------------//
         $v = $controller->BreakTime->find('all', array('conditions' => array(
                 'STORECODE' => $session_info['storecode'],
-//                'STAFFCODE' => $session_info['y_staff'],
                 'DATE' => $sel_date
-//              ,'PRIORITY <= ' . $staff_capacity
               )));
 
         $time_arr_reserves_staff_yoyaku = array();
@@ -1953,11 +1901,11 @@ class KeitaiSessionComponent extends Object
                                             (($end_min > 45) ? 3 : 0))));
 
             //対象者を同時間帯予約可能人数から外す、使用枠の計算
-            for ($i = 0; $i < count($v2); $i++) {
-                if($v2[$i]['StaffAssignToStore']['STAFFCODE'] == $itm['BreakTime']['STAFFCODE']){
+            for ($i = 0; $i < count($availableStaffs); $i++) {
+                if($availableStaffs[$i]['StaffAssignToStore']['STAFFCODE'] == $itm['BreakTime']['STAFFCODE']){
                     $staffcode = $itm['BreakTime']['STAFFCODE'];
                     for ($b = $break_start_b; $b <= $break_end_b; $b++) {
-                            if(intval($time_arr_reserves_staff[$staffcode][$b]) < intval($v2[$i][0]['ROWS'])){
+                            if(intval($time_arr_reserves_staff[$staffcode][$b]) < intval($availableStaffs[$i][0]['ROWS'])){
                                   $time_arr_reserves_staff[$staffcode][$b] +=1;//$v2[$i][0]['ROWS'];
                                   $time_arr_reserves_staff_yoyaku[$staffcode][$b]+=1;
                              }
@@ -1966,23 +1914,12 @@ class KeitaiSessionComponent extends Object
                     if ($itm['BreakTime']['STAFFCODE'] == $session_info['y_staff']) {
                         $time_arr[$b]+=1;
                     }
-                    //break;
                 }
             }
-             //}
         //--------- END Break Times -----------------------------------------------//
 
 
-        //--------- START Existing Transactions -----------------------------------//
-        /*
-        $v = $controller->StoreTransaction->find('all', array('conditions' => array(
-                'STORECODE' => $session_info['storecode'],
-                //'STAFFCODE'     => $session_info['y_staff'],
-                'TRANSDATE' => $sel_date,
-                'PRIORITYTYPE' => 1,
-                'DELFLG IS NULL')));
-        //
-        */
+        // START --- Count existing transaction ----------------------------------//
         $query = "select transaction.TRANSCODE ,transaction.YOYAKUTIME,transaction.PRIORITYTYPE,details.STAFFCODE, details.STARTTIME,details.ENDTIME from store_transaction as transaction
                   LEFT JOIN store_transaction_details as details ON
                         transaction.TRANSCODE = details.TRANSCODE AND
@@ -1996,25 +1933,10 @@ class KeitaiSessionComponent extends Object
                         and transaction.PRIORITYTYPE = 1 and
                         details.TRANTYPE = 1";
 
-       $v = $controller->StoreTransactionDetails->query($query,array($session_info['storecode'],$sel_date));
- /*
-       if (empty($v)) {
-            return false;
-        }
- */
-
-/*
-        $v = $controller->StoreTransactionDetails->find('all', array('conditions' => array(
-                'STORECODE' => $session_info['storecode'],
-                'TRANSDATE' => $sel_date,
-                'PRIORITYTYPE' => 1,
-                'DELFLG IS NULL'
-        )));
-*/
+        $v = $controller->StoreTransactionDetails->query($query,array($session_info['storecode'],$sel_date));
 
         // 時間ごとの予約件数
-        //$time_arr_reserves = array();
-        $time_arr_free = array(); //free staff
+        $time_arr_free = array();
 
         foreach ($v as $itm) {
             $trans_start = $itm['details']['STARTTIME'];
@@ -2040,12 +1962,11 @@ class KeitaiSessionComponent extends Object
                                             (($end_min > 45) ? 3 : 0))));
 
             //予約者数をカウントする
-            //$time_arr_reserves_staff_yoyaku =array();
-            for ($i = 0; $i < count($v2); $i++) {
-                if ($v2[$i]['StaffAssignToStore']['STAFFCODE'] == $itm['details']['STAFFCODE']) {
+            for ($i = 0; $i < count($availableStaffs); $i++) {
+                if ($availableStaffs[$i]['StaffAssignToStore']['STAFFCODE'] == $itm['details']['STAFFCODE']) {
                     $staffcode = $itm['details']['STAFFCODE'];
                     for ($b = $trans_start_b; $b <= $trans_end_b; $b++) {
-                        if($time_arr_reserves_staff[$staffcode][$b] < $v2[$i][0]['ROWS']){
+                        if($time_arr_reserves_staff[$staffcode][$b] < $availableStaffs[$i][0]['ROWS']){
                             $time_arr_reserves_staff[$staffcode][$b]+=1;
                             $time_arr_reserves_staff_yoyaku[$staffcode][$b]+=1; //予約者数のカウント！
                         }
@@ -2061,10 +1982,9 @@ class KeitaiSessionComponent extends Object
                  }
            }
         }
+        // END --- Count existing transaction ----------------------------------//
 
-        //--------- END Existing Transactions -------------------------------------//
         $time_arr_reserves = array();
-        //$time_arr_reserves_staff_yoyaku = array();
         $time_arr_reserves_yoyaku = array();
         $time_arr = array(); //・・・reset????
 
@@ -2075,7 +1995,7 @@ class KeitaiSessionComponent extends Object
                     $time_arr_reserves[$i] += intval($staff[$i]);
                 }elseif($key == 0){
                     //枠数計算条件変更：20160301
-                    $time_arr_reserves[$i] += intval($staff[$i]);//intval($time_arr_free[$i]);
+                    $time_arr_reserves[$i] += intval($staff[$i]);
                 }
                 if($key == $session_info['y_staff']){
                     $time_arr[$i] += $staff[$i];
@@ -2090,7 +2010,6 @@ class KeitaiSessionComponent extends Object
             }
         }
 
-        //for ($i = $start_time; $i < $end_time; $i++) {
         for ($i = $start_time_staff; $i < $end_time_staff; $i++) {
             $ok = true;
             $end_block = $i + (intval($servicetime / 15));
@@ -2098,7 +2017,6 @@ class KeitaiSessionComponent extends Object
                 $end_block++;
             }
 
-            //$yoyakuCustomersLimitAuto = 1;
             for ($j = $i; $j < $end_block; $j++) {
                 if(intval($time_arr[$j]) >= $staff_capacity) {
                     $ok = false;
@@ -2111,14 +2029,6 @@ class KeitaiSessionComponent extends Object
                      //スタッフの予約列数で制御する場合
                     $ok = false;
                 }
-
-
-
-                /*
-                elseif (intval($time_arr_reserves[$j]) >= $yoyakuCustomersLimit) {
-                    $ok = false;
-                }
-                */
             }
 
             if ($ok) {
@@ -2142,7 +2052,82 @@ class KeitaiSessionComponent extends Object
         }
 
         return $AvailableTimes;
+    }
 
+    /**
+     * Summary of GetAvailableStaffDetails
+     * @param mixed $controller
+     * @param mixed $storecode
+     * @param mixed $date
+     * @return mixed
+     */
+    private function GetAvailableStaffDetails(&$controller, $storecode, $date, $kanzashiFlag){
+
+        $staffRowsHistoryCond = $kanzashiFlag ? "" : "AND StaffRowsHistory.DATECHANGE <= '{$date}'";
+
+        $sql = "
+            SELECT
+                Staff.STORECODE,
+                StaffAssignToStore.STAFFCODE,
+                Staff.STAFFNAME,
+                Store.STORENAME,
+                IF(Staff.STORECODE = {$storecode},
+                    StaffAssignToStore.WEBYAN_DISPLAY,
+                    IF(Staff.STAFFCODE = 0,
+                        StaffAssignToStore.WEBYAN_DISPLAY,
+                        1)
+                ) as WEBYAN_DISPLAY,
+                IF(StaffRowsHistory.ROWS > 0,StaffRowsHistory.ROWS , ".DEFAULT_ROWS.") as ROWS
+            FROM staff_assign_to_store as StaffAssignToStore
+            LEFT JOIN staff as Staff
+                ON StaffAssignToStore.STAFFCODE = Staff.STAFFCODE
+            LEFT JOIN store as Store
+                ON Staff.STORECODE = Store.STORECODE
+            LEFT JOIN (
+                SELECT *
+                FROM (
+                    SELECT *
+                    FROM staffrowshistory as StaffRowsHistory
+                    WHERE StaffRowsHistory.STORECODE = {$storecode}
+                        {$staffRowsHistoryCond}
+                    ORDER BY StaffRowsHistory.DATECHANGE DESC
+                ) as TMPTBL
+                GROUP BY staffcode
+            ) as StaffRowsHistory
+                ON StaffRowsHistory.STAFFCODE = Staff.STAFFCODE
+            LEFT JOIN (
+                SELECT
+                    STAFFCODE,
+                    YMD,
+                    MIN(HOLIDAYTYPE) as HOLIDAYTYPE,
+                    BIKOU,
+                    UPDATEDATE,
+                    DELFLG,
+                    UPDATE_INDEX,
+                    STORECODE,
+                    SHIFT
+                FROM staff_holiday
+                WHERE YMD = '{$date}'
+                    AND storecode = {$storecode}
+                    AND staff_holiday.delflg is null
+                GROUP BY storecode, YMD, staffcode
+            ) as Holiday
+                ON Holiday.STAFFCODE = Staff.STAFFCODE
+                AND Holiday.YMD = '{$date}'
+            WHERE StaffAssignToStore.STORECODE = {$storecode}
+            AND (Staff.STORECODE = {$storecode} OR (Staff.STORECODE = 0 AND Staff.Staffcode = 0))
+            AND StaffAssignToStore.ASSIGN_YOYAKU = 1
+            AND Staff.DELFLG IS NULL
+            AND (Staff.HIREDATE IS NULL OR Staff.HIREDATE <= '{$date}')
+            AND (Staff.RETIREDATE IS NULL OR Staff.RETIREDATE >= '{$date}')
+            AND NOT (
+                COALESCE(Holiday.HOLIDAYTYPE, 4) < 4
+                AND Holiday.DELFLG IS NULL
+            )
+            GROUP BY StaffAssignToStore.STAFFCODE
+            HAVING WEBYAN_DISPLAY > 0 AND ROWS > 0";
+
+        return $controller->StaffAssignToStore->query($sql);
     }
 
     /**
@@ -2795,17 +2780,17 @@ class KeitaiSessionComponent extends Object
      * @param $dbName 対象となるDBの名前
      * @param $ccode 対象となる顧客コード
      */
-        function SetAccesslog(&$controller, $dbName,$sessionid,$ccode,$storecode,$windowname,$status ,$reg_status = 0,$user_fromcode = 0) {
+    function SetAccesslog(&$controller, $dbName,$sessionid,$ccode,$storecode,$windowname,$status ,$reg_status = 0,$user_fromcode = 0) {
         if (is_null($controller) || is_null($dbName) || is_null($ccode)) { return null; }
         //試験的にDIVAのみに導入
         if($dbName == "sipssb_diva" || $dbName == "sipssb_think" || $dbName == "sipssb_remi"){
 
-        if($sessionid == ""){
-            $sessionid = "new_".$dbName.md5(mt_rand());
-        }
-        $x_remote_addr = isset($_SERVER['HTTP_X_FORWARDED_FOR']) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : "0.0.0.0";
-        $user_agent = $_SERVER['HTTP_USER_AGENT'];
-        $referer = $_SERVER['HTTP_REFERER'];
+            if($sessionid == ""){
+                $sessionid = "new_".$dbName.md5(mt_rand());
+            }
+            $x_remote_addr = isset($_SERVER['HTTP_X_FORWARDED_FOR']) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : "0.0.0.0";
+            $user_agent = $_SERVER['HTTP_USER_AGENT'];
+            $referer = $_SERVER['HTTP_REFERER'];
 
             $query = "insert into log_mobile(ymd,sessionid ,storecode,ccode, client_ip, ua,referer,lastpagename,status,reg_status,user_fromcode)
                 values(
@@ -2835,6 +2820,25 @@ class KeitaiSessionComponent extends Object
         }
     }
 
-
+    /**
+     * Summary of GetKanzashiFlag
+     * @param mixed $controller
+     * @param mixed $company
+     * @param mixed $storecode
+     * @return boolean
+     */
+    function GetKanzashiFlag(&$controller, $company, $storecode)
+    {
+        $sql = "
+        SELECT kanzashi_id
+        FROM sipssbeauty_kanzashi.salon
+        WHERE
+	        companyid = ? AND
+	        storecode = ?
+        ";
+        $param = array($company, $storecode);
+        $rs = $controller->Store->query($sql, $param, false);
+        return count($rs) > 0;
+    }
 }
 ?>
