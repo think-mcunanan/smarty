@@ -6713,12 +6713,12 @@ class ServersController extends WebServicesController
 
             $mailItems = $this->MiscFunction->GetMailItems($this, $storeinfo);
             if ($mailItems) {
-                if(!isset($param["MAILNOTICE"]))            $param["MAILNOTICE"] = $mailItems["notice"];
-                if(!isset($param["MAILNOTICESECOND"]))      $param["MAILNOTICESECOND"] = $mailItems["noticesecond"];
-                if(!isset($param["MODIFYING_MAIL_MSG"]))    $param["MODIFYING_MAIL_MSG"] = $mailItems["modifying"];
-                if(!isset($param["FOLLOW_MAIL_MSG"]))       $param["FOLLOW_MAIL_MSG"] = $mailItems["follow"];
-                if(!isset($param["MAILSIGNATURE"]))         $param["MAILSIGNATURE"] = $mailItems["signature"];
-            }
+                if(!isset($param["MAILNOTICE"]))            { $param["MAILNOTICE"] = $mailItems["notice"]; }
+                if(!isset($param["MAILNOTICESECOND"]))      { $param["MAILNOTICESECOND"] = $mailItems["noticesecond"]; }
+                if(!isset($param["MODIFYING_MAIL_MSG"]))    { $param["MODIFYING_MAIL_MSG"] = $mailItems["modifying"]; }
+                if(!isset($param["FOLLOW_MAIL_MSG"]))       { $param["FOLLOW_MAIL_MSG"] = $mailItems["follow"]; }
+                if(!isset($param["MAILSIGNATURE"]))         { $param["MAILSIGNATURE"] = $mailItems["signature"]; }
+            } 
 
             $queryParams = array(
                 "YoyakuRegistration" => $param["REGISTRATION"],
