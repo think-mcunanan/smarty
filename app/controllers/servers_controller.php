@@ -6711,14 +6711,14 @@ class ServersController extends WebServicesController
             $replace_str = "REPLACE INTO store_settings (STORECODE, OPTIONNAME, OPTIONVALUES) VALUES ({$storeinfo["storecode"]}, ";
             $delete_str = "DELETE FROM store_settings WHERE STORECODE = {$storeinfo["storecode"]} AND OPTIONNAME = ";
 
-            $store = $this->MiscFunction->GetStoreForMail($this, $storeinfo);
-
-            if(!isset($param["MAILNOTICE"]))            $param["MAILNOTICE"] = $this->MiscFunction->GetMailNotice();
-            if(!isset($param["MAILNOTICESECOND"]))      $param["MAILNOTICESECOND"] = $this->MiscFunction->GetMailNoticeSecond($store);
-            if(!isset($param["MODIFYING_MAIL_MSG"]))    $param["MODIFYING_MAIL_MSG"] = $this->MiscFunction->GetMailModifying();
-            if(!isset($param["FOLLOW_MAIL_MSG"]))       $param["FOLLOW_MAIL_MSG"] = $this->MiscFunction->GetMailFollow($store);
-            if(!isset($param["MAILSIGNATURE"]))         $param["MAILSIGNATURE"] = $this->MiscFunction->GetMailSignature($store);
-
+            $mailItems = $this->MiscFunction->GetMailItems($this, $storeinfo);
+            if ($mailItems) {
+                if(!isset($param["MAILNOTICE"]))            $param["MAILNOTICE"] = $mailItems["notice"];
+                if(!isset($param["MAILNOTICESECOND"]))      $param["MAILNOTICESECOND"] = $mailItems["noticesecond"];
+                if(!isset($param["MODIFYING_MAIL_MSG"]))    $param["MODIFYING_MAIL_MSG"] = $mailItems["modifying"];
+                if(!isset($param["FOLLOW_MAIL_MSG"]))       $param["FOLLOW_MAIL_MSG"] = $mailItems["follow"];
+                if(!isset($param["MAILSIGNATURE"]))         $param["MAILSIGNATURE"] = $mailItems["signature"];
+            }
 
             $queryParams = array(
                 "YoyakuRegistration" => $param["REGISTRATION"],
