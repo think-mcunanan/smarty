@@ -2896,7 +2896,8 @@ class ServersController extends WebServicesController
                 FROM sipssbeauty_kanzashi.salon
                 WHERE
                     companyid = ? AND
-                    storecode = ?
+                    storecode = ? AND
+                    status NOT IN (12, 13)
             ";
             $param = array($arrReturn['companyid'], $arrReturn['storecode']);
             $rs = $this->StoreSettings->query($sql, $param, false);
