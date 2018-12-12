@@ -10548,7 +10548,7 @@ class ServersController extends WebServicesController
             return;
         }
 
-        return date('Y-m-d h:i:s');
+        return date('Y-m-d H:i:s');
     }
 
 }//end class ServersController
