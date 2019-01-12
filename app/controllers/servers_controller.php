@@ -784,7 +784,7 @@ class ServersController extends WebServicesController
                             'storecode' => 'xsd:int',
                             'ymd'       => 'xsd:date'
                         ),
-                        'output' => array('return' => 'tns:kanzashiCustomersLimit')
+                        'output' => array('return' => 'tns:_kanzashiCustomersLimit')
                     ),
                     'wsGetMonthlyKanzashiSalonHours' => array(
                         'doc'    => '月毎かんざしサロン営業時間取得',
@@ -10340,19 +10340,26 @@ class ServersController extends WebServicesController
         $query = "
             SELECT
                 ymd,
-                MIN(begin_time) begin_time,
-                MAX(end_time) end_time,
-                CAST(AVG(limit_count) AS UNSIGNED) limit_count
+                begin_time,
+                end_time,
+                limit_count
             FROM kanzashi_customers_limit
             WHERE
                 storecode = ? AND
                 ymd = ?
-            GROUP BY ymd
+            ORDER BY
+                begin_time
         ";
 
         $param = array($storecode, $ymd);
         $records = $this->StoreHoliday->query($query, $param, false);
-        return $records ? $records[0]['kanzashi_customers_limit'] + $records[0][0] : null;
+        $result = array();
+
+        foreach ($records as $record) {
+            $result[] = $record['kanzashi_customers_limit'];
+        }
+
+        return $result;
     }
 
     /**
