@@ -1957,32 +1957,32 @@ class ServersController extends WebServicesController
         $totalrec = "
             SELECT COUNT(ccode)
             FROM customer
-            WHERE 
-                delflg IS NULL 
+            WHERE
+                delflg IS NULL
                 AND ccode <> '{$tmpccode}'
                 AND ccode <> '{$basecode}'
                 {$strcond}
-                {$filename1} 
+                {$filename1}
                 {$firstdatecond}";
 
         $Sql = "
-            SELECT 
-                ccode, 
-                cnumber, 
-                cname, 
-                cnamekana, 
-                sex, 
-                tel1, 
-                tel2, 
-                birthdate, 
+            SELECT
+                ccode,
+                cnumber,
+                cname,
+                cnamekana,
+                sex,
+                tel1,
+                tel2,
+                birthdate,
                 christian_era,
-                mailaddress1, 
-                mailaddress2, 
-                zipcode1, 
-                address1, 
-                mansionmei, 
-                cstorecode, 
-                firstdate, 
+                mailaddress1,
+                mailaddress2,
+                zipcode1,
+                address1,
+                mansionmei,
+                cstorecode,
+                firstdate,
                 lastdate,
                 ({$totalrec}) as totalrecords
             FROM (
@@ -2000,17 +2000,17 @@ class ServersController extends WebServicesController
                     IFNULL(mailaddress2, '') as mailaddress2,
                     IFNULL(zipcode1, '') as zipcode1,
                     IFNULL(address1, '') as address1,
-                    IFNULL(mansionmei, '') as mansionmei, 
+                    IFNULL(mansionmei, '') as mansionmei,
                     cstorecode,
                     firstdate,
                     lastdate
                 FROM customer
-                WHERE 
-                    delflg IS NULL 
+                WHERE
+                    delflg IS NULL
                     AND ccode <> '{$tmpccode}'
                     AND ccode <> '{$basecode}'
                     {$strcond}
-                    {$filename1} 
+                    {$filename1}
                     {$firstdatecond}
                 ORDER BY cnamekana, firstdate
                 LIMIT " . ($pageindex * 50) . ", 50
@@ -6698,7 +6698,7 @@ class ServersController extends WebServicesController
                 if(!isset($param["MODIFYING_MAIL_MSG"]))    { $param["MODIFYING_MAIL_MSG"] = $mailItems["modifying"]; }
                 if(!isset($param["FOLLOW_MAIL_MSG"]))       { $param["FOLLOW_MAIL_MSG"] = $mailItems["follow"]; }
                 if(!isset($param["MAILSIGNATURE"]))         { $param["MAILSIGNATURE"] = $mailItems["signature"]; }
-            } 
+            }
 
             $queryParams = array(
                 "YoyakuRegistration" => $param["REGISTRATION"],
@@ -10334,32 +10334,8 @@ class ServersController extends WebServicesController
             $this->_soap_server->fault(1, '', INVALID_SESSION);
             return;
         }
+        return $this->MiscFunction->GetDailyKanzashiCustomersLimit($this, $storeinfo['dbname'], $sessionid, $storecode, $ymd);
 
-        $this->StoreHoliday->set_company_database($storeinfo['dbname'], $this->StoreHoliday, ConnectionServer::SLAVE);
-
-        $query = "
-            SELECT
-                ymd,
-                begin_time,
-                end_time,
-                limit_count
-            FROM kanzashi_customers_limit
-            WHERE
-                storecode = ? AND
-                ymd = ?
-            ORDER BY
-                begin_time
-        ";
-
-        $param = array($storecode, $ymd);
-        $records = $this->StoreHoliday->query($query, $param, false);
-        $result = array();
-
-        foreach ($records as $record) {
-            $result[] = $record['kanzashi_customers_limit'];
-        }
-
-        return $result;
     }
 
     /**

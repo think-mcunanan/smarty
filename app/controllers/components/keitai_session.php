@@ -1663,7 +1663,7 @@ class KeitaiSessionComponent extends Object
         $storecode = $session_info['storecode'];
         $kanzashiFlag = $session_info['kanzashiflag'];
 
-        $availableStaffs = $this->GetAvailableStaffDetails($controller, $storecode, $sel_date, $kanzashiFlag);
+       $availableStaffs = $this->GetAvailableStaffDetails($controller, $storecode, $sel_date, $kanzashiFlag);
 
         $total_staff_capacity = 0;
         for ($i = 0; $i < count($availableStaffs); $i++) {
@@ -1766,6 +1766,42 @@ class KeitaiSessionComponent extends Object
             //-------------------------------------------------------------------------------
         }
         //-----------------------------------------------------------------------------------
+        if ($kanzashiFlag){
+            $kanzashiDetails = $controller->MiscFunction->GetDailyKanzashiCustomersLimit($controller, $session_info['dbname'], $sessionid, $storecode, $sel_date);
+            $StoreOpenTime =$kanzashiDetails[0]['begin_time'];
+            $tmp_start = str_replace(":","",substr($StoreOpenTime,0,5));
+
+            $StoreCloseTime =$kanzashiDetails[array_pop(array_keys($kanzashiDetails))]['end_time'];
+            $tmp_end = str_replace(":","",substr($StoreCloseTime,0,5));
+
+            $start_time = intval(substr($tmp_start, 0, 2)) * 4;
+            $start_min = intval(substr($tmp_start, 2, 2));
+            $end_time = intval(substr($tmp_end, 0, 2)) * 4;
+            $end_min = intval(substr($tmp_end, 2, 2));
+
+            $start_time += ($start_min > 45) ? 4 :
+                            (($start_min > 30) ? 3 :
+                                    (($start_min > 15) ? 2 :
+                                            (($start_min > 0) ? 1 : 0)));
+
+            $end_time += ($end_min >= 45) ? 3 :
+                            (($end_min >= 30) ? 2 :
+                                    (($end_min >= 15) ? 1 : 0));
+
+            $k = 0;
+            for($i=$start_time;$i<$end_time;$i++){
+                $j = $i+1;
+               while($k<$j){
+                    $yoyakuCustomersLimitarr[$i] = intval($kanzashiDetails[$k]['limit_count']);
+                    if($i == $j) {
+                        $k++;
+                        break;
+                    }
+                    $i++;
+                }
+            }
+
+        }
         $start_time = intval(substr($tmp_start, 0, 2)) * 4;
         $start_min = intval(substr($tmp_start, 2, 2));
         $end_time = intval(substr($tmp_end, 0, 2)) * 4;
@@ -1796,15 +1832,15 @@ class KeitaiSessionComponent extends Object
         $time_arr_reserves_staff = array();
 
         for ($i = 0; $i < count($availableStaffs); $i++) {
-                $itm = NULL;
-                if (!empty($v)) {
-                    foreach ($v as $item) {
-                        if($availableStaffs[$i]['StaffAssignToStore']['STAFFCODE'] == $item['StaffShift']['STAFFCODE']) {
-                            $itm = $item;
-                            break;
-                        }
+            $itm = NULL;
+            if (!empty($v)) {
+                foreach ($v as $item) {
+                    if($availableStaffs[$i]['StaffAssignToStore']['STAFFCODE'] == $item['StaffShift']['STAFFCODE']) {
+                        $itm = $item;
+                        break;
                     }
                 }
+            }
 
             //初期値設定
             $start_time = intval(substr($tmp_start, 0, 2)) * 4;
@@ -1827,14 +1863,14 @@ class KeitaiSessionComponent extends Object
                     $end_min = intval(substr($tmp_end_shift, 3, 2));
                 }
             }
-                $start_time += ($start_min > 45) ? 4 :
-                        (($start_min > 30) ? 3 :
-                                (($start_min > 15) ? 2 :
-                                        (($start_min > 0) ? 1 : 0)));
+            $start_time += ($start_min > 45) ? 4 :
+                    (($start_min > 30) ? 3 :
+                            (($start_min > 15) ? 2 :
+                                    (($start_min > 0) ? 1 : 0)));
 
-                $end_time += ($end_min >= 45) ? 3 :
-                        (($end_min >= 30) ? 2 :
-                                (($end_min >= 15) ? 1 : 0));
+            $end_time += ($end_min >= 45) ? 3 :
+                    (($end_min >= 30) ? 2 :
+                            (($end_min >= 15) ? 1 : 0));
 
 
             // Adjustment made if today is the day selected //
@@ -1856,7 +1892,7 @@ class KeitaiSessionComponent extends Object
                 //選択したスタッフの開始、終了時間を保持
                 $start_time_staff = $start_time;
                 $end_time_staff = $end_time;
-             }
+            }
 
             //シフト時間外は、スタッフが「稼働中」とみなす。
             $staffcode = $availableStaffs[$i]['StaffAssignToStore']['STAFFCODE'];
@@ -1869,7 +1905,7 @@ class KeitaiSessionComponent extends Object
             for ($b = $end_time; $b <= (23*4) + 3 ; $b++) {
                     $time_arr_reserves_staff[$staffcode][$b] = intval($availableStaffs[$i][0]['ROWS']);
             }
-         }
+        }
 
         // 出勤終わった時間をブロックする
         $time_arr[$end_time_staff] = 90;
@@ -1905,17 +1941,17 @@ class KeitaiSessionComponent extends Object
                 if($availableStaffs[$i]['StaffAssignToStore']['STAFFCODE'] == $itm['BreakTime']['STAFFCODE']){
                     $staffcode = $itm['BreakTime']['STAFFCODE'];
                     for ($b = $break_start_b; $b <= $break_end_b; $b++) {
-                            if(intval($time_arr_reserves_staff[$staffcode][$b]) < intval($availableStaffs[$i][0]['ROWS'])){
-                                  $time_arr_reserves_staff[$staffcode][$b] +=1;//$v2[$i][0]['ROWS'];
-                                  $time_arr_reserves_staff_yoyaku[$staffcode][$b]+=1;
-                             }
+                        if(intval($time_arr_reserves_staff[$staffcode][$b]) < intval($availableStaffs[$i][0]['ROWS'])){
+                            $time_arr_reserves_staff[$staffcode][$b] +=1;//$v2[$i][0]['ROWS'];
+                            $time_arr_reserves_staff_yoyaku[$staffcode][$b]+=1;
                         }
                     }
-                    if ($itm['BreakTime']['STAFFCODE'] == $session_info['y_staff']) {
+                }
+                if ($itm['BreakTime']['STAFFCODE'] == $session_info['y_staff']) {
                         $time_arr[$b]+=1;
-                    }
                 }
             }
+        }
         //--------- END Break Times -----------------------------------------------//
 
 
@@ -1979,8 +2015,8 @@ class KeitaiSessionComponent extends Object
                         $time_arr_free[$b] +=1;
                     }
                     break;
-                 }
-           }
+                }
+            }
         }
         // END --- Count existing transaction ----------------------------------//
 
@@ -2018,6 +2054,7 @@ class KeitaiSessionComponent extends Object
             }
 
             for ($j = $i; $j < $end_block; $j++) {
+                if ($kanzashiFlag) {$yoyakuCustomersLimit = $yoyakuCustomersLimitarr[$j];}
                 if(intval($time_arr[$j]) >= $staff_capacity) {
                     $ok = false;
                 }

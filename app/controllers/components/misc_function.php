@@ -807,10 +807,10 @@ class MiscFunctionComponent extends Object
                             pos_id,
                             staffcode
                         FROM kanzashi_stylist
-                        
+
                         UNION ALL
-                        
-                        SELECT 
+
+                        SELECT
                             0 pos_id,
                             0 staffcode
                     ) ks
@@ -819,7 +819,7 @@ class MiscFunctionComponent extends Object
                     WHERE ks.pos_id IN ({$stylist_pos_ids_query})
                     ORDER BY FIELD(ks.pos_id, {$stylist_pos_ids_query})
                 ";
-                
+
                 $records = $controller->StoreTransaction->query($query);
                 $staff_names = array();
 
@@ -1715,6 +1715,42 @@ class MiscFunctionComponent extends Object
         );
 
         return $this->Curl($url, $options);
+    }
+    /**
+     * 日毎かんざし時間別予約可能数取得
+     *
+     * @param string $sessionid セッションID
+     * @param int $storecode 店舗コード
+     * @param string $ymd 年月日
+     * @return kanzashiCustomersLimit かんざし時間別予約可能数
+     */
+    function GetDailyKanzashiCustomersLimit(&$controller, $customerinfo, $sessionid, $storecode, $ymd) {
+
+        $controller->StoreHoliday->set_company_database($customerinfo, $controller->StoreHoliday, ConnectionServer::SLAVE);
+
+        $query = "
+            SELECT
+                ymd,
+                begin_time,
+                end_time,
+                limit_count
+            FROM kanzashi_customers_limit
+            WHERE
+                storecode = ? AND
+                ymd = ?
+            ORDER BY
+                begin_time
+        ";
+
+        $param = array($storecode, $ymd);
+        $records = $controller->StoreHoliday->query($query, $param, false);
+        $result = array();
+
+        foreach ($records as $record) {
+            $result[] = $record['kanzashi_customers_limit'];
+        }
+
+        return $result;
     }
 
 }
