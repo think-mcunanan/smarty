@@ -1767,40 +1767,38 @@ class KeitaiSessionComponent extends Object
         }
         //-----------------------------------------------------------------------------------
         if ($kanzashiFlag){
-            $kanzashiDetails = $controller->MiscFunction->GetDailyKanzashiCustomersLimit($controller, $session_info['dbname'], $sessionid, $storecode, $sel_date);
-            $StoreOpenTime =$kanzashiDetails[0]['begin_time'];
-            $tmp_start = str_replace(":","",substr($StoreOpenTime,0,5));
+            $kanzashiDetails = $controller->MiscFunction->GetDailyKanzashiCustomersLimit($controller, $session_info['dbname'], $storecode, $sel_date);
+            if ($kanzashiDetails) {
 
-            $StoreCloseTime =$kanzashiDetails[array_pop(array_keys($kanzashiDetails))]['end_time'];
-            $tmp_end = str_replace(":","",substr($StoreCloseTime,0,5));
+                $StoreOpenTime = new DateTime($kanzashiDetails[0]['begin_time']);
+                $tmp_start = $StoreOpenTime->format('Hi');
 
-            $start_time = intval(substr($tmp_start, 0, 2)) * 4;
-            $start_min = intval(substr($tmp_start, 2, 2));
-            $end_time = intval(substr($tmp_end, 0, 2)) * 4;
-            $end_min = intval(substr($tmp_end, 2, 2));
+                $StoreCloseTime = new DateTime($kanzashiDetails[count($kanzashiDetails)-1]['end_time']);
+                $tmp_end = $StoreCloseTime->format('Hi');
 
-            $start_time += ($start_min > 45) ? 4 :
-                            (($start_min > 30) ? 3 :
-                                    (($start_min > 15) ? 2 :
-                                            (($start_min > 0) ? 1 : 0)));
+                $start_time = intval(substr($tmp_start, 0, 2)) * 4;
+                $start_min = intval(substr($tmp_start, 2, 2));
+                $end_time = intval(substr($tmp_end, 0, 2)) * 4;
+                $end_min = intval(substr($tmp_end, 2, 2));
 
-            $end_time += ($end_min >= 45) ? 3 :
-                            (($end_min >= 30) ? 2 :
-                                    (($end_min >= 15) ? 1 : 0));
+                $start_time += ceil($start_min / 15);
+                $end_time += floor($end_min / 15);
 
-            $k = 0;
-            for($i=$start_time;$i<$end_time;$i++){
-                $j = $i+1;
-               while($k<$j){
-                    $yoyakuCustomersLimitarr[$i] = intval($kanzashiDetails[$k]['limit_count']);
-                    if($i == $j) {
-                        $k++;
-                        break;
+
+                $k = 0;
+                for($i=$start_time;$i<$end_time;$i++){
+                    $j = $i+1;
+                    while($k<$j){
+                        //Yoyaku Customer Limit per time Slot
+                        $yoyakuCustomersLimitarr[$i] = intval($kanzashiDetails[$k]['limit_count']);
+                        if($i == $j) {
+                            $k++;
+                            break;
+                        }
+                        $i++;
                     }
-                    $i++;
                 }
             }
-
         }
         $start_time = intval(substr($tmp_start, 0, 2)) * 4;
         $start_min = intval(substr($tmp_start, 2, 2));

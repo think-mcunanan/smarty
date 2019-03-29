@@ -10334,7 +10334,7 @@ class ServersController extends WebServicesController
             $this->_soap_server->fault(1, '', INVALID_SESSION);
             return;
         }
-        return $this->MiscFunction->GetDailyKanzashiCustomersLimit($this, $storeinfo['dbname'], $sessionid, $storecode, $ymd);
+        return $this->MiscFunction->GetDailyKanzashiCustomersLimit($this, $storeinfo['dbname'], $storecode, $ymd);
 
     }
 

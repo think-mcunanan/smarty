@@ -1719,14 +1719,15 @@ class MiscFunctionComponent extends Object
     /**
      * 日毎かんざし時間別予約可能数取得
      *
-     * @param string $sessionid セッションID
+     * @param controller &$controller
+     * @param string $dbname
      * @param int $storecode 店舗コード
      * @param string $ymd 年月日
      * @return kanzashiCustomersLimit かんざし時間別予約可能数
      */
-    function GetDailyKanzashiCustomersLimit(&$controller, $customerinfo, $sessionid, $storecode, $ymd) {
+    function GetDailyKanzashiCustomersLimit(&$controller, $dbname, $storecode, $ymd) {
 
-        $controller->StoreHoliday->set_company_database($customerinfo, $controller->StoreHoliday, ConnectionServer::SLAVE);
+        $controller->StoreHoliday->set_company_database($dbname, $controller->StoreHoliday, ConnectionServer::SLAVE);
 
         $query = "
             SELECT
