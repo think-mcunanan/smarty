@@ -1951,7 +1951,8 @@ class YkController extends AppController {
                         }
                         $service_list .= $srvc['menuname'];
                     }
-
+                    
+                    $session_info['kanzashiflag'] = $store_info['KanzashiFlag'];
                     $AvailableTimes = $this->KeitaiSession->GetAvailableTimes($this,
                     $session_info,
                     $total_servicetime,
