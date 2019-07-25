@@ -504,7 +504,7 @@ class KeitaiSessionComponent extends Object
         $arrReturn['logintype'] = $logintype;
         $arrReturn['storeid'] = $account_data[0]['WebyanAccount']['storeid'];
         $arrReturn['tosflg'] = $account_data[0]['WebyanAccount']['tos_flg'];
-        $arrReturn['KanzashiFlag'] = $this->GetKanzashiFlag($controller, $companyid, $storecode);
+        $arrReturn['KanzashiFlag'] = $controller->MiscFunction->GetKanzashiFlag($controller, $companyid, $storecode);
 
         $controller->StoreSettings->set_company_database($dbname, $controller->StoreSettings);
         $criteria   = array('STORECODE' => $storecode);
@@ -2855,25 +2855,6 @@ class KeitaiSessionComponent extends Object
         }
     }
 
-    /**
-     * Summary of GetKanzashiFlag
-     * @param mixed $controller
-     * @param mixed $company
-     * @param mixed $storecode
-     * @return boolean
-     */
-    function GetKanzashiFlag(&$controller, $company, $storecode)
-    {
-        $sql = "
-        SELECT kanzashi_id
-        FROM sipssbeauty_kanzashi.salon
-        WHERE
-	        companyid = ? AND
-	        storecode = ?
-        ";
-        $param = array($company, $storecode);
-        $rs = $controller->Store->query($sql, $param, false);
-        return count($rs) > 0;
-    }
+
 }
 ?>

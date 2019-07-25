@@ -1754,5 +1754,26 @@ class MiscFunctionComponent extends Object
         return $result;
     }
 
+    /**
+     * Summary of GetKanzashiFlag
+     * @param mixed $controller
+     * @param mixed $company
+     * @param mixed $storecode
+     * @return boolean
+     */
+    function GetKanzashiFlag(&$controller, $company, $storecode)
+    {
+        $sql = "
+        SELECT kanzashi_id
+        FROM sipssbeauty_kanzashi.salon
+        WHERE
+	        companyid = ? AND
+	        storecode = ?
+        ";
+        $param = array($company, $storecode);
+        $rs = $controller->Store->query($sql, $param, false);
+        return count($rs) > 0;
+    }
+
 }
 ?>

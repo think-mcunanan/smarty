@@ -1019,6 +1019,7 @@ class ServersController extends WebServicesController
                                         'SEX'              => 'xsd:int',
                                         'YOYAKU_DISPLAY'   => 'xsd:int',
                                         'WEB_DISPLAY'      => 'xsd:int',
+                                        'KANZASHI_ENABLED' => 'xsd:int',
                                         'ROWS'             => 'xsd:int',
                                         'PHONEROWS'        => 'xsd:int',
                                         'DISPLAY_ORDER'    => 'xsd:int',
@@ -1035,7 +1036,8 @@ class ServersController extends WebServicesController
                                         'array' => 'staffInformation'),
                              'return_staffInformation' => array('struct' => array(
                                         'records'      => 'tns:_staffInformation',
-                                        'record_count' => 'xsd:int')),
+                                        'record_count' => 'xsd:int',
+                                        'kanzashi_enabled' => 'xsd:boolean')),
 
                              'staffRowsHistoryInformation' => array('struct' => array(
                                         'STAFFCODE'        => 'xsd:int',
@@ -3751,6 +3753,7 @@ class ServersController extends WebServicesController
                            "StaffAssignToStore.KEYNO",
                            "StaffAssignToStore.ASSIGN_YOYAKU",
                            "StaffAssignToStore.WEBYAN_DISPLAY",
+                           "StaffAssignToStore.KANZASHI_ENABLED",
                            "StaffAssignToStore.ASSIGN",
                            "StaffAssignToStore.DISPLAY_ORDER"
             );
@@ -3774,11 +3777,11 @@ class ServersController extends WebServicesController
             $v[$i]['Staff']['SUBLEVELNAME'] = $v[$i]['Sublevel']['SUBLEVELNAME'];
             $v[$i]['Staff']['POSITIONNAME'] = $v[$i]['Position']['POSITIONNAME'];
             $v[$i]['Staff']['WEB_DISPLAY'] = $v[$i]['StaffAssignToStore']['WEBYAN_DISPLAY'];
+            $v[$i]['Staff']['KANZASHI_ENABLED'] = $v[$i]['StaffAssignToStore']['KANZASHI_ENABLED'];
             $v[$i]['Staff']['YOYAKU_DISPLAY'] = $v[$i]['StaffAssignToStore']['ASSIGN_YOYAKU'];
             //staff assign to store display order no used
             //$v[$i]['Staff']['DISPLAY_ORDER'] = $v[$i]['StaffAssignToStore']['DISPLAY_ORDER'];
         }
-
         /*         * *** Old and Ugly Method **************************************************
          *  might have a faster execution time so we are keeping the code around
         $showcalendar_sql = "SELECT STAFFCODE,
@@ -3791,14 +3794,11 @@ class ServersController extends WebServicesController
         FROM staffrowshistory  tblA
         WHERE storecode = ".$storeinfo['storecode']."
         GROUP BY staffcode";
-
-
         $showincalendar_result = $this->StaffRowsHistory->query($showcalendar_sql);
         $showincalendar_list = array();
         foreach($showincalendar_result as $entry) {
         $showincalendar_list[$entry['tblA']['STAFFCODE']] = $entry[0]['SHOWINCALENDAR'];
         }
-
         for ($i = 0; $i < count($v); $i++) {
         $staffcode = $v[$i]['Staff']['STAFFCODE'];
         $v[$i]['Staff']['SUBLEVELNAME']   = $v[$i]['Sublevel']['SUBLEVELNAME'];
@@ -3813,6 +3813,8 @@ class ServersController extends WebServicesController
         $ret['records'] = set::extract($v, '{n}.Staff');
         $ret['record_count'] = $this->Staff->find('count', array('conditions' => $criteria_top,
                                                   'fields' => 'DISTINCT Staff.STAFFCODE'));
+        $ret['kanzashi_enabled'] = $this->MiscFunction->GetKanzashiFlag($this, $storeinfo['companyid'], $param['STORECODE']);
+
         if (count($ret['records']) > 0) {
             $ctr = 0;
             foreach ($ret['records'] AS $rec) {
@@ -4529,17 +4531,26 @@ class ServersController extends WebServicesController
         ".$param['WEB_DISPLAY'].",".$param['YOYAKU_DISPLAY'].", IF('".$param['DISPLAY_ORDER']."' = '', null, '".$param['DISPLAY_ORDER']."'))";
          */
 
-        $sql = "INSERT INTO staff_assign_to_store (STORECODE, STAFFCODE, WEBYAN_DISPLAY, ASSIGN_YOYAKU, DISPLAY_ORDER)
-                    VALUES(".$storeinfo['storecode'].",".$param['STAFFCODE'].",".
-                             $param['WEB_DISPLAY'].",".$param['YOYAKU_DISPLAY'].", IF('".$param['DISPLAY_ORDER']."' = '', null, '".$param['DISPLAY_ORDER']."'))
+        $sql = "
+            INSERT INTO staff_assign_to_store (STORECODE, STAFFCODE, WEBYAN_DISPLAY, KANZASHI_ENABLED, ASSIGN_YOYAKU, DISPLAY_ORDER)
+                VALUES(:storecode, :staffcode, :web_display, :kanzashi_enabled, :yoyaku_display, :display_order)
+            ON DUPLICATE KEY
+            UPDATE
+                WEBYAN_DISPLAY = :web_display,
+                KANZASHI_ENABLED = :kanzashi_enabled,
+                ASSIGN_YOYAKU = :yoyaku_display,
+                DISPLAY_ORDER = :display_order";
 
-                ON DUPLICATE KEY
+        $params = array(
+            "storecode" => $storeinfo['storecode'],
+            "staffcode" => $param['STAFFCODE'],
+            "web_display" => $param['WEB_DISPLAY'],
+            "kanzashi_enabled" => $param['KANZASHI_ENABLED'],
+            "yoyaku_display" => $param['YOYAKU_DISPLAY'],
+            "display_order" => $param['DISPLAY_ORDER'] === '' ? 'NULL' : $param['DISPLAY_ORDER'],
+        );
 
-                UPDATE WEBYAN_DISPLAY = ".$param['WEB_DISPLAY'].",
-                       ASSIGN_YOYAKU = ".$param['YOYAKU_DISPLAY'].",
-                       DISPLAY_ORDER = IF('".$param['DISPLAY_ORDER']."' = '', null, '".$param['DISPLAY_ORDER']."')";
-
-        $this->StaffAssignToStore->query($sql);
+        $this->StaffAssignToStore->query($sql, $params);
 
         /*$this->StaffAssignToStore->query("REPLACE INTO staff_assign_to_store
         (STAFFCODE, STORECODE, ASSIGN ) VALUES
