@@ -1036,7 +1036,7 @@ class ServersController extends WebServicesController
                                         'array' => 'staffInformation'),
                              'return_staffInformation' => array('struct' => array(
                                         'records'      => 'tns:_staffInformation',
-                                        'record_count' => 'xsd:int'),
+                                        'record_count' => 'xsd:int')),
 
                              'staffRowsHistoryInformation' => array('struct' => array(
                                         'STAFFCODE'        => 'xsd:int',
