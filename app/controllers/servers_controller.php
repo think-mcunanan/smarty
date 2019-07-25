@@ -1036,8 +1036,7 @@ class ServersController extends WebServicesController
                                         'array' => 'staffInformation'),
                              'return_staffInformation' => array('struct' => array(
                                         'records'      => 'tns:_staffInformation',
-                                        'record_count' => 'xsd:int',
-                                        'kanzashi_enabled' => 'xsd:boolean')),
+                                        'record_count' => 'xsd:int'),
 
                              'staffRowsHistoryInformation' => array('struct' => array(
                                         'STAFFCODE'        => 'xsd:int',
@@ -3769,8 +3768,6 @@ class ServersController extends WebServicesController
         $ret['records'] = set::extract($v, '{n}.Staff');
         $ret['record_count'] = $this->Staff->find('count', array('conditions' => $criteria_top,
                                                   'fields' => 'DISTINCT Staff.STAFFCODE'));
-        $ret['kanzashi_enabled'] = $this->MiscFunction->GetKanzashiFlag($this, $storeinfo['companyid'], $param['STORECODE']);
-
         if (count($ret['records']) > 0) {
             $ctr = 0;
             foreach ($ret['records'] AS $rec) {
