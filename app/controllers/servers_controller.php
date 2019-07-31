@@ -887,11 +887,13 @@ class ServersController extends WebServicesController
 
                              'KanzashiInfo' => array(
                                  'struct' => array(
-                                     'SalonId'       => 'xsd:int',
-                                     'SigninUrl'     => 'xsd:string',
-                                     'SigninHashKey' => 'xsd:string',
-                                     'SigninMedia'   => 'xsd:string',
-                                     'SigninVersion' => 'xsd:string'
+                                     'SalonId'                                 => 'xsd:int',
+                                     'SyncKanzashiEnabledStaffReservationOnly' => 'xsd:boolean',
+                                     'FreeStaffcode'                           => 'xsd:int',
+                                     'SigninUrl'                               => 'xsd:string',
+                                     'SigninHashKey'                           => 'xsd:string',
+                                     'SigninMedia'                             => 'xsd:string',
+                                     'SigninVersion'                           => 'xsd:string'
                                  )
                              ),
 
@@ -2872,7 +2874,10 @@ class ServersController extends WebServicesController
             $arrReturn = array_merge($arrReturn, array("allstoretype" => $arr_storetypes_allstore));
             //------------------------------------------------------------------
             $sql = "
-                SELECT kanzashi_id
+                SELECT
+                    kanzashi_id,
+                    sync_kanzashi_enabled_staff_reservation_only,
+                    free_staffcode
                 FROM sipssbeauty_kanzashi.salon
                 WHERE
                     companyid = ? AND
@@ -2881,15 +2886,17 @@ class ServersController extends WebServicesController
             ";
             $param = array($arrReturn['companyid'], $arrReturn['storecode']);
             $rs = $this->StoreSettings->query($sql, $param, false);
-            $kanzashi_salon_id = $rs ? $rs[0]['salon']['kanzashi_id'] : 0;
+            $salon = $rs ? $rs[0]['salon'] : null;
 
-            if ($kanzashi_salon_id > 0) {
+            if ($salon) {
                 $arrReturn['KanzashiInfo'] = array(
-                    'SalonId'       => $kanzashi_salon_id,
-                    'SigninUrl'     => KANZASHI_SIGNIN_URL,
-                    'SigninHashKey' => KANZASHI_SIGNIN_HASH_KEY,
-                    'SigninMedia'   => KANZASHI_SIGNIN_MEDIA,
-                    'SigninVersion' => KANZASHI_SIGNIN_VERSION
+                    'SalonId'                                 => $salon['kanzashi_id'],
+                    'SyncKanzashiEnabledStaffReservationOnly' => (bool)$salon['sync_kanzashi_enabled_staff_reservation_only'],
+                    'FreeStaffcode'                           => $salon['free_staffcode'],
+                    'SigninUrl'                               => KANZASHI_SIGNIN_URL,
+                    'SigninHashKey'                           => KANZASHI_SIGNIN_HASH_KEY,
+                    'SigninMedia'                             => KANZASHI_SIGNIN_MEDIA,
+                    'SigninVersion'                           => KANZASHI_SIGNIN_VERSION
                 );
             }
             //------------------------------------------------------------------
@@ -3855,11 +3862,8 @@ class ServersController extends WebServicesController
 		            Staff.STORECODE,
 		            Staff.STAFFNAME,
 		            Store.STORENAME,
-		            if(Staff.STORECODE = ".$param['STORECODE'].",
-				            StaffAssignToStore.WEBYAN_DISPLAY,
-				            if(Staff.STAFFCODE = 0,
-					        StaffAssignToStore.WEBYAN_DISPLAY, 0)
-		            ) as WEBYAN_DISPLAY,
+                    IF (Staff.STORECODE = StaffAssignToStore.STORECODE OR Staff.STAFFCODE = 0, StaffAssignToStore.WEBYAN_DISPLAY, 0) AS WEBYAN_DISPLAY,
+                    IF (Staff.STORECODE = StaffAssignToStore.STORECODE OR Staff.STAFFCODE = 0, StaffAssignToStore.KANZASHI_ENABLED, 0) AS KANZASHI_ENABLED,
                     IFNULL(StaffRowsHistory.ROWS, ".DEFAULT_ROWS.") as origrows,
 		            IFNULL(StaffRowsHistory.PHONEROWS, ".DEFAULT_PHONEROWS.") as origphonerows,
 		            IFNULL(StaffRowsHistory.ROWS, ".DEFAULT_ROWS.") as ROWS,
@@ -3967,6 +3971,7 @@ class ServersController extends WebServicesController
             }
 
             $v[$i]['StaffAssignToStore']['WEB_DISPLAY']= $v[$i][0]['WEBYAN_DISPLAY'];
+            $v[$i]['StaffAssignToStore']['KANZASHI_ENABLED']= $v[$i][0]['KANZASHI_ENABLED'];
             $v[$i]['StaffAssignToStore']['STORENAME']  = $v[$i]['Store']['STORENAME'];
             if ($v[$i][0]['ROWS'] == "" ||
                 $v[$i][0]['ROWS'] == 0) {
