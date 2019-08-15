@@ -887,11 +887,13 @@ class ServersController extends WebServicesController
 
                              'KanzashiInfo' => array(
                                  'struct' => array(
-                                     'SalonId'       => 'xsd:int',
-                                     'SigninUrl'     => 'xsd:string',
-                                     'SigninHashKey' => 'xsd:string',
-                                     'SigninMedia'   => 'xsd:string',
-                                     'SigninVersion' => 'xsd:string'
+                                     'SalonId'                                 => 'xsd:int',
+                                     'SyncKanzashiEnabledStaffReservationOnly' => 'xsd:boolean',
+                                     'FreeStaffcode'                           => 'xsd:int',
+                                     'SigninUrl'                               => 'xsd:string',
+                                     'SigninHashKey'                           => 'xsd:string',
+                                     'SigninMedia'                             => 'xsd:string',
+                                     'SigninVersion'                           => 'xsd:string'
                                  )
                              ),
 
@@ -1019,6 +1021,7 @@ class ServersController extends WebServicesController
                                         'SEX'              => 'xsd:int',
                                         'YOYAKU_DISPLAY'   => 'xsd:int',
                                         'WEB_DISPLAY'      => 'xsd:int',
+                                        'KANZASHI_ENABLED' => 'xsd:int',
                                         'ROWS'             => 'xsd:int',
                                         'PHONEROWS'        => 'xsd:int',
                                         'DISPLAY_ORDER'    => 'xsd:int',
@@ -2871,7 +2874,10 @@ class ServersController extends WebServicesController
             $arrReturn = array_merge($arrReturn, array("allstoretype" => $arr_storetypes_allstore));
             //------------------------------------------------------------------
             $sql = "
-                SELECT kanzashi_id
+                SELECT
+                    kanzashi_id,
+                    sync_kanzashi_enabled_staff_reservation_only,
+                    free_staffcode
                 FROM sipssbeauty_kanzashi.salon
                 WHERE
                     companyid = ? AND
@@ -2880,15 +2886,17 @@ class ServersController extends WebServicesController
             ";
             $param = array($arrReturn['companyid'], $arrReturn['storecode']);
             $rs = $this->StoreSettings->query($sql, $param, false);
-            $kanzashi_salon_id = $rs ? $rs[0]['salon']['kanzashi_id'] : 0;
+            $salon = $rs ? $rs[0]['salon'] : null;
 
-            if ($kanzashi_salon_id > 0) {
+            if ($salon) {
                 $arrReturn['KanzashiInfo'] = array(
-                    'SalonId'       => $kanzashi_salon_id,
-                    'SigninUrl'     => KANZASHI_SIGNIN_URL,
-                    'SigninHashKey' => KANZASHI_SIGNIN_HASH_KEY,
-                    'SigninMedia'   => KANZASHI_SIGNIN_MEDIA,
-                    'SigninVersion' => KANZASHI_SIGNIN_VERSION
+                    'SalonId'                                 => $salon['kanzashi_id'],
+                    'SyncKanzashiEnabledStaffReservationOnly' => (bool)$salon['sync_kanzashi_enabled_staff_reservation_only'],
+                    'FreeStaffcode'                           => $salon['free_staffcode'],
+                    'SigninUrl'                               => KANZASHI_SIGNIN_URL,
+                    'SigninHashKey'                           => KANZASHI_SIGNIN_HASH_KEY,
+                    'SigninMedia'                             => KANZASHI_SIGNIN_MEDIA,
+                    'SigninVersion'                           => KANZASHI_SIGNIN_VERSION
                 );
             }
             //------------------------------------------------------------------
@@ -3653,20 +3661,6 @@ class ServersController extends WebServicesController
             //--------------------------------------------------------------------------------------------------------------------
         }//end else
 
-        /*
-        $this->Staff->bindModel(array(
-        'hasOne' => array('Sublevel' => array(
-        'foreignKey' => false,
-        'conditions' => array('Sublevel.SUBLEVELCODE = Staff.SUBLEVELCODE')),
-        'Position' => array(
-        'foreignKey' => false,
-        'conditions' => array('Position.POSITIONCODE = Staff.POSITIONCODE')),
-        'StaffAssignToStore' => array(
-        'foreignKey' => false,
-        'conditions' => array('StaffAssignToStore.STAFFCODE = Staff.STAFFCODE',
-        'StaffAssignToStore.STORECODE = ' . $storeinfo['storecode'])),
-        )));
-         */
         $this->Staff->bindModel($bindarray);
         $this->Staff->unbindModel(array('belongsTo' => array('Sublevel', 'Position')));
 
@@ -3751,6 +3745,7 @@ class ServersController extends WebServicesController
                            "StaffAssignToStore.KEYNO",
                            "StaffAssignToStore.ASSIGN_YOYAKU",
                            "StaffAssignToStore.WEBYAN_DISPLAY",
+                           "StaffAssignToStore.KANZASHI_ENABLED",
                            "StaffAssignToStore.ASSIGN",
                            "StaffAssignToStore.DISPLAY_ORDER"
             );
@@ -3758,14 +3753,12 @@ class ServersController extends WebServicesController
         //------------------------------------------------------------------------------------------------
         if ($param['limit'] <> -1) {
             $v = $this->Staff->find('all', array('conditions' => $criteria_top,
-                //'order'        => array('Staff.'.$param['orderby']),
                 'fields' => $arrFields,
                 'order' => array($param['orderby']),
                 'limit' => $param['limit'],
                 'page' => $param['page']));
         } else {
             $v = $this->Staff->find('all', array('conditions' => $criteria_top,
-                //'order'        => array('Staff.'.$param['orderby'])));
                 'fields' => $arrFields,
                 'order' => array($param['orderby'])));
         }
@@ -3774,40 +3767,9 @@ class ServersController extends WebServicesController
             $v[$i]['Staff']['SUBLEVELNAME'] = $v[$i]['Sublevel']['SUBLEVELNAME'];
             $v[$i]['Staff']['POSITIONNAME'] = $v[$i]['Position']['POSITIONNAME'];
             $v[$i]['Staff']['WEB_DISPLAY'] = $v[$i]['StaffAssignToStore']['WEBYAN_DISPLAY'];
+            $v[$i]['Staff']['KANZASHI_ENABLED'] = $v[$i]['StaffAssignToStore']['KANZASHI_ENABLED'];
             $v[$i]['Staff']['YOYAKU_DISPLAY'] = $v[$i]['StaffAssignToStore']['ASSIGN_YOYAKU'];
-            //staff assign to store display order no used
-            //$v[$i]['Staff']['DISPLAY_ORDER'] = $v[$i]['StaffAssignToStore']['DISPLAY_ORDER'];
         }
-
-        /*         * *** Old and Ugly Method **************************************************
-         *  might have a faster execution time so we are keeping the code around
-        $showcalendar_sql = "SELECT STAFFCODE,
-        (   SELECT SHOWINCALENDAR
-        FROM staffrowshistory
-        WHERE staffcode = tblA.staffcode
-        AND storecode = tblA.storecode
-        ORDER BY datechange DESC
-        LIMIT 1   ) as SHOWINCALENDAR
-        FROM staffrowshistory  tblA
-        WHERE storecode = ".$storeinfo['storecode']."
-        GROUP BY staffcode";
-
-
-        $showincalendar_result = $this->StaffRowsHistory->query($showcalendar_sql);
-        $showincalendar_list = array();
-        foreach($showincalendar_result as $entry) {
-        $showincalendar_list[$entry['tblA']['STAFFCODE']] = $entry[0]['SHOWINCALENDAR'];
-        }
-
-        for ($i = 0; $i < count($v); $i++) {
-        $staffcode = $v[$i]['Staff']['STAFFCODE'];
-        $v[$i]['Staff']['SUBLEVELNAME']   = $v[$i]['Sublevel']['SUBLEVELNAME'];
-        $v[$i]['Staff']['POSITIONNAME']   = $v[$i]['Position']['POSITIONNAME'];
-        $v[$i]['Staff']['WEB_DISPLAY']    = $v[$i]['Staff']['WEBYAN_DISPLAY'];
-        $v[$i]['Staff']['YOYAKU_DISPLAY'] = $showincalendar_list[$staffcode];
-        $v[$i]['Staff']['YOYAKU_DISPLAY'] = $v[$i]['StaffRowsHistory'][0]['SHOWINCALENDAR'];
-        }
-         * ************************************************************************** */
 
         $ret = array();
         $ret['records'] = set::extract($v, '{n}.Staff');
@@ -3900,11 +3862,8 @@ class ServersController extends WebServicesController
 		            Staff.STORECODE,
 		            Staff.STAFFNAME,
 		            Store.STORENAME,
-		            if(Staff.STORECODE = ".$param['STORECODE'].",
-				            StaffAssignToStore.WEBYAN_DISPLAY,
-				            if(Staff.STAFFCODE = 0,
-					        StaffAssignToStore.WEBYAN_DISPLAY, 0)
-		            ) as WEBYAN_DISPLAY,
+                    IF (Staff.STORECODE = StaffAssignToStore.STORECODE OR Staff.STAFFCODE = 0, StaffAssignToStore.WEBYAN_DISPLAY, 0) AS WEBYAN_DISPLAY,
+                    IF (Staff.STORECODE = StaffAssignToStore.STORECODE OR Staff.STAFFCODE = 0, StaffAssignToStore.KANZASHI_ENABLED, 0) AS KANZASHI_ENABLED,
                     IFNULL(StaffRowsHistory.ROWS, ".DEFAULT_ROWS.") as origrows,
 		            IFNULL(StaffRowsHistory.PHONEROWS, ".DEFAULT_PHONEROWS.") as origphonerows,
 		            IFNULL(StaffRowsHistory.ROWS, ".DEFAULT_ROWS.") as ROWS,
@@ -4012,6 +3971,7 @@ class ServersController extends WebServicesController
             }
 
             $v[$i]['StaffAssignToStore']['WEB_DISPLAY']= $v[$i][0]['WEBYAN_DISPLAY'];
+            $v[$i]['StaffAssignToStore']['KANZASHI_ENABLED']= $v[$i][0]['KANZASHI_ENABLED'];
             $v[$i]['StaffAssignToStore']['STORENAME']  = $v[$i]['Store']['STORENAME'];
             if ($v[$i][0]['ROWS'] == "" ||
                 $v[$i][0]['ROWS'] == 0) {
@@ -4518,32 +4478,26 @@ class ServersController extends WebServicesController
         $this->Staff->set_company_database($storeinfo['dbname'], $this->Staff);
         $this->StaffAssignToStore->set_company_database($storeinfo['dbname'], $this->StaffAssignToStore);
 
-        //-- スタッフのweb_displayフラグを設定 (Set web_display flag on Staff)
-        /*  $this->Staff->set('STAFFCODE', $param['STAFFCODE']);
-        $this->Staff->set('WEBYAN_DISPLAY', $param['WEB_DISPLAY']);
-        $this->Staff->save($this->data);*/
+        $sql = "
+            INSERT INTO staff_assign_to_store (STORECODE, STAFFCODE, WEBYAN_DISPLAY, KANZASHI_ENABLED, ASSIGN_YOYAKU, DISPLAY_ORDER)
+                VALUES(:storecode, :staffcode, :web_display, :kanzashi_enabled, :yoyaku_display, :display_order)
+            ON DUPLICATE KEY
+            UPDATE
+                WEBYAN_DISPLAY = :web_display,
+                KANZASHI_ENABLED = :kanzashi_enabled,
+                ASSIGN_YOYAKU = :yoyaku_display,
+                DISPLAY_ORDER = :display_order";
 
-        /* $sql = "REPLACE INTO staff_assign_to_store
-        (STAFFCODE, STORECODE,WEBYAN_DISPLAY, ASSIGN_YOYAKU, DISPLAY_ORDER)
-        VALUES(".$param['STAFFCODE'].", ".$storeinfo['storecode'].",
-        ".$param['WEB_DISPLAY'].",".$param['YOYAKU_DISPLAY'].", IF('".$param['DISPLAY_ORDER']."' = '', null, '".$param['DISPLAY_ORDER']."'))";
-         */
+        $params = array(
+            "storecode" => $storeinfo['storecode'],
+            "staffcode" => $param['STAFFCODE'],
+            "web_display" => $param['WEB_DISPLAY'],
+            "kanzashi_enabled" => $param['KANZASHI_ENABLED'],
+            "yoyaku_display" => $param['YOYAKU_DISPLAY'],
+            "display_order" => $param['DISPLAY_ORDER'] === '' ? 'NULL' : $param['DISPLAY_ORDER'],
+        );
 
-        $sql = "INSERT INTO staff_assign_to_store (STORECODE, STAFFCODE, WEBYAN_DISPLAY, ASSIGN_YOYAKU, DISPLAY_ORDER)
-                    VALUES(".$storeinfo['storecode'].",".$param['STAFFCODE'].",".
-                             $param['WEB_DISPLAY'].",".$param['YOYAKU_DISPLAY'].", IF('".$param['DISPLAY_ORDER']."' = '', null, '".$param['DISPLAY_ORDER']."'))
-
-                ON DUPLICATE KEY
-
-                UPDATE WEBYAN_DISPLAY = ".$param['WEB_DISPLAY'].",
-                       ASSIGN_YOYAKU = ".$param['YOYAKU_DISPLAY'].",
-                       DISPLAY_ORDER = IF('".$param['DISPLAY_ORDER']."' = '', null, '".$param['DISPLAY_ORDER']."')";
-
-        $this->StaffAssignToStore->query($sql);
-
-        /*$this->StaffAssignToStore->query("REPLACE INTO staff_assign_to_store
-        (STAFFCODE, STORECODE, ASSIGN ) VALUES
-        (".$staffcode.",".$storeinfo['storecode'].",".intval($yoyaku_display).")");*/
+        $this->StaffAssignToStore->query($sql, $params, false);
 
         //=============================================================================================================================
         // Update yoyaku_staff_service_time of the Staff, Follow Sipss3 Mobaste Rule Dont Allow Staff from Other Store
