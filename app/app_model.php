@@ -40,6 +40,9 @@ class AppModel extends Model {
         }else{
             $config['con'] = ConnectionServer::SLAVE;
         }
+        if(DBMasterConnectionOnly){
+            $config['con'] = ConnectionServer::MASTER;
+        }
 
         // Create New Connection Intance
         ConnectionManager::getInstance()->create('companydb'.$config['con'], $config);

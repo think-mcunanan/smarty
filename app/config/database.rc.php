@@ -109,4 +109,6 @@ abstract class ConnectionServer {
     const MASTER = 'master';
     const SLAVE = 'slave';
 }
+
+define("DBMasterConnectionOnly", true);
 ?>
