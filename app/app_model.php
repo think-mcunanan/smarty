@@ -40,7 +40,7 @@ class AppModel extends Model {
         }else{
             $config['con'] = ConnectionServer::SLAVE;
         }
-        if(DBMasterConnectionOnly){
+        if(DBMasterConnectionOnly === true){
             $config['con'] = ConnectionServer::MASTER;
         }
 
