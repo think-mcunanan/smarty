@@ -55,98 +55,89 @@ class DboMysqli extends DboMysqlBase {
 		'connect' => 'mysqli_connect'
 	);
         
-        /**
-        * Get DB Host (Dynamic)
-        * @author Marvin Seron <marvin@thinnk-ahead.jp>
-        * @datecreated 2015-10-02 19:16
-        * @param string $dbname - database nae
-        * @return array - return object
-        */
-        function getdbhost($config) {
-            $link = mysql_connect($config['mainhost'], $config['login'], $config['password']);
-            if (!$link) {
-                die('Could not connect: ' . mysql_error());
-            }
-            mysql_select_db("sipssbeauty_server", $link) or die(mysql_error());
-            $sql = "SELECT dbhostmaster AS dbhost, dbhostslave, dbhostuser, dbhostpasswd
-                    FROM company
-                    WHERE dbname = '".$config['database']."'
-                        AND delflg IS NULL";
-            $res = mysql_query($sql, $link);
-            while ($row = mysql_fetch_assoc($res)) {  
-                $retval = $row;
-                break;
-            }  
-            mysql_close($link);
-            unset($link);
-            return $retval;
+    /**
+    * Get DB Host (Dynamic)
+    * @author Marvin Seron <marvin@thinnk-ahead.jp>
+    * @datecreated 2015-10-02 19:16
+    * @param string $dbname - database nae
+    * @return array - return object
+    */
+    function getdbhost($config) {
+        $link = mysql_connect($config['mainhost'], $config['login'], $config['password']);
+        if (!$link) {
+            die('Could not connect: ' . mysql_error());
         }
+        mysql_select_db("sipssbeauty_server", $link) or die(mysql_error());
+        $sql = "SELECT dbhostmaster AS dbhost, dbhostuser, dbhostpasswd
+                FROM company
+                WHERE dbname = '".$config['database']."'
+                    AND delflg IS NULL";
+        $res = mysql_query($sql, $link);
+        while ($row = mysql_fetch_assoc($res)) {  
+            $retval = $row;
+            break;
+        }  
+        mysql_close($link);
+        unset($link);
+        return $retval;
+    }
     
-/**
- * Connects to the database using options in the given configuration array.
- *
- * @return boolean True if the database could be connected, else false
- */
-	function connect() {
-		$config = $this->config;
+    /**
+    * Connects to the database using options in the given configuration array.
+    *
+    * @return boolean True if the database could be connected, else false
+    */
+    function connect() {
+        $config = $this->config;
         $dbhostip = null;
         $dbhostuser = null;
         $dbhostpasswd = null;
-		$this->connected = false;
-                        //----------------------------------------------------------
-                        // Get DB Host (Dynamic)
-                        //----------------------------------------------------------
-                        if ($config['database'] == "sipssbeauty_server" || $config['database'] == "sipssbeauty_schema") {
-                            //print_r("yes");
-                            $dbhostip = $config['host'];
-                            $dbhostuser = $config['login'];
-                            $dbhostpasswd = $config['password'];
-                        } else {
-                            //Get DB Host Info
-                            $dbhostrecord = $this->getdbhost($config);
-                            //print_r($dbhostrecord);
-                            //validate host record
-                            if ($dbhostrecord != null) {
-                                // CONNECT TO MASTER SERVER
-                                if($config['con'] === ConnectionServer::MASTER){
-                                    $dbhostip = $dbhostrecord["dbhost"];
-                                }else{
-                                    // CONNECT TO SLAVE SERVER
-                                    $dbhostip = $dbhostrecord["dbhostslave"];
-                                }
-                                $dbhostuser = $dbhostrecord["dbhostuser"];
-                                $dbhostpasswd = $dbhostrecord["dbhostpasswd"];
-                                $config['dynamichost'] = $dbhostip;
-                            }
-                        }
-                        //----------------------------------------------------------                    
-		if (is_numeric($config['port'])) {
-			$config['socket'] = null;
-		} else {
-			$config['socket'] = $config['port'];
-			$config['port'] = null;
-		}
+        $this->connected = false;
+        //----------------------------------------------------------
+        // Get DB Host (Dynamic)
+        //----------------------------------------------------------
+        if ($config['database'] == "sipssbeauty_server" || $config['database'] == "sipssbeauty_schema") {
+            $dbhostip = $config['host'];
+            $dbhostuser = $config['login'];
+            $dbhostpasswd = $config['password'];
+        } else {
+            //Get DB Host Info
+            $dbhostrecord = $this->getdbhost($config);
+            //validate host record
+            if ($dbhostrecord != null) {
+                $dbhostip = $dbhostrecord["dbhost"];
+                $dbhostuser = $dbhostrecord["dbhostuser"];
+                $dbhostpasswd = $dbhostrecord["dbhostpasswd"];
+            }
+        }
+        //----------------------------------------------------------
+        if (is_numeric($config['port'])) {
+	        $config['socket'] = null;
+        } else {
+	        $config['socket'] = $config['port'];
+	        $config['port'] = null;
+        }
 
-		$this->connection = mysqli_connect($dbhostip, $dbhostuser, $dbhostpasswd, $config['database'], $config['port'], $config['socket']);
+        $this->connection = mysqli_connect($dbhostip, $dbhostuser, $dbhostpasswd, $config['database'], $config['port'], $config['socket']);
 
-		if ($this->connection !== false) {
-			$this->connected = true;
-		}
+        if ($this->connection !== false) {
+	        $this->connected = true;
+        }
 		
-		$this->_useAlias = (bool)version_compare(mysqli_get_server_info($this->connection), "4.1", ">=");
+        $this->_useAlias = (bool)version_compare(mysqli_get_server_info($this->connection), "4.1", ">=");
 		
-		if (!empty($config['encoding'])) {
-			$this->setEncoding($config['encoding']);
-		}
+        if (!empty($config['encoding'])) {
+	        $this->setEncoding($config['encoding']);
+        }
 		
-		//remove STRICT_TRANS_TABLES
-		//Override connection sql_mode
-		//By: Marvin Seron <marvin@think-ahead.jp>
-		//Date Updated: 2015-09-17
-		$this->_execute('SET sql_mode="NO_ENGINE_SUBSTITUTION";');
+        //remove STRICT_TRANS_TABLES
+        //Override connection sql_mode
+        //By: Marvin Seron <marvin@think-ahead.jp>
+        //Date Updated: 2015-09-17
+        $this->_execute('SET sql_mode="NO_ENGINE_SUBSTITUTION";');
 	
-		return $this->connected;
-	}
+        return $this->connected;
+    }
 /**
  * Disconnects from database.
  *

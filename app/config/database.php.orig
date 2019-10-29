@@ -86,9 +86,7 @@ class DATABASE_CONFIG {
         'password' => 'marvin1',
         'database' => 'sipssbeauty_server',
         'encoding' => 'UTF8',
-        'prefix' => '',
-        'con'   => ConnectionServer::MASTER,
-        'dynamichost' => '192.168.11.50'
+        'prefix' => ''
     );
 
 	var $database_schema = array(
@@ -99,14 +97,8 @@ class DATABASE_CONFIG {
         'password' => 'marvin1',
         'database' => 'sipssbeauty_schema',
         'encoding' => 'UTF8',
-        'prefix' => '',
-        'con'   => ConnectionServer::MASTER,
-        'dynamichost' => '192.168.11.50'
+        'prefix' => ''
 	);
 }
 
-abstract class ConnectionServer {
-    const MASTER = 'master';
-    const SLAVE = 'slave';
-}
 ?>

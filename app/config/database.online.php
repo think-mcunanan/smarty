@@ -86,29 +86,21 @@ class DATABASE_CONFIG {
         'password' => 'p3WD40asdf455',
         'database' => 'sipssbeauty_server',
         'encoding' => 'UTF8',
-        'prefix' => '',
-		'con'   => ConnectionServer::MASTER,
-        'dynamichost' => '192.168.88.91',
+        'prefix' => ''
     );
 
 	var $database_schema = array(
-		'driver' => 'mysql',
+	'driver' => 'mysql',
         'persistent' => false,
         'host' => '192.168.88.91',
         'login' => 'marvin',
         'password' => 'p3WD40asdf455',
         'database' => 'sipssbeauty_schema',
         'encoding' => 'UTF8',
-        'prefix' => '',
-		'con'   => ConnectionServer::MASTER,
-        'dynamichost' => '192.168.88.91',
+        'prefix' => ''
 	);
 }
 
-abstract class ConnectionServer {
-    const MASTER = 'master';
-    const SLAVE = 'slave';
-}
 
 define("DBMasterConnectionOnly", false);
 ?>

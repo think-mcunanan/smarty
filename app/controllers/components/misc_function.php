@@ -1727,7 +1727,7 @@ class MiscFunctionComponent extends Object
      */
     function GetDailyKanzashiCustomersLimit(&$controller, $dbname, $storecode, $ymd) {
 
-        $controller->StoreHoliday->set_company_database($dbname, $controller->StoreHoliday, ConnectionServer::SLAVE);
+        $controller->StoreHoliday->set_company_database($dbname, $controller->StoreHoliday);
 
         $query = "
             SELECT
