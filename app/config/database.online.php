@@ -101,6 +101,4 @@ class DATABASE_CONFIG {
 	);
 }
 
-
-define("DBMasterConnectionOnly", false);
 ?>
