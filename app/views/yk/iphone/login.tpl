@@ -39,6 +39,8 @@
             
             <input class="groovybutton" type='submit' name='login' value='ログイン' style="width:80%;"/>
         </form>
+        <hr>
+        <button class="loginBtn loginBtn--facebook" onclick="location.href='{$facebook_url}';">facebookでログイン</button>
     </div>
 
     <hr id="hr_slim"/>

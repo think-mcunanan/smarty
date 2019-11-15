@@ -17,11 +17,15 @@
 
                 <tr>
                     <td align='right' valign='top'>メールアドレス：</td>
-                    <td align='left' valign='top'>
-                        <font size='4'>
-                            <b>{$email}</b>
-                            </font>
-                    </td>
+                    {if $setEmailTextbox}
+                        <td align='left'><input type='text' name='r_email' value='{$email}' size='16' maxlength='50' /></td>
+                    {else}
+                        <td align='left' valign='top'>
+                            <font size='4'>
+                                <b>{$email}</b>
+                                </font>
+                        </td>
+                    {/if}
                 </tr>
 
                 <tr>
@@ -47,19 +51,19 @@
                         <input type='text' name='r_day' value='{$day}' size='3' maxlength='2' />日
                     </td>
                 </tr>
+                {if $setPasswordFields}
+                    <tr>
+                        <td align='right' valign='top'>パスワード更新：
+                            <br />(半角英数字のみ)
+                        </td>
 
-                <tr>
-                    <td align='right' valign='top'>パスワード更新：
-                        <br />(半角英数字のみ)
-                    </td>
-
-                    <td align='left'>
-                        <input type='password' name='r_password1' value='' size='16' maxlength='50' />
-                        <br />
-                        <input type='password' name='r_password2' value='' size='16' maxlength='50' />（確認）
-                    </td>
-                </tr>
-
+                        <td align='left'>
+                            <input type='password' name='r_password1' value='' size='16' maxlength='50' />
+                            <br />
+                            <input type='password' name='r_password2' value='' size='16' maxlength='50' />（確認）
+                        </td>
+                    </tr>
+                {/if}
                 <tr>
                     <td align='right' valign='top'>メール配信：</td>
                     <td align='left'>

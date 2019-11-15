@@ -22,6 +22,9 @@
                 <hr>
                 <input type="submit" name="login" class="groovybutton" value="ログイン" title="" style="cursor: pointer;">
             </form>
+            <hr>
+            <button class="loginBtn loginBtn--facebook" onclick="location.href='{$facebook_url}';">facebookでログイン</button>
+            <hr>
         </div>
         <br />
     

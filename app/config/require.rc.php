@@ -4,6 +4,14 @@
 define('FAIL_REDIRECT', 'http://rc.bmy.jp/');
 define('MAIN_PATH',     'http://rcwsb.sipss.jp/mobile_station_beauty/serverside/');
 
+//facebook Credentials
+define('FACEBOOK_OAUTH_CHANNEL_ID', '2587100941510795');
+define('FACEBOOK_OAUTH_CHANNEL_SECRET', '1c621c926ceeab9dacbd9506e3a4fc86');
+define('FACEBOOK_OAUTH_REDIRECT_URL', MAIN_PATH.'yk/facebook_oauth');
+
+define('FACEBOOK_ACCESS_TOKEN_URL','https://graph.facebook.com/v4.0/oauth/access_token');
+define('FACEBOOK_API_URL','https://graph.facebook.com/me?fields=id,name,email');
+
 //-- メールサーバー --//
 define('MAILSERVER_PORT', '25');
 define('MAILSERVER_ADDRESS', 'rcmail.bmy.jp');
