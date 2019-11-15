@@ -1,4 +1,4 @@
-<!--Optimized by jonathanparel, 20160905 For Mobile Devices; RM#1724; ii-->
+﻿<!--Optimized by jonathanparel, 20160905 For Mobile Devices; RM#1724; ii-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html lang="ja" xml:lang="ja" xmlns="http://www.w3.org/1999/xhtml">
     <head>
@@ -39,7 +39,7 @@
                 <font size='5' align='left'>{$title_for_layout}</font>
             {/if}
 
-            {if $logoutpath}
+            {if $logoutpath && $setLogoutButton}
                 <a href='{$html->url($logoutpath)}'><img border='0' align="right" src="{$html->url('/img/logout.gif')}" /></a>
             {/if}
             <br />

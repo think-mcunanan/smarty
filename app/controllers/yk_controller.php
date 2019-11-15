@@ -304,6 +304,7 @@ class YkController extends AppController {
         $this->set('nextyoyaku',   $is_nextyoyaku);
         $this->set('companyid',$session_info['companyid']); //cid
         $this->set('storecode',$session_info['storecode']); //scd
+        $this->set('setLogoutButton', true);
         $this->set('logoutpath',"mypage/".$companyid."/".$storecode."/".$sessionid."/logout");
         $this->set('sitepath',MOBASUTE_PATH.$store_info['storeid'].'/');
         $this->set('privacypath', "privacy/".$session_info['companyid']."/".$session_info['storecode']);
@@ -480,6 +481,11 @@ class YkController extends AppController {
             if($session_info['y_status'] == 8) {
 
                 //New customer
+                //Cancel and logout button is not required
+                //As user needs to register and havenot yet logged in
+                $setCancelButtonFlag = false;
+                $setLogoutButtonFlag = false;
+
                 $this->KeitaiSession->UpdateStatus($this,
                 $session_info['session_no'],
                                                "9",
@@ -527,6 +533,11 @@ class YkController extends AppController {
             }
             else {
                 //Existing customer
+                //Cancel and logout button is required
+                //As it redirects user to home page
+                $setCancelButtonFlag = true;
+                $setLogoutButtonFlag = true;
+
                 $this->KeitaiSession->UpdateStatus($this,
                 $session_info['session_no'],
                                                "7","",$session_info);
@@ -554,8 +565,15 @@ class YkController extends AppController {
 
         if($session_info['y_status'] == 8) {
             // 新規顧客 //
+
+            //Cancel and logout button is not required
+            //As user needs to register and havenot yet logged in
+            $setCancelButtonFlag = false;
+            $setLogoutButtonFlag = false;
+
             $showcnumber = 1;
             $emailaddress  = $session_info['y_staff']; //3つめがメアド
+            $this->set('setCancelButton', false);
             if($failed_submit) {
                 if($password_error1) {
                     $top_message = "<font color='red'>パスワードが確認用のものと一致しません</font>";
@@ -594,7 +612,14 @@ class YkController extends AppController {
         }
         else {
             // 顧客情報更新 //
+
+            //Cancel and logout button is required
+            //As it redirects user to home page
+            $setCancelButtonFlag = true;
+            $setLogoutButtonFlag = true;
+
             $showcnumber = 0;
+            $this->set('setCancelButton', true);
             // 顧客情報を取り込む
             $customer_info = $this->KeitaiSession->GetCustomerInfo($this,
             $session_info['companyid'],
@@ -674,8 +699,10 @@ class YkController extends AppController {
         $this->set('mailkubun',   $mailkubun);
         $this->set('companyid',$session_info['companyid']); //cid
         $this->set('storecode',$session_info['storecode']); //scd
+        $this->set('setCancelButton', $setCancelButtonFlag);
         $this->set('setEmailTextbox', $setEmailTextboxFlag);
         $this->set('setPasswordFields', $setPasswordFieldsFlag);
+        $this->set('setLogoutButton', $setLogoutButtonFlag);
         $this->set('logoutpath',  "mypage/".$session_info['companyid']."/".$session_info['storecode']."/".$sessionid."/logout");
         $this->set('sitepath',MOBASUTE_PATH.$store_info['storeid'].'/');
         $this->set('privacypath', "privacy/".$session_info['companyid']."/".$session_info['storecode']);
@@ -734,7 +761,7 @@ class YkController extends AppController {
             // 解約が完了していない場合
             $top_message = "解約を行います";
             $complete = false;
-
+            $this->set('setLogoutButton', true);
             $this->set("logoutpath", "mypage/{$session_info["companyid"]}/{$session_info["storecode"]}/{$sessionid}/logout");
             $this->set("privacypath", "privacy/{$session_info["companyid"]}/{$session_info["storecode"]}");
         }
@@ -1173,6 +1200,7 @@ class YkController extends AppController {
         $this->set('companyid',$session_info['companyid']); //cid
         $this->set('storecode',$session_info['storecode']); //scd
         $this->set('gyoshukubun', $name);
+        $this->set('setLogoutButton', true);
         $this->set('logoutpath',"mypage/".$session_info['companyid']."/".$session_info['storecode']."/".$sessionid."/logout");
         $this->set('privacypath', "privacy/".$session_info['companyid']."/".$session_info['storecode']);
         $this->set('form_action', MAIN_PATH."yk/new0/".$sessionid);
@@ -1310,6 +1338,7 @@ class YkController extends AppController {
         $this->set('services', explode(",",$session_info['y_services']));
         $this->set('companyid',$session_info['companyid']); //cid
         $this->set('storecode',$session_info['storecode']); //scd
+        $this->set('setLogoutButton', true);
         $this->set('logoutpath',"mypage/".$session_info['companyid']."/".$session_info['storecode']."/".$sessionid."/logout");
         $this->set('privacypath', "privacy/".$session_info['companyid']."/".$session_info['storecode']);
         $this->set('form_action', MAIN_PATH."yk/new1/".$sessionid);
@@ -1480,6 +1509,7 @@ class YkController extends AppController {
         $this->set('staff', $session_info['y_staff']);
         $this->set('services_list', $services_list);
         $this->set('services', explode(",",$session_info['y_services']));
+        $this->set('setLogoutButton', true);
         $this->set('logoutpath',"mypage/".$session_info['companyid']."/".$session_info['storecode']."/".$sessionid."/logout");
         $this->set('privacypath', "privacy/".$session_info['companyid']."/".$session_info['storecode']);
         $this->set('form_action', MAIN_PATH."yk/new2/".$sessionid);
@@ -1630,6 +1660,7 @@ class YkController extends AppController {
         $this->set('nextlink', $nextlink);
         $this->set('prevlink', $prevlink);
         $this->set('calendar', $calendar);
+        $this->set('setLogoutButton', true);
         $this->set('logoutpath',"mypage/".$session_info['companyid']."/".$session_info['storecode']."/".$sessionid."/logout");
         $this->set('privacypath', "privacy/".$session_info['companyid']."/".$session_info['storecode']);
         $this->set('form_action', MAIN_PATH."yk/new3/".$sessionid);
@@ -1842,6 +1873,7 @@ class YkController extends AppController {
         $this->set('AvailableTimes', $PagedAvailableTimes);
         $this->set('nextpage', $nextpage);
         $this->set('prevpage', $prevpage);
+        $this->set('setLogoutButton', true);
         $this->set('logoutpath',"mypage/".$session_info['companyid']."/".$session_info['storecode']."/".$sessionid."/logout");
         $this->set('privacypath', "privacy/".$session_info['companyid']."/".$session_info['storecode']);
         $this->set('form_action', MAIN_PATH."yk/new4/".$sessionid);
@@ -2143,6 +2175,7 @@ class YkController extends AppController {
         $time_from = strtotime(substr($p_time,0,2).":".substr($p_time,2,2));
         //$time_to = $time_from + ($total_servicetime * 60);
         $this->set('trans_time',  date("H:i",$time_from)); //" ～ ".date("H:i",$time_to) );
+        $this->set('setLogoutButton', true);
         $this->set('logoutpath',  "mypage/".$session_info['companyid']."/".$session_info['storecode']."/".$sessionid."/logout");
         $this->set('privacypath', "privacy/".$session_info['companyid']."/".$session_info['storecode']);
         $this->set('companyid',$session_info['companyid']); //cid
@@ -2302,6 +2335,7 @@ class YkController extends AppController {
         $this->set('complete',false);
         $this->set('companyid',$session_info['companyid']); //cid
         $this->set('storecode',$session_info['storecode']); //scd
+        $this->set('setLogoutButton', true);
         $this->set('logoutpath',  "mypage/".$session_info['companyid']."/".$session_info['storecode']."/".$sessionid."/logout");
         $this->set('privacypath', "privacy/".$session_info['companyid']."/".$session_info['storecode']);
         $this->set('form_action', MAIN_PATH."yk/yoyakumail/".$sessionid."/");

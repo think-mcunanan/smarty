@@ -75,7 +75,9 @@
             </table>
 
             <hr id="hr_before-button"/>
-            <input type="submit" name="p_cancel" class="groovybutton" value="キャンセル" title="" style="cursor: pointer;">
+            {if $setCancelButton}
+                <input type="submit" name="p_cancel" class="groovybutton" value="キャンセル" title="" style="cursor: pointer;">
+            {/if}
             <input type="submit" name="p_reg" class="groovybutton" value="登録" title="" style="cursor: pointer;">
         </form>
     </div>

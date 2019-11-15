@@ -50,10 +50,11 @@
             <div style="display: inline-block; max-width: 50%">
                 <input class="groovybutton" type='submit' name='p_reg' value='登録' style='width: 120px' />
             </div>
-
+            {if $setCancelButton}
                 <div style="display: inline-block; max-width: 50%">
                     <input class="groovybutton" type='submit' name='p_cancel' value='キャンセル' style='width: 120px' />
                 </div>
+            {/if}
         </form>
     </div>
 </div>
