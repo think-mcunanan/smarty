@@ -2,7 +2,7 @@
 
 //-- パース設定 --//
 define('FAIL_REDIRECT', 'http://www.bmy.jp/');
-define('MAIN_PATH',     'http://wsb.sipss.jp/mobile_station_beauty/serverside/');
+define('MAIN_PATH',     'https://wsb2.sipss.jp/mobile_station_beauty/serverside/');
 
 //facebook Credentials
 define('FACEBOOK_OAUTH_CHANNEL_ID', '704063493412130');
