@@ -2,7 +2,7 @@
 
 //-- パース設定 --//
 define('FAIL_REDIRECT', 'http://rc.bmy.jp/');
-define('MAIN_PATH',     'http://rcwsb.sipss.jp/mobile_station_beauty/serverside/');
+define('MAIN_PATH',     'https://rcwsb2.sipss.jp/mobile_station_beauty/serverside/');
 
 //-- メールサーバー --//
 define('MAILSERVER_PORT', '25');
