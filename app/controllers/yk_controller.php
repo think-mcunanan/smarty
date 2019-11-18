@@ -329,9 +329,6 @@ class YkController extends AppController {
             exit();
         }
 
-        //使われていないのでコメントアウト
-        //$send_welcome_email = false;
-
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $session_info = $this->KeitaiSession->Check($this, $sessionid);
 
@@ -479,10 +476,8 @@ class YkController extends AppController {
             );
 
             if($session_info['y_status'] == 8) {
+                 //New customer
 
-                //New customer
-                //Cancel and logout button is not required
-                //As user needs to register and havenot yet logged in
                 $setCancelButtonFlag = false;
                 $setLogoutButtonFlag = false;
 
@@ -498,19 +493,6 @@ class YkController extends AppController {
                 $body  = $store_info['NewMemberMailMsg']."\n\n";
                 $body .= $store_info['MailFooter']."\n";
 
-                //#1287 shimizu change mail-function
-                //                        $this->Email->lineLength = 10000;
-                //                        $this->Email->from    = $store_info['STORENAME'].' <'.$store_info['storeid'].'@'.EMAIL_DOMAIN.'>';
-                //                        $this->Email->replyTo = 'err_'.$store_info['storeid'].'@'.EMAIL_DOMAIN;
-                //                        $this->Email->to      = $t_email;
-                //                        $this->Email->subject = $store_info['STORENAME'].'会員登録';
-                //                        $this->Email->delivery = 'smtp';
-                //                        $this->Email->smtpOptions = array('port' => MAILSERVER_PORT,
-                //                                                      'host' => MAILSERVER_ADDRESS);
-                //
-                //                        $this->Email->send($body);
-                //                        //------------------------------//
-                //文字コードを設定
                 mb_language("ja");
                 mb_internal_encoding("utf-8");
 
@@ -533,8 +515,7 @@ class YkController extends AppController {
             }
             else {
                 //Existing customer
-                //Cancel and logout button is required
-                //As it redirects user to home page
+
                 $setCancelButtonFlag = true;
                 $setLogoutButtonFlag = true;
 
@@ -566,14 +547,11 @@ class YkController extends AppController {
         if($session_info['y_status'] == 8) {
             // 新規顧客 //
 
-            //Cancel and logout button is not required
-            //As user needs to register and havenot yet logged in
             $setCancelButtonFlag = false;
             $setLogoutButtonFlag = false;
 
             $showcnumber = 1;
             $emailaddress  = $session_info['y_staff']; //3つめがメアド
-            $this->set('setCancelButton', false);
             if($failed_submit) {
                 if($password_error1) {
                     $top_message = "<font color='red'>パスワードが確認用のものと一致しません</font>";
@@ -613,13 +591,10 @@ class YkController extends AppController {
         else {
             // 顧客情報更新 //
 
-            //Cancel and logout button is required
-            //As it redirects user to home page
             $setCancelButtonFlag = true;
             $setLogoutButtonFlag = true;
 
             $showcnumber = 0;
-            $this->set('setCancelButton', true);
             // 顧客情報を取り込む
             $customer_info = $this->KeitaiSession->GetCustomerInfo($this,
             $session_info['companyid'],
