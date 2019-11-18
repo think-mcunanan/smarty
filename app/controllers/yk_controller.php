@@ -103,12 +103,12 @@ class YkController extends AppController {
                     exit();
                 }
                 //haben temporary redirect
-                if($companyid == 23)
+                if($companyid == 23 && $storecode != 29)
                 {
                     $habenurl = "http://bit.ly/web-yoyaku";
                     $this->redirect($habenurl, 302, true);
-                         exit();
-                         }
+                    exit();
+                }
 
                 if($this->params['form']['p_new']) {
                     $this->_redirect('/yk/new0/'.$sessionid);
