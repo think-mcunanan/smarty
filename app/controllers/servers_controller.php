@@ -30,7 +30,7 @@ class ServersController extends WebServicesController
                                 'StaffShift', 'Shift', 'SubService','StoreTransaction',
                                 'StaffAssignToStore', 'StoreSettings', 'StoreTransactionColors',
                                 'BreakTime', 'FinishedShift', 'StoreHoliday', 'YoyakuMessage',
-                                'YoyakuStaffServiceTime','YoyakuNext','Stafftype', 'Syscode', //Update by MarvinC 2015-06-24
+                                'YoyakuStaffServiceTime','YoyakuNext','Stafftype', 'customersns', 'Syscode', //Update by MarvinC 2015-06-24
 
         );
 
@@ -2146,6 +2146,7 @@ class ServersController extends WebServicesController
                             "karte",
                             "bm_reservation",
                             "rv_customer",
+                            "customer_sns",
                             "kanzashi_customer",
                             "yoyakuapp_user",
                             "cti"
@@ -2407,6 +2408,35 @@ class ServersController extends WebServicesController
 
             $source->commit();
             unset($source, $sqlstatements);
+
+            //====================================================================================
+            // Get customer_sns Users
+            //====================================================================================
+            $this->customersns->set_company_database($storeinfo['dbname'], $this->customersns);
+
+            $sql = "SELECT oauth_provider,
+                            COUNT(*) AS users,
+                            MIN(date_created) AS old_snsid_date
+                    FROM customer_sns
+                    WHERE CCODE = '{$toccode}'
+                    GROUP BY oauth_provider";
+            $snsData = $this->customersns->query($sql);
+            //====================================================================================
+            // Delete Old customer_sns User Record
+            //====================================================================================
+            if (count($snsData) > 0) {
+                for($ctr=0; $ctr<count($snsData); $ctr++){
+                    if((int)$snsData[$ctr][0]["users"] > 1){
+                        $oldSnsidDate = $snsData[$ctr][0]["old_snsid_date"];
+                        $sql = "DELETE FROM customer_sns
+                                WHERE ccode = '{$toccode}'
+                                AND date_created = '{$oldSnsidDate}'
+                                AND oauth_provider = '{$snsData[$ctr]["customer_sns"]["oauth_provider"]}'";
+                        $this->customersns->query($sql);
+                    }
+                }
+            }
+
             return $this->MiscFunction->GetTransactionUpdateDate($this->Customer,  $transcode, $keyno);
         }
         catch (Exception $ex) {
