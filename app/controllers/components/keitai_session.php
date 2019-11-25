@@ -83,7 +83,7 @@ class KeitaiSessionComponent extends Object
                 }
 
                 //if ok write a session
-                $sessionid = $this->CreateSession();
+                $sessionid = $this->GenerateSessionId();
 
                 $controller->LogSessionKeitai->set('sessionid',       $sessionid);
                 $controller->LogSessionKeitai->set('companyid',       $companyid);
@@ -144,7 +144,7 @@ class KeitaiSessionComponent extends Object
             $storecode = $store_info[0]['StoreAccount']['storecode'];
             $companyid = $store_info[0]['Company']['companyid'];
 
-            $sessionid = $this->CreateSession();
+            $sessionid = $this->GenerateSessionId();
 
             $controller->LogSessionKeitai->set('sessionid',       $sessionid);
             $controller->LogSessionKeitai->set('companyid',       $companyid);
@@ -162,7 +162,7 @@ class KeitaiSessionComponent extends Object
         }
     }
 
-    function CreateSnsSession(&$controller, $snsid, $companyid, $storecode){
+    function SaveSnsSession(&$controller, $snsid, $companyid, $storecode){
         if(strlen($snsid) == 0 || intval($companyid) == 0) {
             return false;
         }
@@ -170,42 +170,41 @@ class KeitaiSessionComponent extends Object
         $company_record = $controller->Company->find('all', array(
             'conditions' => array('Company.companyid' => intval($companyid))));
 
-        if (!empty($company_record)){
-            $controller->customersns->set_company_database($company_record[0]['Company']['dbname'], $controller->customersns);
-            $result = $controller->customersns->find('all', array(
-                'conditions' => array('and' => array(
-                                                        'customersns.OAUTH_UID' => $snsid,
-                                                        'customersns.STORECODE' => $storecode)),
-                'fields' => array('CCODE')
-            ));
-            if (!empty($result)) {
-                // Existing sns User
-                $ccode     = $result[0]['customersns']['CCODE'];
-                $ykstatus  = "5";
-            }
-            else {
-                // New sns Customer
-                $ccode     = 0;
-                $ykstatus  = "8|0|";
-            }
-            $sessionid = $this->CreateSession();
-
-            $controller->LogSessionKeitai->set('sessionid',       $sessionid);
-            $controller->LogSessionKeitai->set('companyid',       $companyid);
-            $controller->LogSessionKeitai->set('storecode',       $storecode);
-            $controller->LogSessionKeitai->set('ccode',           $ccode);
-            $controller->LogSessionKeitai->set('ykstatus',        $ykstatus);
-            $controller->LogSessionKeitai->set('createdatetime',  date("Y-m-d H:i:s"));
-            $controller->LogSessionKeitai->set('last_activity',   date("Y-m-d H:i:s"));
-            $controller->LogSessionKeitai->save();
-
-            return $sessionid;
-        }else {
+        if (empty($company_record)){
             return false;
         }
+        $controller->customersns->set_company_database($company_record[0]['Company']['dbname'], $controller->customersns);
+        $result = $controller->customersns->find('all', array(
+            'conditions' => array('and' => array(
+                                                    'customersns.OAUTH_UID' => $snsid,
+                                                    'customersns.STORECODE' => $storecode)),
+            'fields' => array('CCODE')
+        ));
+        if (!empty($result)) {
+            // Existing sns User
+            $ccode     = $result[0]['customersns']['CCODE'];
+            $ykstatus  = "5";
+        }
+        else {
+            // New sns Customer
+            $ccode     = 0;
+            $ykstatus  = "8|0|";
+        }
+        $sessionid = $this->GenerateSessionId();
+
+        $controller->LogSessionKeitai->set('sessionid',       $sessionid);
+        $controller->LogSessionKeitai->set('companyid',       $companyid);
+        $controller->LogSessionKeitai->set('storecode',       $storecode);
+        $controller->LogSessionKeitai->set('ccode',           $ccode);
+        $controller->LogSessionKeitai->set('ykstatus',        $ykstatus);
+        $controller->LogSessionKeitai->set('createdatetime',  date("Y-m-d H:i:s"));
+        $controller->LogSessionKeitai->set('last_activity',   date("Y-m-d H:i:s"));
+        $controller->LogSessionKeitai->save();
+
+        return $sessionid;
     }
 
-    function CreateSession(){
+    function GenerateSessionId(){
         $sessionid = uniqid();
         $possible_characters =  "abcdefghijklmnopqrstuvwxyz".
                                  "1234567890".

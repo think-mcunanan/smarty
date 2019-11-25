@@ -16,25 +16,20 @@
     color: #FFF;
     cursor: pointer;
 }
-
-    .loginBtn:before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 34px;
-        height: 100%;
-    }
-
-    .loginBtn:focus {
-        outline: none;
-    }
-
-    .loginBtn:active {
-        box-shadow: inset 0 0 0 32px rgba(0,0,0,0.1);
-    }
-
-
+.loginBtn:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 34px;
+    height: 100%;
+}
+.loginBtn:focus {
+    outline: none;
+}
+.loginBtn:active {
+    box-shadow: inset 0 0 0 32px rgba(0,0,0,0.1);
+}
 
 
 /* Facebook */
@@ -42,9 +37,8 @@
     background-color: #1a75ff;
 }
 /* facebook icon downloaded from - https://en.facebookbrand.com/facebookapp/assets/f-logo/ */
-    .loginBtn--facebook:before {
-        background: url('../img/oauth/icon_facebook.png') 2px no-repeat;
-        background-size: 70%;
-    }
-
+.loginBtn--facebook:before {
+    background: url('../img/oauth/icon_facebook.png') 2px no-repeat;
+    background-size: 70%;
+}
 

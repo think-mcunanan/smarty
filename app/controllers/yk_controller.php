@@ -392,7 +392,6 @@ class YkController extends AppController {
                 $t_bday  = null;
             }
 
-            $this->KeitaiSession->Numeric($t_phone);
             if ($setPasswordFieldsFlag){
                 if(strlen($t_pwrd1) > 0 && $t_pwrd1 == $t_pwrd2) {
                     if(preg_match("/^[a-zA-Z0-9]+$/", $t_pwrd1)) {
@@ -478,8 +477,8 @@ class YkController extends AppController {
             if($session_info['y_status'] == 8) {
                  //New customer
 
-                $setCancelButtonFlag = false;
-                $setLogoutButtonFlag = false;
+                $showCancelButtonFlag = false;
+                $showLogoutButtonFlag = false;
 
                 $this->KeitaiSession->UpdateStatus($this,
                 $session_info['session_no'],
@@ -516,8 +515,8 @@ class YkController extends AppController {
             else {
                 //Existing customer
 
-                $setCancelButtonFlag = true;
-                $setLogoutButtonFlag = true;
+                $showCancelButtonFlag = true;
+                $showLogoutButtonFlag = true;
 
                 $this->KeitaiSession->UpdateStatus($this,
                 $session_info['session_no'],
@@ -547,8 +546,8 @@ class YkController extends AppController {
         if($session_info['y_status'] == 8) {
             // 新規顧客 //
 
-            $setCancelButtonFlag = false;
-            $setLogoutButtonFlag = false;
+            $showCancelButtonFlag = false;
+            $showLogoutButtonFlag = false;
 
             $showcnumber = 1;
             $emailaddress  = $session_info['y_staff']; //3つめがメアド
@@ -591,8 +590,8 @@ class YkController extends AppController {
         else {
             // 顧客情報更新 //
 
-            $setCancelButtonFlag = true;
-            $setLogoutButtonFlag = true;
+            $showCancelButtonFlag = true;
+            $showLogoutButtonFlag = true;
 
             $showcnumber = 0;
             // 顧客情報を取り込む
@@ -674,10 +673,10 @@ class YkController extends AppController {
         $this->set('mailkubun',   $mailkubun);
         $this->set('companyid',$session_info['companyid']); //cid
         $this->set('storecode',$session_info['storecode']); //scd
-        $this->set('setCancelButton', $setCancelButtonFlag);
+        $this->set('setCancelButton', $showCancelButtonFlag);
         $this->set('setEmailTextbox', $setEmailTextboxFlag);
         $this->set('setPasswordFields', $setPasswordFieldsFlag);
-        $this->set('setLogoutButton', $setLogoutButtonFlag);
+        $this->set('setLogoutButton', $showLogoutButtonFlag);
         $this->set('logoutpath',  "mypage/".$session_info['companyid']."/".$session_info['storecode']."/".$sessionid."/logout");
         $this->set('sitepath',MOBASUTE_PATH.$store_info['storeid'].'/');
         $this->set('privacypath', "privacy/".$session_info['companyid']."/".$session_info['storecode']);
@@ -2540,12 +2539,12 @@ class YkController extends AppController {
 
     function facebook_oauth() {
         $provider = "Facebook";
-        $json = $this->OauthSnsRedirects($provider);
-        $fbid = $json->id;
-        $fbname = htmlspecialchars($json->name);
-        $fbemail = htmlspecialchars($json->email);
+        $customerInfo = $this->OauthSnsRedirects($provider);
+        $fbid = $customerInfo->id;
+        $fbname = htmlspecialchars($customerInfo->name);
+        $fbemail = htmlspecialchars($customerInfo->email);
         $this->OauthSipssRedirects($fbid, $fbname,$provider,$fbemail);
-    }
+        }
 
     function OauthSnsRedirects($snsType){
 
@@ -2630,7 +2629,7 @@ class YkController extends AppController {
         }
         $this->Cookie->destroy();
 
-        $sessionid = $this->KeitaiSession->CreateSnsSession($this, $snsId, $companyid, $storecode);
+        $sessionid = $this->KeitaiSession->SaveSnsSession($this, $snsId, $companyid, $storecode);
         if ($sessionid == false) {
             $this->_redirect(FAIL_REDIRECT,false);
             exit();
