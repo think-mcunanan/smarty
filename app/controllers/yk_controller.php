@@ -58,7 +58,7 @@ class YkController extends AppController {
     );
     var $output_encoding = 'UTF-8';
 
-    /**
+     /**
      * redirect page "index"
      *
      */
@@ -2546,24 +2546,22 @@ class YkController extends AppController {
         }
         $this->Cookie->destroy();
 
-        $provider = "Facebook";
-        $customerInfo = $this->OauthSnsRedirects($provider, $companyid, $storecode);
+        $snsDetails = new SnsDetails();
+        $snsDetails->clientid       = FACEBOOK_OAUTH_CHANNEL_ID;
+        $snsDetails->redirectUri    = FACEBOOK_OAUTH_REDIRECT_URL;
+        $snsDetails->clientSecret   = FACEBOOK_OAUTH_CHANNEL_SECRET;
+        $snsDetails->accessTokenUrl = FACEBOOK_ACCESS_TOKEN_URL;
+        $snsDetails->apiUrl         = FACEBOOK_API_URL;
+
+        $customerInfo = $this->OauthSnsRedirects($snsDetails, $companyid, $storecode);
         $fbid = $customerInfo->id;
         $fbname = htmlspecialchars($customerInfo->name);
         $fbemail = htmlspecialchars($customerInfo->email);
-        $this->OauthSipssRedirects($fbid, $fbname,$provider,$fbemail, $companyid, $storecode);
+        $this->OauthSipssRedirects($fbid, $fbname, SNSProvider::FACEBOOK, $fbemail, $companyid, $storecode);
         }
 
-    function OauthSnsRedirects($snsType, $companyid, $storecode){
-
-        if($snsType == "Facebook"){
-            $clientid       = FACEBOOK_OAUTH_CHANNEL_ID;
-            $redirectUri    = FACEBOOK_OAUTH_REDIRECT_URL;
-            $clientSecret   = FACEBOOK_OAUTH_CHANNEL_SECRET;
-            $accessTokenUrl = FACEBOOK_ACCESS_TOKEN_URL;
-            $apiUrl         = FACEBOOK_API_URL;
-        }
-
+    function OauthSnsRedirects(SnsDetails $snsDetails, $companyid, $storecode){
+                
         $antiCSRFtoken = $this->Cookie->read('CSRFtoken');
 
         $params = $this->params['url'];
@@ -2575,16 +2573,16 @@ class YkController extends AppController {
 
         $data = http_build_query(array(
             'grant_type'    => 'authorization_code',
-            'client_id'     => $clientid,
-            'redirect_uri'  => $redirectUri,
-            'client_secret' => $clientSecret,
+            'client_id'     => $snsDetails->clientid,
+            'redirect_uri'  => $snsDetails->redirectUri,
+            'client_secret' => $snsDetails->clientSecret,
             'code'          => $params['code']
         ));
 
         $curl = curl_init();
         try {
             curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded'));
-            curl_setopt($curl, CURLOPT_URL, $accessTokenUrl);
+            curl_setopt($curl, CURLOPT_URL, $snsDetails->accessTokenUrl);
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
             curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
@@ -2603,7 +2601,7 @@ class YkController extends AppController {
         // Get user data.
         try {
             curl_setopt($curl, CURLOPT_HTTPHEADER, array("Authorization: Bearer {$json->access_token}"));
-            curl_setopt($curl, CURLOPT_URL, $apiUrl);
+            curl_setopt($curl, CURLOPT_URL, $snsDetails->apiUrl);
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET');
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
             $response = curl_exec($curl);
@@ -2657,7 +2655,19 @@ class YkController extends AppController {
             $this->_redirect($url, true, null, false);
             exit();
         }
-    }
-
+    }    
+    
 }
+class SnsDetails{
+    public $clientid; 
+    public $redirectUri;
+    public $clientSecret;
+    public $accessTokenUrl;
+    public $apiUrl;
+}
+
+abstract class SNSProvider {
+    const FACEBOOK = "Facebook";
+}
+
 ?>
