@@ -162,7 +162,7 @@ class KeitaiSessionComponent extends Object
         }
     }
 
-    function SaveSnsSession(&$controller, $snsid, $companyid, $storecode){
+    function CreateSnsSession(&$controller, $snsid, $companyid, $storecode){
         if(strlen($snsid) == 0 || intval($companyid) == 0) {
             return false;
         }
@@ -2916,7 +2916,7 @@ class KeitaiSessionComponent extends Object
         return count($rs) > 0;
     }
 
-    function CreateCustomerSns(&$controller, $session_info, $snsdata, $ccode){
+    function SaveCustomerSns(&$controller, $session_info, $snsdata, $ccode){
         $controller->customersns->set_company_database($session_info['dbname'], $controller->customersns);
         $controller->customersns->set('STORECODE',        $session_info['storecode']);
         $controller->customersns->set('OAUTH_UID',        $snsdata['snsid']);

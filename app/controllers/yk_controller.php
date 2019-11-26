@@ -351,9 +351,9 @@ class YkController extends AppController {
         }
 
         $snsdata = $this->Cookie->read('snsdata');
-        $isSnsUser = empty($snsdata);
-        $setPasswordFieldsFlag = $isSnsUser;
-        $setEmailTextboxFlag = !$isSnsUser;
+        $isSnsUser = !empty($snsdata);
+        $setPasswordFieldsFlag = !$isSnsUser;
+        $setEmailTextboxFlag = $isSnsUser;
 
         if($session_info['carrier'] == "docomo_old") {
             $t_name  = mb_convert_encoding($this->params['form']['r_name'], "UTF-8", "Shift_JIS");
@@ -525,7 +525,7 @@ class YkController extends AppController {
 
             if ($ccode != 0 && !empty($snsdata)){
                 //insert data to customer_sns table
-                $this->KeitaiSession->CreateCustomerSns($this, $session_info, $snsdata, $ccode);
+                $this->KeitaiSession->SaveCustomerSns($this, $session_info, $snsdata, $ccode);
             }
 
             $this->redirect('/yk/mypage/'.$session_info['companyid'].'/'.$session_info['storecode'].'/'.$sessionid);
@@ -2538,15 +2538,23 @@ class YkController extends AppController {
     }
 
     function facebook_oauth() {
+
+        $storedata = $this->Cookie->read('storedata');
+        if (!empty($storedata)){
+            $companyid = $storedata['companyid'];
+            $storecode = $storedata['storecode'];
+        }
+        $this->Cookie->destroy();
+
         $provider = "Facebook";
-        $customerInfo = $this->OauthSnsRedirects($provider);
+        $customerInfo = $this->OauthSnsRedirects($provider, $companyid, $storecode);
         $fbid = $customerInfo->id;
         $fbname = htmlspecialchars($customerInfo->name);
         $fbemail = htmlspecialchars($customerInfo->email);
-        $this->OauthSipssRedirects($fbid, $fbname,$provider,$fbemail);
+        $this->OauthSipssRedirects($fbid, $fbname,$provider,$fbemail, $companyid, $storecode);
         }
 
-    function OauthSnsRedirects($snsType){
+    function OauthSnsRedirects($snsType, $companyid, $storecode){
 
         if($snsType == "Facebook"){
             $clientid       = FACEBOOK_OAUTH_CHANNEL_ID;
@@ -2561,7 +2569,7 @@ class YkController extends AppController {
         $params = $this->params['url'];
         if (!isset($params['code'], $params['state']) || $params['state'] != $antiCSRFtoken) {
             // If it is not appropriate access, redirect it.
-            $this->_redirect(FAIL_REDIRECT, false);
+            $this->redirect(MAIN_PATH.'yk/login/'.$companyid.'/'.$storecode);
             exit;
         }
 
@@ -2584,16 +2592,14 @@ class YkController extends AppController {
         }
         catch (Exception $e) {
             curl_close($curl);
-            _log($e);
-            $this->_redirect(FAIL_REDIRECT,false);
+            $this->redirect(MAIN_PATH.'yk/login/'.$companyid.'/'.$storecode.'/401');
             exit;
         }
-
         curl_close($curl);
         $json = json_decode($response);
-        _log($json);
-        $curl = curl_init();
+        
 
+        $curl = curl_init();
         // Get user data.
         try {
             curl_setopt($curl, CURLOPT_HTTPHEADER, array("Authorization: Bearer {$json->access_token}"));
@@ -2601,42 +2607,33 @@ class YkController extends AppController {
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET');
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
             $response = curl_exec($curl);
-
         }
         catch (Exception $e) {
             curl_close($curl);
-            _log($e);
-            $this->_redirect(FAIL_REDIRECT,false);
+            $this->redirect(MAIN_PATH.'yk/login/'.$companyid.'/'.$storecode.'/401');
             exit;
         }
-
         curl_close($curl);
         $json = json_decode($response);
-        _log($json);
+
         return $json;
+
     }
-    function OauthSipssRedirects($snsId, $snsName, $provider, $snsEmail=""){
+    function OauthSipssRedirects($snsId, $snsName, $provider, $snsEmail="", $companyid, $storecode){
 
         if ($snsId == ""){
-            $this->_redirect(FAIL_REDIRECT,false);
+            $this->redirect(MAIN_PATH.'yk/login/'.$companyid.'/'.$storecode.'/401');
             exit;
         }
 
-        $storedata = $this->Cookie->read('storedata');
-        if (!empty($storedata)){
-            $companyid = $storedata['companyid'];
-            $storecode = $storedata['storecode'];
-        }
-        $this->Cookie->destroy();
-
-        $sessionid = $this->KeitaiSession->SaveSnsSession($this, $snsId, $companyid, $storecode);
-        if ($sessionid == false) {
-            $this->_redirect(FAIL_REDIRECT,false);
+        $sessionid = $this->KeitaiSession->CreateSnsSession($this, $snsId, $companyid, $storecode);
+        if (!$sessionid) {
+            $this->redirect('/yk/login/'.$companyid.'/'.$storecode.'/401');
             exit();
         }
         $session_info = $this->KeitaiSession->Check($this, $sessionid);
-        if ($session_info == false) {
-            $this->_redirect(FAIL_REDIRECT,false);
+        if (!$session_info) {
+            $this->redirect('/yk/login/'.$companyid.'/'.$storecode.'/401');
             exit();
         }
 
