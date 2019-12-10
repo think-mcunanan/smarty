@@ -46,11 +46,11 @@ class AppController extends Controller {
     var $Customer;
 
     /**
-     * Customersns モデル
+     * CustomerSns モデル
      *
-     * @var customersns
+     * @var CustomerSns
      */
-    var $customersns;
+    var $CustomerSns;
 
     /**
      * CustomerTotal モデル

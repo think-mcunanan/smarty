@@ -45,7 +45,7 @@ class YkController extends AppController {
             'YoyakuStaffServiceTime',
             'Storetype',
             'Stafftype',
-            'customersns',
+            'CustomerSns',
             'Syscode', //Added by MarvinC 2015-07-03
             'MobasuteStoreInfo'
             );

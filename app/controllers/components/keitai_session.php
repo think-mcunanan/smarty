@@ -173,16 +173,16 @@ class KeitaiSessionComponent extends Object
         if (empty($company_record)){
             return false;
         }
-        $controller->customersns->set_company_database($company_record[0]['Company']['dbname'], $controller->customersns);
-        $result = $controller->customersns->find('all', array(
+        $controller->CustomerSns->set_company_database($company_record[0]['Company']['dbname'], $controller->CustomerSns);
+        $result = $controller->CustomerSns->find('all', array(
             'conditions' => array('and' => array(
-                                                    'customersns.OAUTH_UID' => $snsid,
-                                                    'customersns.STORECODE' => $storecode)),
+                                                    'CustomerSns.OAUTH_UID' => $snsid,
+                                                    'CustomerSns.STORECODE' => $storecode)),
             'fields' => array('CCODE')
         ));
         if (!empty($result)) {
             // Existing sns User
-            $ccode     = $result[0]['customersns']['CCODE'];
+            $ccode     = $result[0]['CustomerSns']['CCODE'];
             $ykstatus  = "5";
         }
         else {
@@ -2917,13 +2917,13 @@ class KeitaiSessionComponent extends Object
     }
 
     function SaveCustomerSns(&$controller, $session_info, $snsdata, $ccode){
-        $controller->customersns->set_company_database($session_info['dbname'], $controller->customersns);
-        $controller->customersns->set('STORECODE',        $session_info['storecode']);
-        $controller->customersns->set('OAUTH_UID',        $snsdata['snsid']);
-        $controller->customersns->set('OAUTH_PROVIDER',   $snsdata['provider']);
-        $controller->customersns->set('CCODE',            $ccode);
-        $controller->customersns->set('DATE_CREATED',     date("Y-m-d H:i:s"));
-        $controller->customersns->save();
+        $controller->CustomerSns->set_company_database($session_info['dbname'], $controller->CustomerSns);
+        $controller->CustomerSns->set('STORECODE',        $session_info['storecode']);
+        $controller->CustomerSns->set('OAUTH_UID',        $snsdata['snsid']);
+        $controller->CustomerSns->set('OAUTH_PROVIDER',   $snsdata['provider']);
+        $controller->CustomerSns->set('CCODE',            $ccode);
+        $controller->CustomerSns->set('DATE_CREATED',     date("Y-m-d H:i:s"));
+        $controller->CustomerSns->save();
     }
 
 }
