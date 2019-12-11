@@ -391,7 +391,7 @@ class YkController extends AppController {
             else {
                 $t_bday  = null;
             }
-
+            $failed_submit = false;
             if ($setPasswordFieldsFlag){
                 if(strlen($t_pwrd1) > 0 && $t_pwrd1 == $t_pwrd2) {
                     if(preg_match("/^[a-zA-Z0-9]+$/", $t_pwrd1)) {
@@ -477,9 +477,6 @@ class YkController extends AppController {
             if($session_info['y_status'] == 8) {
                  //New customer
 
-                $showCancelButtonFlag = false;
-                $showLogoutButtonFlag = false;
-
                 $this->KeitaiSession->UpdateStatus($this,
                 $session_info['session_no'],
                                                "9",
@@ -511,22 +508,20 @@ class YkController extends AppController {
                 //メール送信
                 $send_mail = mb_send_mail($to, $title, $content, $header);
 
+                if ($ccode != 0 && $isSnsUser){
+                    //insert data to customer_sns table
+                    $this->KeitaiSession->SaveCustomerSns($this, $session_info, $snsdata, $ccode);
+                }
             }
             else {
                 //Existing customer
-
-                $showCancelButtonFlag = true;
-                $showLogoutButtonFlag = true;
 
                 $this->KeitaiSession->UpdateStatus($this,
                 $session_info['session_no'],
                                                "7","",$session_info);
             }
 
-            if ($ccode != 0 && !empty($snsdata)){
-                //insert data to customer_sns table
-                $this->KeitaiSession->SaveCustomerSns($this, $session_info, $snsdata, $ccode);
-            }
+
 
             $this->redirect('/yk/mypage/'.$session_info['companyid'].'/'.$session_info['storecode'].'/'.$sessionid);
             exit();
@@ -546,8 +541,8 @@ class YkController extends AppController {
         if($session_info['y_status'] == 8) {
             // 新規顧客 //
 
-            $showCancelButtonFlag = false;
-            $showLogoutButtonFlag = false;
+            $showCancelButton = false;
+            $showLogoutButton = false;
 
             $showcnumber = 1;
             $emailaddress  = $session_info['y_staff']; //3つめがメアド
@@ -581,7 +576,7 @@ class YkController extends AppController {
                 $mailkubun     = 1;
 
                 //SNS Details
-                if (!empty($snsdata)){
+                if ($isSnsUser){
                     $name = $snsdata['snsname'];
                     $emailaddress = $snsdata['snsemail'];
                 }
@@ -590,8 +585,8 @@ class YkController extends AppController {
         else {
             // 顧客情報更新 //
 
-            $showCancelButtonFlag = true;
-            $showLogoutButtonFlag = true;
+            $showCancelButton = true;
+            $showLogoutButton = true;
 
             $showcnumber = 0;
             // 顧客情報を取り込む
@@ -673,10 +668,10 @@ class YkController extends AppController {
         $this->set('mailkubun',   $mailkubun);
         $this->set('companyid',$session_info['companyid']); //cid
         $this->set('storecode',$session_info['storecode']); //scd
-        $this->set('setCancelButton', $showCancelButtonFlag);
+        $this->set('setCancelButton', $showCancelButton);
         $this->set('setEmailTextbox', $setEmailTextboxFlag);
         $this->set('setPasswordFields', $setPasswordFieldsFlag);
-        $this->set('setLogoutButton', $showLogoutButtonFlag);
+        $this->set('setLogoutButton', $showLogoutButton);
         $this->set('logoutpath',  "mypage/".$session_info['companyid']."/".$session_info['storecode']."/".$sessionid."/logout");
         $this->set('sitepath',MOBASUTE_PATH.$store_info['storeid'].'/');
         $this->set('privacypath', "privacy/".$session_info['companyid']."/".$session_info['storecode']);
