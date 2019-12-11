@@ -352,8 +352,8 @@ class YkController extends AppController {
 
         $snsdata = $this->Cookie->read('snsdata');
         $isSnsUser = !empty($snsdata);
-        $setPasswordFieldsFlag = !$isSnsUser;
-        $setEmailTextboxFlag = $isSnsUser;
+        $setPasswordFields = !$isSnsUser;
+        $setEmailTextbox = $isSnsUser;
 
         if($session_info['carrier'] == "docomo_old") {
             $t_name  = mb_convert_encoding($this->params['form']['r_name'], "UTF-8", "Shift_JIS");
@@ -371,7 +371,7 @@ class YkController extends AppController {
             $t_sex         = $this->params['form']['r_sex'];
             $t_mailkubun   = (int) $this->params['form']['r_mailkubun'];
             $t_email       = $session_info['y_staff'];
-            if($setEmailTextboxFlag){
+            if($setEmailTextbox){
                 $t_email = $this->params['form']['r_email'];
             }
 
@@ -392,7 +392,7 @@ class YkController extends AppController {
                 $t_bday  = null;
             }
             $failed_submit = false;
-            if ($setPasswordFieldsFlag){
+            if ($setPasswordFields){
                 if(strlen($t_pwrd1) > 0 && $t_pwrd1 == $t_pwrd2) {
                     if(preg_match("/^[a-zA-Z0-9]+$/", $t_pwrd1)) {
                         $password_error1 = false;
@@ -669,8 +669,8 @@ class YkController extends AppController {
         $this->set('companyid',$session_info['companyid']); //cid
         $this->set('storecode',$session_info['storecode']); //scd
         $this->set('setCancelButton', $showCancelButton);
-        $this->set('setEmailTextbox', $setEmailTextboxFlag);
-        $this->set('setPasswordFields', $setPasswordFieldsFlag);
+        $this->set('setEmailTextbox', $setEmailTextbox);
+        $this->set('setPasswordFields', $setPasswordFields);
         $this->set('setLogoutButton', $showLogoutButton);
         $this->set('logoutpath',  "mypage/".$session_info['companyid']."/".$session_info['storecode']."/".$sessionid."/logout");
         $this->set('sitepath',MOBASUTE_PATH.$store_info['storeid'].'/');
