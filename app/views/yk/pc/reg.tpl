@@ -16,10 +16,12 @@
                 </tr>
 
                 <tr>
-                    <td align='right' valign='top'>メールアドレス：</td>
+                    
                     {if $setEmailTextbox}
+                        <td align='right' valign='top'>メールアドレス<font color='red'>*</font>：</td>
                         <td align='left'><input type='text' name='r_email' value='{$email}' size='16' maxlength='50' /></td>
                     {else}
+                        <td align='right' valign='top'>メールアドレス：</td>
                         <td align='left' valign='top'>
                             <font size='4'>
                                 <b>{$email}</b>

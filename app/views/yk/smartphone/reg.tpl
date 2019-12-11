@@ -11,10 +11,12 @@
             <input class="input_center" type='text' name='r_name' value='{$name}' size='16' maxlength='50' />
 
             <hr id="hr_before-button"/>
-            ・メールアドレス：<br />
+            
             {if $setEmailTextbox}
+                ・メールアドレス<font color='red'>*</font>：<br />
                 <input class="input_center" type='text' name='r_email' value='{$email}' size='16' maxlength='50' /><br />
             {else}
+                ・メールアドレス：<br />
                 {$email}<br />
             {/if}
             

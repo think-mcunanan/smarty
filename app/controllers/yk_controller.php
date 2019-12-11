@@ -368,11 +368,18 @@ class YkController extends AppController {
 
         if($this->params['form']['p_reg'] && strlen($t_name) > 0 && strlen($t_phone) > 0) {
 
+            $failed_submit = false;
+
             $t_sex         = $this->params['form']['r_sex'];
             $t_mailkubun   = (int) $this->params['form']['r_mailkubun'];
-            $t_email       = $session_info['y_staff'];
+
+            $t_email = $session_info['y_staff'];
             if($setEmailTextbox){
                 $t_email = $this->params['form']['r_email'];
+                if (!filter_var($t_email, FILTER_VALIDATE_EMAIL)) {
+                    $emailError = true;
+                    $failed_submit = true;
+                }
             }
 
             $t_pwrd1 = $this->params['form']['r_password1'];
@@ -391,7 +398,7 @@ class YkController extends AppController {
             else {
                 $t_bday  = null;
             }
-            $failed_submit = false;
+            
             if ($setPasswordFields){
                 if(strlen($t_pwrd1) > 0 && $t_pwrd1 == $t_pwrd2) {
                     if(preg_match("/^[a-zA-Z0-9]+$/", $t_pwrd1)) {
@@ -549,21 +556,29 @@ class YkController extends AppController {
             if($failed_submit) {
                 if($password_error1) {
                     $top_message = "<font color='red'>パスワードが確認用のものと一致しません</font>";
-                }
-                elseif($password_error2) {
+                } elseif($password_error2) {
                     $top_message = "<font color='red'>パスワードに使用できる文字は半角英数字以外のみです</font>";
+                } else {
+                    if($setEmailTextbox){
+                        $top_message = "<font color='red'>名前・メールアドレス・電話番号の入力は必須です</font>";
+                    } else{
+                        $top_message = "<font color='red'>名前と電話番号の入力は必須です</font>";
+                    }
                 }
-                else {
-                    $top_message = "<font color='red'>名前と電話番号の入力は必須です</font>";
+                if ($setEmailTextbox && $emailError && strlen($t_name) > 0) {
+                    $top_message = "<font color='red'>メールアドレスが無効です</font>";
                 }
+
                 $name   = $this->params['form']['r_name'];
-                $emailaddress = $this->params['form']['r_email'];
                 $phone  = $this->params['form']['r_phone'];
                 $sex    = $this->params['form']['r_sex'];
                 $year   = $this->params['form']['r_year'];
                 $month  = $this->params['form']['r_month'];
                 $day    = $this->params['form']['r_day'];
                 $mailkubun = $this->params['form']['r_mailkubun'];
+                if ($setEmailTextbox){
+                    $emailaddress = $this->params['form']['r_email'];
+                }
             }
             else {
                 $top_message = "はじめまして。会員情報のご登録をお願いします";
@@ -611,12 +626,17 @@ class YkController extends AppController {
             if($failed_submit) {
                 if($password_error1) {
                     $top_message = "<font color='red'>パスワードが確認用のものと一致しません</font>";
-                }
-                elseif($password_error2) {
+                } elseif($password_error2) {
                     $top_message = "<font color='red'>パスワードに使用できる文字は半角英数字以外のみです</font>";
+                } else {
+                    if($setEmailTextbox){
+                        $top_message = "<font color='red'>名前・メールアドレス・電話番号の入力は必須です</font>";
+                    } else{
+                        $top_message = "<font color='red'>名前と電話番号の入力は必須です</font>";
+                    }
                 }
-                else {
-                    $top_message = "<font color='red'>名前と電話番号の入力は必須です</font>";
+                if ($setEmailTextbox && $emailError && strlen($t_name) > 0) {
+                    $top_message = "<font color='red'>メールアドレスが無効です</font>";
                 }
                 $name      = $this->params['form']['r_name'];
                 $phone     = $this->params['form']['r_phone'];
@@ -625,6 +645,9 @@ class YkController extends AppController {
                 $month     = $this->params['form']['r_month'];
                 $day       = $this->params['form']['r_day'];
                 $mailkubun = $this->params['form']['r_mailkubun'];
+                if ($setEmailTextbox){
+                    $emailaddress = $this->params['form']['r_email'];
+                }
             }
             else {
                 $top_message = "会員情報の更新を行います";
@@ -666,12 +689,12 @@ class YkController extends AppController {
         $this->set('day',         $day);
         $this->set('showcnumber', $showcnumber); //showflg
         $this->set('mailkubun',   $mailkubun);
-        $this->set('companyid',$session_info['companyid']); //cid
-        $this->set('storecode',$session_info['storecode']); //scd
-        $this->set('setCancelButton', $showCancelButton);
-        $this->set('setEmailTextbox', $setEmailTextbox);
+        $this->set('companyid',   $session_info['companyid']); //cid
+        $this->set('storecode',   $session_info['storecode']); //scd
+        $this->set('setCancelButton',   $showCancelButton);
+        $this->set('setEmailTextbox',   $setEmailTextbox);
         $this->set('setPasswordFields', $setPasswordFields);
-        $this->set('setLogoutButton', $showLogoutButton);
+        $this->set('setLogoutButton',   $showLogoutButton);
         $this->set('logoutpath',  "mypage/".$session_info['companyid']."/".$session_info['storecode']."/".$sessionid."/logout");
         $this->set('sitepath',MOBASUTE_PATH.$store_info['storeid'].'/');
         $this->set('privacypath', "privacy/".$session_info['companyid']."/".$session_info['storecode']);
