@@ -684,7 +684,10 @@ class YkController extends AppController {
         if($year == 1888) {
             $year = "";
         }
-
+        $name = htmlspecialchars($name, ENT_QUOTES);
+        if ($setEmailTextbox){
+            $emailaddress = htmlspecialchars($emailaddress, ENT_QUOTES);
+        }
         $this->pageTitle = $store_info['STORENAME'];
         $this->set('top_message', $top_message);
         $this->set('name',        $name);
@@ -883,7 +886,7 @@ class YkController extends AppController {
         }
         $this->set('sitepath',MOBASUTE_PATH.$store_info['storeid'].'/');
         $this->set('storename',$store_info['STORENAME']);
-        $this->set('facebook_url', "https://www.facebook.com/v4.0/dialog/oauth?response_type=code&client_id=".FACEBOOK_OAUTH_CHANNEL_ID."&redirect_uri=".FACEBOOK_OAUTH_REDIRECT_URL."&state=".$antiCSRFtoken."&scope=email");
+        $this->set('facebook_url', "https://www.facebook.com/".FACEBOOK_API_VERSION."/dialog/oauth?response_type=code&client_id=".FACEBOOK_OAUTH_CHANNEL_ID."&redirect_uri=".FACEBOOK_OAUTH_REDIRECT_URL."&state=".$antiCSRFtoken."&scope=email");
         $this->set('form_action', MAIN_PATH."yk/login/".$companyid."/".$storecode."/".$sessionid);
         $this->set('privacypath', "privacy/".$companyid."/".$storecode);
         $this->prepare_carrier_output($keitai_carrier, $store_info['storeid'],$errcode);
@@ -2352,6 +2355,14 @@ class YkController extends AppController {
         $this->redirect($url, $status, $exit);
     }
 
+    /**
+     * Facebook has a PHP SDK which could have been very convenient to use
+     * but we didnot use it as it required higher version(v5.4 or greater) of php than we are using.
+     * Initial plan was to implement few more sns login technologies,
+     * which can use the same manually created implementation.
+     * Therefore, we build the flow manually.
+     * Link we referred to for creating login with facebook - https://developers.facebook.com/docs/facebook-login/manually-build-a-login-flow/
+     */
     function facebook_oauth() {
 
         $storedata = $this->Cookie->read('storedata');
@@ -2360,6 +2371,11 @@ class YkController extends AppController {
             $storecode = $storedata['storecode'];
         }
         $this->Cookie->destroy();
+
+        if($companyid == "" || $storecode == ""){
+            $this->redirect(MAIN_PATH.'yk/login/'.$companyid.'/'.$storecode.'/401');
+            exit;
+        }
 
         $snsDetails = new SNSDetails();
         $snsDetails->clientid       = FACEBOOK_OAUTH_CHANNEL_ID;
@@ -2370,10 +2386,10 @@ class YkController extends AppController {
 
         $customerInfo = $this->OauthSnsRedirects($snsDetails, $companyid, $storecode);
         $fbId = $customerInfo->id;
-        $fbName = htmlspecialchars($customerInfo->name);
-        $fbEmail = htmlspecialchars($customerInfo->email);
+        $fbName = $customerInfo->name;
+        $fbEmail = $customerInfo->email;
         $this->OauthSipssRedirects($fbId, $fbName, SNSProvider::FACEBOOK, $fbEmail, $companyid, $storecode);
-        }
+    }
 
     function OauthSnsRedirects(SNSDetails $snsDetails, $companyid, $storecode){
                 

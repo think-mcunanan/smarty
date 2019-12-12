@@ -5,11 +5,12 @@ define('FAIL_REDIRECT', 'http://www.bmy.jp/');
 define('MAIN_PATH',     'https://wsb2.sipss.jp/mobile_station_beauty/serverside/');
 
 //facebook Credentials
+define('FACEBOOK_API_VERSION','v5.0');
 define('FACEBOOK_OAUTH_CHANNEL_ID', '704063493412130');
 define('FACEBOOK_OAUTH_CHANNEL_SECRET', 'abf70ef3b284ae42628947e68b2d1f02');
 define('FACEBOOK_OAUTH_REDIRECT_URL', MAIN_PATH.'yk/facebook_oauth');
 
-define('FACEBOOK_ACCESS_TOKEN_URL','https://graph.facebook.com/v4.0/oauth/access_token');
+define('FACEBOOK_ACCESS_TOKEN_URL','https://graph.facebook.com/'.FACEBOOK_API_VERSION.'/oauth/access_token');
 define('FACEBOOK_API_URL','https://graph.facebook.com/me?fields=id,name,email');
 
 //-- メールサーバー --//
