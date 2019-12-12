@@ -376,7 +376,10 @@ class YkController extends AppController {
             $t_email = $session_info['y_staff'];
             if($setEmailTextbox){
                 $t_email = $this->params['form']['r_email'];
-                if (!filter_var($t_email, FILTER_VALIDATE_EMAIL)) {
+                $indexofAtSymbol = strpos($t_email,"@");
+                $lastIndexofAtSymbol = strrpos($t_email,"@");
+                $emailLength = strlen($t_email);
+                if(($emailLength && $indexofAtSymbol) == 0 || $indexofAtSymbol == $emailLength - 1 || $indexofAtSymbol != $lastIndexofAtSymbol){
                     $emailError = true;
                     $failed_submit = true;
                 }
@@ -558,15 +561,14 @@ class YkController extends AppController {
                     $top_message = "<font color='red'>パスワードが確認用のものと一致しません</font>";
                 } elseif($password_error2) {
                     $top_message = "<font color='red'>パスワードに使用できる文字は半角英数字以外のみです</font>";
-                } else {
+                } elseif($emailError) {
+                    $top_message = "<font color='red'>メールアドレスが無効です</font>";
+                } else{
                     if($setEmailTextbox){
                         $top_message = "<font color='red'>名前・メールアドレス・電話番号の入力は必須です</font>";
                     } else{
                         $top_message = "<font color='red'>名前と電話番号の入力は必須です</font>";
                     }
-                }
-                if ($setEmailTextbox && $emailError && strlen($t_name) > 0) {
-                    $top_message = "<font color='red'>メールアドレスが無効です</font>";
                 }
 
                 $name   = $this->params['form']['r_name'];
@@ -628,16 +630,16 @@ class YkController extends AppController {
                     $top_message = "<font color='red'>パスワードが確認用のものと一致しません</font>";
                 } elseif($password_error2) {
                     $top_message = "<font color='red'>パスワードに使用できる文字は半角英数字以外のみです</font>";
-                } else {
+                } elseif($emailError) {
+                    $top_message = "<font color='red'>メールアドレスが無効です</font>";
+                } else{
                     if($setEmailTextbox){
                         $top_message = "<font color='red'>名前・メールアドレス・電話番号の入力は必須です</font>";
                     } else{
                         $top_message = "<font color='red'>名前と電話番号の入力は必須です</font>";
                     }
                 }
-                if ($setEmailTextbox && $emailError && strlen($t_name) > 0) {
-                    $top_message = "<font color='red'>メールアドレスが無効です</font>";
-                }
+
                 $name      = $this->params['form']['r_name'];
                 $phone     = $this->params['form']['r_phone'];
                 $sex       = $this->params['form']['r_sex'];
