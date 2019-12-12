@@ -6,8 +6,8 @@ define('MAIN_PATH',     'https://rcwsb2.sipss.jp/mobile_station_beauty/serversid
 
 //facebook Credentials
 define('FACEBOOK_API_VERSION','v5.0');
-define('FACEBOOK_OAUTH_CHANNEL_ID', '2587100941510795');
-define('FACEBOOK_OAUTH_CHANNEL_SECRET', '1c621c926ceeab9dacbd9506e3a4fc86');
+define('FACEBOOK_OAUTH_CHANNEL_ID', '704063493412130');
+define('FACEBOOK_OAUTH_CHANNEL_SECRET', 'abf70ef3b284ae42628947e68b2d1f02');
 define('FACEBOOK_OAUTH_REDIRECT_URL', MAIN_PATH.'yk/facebook_oauth');
 
 define('FACEBOOK_ACCESS_TOKEN_URL','https://graph.facebook.com/'.FACEBOOK_API_VERSION.'/oauth/access_token');
