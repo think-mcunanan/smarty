@@ -384,7 +384,8 @@ class YkController extends AppController {
                 // Inbuilt code of php (filter_var) to validate email wasn't used
                 // because In Japan, Japanese mobile carriers allowed users to change the email 
                 // which do not comply with RFC 2822 compliant
-                if($indexofAtSymbol == 0 || $indexofAtSymbol == $emailLength - 1 || $indexofAtSymbol != $lastIndexofAtSymbol){
+                // and Filter_var checks if the email address is compliant with RFC
+                if(!$indexofAtSymbol || $indexofAtSymbol == $emailLength - 1 || $indexofAtSymbol != $lastIndexofAtSymbol){
                     $emailError = true;
                     $failed_submit = true;
                 }
