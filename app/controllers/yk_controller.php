@@ -376,10 +376,15 @@ class YkController extends AppController {
             $t_email = $session_info['y_staff'];
             if($setEmailTextbox){
                 $t_email = $this->params['form']['r_email'];
+
                 $indexofAtSymbol = strpos($t_email,"@");
                 $lastIndexofAtSymbol = strrpos($t_email,"@");
                 $emailLength = strlen($t_email);
-                if(($emailLength && $indexofAtSymbol) == 0 || $indexofAtSymbol == $emailLength - 1 || $indexofAtSymbol != $lastIndexofAtSymbol){
+
+                // Inbuilt code of php (filter_var) to validate email wasn't used
+                // because In Japan, Japanese mobile carriers allowed users to change the email 
+                // which do not comply with RFC 2822 compliant
+                if($indexofAtSymbol == 0 || $indexofAtSymbol == $emailLength - 1 || $indexofAtSymbol != $lastIndexofAtSymbol){
                     $emailError = true;
                     $failed_submit = true;
                 }
