@@ -2148,16 +2148,15 @@ class YkController extends AppController {
         $store_info = $this->KeitaiSession->GetStoreInfo($this,
         $companyid,
         $storecode,
-                                                     "");
+        "");
         if($store_info == false) {
-            $this->_redirect(FAIL_REDIRECT,false);
-            exit;
+            $this->pageTitle = "";
+            $this->prepare_carrier_output($this->KeitaiSession->getMobileCarrier());
+        } else{
+            $this->pageTitle = $store_info['STORENAME'];
+            $this->set('storename', $store_info['STORENAME']);
+            $this->prepare_carrier_output($this->KeitaiSession->getMobileCarrier(), $store_info['storeid']);
         }
-
-        $this->pageTitle = $store_info['STORENAME'];
-        $this->set('storename', $store_info['STORENAME']);
-        $this->prepare_carrier_output($this->KeitaiSession->getMobileCarrier(),
-        $store_info['storeid']);
     }
 
     /**
@@ -2254,7 +2253,7 @@ class YkController extends AppController {
      * @param string $carrier
      * @param int $storeid
      */
-    function prepare_carrier_output($carrier, $storeid, $errcode =0) {
+    function prepare_carrier_output($carrier, $storeid="", $errcode =0) {
         if($carrier == "docomo_old") {
             $this->output_encoding = "shift_jis";
             $this->action = "docomo_old/".$this->action;
@@ -2302,10 +2301,11 @@ class YkController extends AppController {
             $this->layout = 'keitai_layout';
             if ($errcode>0) $this->layout = 'empty_utf';
         }
-
-        $logo_image = (file_exists(MOBASUTE_PATH_LOCAL."object/".$storeid."/".$logo_image))?
-        MOBASUTE_PATH."object/".$storeid."/".$logo_image:"";
-        $this->set('logo_image',     $logo_image );
+        if($storeid != ""){
+            $logo_image = (file_exists(MOBASUTE_PATH_LOCAL."object/".$storeid."/".$logo_image))?
+            MOBASUTE_PATH."object/".$storeid."/".$logo_image:"";
+            $this->set('logo_image',     $logo_image );
+        }
     }
 
     /**

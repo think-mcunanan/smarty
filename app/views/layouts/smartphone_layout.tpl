@@ -25,7 +25,7 @@
                 {if $logo_image != ""}
                     <img border='0' src="{$logo_image}" />
                 {else}
-                    ～ {$title_for_layout} ～
+                    {$title_for_layout} 
                 {/if}
             </div>
             <hr />
