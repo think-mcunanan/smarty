@@ -49,9 +49,18 @@
 /* facebook icon downloaded from - https://en.facebookbrand.com/facebookapp/assets/f-logo/ */
 .loginBtn--facebook:before {
     background: url('../img/oauth/icon_facebook.png') 2px no-repeat;
-    margin-left: 4px;
     background-size: 70%;
 }
 
+/* Google */
+.loginBtn--google {
+    background: #4285F4;
+    font-family: 'Roboto', sans-serif;
+}
+/* Google icon downloaded from - https://developers.google.com/identity/images/g-logo.png */
+.loginBtn--google:before {
+    background: url('../img/oauth/icon_google.png') 2px no-repeat;
+    background-size: 70%;
+} 
 
 

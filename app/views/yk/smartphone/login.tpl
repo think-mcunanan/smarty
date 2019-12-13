@@ -40,6 +40,7 @@
         <hr>
          <button class="loginBtn loginBtn--line" onclick="location.href='{$line_url}';">Lineでログイン</button>
         <button class="loginBtn loginBtn--facebook" onclick="location.href='{$facebook_url}';">facebookでログイン</button>
+        <button class="loginBtn loginBtn--google" onclick="location.href='{$google_url}';">Googleでログイン</button>
         <hr>
     </div>
     

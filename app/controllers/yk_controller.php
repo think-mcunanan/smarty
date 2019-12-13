@@ -888,6 +888,7 @@ class YkController extends AppController {
         $this->set('storename',$store_info['STORENAME']);
         $this->set('line_url', "https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=".LINE_OAUTH_CHANNEL_ID."&redirect_uri=".LINE_OAUTH_REDIRECT_URL."&state=".$antiCSRFtoken."&scope=profile");
         $this->set('facebook_url', "https://www.facebook.com/".FACEBOOK_API_VERSION."/dialog/oauth?response_type=code&client_id=".FACEBOOK_OAUTH_CHANNEL_ID."&redirect_uri=".FACEBOOK_OAUTH_REDIRECT_URL."&state=".$antiCSRFtoken."&scope=email");
+        $this->set('google_url', "https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=".GOOGLE_OAUTH_CHANNEL_ID."&redirect_uri=".GOOGLE_OAUTH_REDIRECT_URL."&state=".$antiCSRFtoken."&scope=profile email");
         $this->set('form_action', MAIN_PATH."yk/login/".$companyid."/".$storecode."/".$sessionid);
         $this->set('privacypath', "privacy/".$companyid."/".$storecode);
         $this->prepare_carrier_output($keitai_carrier, $store_info['storeid'],$errcode);
@@ -2418,6 +2419,34 @@ class YkController extends AppController {
         $lineEmail = ""; //$customerInfo->email; // requires to apply for permission from line console app to use email
         $this->OauthSipssRedirects($lineId, $lineName, SNSProvider::LINE, $lineEmail, $companyid, $storecode);
     }
+    function google_oauth() {
+
+        $storedata = $this->Cookie->read('storedata');
+        if (!empty($storedata)){
+            $companyid = $storedata['companyid'];
+            $storecode = $storedata['storecode'];
+        }
+        $this->Cookie->destroy();
+
+        if($companyid == "" || $storecode == ""){
+            $this->redirect(MAIN_PATH.'yk/login/'.$companyid.'/'.$storecode.'/401');
+            exit;
+        }
+
+
+        $snsDetails = new SNSDetails();
+        $snsDetails->clientid       = GOOGLE_OAUTH_CHANNEL_ID;
+        $snsDetails->redirectUri    = GOOGLE_OAUTH_REDIRECT_URL;
+        $snsDetails->clientSecret   = GOOGLE_OAUTH_CHANNEL_SECRET;
+        $snsDetails->accessTokenUrl = GOOGLE_ACCESS_TOKEN_URL;
+        $snsDetails->apiUrl         = GOOGLE_API_URL;
+
+        $customerInfo = $this->OauthSnsRedirects($snsDetails, $companyid, $storecode);
+        $googleid = $customerInfo->sub;
+        $googlename = $customerInfo->name;
+        $googleemail = $customerInfo->email;
+        $this->OauthSipssRedirects($googleid, $googlename, SNSProvider::GOOGLE, $googleemail, $companyid, $storecode);
+    }
     function OauthSnsRedirects(SNSDetails $snsDetails, $companyid, $storecode){
                 
         $antiCSRFtoken = $this->Cookie->read('CSRFtoken');
@@ -2517,7 +2546,7 @@ class YkController extends AppController {
             $this->_redirect($url, true, null, false);
             exit();
         }
-    }    
+    } 
     
 }
 class SNSDetails{
@@ -2531,6 +2560,7 @@ class SNSDetails{
 abstract class SNSProvider {
     const FACEBOOK = "Facebook";
     const LINE = "Line";
+    const GOOGLE = "Google";
 }
 
 ?>

@@ -21,6 +21,14 @@ define('FACEBOOK_OAUTH_REDIRECT_URL', MAIN_PATH.'yk/facebook_oauth');
 define('FACEBOOK_ACCESS_TOKEN_URL','https://graph.facebook.com/'.FACEBOOK_API_VERSION.'/oauth/access_token');
 define('FACEBOOK_API_URL','https://graph.facebook.com/me?fields=id,name,email');
 
+//Google Credentials
+define('GOOGLE_OAUTH_CHANNEL_ID', '907669261098-1kb82tpv1dfsnrjhkdjo85iioiud8p46.apps.googleusercontent.com');
+define('GOOGLE_OAUTH_CHANNEL_SECRET', 'C_zTnCyrzPf6wB4aTwKtFoZF');
+define('GOOGLE_OAUTH_REDIRECT_URL', MAIN_PATH.'yk/google_oauth');
+
+define('GOOGLE_ACCESS_TOKEN_URL','https://accounts.google.com/o/oauth2/token');
+define('GOOGLE_API_URL','https://www.googleapis.com/oauth2/v3/userinfo?access_token');
+
 //-- メールサーバー --//
 define('MAILSERVER_PORT', '25');
 define('MAILSERVER_ADDRESS', 'rcmail.bmy.jp');

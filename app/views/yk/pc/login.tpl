@@ -26,6 +26,8 @@
             <br>
             <button class="loginBtn loginBtn--facebook" onclick="location.href='{$facebook_url}';">facebookでログイン</button>
             <br>
+            <button class="loginBtn loginBtn--google" onclick="location.href='{$google_url}';">Googleでログイン</button>
+            <br>
             <hr>
         </div>
         <br />
