@@ -8,13 +8,11 @@
 
     <hr id="hr_slim"/>
     <div id="centered_message">
-        新規登録は、<a href='mailto:{$salonmail}'>{$salonmail}</a>　に
-        空メールを送信してください。
-        ユーザー名、パスワードを忘れてしまった場合も、
-        こちらに空メールを送信することでログインが可能です。
+        新規登録は、SNSログインを行うか、<a href='mailto:{$salonmail}'>{$salonmail}</a>　に空メールを送信してください。
+        <br>
+        ユーザー名、パスワードを忘れてしまった場合も、こちらに空メールを送信することでログインが可能です。
         <hr id="hr_slim"/>
-        ※迷惑メール防止のための設定をしている場合は、
-        下記ドメインを許可する設定を行ってください｡
+        ※迷惑メール防止のための設定をしている場合は、下記ドメインを許可する設定を行ってください｡
         <hr id="hr_slim"/>
         
         <Form action="" method="post">
@@ -35,12 +33,13 @@
             <hr id="hr_slim"/>
             パスワード：<br />
             <input class="input_center" type='password' name='password' value='{$password}' istyle="3" format="*x" mode="alphabet" />
-            <hr id="hr_before-button"/>
-            
+            <br>
+            <br>
             <input class="groovybutton" type='submit' name='login' value='ログイン' style="width:80%;"/>
         </form>
         <hr>
         <button class="loginBtn loginBtn--facebook" onclick="location.href='{$facebook_url}';">facebookでログイン</button>
+        <hr>
     </div>
     
     <hr id="hr_slim"/>

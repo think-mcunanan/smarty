@@ -19,16 +19,15 @@
                 <input name="password" type="password" value="{$password}" size="30" style="width: 200px;" />
                 <br />
                 <br />
-                <hr>
                 <input type="submit" name="login" class="groovybutton" value="ログイン" title="" style="cursor: pointer;">
             </form>
             <hr>
             <button class="loginBtn loginBtn--facebook" onclick="location.href='{$facebook_url}';">facebookでログイン</button>
+            <br>
             <hr>
         </div>
         <br />
-    
-        <strong>初めてのお客様は、下記のアドレスに<span style="color:red;">空メールを送信</span>して、会員登録をお願いします。</strong>
+        <strong>初めてのお客様は、<span style="color:red;">SNSログインを行う</span>か、下記のアドレスに<span style="color:red;">空メールを送信</span>して、会員登録をお願いします。</strong>
         <br />
         <br />
         <center><a href='mailto:{$salonmail}'>{$salonmail}</a></center>
