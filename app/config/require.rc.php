@@ -4,6 +4,14 @@
 define('FAIL_REDIRECT', 'http://rc.bmy.jp/');
 define('MAIN_PATH',     'https://rcwsb2.sipss.jp/mobile_station_beauty/serverside/');
 
+//Line Credentials
+define('LINE_OAUTH_CHANNEL_ID', '1653327469');
+define('LINE_OAUTH_CHANNEL_SECRET', '3df3842b333e4933dcec1d8ca6da0030');
+define('LINE_OAUTH_REDIRECT_URL', MAIN_PATH.'yk/line_oauth');
+
+define('LINE_ACCESS_TOKEN_URL','https://api.line.me/oauth2/v2.1/token');
+define('LINE_API_URL','https://api.line.me/v2/profile');
+
 //facebook Credentials
 define('FACEBOOK_API_VERSION','v5.0');
 define('FACEBOOK_OAUTH_CHANNEL_ID', '704063493412130');

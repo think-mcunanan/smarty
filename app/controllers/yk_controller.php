@@ -886,6 +886,7 @@ class YkController extends AppController {
         }
         $this->set('sitepath',MOBASUTE_PATH.$store_info['storeid'].'/');
         $this->set('storename',$store_info['STORENAME']);
+        $this->set('line_url', "https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=".LINE_OAUTH_CHANNEL_ID."&redirect_uri=".LINE_OAUTH_REDIRECT_URL."&state=".$antiCSRFtoken."&scope=profile");
         $this->set('facebook_url', "https://www.facebook.com/".FACEBOOK_API_VERSION."/dialog/oauth?response_type=code&client_id=".FACEBOOK_OAUTH_CHANNEL_ID."&redirect_uri=".FACEBOOK_OAUTH_REDIRECT_URL."&state=".$antiCSRFtoken."&scope=email");
         $this->set('form_action', MAIN_PATH."yk/login/".$companyid."/".$storecode."/".$sessionid);
         $this->set('privacypath', "privacy/".$companyid."/".$storecode);
@@ -2390,7 +2391,33 @@ class YkController extends AppController {
         $fbEmail = $customerInfo->email;
         $this->OauthSipssRedirects($fbId, $fbName, SNSProvider::FACEBOOK, $fbEmail, $companyid, $storecode);
     }
+    function line_oauth() {
 
+        $storedata = $this->Cookie->read('storedata');
+        if (!empty($storedata)){
+            $companyid = $storedata['companyid'];
+            $storecode = $storedata['storecode'];
+        }
+        $this->Cookie->destroy();
+
+        if($companyid == "" || $storecode == ""){
+            $this->redirect(MAIN_PATH.'yk/login/'.$companyid.'/'.$storecode.'/401');
+            exit;
+        }
+
+        $snsDetails = new SNSDetails();
+        $snsDetails->clientid       = LINE_OAUTH_CHANNEL_ID;
+        $snsDetails->redirectUri    = LINE_OAUTH_REDIRECT_URL;
+        $snsDetails->clientSecret   = LINE_OAUTH_CHANNEL_SECRET;
+        $snsDetails->accessTokenUrl = LINE_ACCESS_TOKEN_URL;
+        $snsDetails->apiUrl         = LINE_API_URL;
+
+        $customerInfo = $this->OauthSnsRedirects($snsDetails, $companyid, $storecode);
+        $lineId = $customerInfo->userid;
+        $lineName = $customerInfo->displayName;
+        $lineEmail = ""; //$customerInfo->email; // requires to apply for permission from line console app to use email
+        $this->OauthSipssRedirects($lineId, $lineName, SNSProvider::LINE, $lineEmail, $companyid, $storecode);
+    }
     function OauthSnsRedirects(SNSDetails $snsDetails, $companyid, $storecode){
                 
         $antiCSRFtoken = $this->Cookie->read('CSRFtoken');
@@ -2503,6 +2530,7 @@ class SNSDetails{
 
 abstract class SNSProvider {
     const FACEBOOK = "Facebook";
+    const LINE = "Line";
 }
 
 ?>
