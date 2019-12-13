@@ -2417,7 +2417,7 @@ class ServersController extends WebServicesController
                             MIN(date_created) AS old_snsid_date
                     FROM customer_sns
                     WHERE CCODE = '{$toccode}'
-                    GROUP BY oauth_provider";
+                    GROUP BY storecode, oauth_provider";
             $snsData = $this->CustomerSns->query($sql);
             //====================================================================================
             // Delete Old customer_sns User Record
