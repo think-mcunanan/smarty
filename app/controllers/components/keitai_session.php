@@ -162,7 +162,7 @@ class KeitaiSessionComponent extends Object
         }
     }
 
-    function CreateSnsSession(&$controller, $snsid, $companyid, $storecode){
+    function CreateSnsSession(&$controller, $snsid, $provider, $companyid, $storecode){
         if(strlen($snsid) == 0 || intval($companyid) == 0) {
             return false;
         }
@@ -177,11 +177,13 @@ class KeitaiSessionComponent extends Object
 
         $sql = "SELECT ccode
                 FROM customer_sns
-                WHERE OAUTH_UID = :oauth_uid
-                AND storecode = :storecode";
+                WHERE oauth_uid = :oauth_uid
+                AND storecode = :storecode
+                AND oauth_provider = :oauth_provider";
         $params = array(
-                        "oauth_uid" => $snsid,
-                        "storecode" => $storecode
+                        "oauth_uid"      => $snsid,
+                        "storecode"      => $storecode,
+                        "oauth_provider" => $provider
                         );
         $result = $controller->Customer->query($sql, $params, false);
 

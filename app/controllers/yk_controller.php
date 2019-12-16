@@ -2458,7 +2458,7 @@ class YkController extends AppController {
             exit;
         }
 
-        $sessionid = $this->KeitaiSession->CreateSnsSession($this, $snsId, $companyid, $storecode);
+        $sessionid = $this->KeitaiSession->CreateSnsSession($this, $snsId, $provider, $companyid, $storecode);
         if (!$sessionid) {
             $this->redirect('/yk/login/'.$companyid.'/'.$storecode.'/401');
             exit();
