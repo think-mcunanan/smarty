@@ -30,7 +30,7 @@ class ServersController extends WebServicesController
                                 'StaffShift', 'Shift', 'SubService','StoreTransaction',
                                 'StaffAssignToStore', 'StoreSettings', 'StoreTransactionColors',
                                 'BreakTime', 'FinishedShift', 'StoreHoliday', 'YoyakuMessage',
-                                'YoyakuStaffServiceTime','YoyakuNext','Stafftype', 'Syscode', //Update by MarvinC 2015-06-24
+                                'YoyakuStaffServiceTime','YoyakuNext','Stafftype', 'CustomerSns', 'Syscode', //Update by MarvinC 2015-06-24
 
         );
 
@@ -2410,7 +2410,7 @@ class ServersController extends WebServicesController
             //====================================================================================
             // Get customer_sns Users
             //====================================================================================
-            $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
+            $this->CustomerSns->set_company_database($storeinfo['dbname'], $this->CustomerSns);
 
             $sql = "SELECT oauth_provider,
                             COUNT(*) AS users,
@@ -2418,7 +2418,7 @@ class ServersController extends WebServicesController
                     FROM customer_sns
                     WHERE CCODE = '{$toccode}'
                     GROUP BY storecode, oauth_provider";
-            $snsData = $this->Customer->query($sql);
+            $snsData = $this->CustomerSns->query($sql);
             //====================================================================================
             // Delete Old customer_sns User Record
             //====================================================================================
@@ -2430,7 +2430,7 @@ class ServersController extends WebServicesController
                                 WHERE ccode = '{$toccode}'
                                 AND date_created = '{$oldSnsidDate}'
                                 AND oauth_provider = '{$snsData[$ctr]["customer_sns"]["oauth_provider"]}'";
-                        $this->Customer->query($sql);
+                        $this->CustomerSns->query($sql);
                     }
                 }
             }
