@@ -22,7 +22,7 @@
                 <input type="submit" name="login" class="groovybutton" value="ログイン" title="" style="cursor: pointer;">
             </form>
             <hr>
-            <button class="loginBtn loginBtn--line" onclick="location.href='{$line_url}';">Lineでログイン</button>
+            <button class="loginBtn loginBtn--line" onclick="location.href='{$line_url}';">LINEでログイン</button>
             <br>
             <button class="loginBtn loginBtn--facebook" onclick="location.href='{$facebook_url}';">facebookでログイン</button>
             <br>

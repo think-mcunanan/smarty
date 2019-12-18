@@ -8,7 +8,7 @@
 
     <hr id="hr_slim"/>
     <div id="centered_message">
-        新規登録は、SNSログインを行うか、<a href='mailto:{$salonmail}'>{$salonmail}</a>　に空メールを送信してください。
+        新規登録は、SNSログインを行うか、<a href='mailto:{$salonmail}'>{$salonmail}</a> に空メールを送信してください。
         <br>
         ユーザー名、パスワードを忘れてしまった場合も、こちらに空メールを送信することでログインが可能です。
         <hr id="hr_slim"/>
@@ -38,7 +38,7 @@
             <input class="groovybutton" type='submit' name='login' value='ログイン' style="width:80%;"/>
         </form>
         <hr>
-         <button class="loginBtn loginBtn--line" onclick="location.href='{$line_url}';">Lineでログイン</button>
+         <button class="loginBtn loginBtn--line" onclick="location.href='{$line_url}';">LINEでログイン</button>
         <button class="loginBtn loginBtn--facebook" onclick="location.href='{$facebook_url}';">facebookでログイン</button>
         <button class="loginBtn loginBtn--google" onclick="location.href='{$google_url}';">Googleでログイン</button>
         <hr>

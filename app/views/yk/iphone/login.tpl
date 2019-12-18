@@ -38,7 +38,7 @@
             <input class="groovybutton" type='submit' name='login' value='ログイン' style="width:80%;"/>
         </form>
         <hr>
-        <button class="loginBtn loginBtn--line" onclick="location.href='{$line_url}';">Lineでログイン</button>
+        <button class="loginBtn loginBtn--line" onclick="location.href='{$line_url}';">LINEでログイン</button>
         <button class="loginBtn loginBtn--facebook" onclick="location.href='{$facebook_url}';">facebookでログイン</button>
         <button class="loginBtn loginBtn--google" onclick="location.href='{$google_url}';">Googleでログイン</button>
         <hr>
