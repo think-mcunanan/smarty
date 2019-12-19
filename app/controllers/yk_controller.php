@@ -45,7 +45,6 @@ class YkController extends AppController {
             'YoyakuStaffServiceTime',
             'Storetype',
             'Stafftype',
-            'CustomerSns',
             'Syscode', //Added by MarvinC 2015-07-03
             'MobasuteStoreInfo'
             );
@@ -2515,7 +2514,7 @@ class YkController extends AppController {
             exit;
         }
 
-        $sessionid = $this->KeitaiSession->CreateSnsSession($this, $snsId, $companyid, $storecode);
+        $sessionid = $this->KeitaiSession->CreateSnsSession($this, $snsId, $provider, $companyid, $storecode);
         if (!$sessionid) {
             $this->redirect('/yk/login/'.$companyid.'/'.$storecode.'/401');
             exit();

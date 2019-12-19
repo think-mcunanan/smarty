@@ -162,7 +162,7 @@ class KeitaiSessionComponent extends Object
         }
     }
 
-    function CreateSnsSession(&$controller, $snsid, $companyid, $storecode){
+    function CreateSnsSession(&$controller, $snsid, $provider, $companyid, $storecode){
         if(strlen($snsid) == 0 || intval($companyid) == 0) {
             return false;
         }
@@ -173,16 +173,23 @@ class KeitaiSessionComponent extends Object
         if (empty($company_record)){
             return false;
         }
-        $controller->CustomerSns->set_company_database($company_record[0]['Company']['dbname'], $controller->CustomerSns);
-        $result = $controller->CustomerSns->find('all', array(
-            'conditions' => array('and' => array(
-                                                    'CustomerSns.OAUTH_UID' => $snsid,
-                                                    'CustomerSns.STORECODE' => $storecode)),
-            'fields' => array('CCODE')
-        ));
+        $controller->Customer->set_company_database($company_record[0]['Company']['dbname'], $controller->Customer);
+
+        $sql = "SELECT ccode
+                FROM customer_sns
+                WHERE oauth_uid = :oauth_uid
+                AND storecode = :storecode
+                AND oauth_provider = :oauth_provider";
+        $params = array(
+                        "oauth_uid"      => $snsid,
+                        "storecode"      => $storecode,
+                        "oauth_provider" => $provider
+                        );
+        $result = $controller->Customer->query($sql, $params, false);
+
         if (!empty($result)) {
             // Existing sns User
-            $ccode     = $result[0]['CustomerSns']['CCODE'];
+            $ccode     = $result[0]['customer_sns']['ccode'];
             $ykstatus  = "5";
         }
         else {
@@ -2917,13 +2924,20 @@ class KeitaiSessionComponent extends Object
     }
 
     function SaveCustomerSns(&$controller, $session_info, $snsdata, $ccode){
-        $controller->CustomerSns->set_company_database($session_info['dbname'], $controller->CustomerSns);
-        $controller->CustomerSns->set('STORECODE',        $session_info['storecode']);
-        $controller->CustomerSns->set('OAUTH_UID',        $snsdata['snsid']);
-        $controller->CustomerSns->set('OAUTH_PROVIDER',   $snsdata['provider']);
-        $controller->CustomerSns->set('CCODE',            $ccode);
-        $controller->CustomerSns->set('DATE_CREATED',     date("Y-m-d H:i:s"));
-        $controller->CustomerSns->save();
+        $controller->Customer->set_company_database($session_info['dbname'], $controller->Customer);
+
+        $sql = "INSERT INTO customer_sns (storecode, oauth_provider, oauth_uid, ccode, date_created)
+                VALUES (:storecode, :oauth_provider, :oauth_uid, :ccode, :date_created)";
+        $params = array(
+                        "storecode"         => $session_info['storecode'],
+                        "oauth_uid"         => $snsdata['snsid'],
+                        "oauth_provider"    => $snsdata['provider'],
+                        "ccode"             => $ccode,
+                        "date_created"      => date("Y-m-d H:i:s")
+                        );
+
+        $controller->Customer->query($sql, $params, false);
+
     }
 
 }
