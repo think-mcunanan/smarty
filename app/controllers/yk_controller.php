@@ -2391,6 +2391,11 @@ class YkController extends AppController {
         $fbEmail = $customerInfo->email;
         $this->OauthSipssRedirects($fbId, $fbName, SNSProvider::FACEBOOK, $fbEmail, $companyid, $storecode);
     }
+    /**
+     * Link we referred to for creating login with LINE 
+     * To get access_token - https://developers.line.biz/en/docs/line-login/web/integrate-line-login/
+     * To get user details using access_token - https://developers.line.biz/en/docs/social-api/getting-user-profiles/
+     */
     function line_oauth() {
 
         $storedata = $this->Cookie->read('storedata');
