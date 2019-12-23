@@ -26,8 +26,8 @@ define('GOOGLE_OAUTH_CHANNEL_ID', '907669261098-1kb82tpv1dfsnrjhkdjo85iioiud8p46
 define('GOOGLE_OAUTH_CHANNEL_SECRET', 'C_zTnCyrzPf6wB4aTwKtFoZF');
 define('GOOGLE_OAUTH_REDIRECT_URL', MAIN_PATH.'yk/google_oauth');
 
-define('GOOGLE_ACCESS_TOKEN_URL','https://accounts.google.com/o/oauth2/token');
-define('GOOGLE_API_URL','https://www.googleapis.com/oauth2/v3/userinfo?access_token');
+define('GOOGLE_ACCESS_TOKEN_URL','https://oauth2.googleapis.com/token');
+define('GOOGLE_API_URL','https://www.googleapis.com/oauth2/v3/userinfo');
 
 //-- メールサーバー --//
 define('MAILSERVER_PORT', '25');
