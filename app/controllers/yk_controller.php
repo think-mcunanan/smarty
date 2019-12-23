@@ -2366,18 +2366,7 @@ class YkController extends AppController {
      */
     function facebook_oauth() {
 
-        $storedata = $this->Cookie->read('storedata');
-        if (!empty($storedata)){
-            $companyid = $storedata['companyid'];
-            $storecode = $storedata['storecode'];
-        }
-        $this->Cookie->destroy();
-
-        if($companyid == "" || $storecode == ""){
-            $this->redirect(MAIN_PATH.'yk/login/'.$companyid.'/'.$storecode.'/401');
-            exit;
-        }
-
+        $storeData  = $this->ReadStoreDataCookie();
         $snsDetails = new SNSDetails();
         $snsDetails->clientid       = FACEBOOK_OAUTH_CHANNEL_ID;
         $snsDetails->redirectUri    = FACEBOOK_OAUTH_REDIRECT_URL;
@@ -2385,12 +2374,13 @@ class YkController extends AppController {
         $snsDetails->accessTokenUrl = FACEBOOK_ACCESS_TOKEN_URL;
         $snsDetails->apiUrl         = FACEBOOK_API_URL;
 
-        $customerInfo = $this->OauthSnsRedirects($snsDetails, $companyid, $storecode);
+        $customerInfo = $this->OauthSnsRedirects($snsDetails, $storeData['companyid'], $storeData['storecode']);
         $fbId = $customerInfo->id;
         $fbName = $customerInfo->name;
         $fbEmail = $customerInfo->email;
-        $this->OauthSipssRedirects($fbId, $fbName, SNSProvider::FACEBOOK, $fbEmail, $companyid, $storecode);
+        $this->OauthSipssRedirects($fbId, $fbName, SNSProvider::FACEBOOK, $fbEmail, $storeData['companyid'], $storeData['storecode']);
     }
+
     /**
      * Link we referred to for creating login with LINE 
      * To get access_token - https://developers.line.biz/en/docs/line-login/web/integrate-line-login/
@@ -2398,18 +2388,7 @@ class YkController extends AppController {
      */
     function line_oauth() {
 
-        $storedata = $this->Cookie->read('storedata');
-        if (!empty($storedata)){
-            $companyid = $storedata['companyid'];
-            $storecode = $storedata['storecode'];
-        }
-        $this->Cookie->destroy();
-
-        if($companyid == "" || $storecode == ""){
-            $this->redirect(MAIN_PATH.'yk/login/'.$companyid.'/'.$storecode.'/401');
-            exit;
-        }
-
+        $storeData  = $this->ReadStoreDataCookie();
         $snsDetails = new SNSDetails();
         $snsDetails->clientid       = LINE_OAUTH_CHANNEL_ID;
         $snsDetails->redirectUri    = LINE_OAUTH_REDIRECT_URL;
@@ -2417,27 +2396,19 @@ class YkController extends AppController {
         $snsDetails->accessTokenUrl = LINE_ACCESS_TOKEN_URL;
         $snsDetails->apiUrl         = LINE_API_URL;
 
-        $customerInfo = $this->OauthSnsRedirects($snsDetails, $companyid, $storecode);
+        $customerInfo = $this->OauthSnsRedirects($snsDetails, $storeData['companyid'], $storeData['storecode']);
         $lineId = $customerInfo->userid;
         $lineName = $customerInfo->displayName;
         $lineEmail = ""; //$customerInfo->email; // requires to apply for permission from line console app to use email
-        $this->OauthSipssRedirects($lineId, $lineName, SNSProvider::LINE, $lineEmail, $companyid, $storecode);
+        $this->OauthSipssRedirects($lineId, $lineName, SNSProvider::LINE, $lineEmail, $storeData['companyid'], $storeData['storecode']);
     }
+
+    /**
+     * Link we referred to for creating login with Google - https://developers.google.com/identity/protocols/OAuth2WebServer
+     */
     function google_oauth() {
 
-        $storedata = $this->Cookie->read('storedata');
-        if (!empty($storedata)){
-            $companyid = $storedata['companyid'];
-            $storecode = $storedata['storecode'];
-        }
-        $this->Cookie->destroy();
-
-        if($companyid == "" || $storecode == ""){
-            $this->redirect(MAIN_PATH.'yk/login/'.$companyid.'/'.$storecode.'/401');
-            exit;
-        }
-
-
+        $storeData  = $this->ReadStoreDataCookie();
         $snsDetails = new SNSDetails();
         $snsDetails->clientid       = GOOGLE_OAUTH_CHANNEL_ID;
         $snsDetails->redirectUri    = GOOGLE_OAUTH_REDIRECT_URL;
@@ -2445,11 +2416,21 @@ class YkController extends AppController {
         $snsDetails->accessTokenUrl = GOOGLE_ACCESS_TOKEN_URL;
         $snsDetails->apiUrl         = GOOGLE_API_URL;
 
-        $customerInfo = $this->OauthSnsRedirects($snsDetails, $companyid, $storecode);
-        $googleid = $customerInfo->sub;
-        $googlename = $customerInfo->name;
-        $googleemail = $customerInfo->email;
-        $this->OauthSipssRedirects($googleid, $googlename, SNSProvider::GOOGLE, $googleemail, $companyid, $storecode);
+        $customerInfo = $this->OauthSnsRedirects($snsDetails, $storeData['companyid'], $storeData['storecode']);
+        $googleId = $customerInfo->sub;
+        $googleName = $customerInfo->name;
+        $googleEmail = $customerInfo->email;
+        $this->OauthSipssRedirects($googleId, $googleName, SNSProvider::GOOGLE, $googleEmail, $storeData['companyid'], $storeData['storecode']);
+    }
+
+    function ReadStoreDataCookie(){
+        $storeData = $this->Cookie->read('storedata');
+        if (empty($storeData)){
+            $this->redirect(MAIN_PATH.'yk/login/'.$companyid.'/'.$storecode.'/401');
+            exit;
+        } 
+        $this->Cookie->destroy();
+        return $storeData;
     }
     function OauthSnsRedirects(SNSDetails $snsDetails, $companyid, $storecode){
                 
@@ -2562,9 +2543,9 @@ class SNSDetails{
 }
 
 abstract class SNSProvider {
-    const FACEBOOK = "Facebook";
-    const LINE = "Line";
-    const GOOGLE = "Google";
+    const FACEBOOK  = "Facebook";
+    const LINE      = "Line";
+    const GOOGLE    = "Google";
 }
 
 ?>
