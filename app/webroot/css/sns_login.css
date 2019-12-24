@@ -32,13 +32,12 @@
 }
 
 /* LINE 
-    LINE states clearly about its button hover color in LINE Login button design guidelines
-    but it wasn't used as there is no information about hover color on other SNS being used. 
-    Therefore to not highlight LINE in front of other SNS buttons which can be misinterpreted 
-    and which will make our website design look inconsistent.
-    Considering this, we chose not to use LINE hover color 
-    and display the button with similar properties to that of other SNS buttons. 
-    LINE Login button design guidelines - https://developers.line.biz/media/line-login/login-button/ 
+    LINE Login button design guidelines - https://developers.line.biz/media/line-login/login-button/
+    The LINE login button design guidelines stipulate that the color of the button change 
+    when the user performs a specific operation (for example, when the mouse is over).
+    However, we did not follow those guidelines and decided to always display the same color.
+    The reason is that the facebook and google login button design guidelines do not specify a color change like LINE, 
+    and if only the LINE login button changes color, there will be no sense of unity with other buttons.
 */
 .loginBtn--line {
     background: #00C300;
@@ -50,10 +49,10 @@
 }
 
 /* facebook 
+    facebook Login button design guidelines - https://developers.facebook.com/docs/facebook-login/userexperience/
     facebook doesn't have clear information on which color to be used for facebook login button. 
     Therefore, we used the color from webpage - https://developers.facebook.com/docs/facebook-login/for-devices/
     which is similar to facebook button of API version v5.0
-    facebook Login button design guidelines - https://developers.facebook.com/docs/facebook-login/userexperience/
 */
 .loginBtn--facebook {
     background-color: #1877F2;
