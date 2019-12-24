@@ -2365,20 +2365,7 @@ class YkController extends AppController {
      * Link we referred to for creating login with facebook - https://developers.facebook.com/docs/facebook-login/manually-build-a-login-flow/
      */
     function facebook_oauth() {
-
-        $storeData  = $this->ReadStoreDataCookie();
-        $snsDetails = new SNSDetails();
-        $snsDetails->clientid       = FACEBOOK_OAUTH_CHANNEL_ID;
-        $snsDetails->redirectUri    = FACEBOOK_OAUTH_REDIRECT_URL;
-        $snsDetails->clientSecret   = FACEBOOK_OAUTH_CHANNEL_SECRET;
-        $snsDetails->accessTokenUrl = FACEBOOK_ACCESS_TOKEN_URL;
-        $snsDetails->apiUrl         = FACEBOOK_API_URL;
-
-        $customerInfo = $this->OauthSnsRedirects($snsDetails, $storeData['companyid'], $storeData['storecode']);
-        $fbId = $customerInfo->id;
-        $fbName = $customerInfo->name;
-        $fbEmail = $customerInfo->email;
-        $this->OauthSipssRedirects($fbId, $fbName, SNSProvider::FACEBOOK, $fbEmail, $storeData['companyid'], $storeData['storecode']);
+        $this->OauthRedirects(new Facebook());
     }
 
     /**
@@ -2387,43 +2374,23 @@ class YkController extends AppController {
      * To get user details using access_token - https://developers.line.biz/en/docs/social-api/getting-user-profiles/
      */
     function line_oauth() {
-
-        $storeData  = $this->ReadStoreDataCookie();
-        $snsDetails = new SNSDetails();
-        $snsDetails->clientid       = LINE_OAUTH_CHANNEL_ID;
-        $snsDetails->redirectUri    = LINE_OAUTH_REDIRECT_URL;
-        $snsDetails->clientSecret   = LINE_OAUTH_CHANNEL_SECRET;
-        $snsDetails->accessTokenUrl = LINE_ACCESS_TOKEN_URL;
-        $snsDetails->apiUrl         = LINE_API_URL;
-
-        $customerInfo = $this->OauthSnsRedirects($snsDetails, $storeData['companyid'], $storeData['storecode']);
-        $lineId = $customerInfo->userid;
-        $lineName = $customerInfo->displayName;
-        $lineEmail = ""; //$customerInfo->email; // requires to apply for permission from line console app to use email
-        $this->OauthSipssRedirects($lineId, $lineName, SNSProvider::LINE, $lineEmail, $storeData['companyid'], $storeData['storecode']);
+        $this->OauthRedirects(new Line());
     }
 
     /**
      * Link we referred to for creating login with Google - https://developers.google.com/identity/protocols/OAuth2WebServer
      */
     function google_oauth() {
-
-        $storeData  = $this->ReadStoreDataCookie();
-        $snsDetails = new SNSDetails();
-        $snsDetails->clientid       = GOOGLE_OAUTH_CHANNEL_ID;
-        $snsDetails->redirectUri    = GOOGLE_OAUTH_REDIRECT_URL;
-        $snsDetails->clientSecret   = GOOGLE_OAUTH_CHANNEL_SECRET;
-        $snsDetails->accessTokenUrl = GOOGLE_ACCESS_TOKEN_URL;
-        $snsDetails->apiUrl         = GOOGLE_API_URL;
-
-        $customerInfo = $this->OauthSnsRedirects($snsDetails, $storeData['companyid'], $storeData['storecode']);
-        $googleId = $customerInfo->sub;
-        $googleName = $customerInfo->name;
-        $googleEmail = $customerInfo->email;
-        $this->OauthSipssRedirects($googleId, $googleName, SNSProvider::GOOGLE, $googleEmail, $storeData['companyid'], $storeData['storecode']);
+        $this->OauthRedirects(new Google());
     }
 
-    function ReadStoreDataCookie(){
+    function OauthRedirects($provider) {
+        $storeData  = $this->ReadStoreDataCookie();
+        $customerInfo = $this->OauthSnsRedirects($provider, $storeData['companyid'], $storeData['storecode']);
+        $provider->SetCustomerInfo($customerInfo);
+        $this->OauthSipssRedirects($provider, $storeData['companyid'], $storeData['storecode']);
+    }
+    function ReadStoreDataCookie() {
         $storeData = $this->Cookie->read('storedata');
         if (empty($storeData)){
             $this->redirect(MAIN_PATH.'yk/login/'.$companyid.'/'.$storecode.'/401');
@@ -2432,10 +2399,8 @@ class YkController extends AppController {
         $this->Cookie->destroy();
         return $storeData;
     }
-    function OauthSnsRedirects(SNSDetails $snsDetails, $companyid, $storecode){
-                
+    function OauthSnsRedirects($provider, $companyid, $storecode) {
         $antiCSRFtoken = $this->Cookie->read('CSRFtoken');
-
         $params = $this->params['url'];
         if (!isset($params['code'], $params['state']) || $params['state'] != $antiCSRFtoken) {
             // If it is not appropriate access, redirect it.
@@ -2445,20 +2410,20 @@ class YkController extends AppController {
 
         $data = http_build_query(array(
             'grant_type'    => 'authorization_code',
-            'client_id'     => $snsDetails->clientid,
-            'redirect_uri'  => $snsDetails->redirectUri,
-            'client_secret' => $snsDetails->clientSecret,
+            'client_id'     => $provider->clientid,
+            'redirect_uri'  => $provider->redirectUri,
+            'client_secret' => $provider->clientSecret,
             'code'          => $params['code']
         ));
 
         $curl = curl_init();
         try {
             curl_setopt_array($curl, array(
-                CURLOPT_HTTPHEADER =>array('Content-Type: application/x-www-form-urlencoded'),
-                CURLOPT_URL => $snsDetails->accessTokenUrl,
-                CURLOPT_CUSTOMREQUEST => 'POST',
-                CURLOPT_POSTFIELDS => $data,
-                CURLOPT_RETURNTRANSFER => true
+                CURLOPT_HTTPHEADER      => array('Content-Type: application/x-www-form-urlencoded'),
+                CURLOPT_URL             => $provider->accessTokenUrl,
+                CURLOPT_CUSTOMREQUEST   => 'POST',
+                CURLOPT_POSTFIELDS      => $data,
+                CURLOPT_RETURNTRANSFER  => true
             ));
             $response = curl_exec($curl);
         }
@@ -2469,16 +2434,15 @@ class YkController extends AppController {
         }
         curl_close($curl);
         $json = json_decode($response);
-        
 
         $curl = curl_init();
         // Get user data.
         try {
             curl_setopt_array($curl,array(
-                CURLOPT_HTTPHEADER => array("Authorization: Bearer {$json->access_token}"),
-                CURLOPT_URL => $snsDetails->apiUrl,
-                CURLOPT_CUSTOMREQUEST => 'GET',
-                CURLOPT_RETURNTRANSFER => true
+                CURLOPT_HTTPHEADER      => array("Authorization: Bearer {$json->access_token}"),
+                CURLOPT_URL             => $provider->apiUrl,
+                CURLOPT_CUSTOMREQUEST   => 'GET',
+                CURLOPT_RETURNTRANSFER  => true
             ));
             $response = curl_exec($curl);
         }
@@ -2491,16 +2455,15 @@ class YkController extends AppController {
         $json = json_decode($response);
 
         return $json;
-
     }
-    function OauthSipssRedirects($snsId, $snsName, $provider, $snsEmail="", $companyid, $storecode){
+    function OauthSipssRedirects($provider, $companyid, $storecode){
 
-        if ($snsId == ""){
+        if ($provider->userId == ""){
             $this->redirect(MAIN_PATH.'yk/login/'.$companyid.'/'.$storecode.'/401');
             exit;
         }
 
-        $sessionid = $this->KeitaiSession->CreateSnsSession($this, $snsId, $provider, $companyid, $storecode);
+        $sessionid = $this->KeitaiSession->CreateSnsSession($this, $provider->userId, $provider->snsProvider, $companyid, $storecode);
         if (!$sessionid) {
             $this->redirect('/yk/login/'.$companyid.'/'.$storecode.'/401');
             exit();
@@ -2512,10 +2475,10 @@ class YkController extends AppController {
         }
 
         $snsdata = array(
-            'snsid'      => $snsId,
-            'snsemail'   => $snsEmail,
-            'snsname'    => $snsName,
-            'provider'   => $provider
+            'snsid'      => $provider->userId,
+            'snsemail'   => $provider->userEmail,
+            'snsname'    => $provider->userName,
+            'provider'   => $provider->snsProvider
          );
         $expires = COOKIE_EXPIRATION_DAY * 60 * 60 * 24;
         $this->Cookie->write("snsdata", $snsdata, true, $expires);
@@ -2534,18 +2497,71 @@ class YkController extends AppController {
     } 
     
 }
-class SNSDetails{
+
+abstract class SNSDetails{
+    public $snsProvider;
     public $clientid; 
     public $redirectUri;
     public $clientSecret;
     public $accessTokenUrl;
     public $apiUrl;
-}
+    public $userId;
+    public $userName;
+    public $userEmail;
 
-abstract class SNSProvider {
-    const FACEBOOK  = "Facebook";
-    const LINE      = "Line";
-    const GOOGLE    = "Google";
+    abstract function SetCustomerInfo($customerInfo);
+
+}
+class Facebook extends SNSDetails {
+
+    function __construct() {
+        $this->snsProvider    = get_class($this);
+        $this->clientid       = FACEBOOK_OAUTH_CHANNEL_ID;
+        $this->redirectUri    = FACEBOOK_OAUTH_REDIRECT_URL;
+        $this->clientSecret   = FACEBOOK_OAUTH_CHANNEL_SECRET;
+        $this->accessTokenUrl = FACEBOOK_ACCESS_TOKEN_URL;
+        $this->apiUrl         = FACEBOOK_API_URL;
+    }
+
+    public function SetCustomerInfo($customerInfo){
+        $this->userId     = $customerInfo->id;
+        $this->userName   = $customerInfo->name;
+        $this->userEmail  = $customerInfo->email;
+    }
+}
+class Line extends SNSDetails {
+
+    function __construct() {
+        $this->snsProvider    = get_class($this);
+        $this->clientid       = LINE_OAUTH_CHANNEL_ID;
+        $this->redirectUri    = LINE_OAUTH_REDIRECT_URL;
+        $this->clientSecret   = LINE_OAUTH_CHANNEL_SECRET;
+        $this->accessTokenUrl = LINE_ACCESS_TOKEN_URL;
+        $this->apiUrl         = LINE_API_URL;
+    }
+
+    public function SetCustomerInfo($customerInfo){
+        $this->userId     = $customerInfo->userId;
+        $this->userName   = $customerInfo->displayName;
+        $this->userEmail  = ""; // requires to apply for permission from line console app to use email
+    }
+}
+class Google extends SNSDetails {
+
+    function __construct() {
+        $this->snsProvider    = get_class($this);
+        $this->clientid       = GOOGLE_OAUTH_CHANNEL_ID;
+        $this->redirectUri    = GOOGLE_OAUTH_REDIRECT_URL;
+        $this->clientSecret   = GOOGLE_OAUTH_CHANNEL_SECRET;
+        $this->accessTokenUrl = GOOGLE_ACCESS_TOKEN_URL;
+        $this->apiUrl         = GOOGLE_API_URL;
+    }
+
+    public function SetCustomerInfo($customerInfo){
+        $this->userId     = $customerInfo->sub;
+        $this->userName   = $customerInfo->name;
+        $this->userEmail  = $customerInfo->email; 
+    }
 }
 
 ?>
