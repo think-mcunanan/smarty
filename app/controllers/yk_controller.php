@@ -2388,7 +2388,7 @@ class YkController extends AppController {
     function OauthRedirects($provider) {
         $storeData  = $this->ReadStoreDataCookie();
         $snsUserInfo = $this->GetUserInfoFromSns($provider, $storeData['companyid'], $storeData['storecode']);
-        $userInfo = $provider->SetUserInfo($snsUserInfo);
+        $userInfo = $provider->UserInfo($snsUserInfo);
         $this->OauthSipssRedirects($userInfo, $provider->name, $storeData['companyid'], $storeData['storecode']);
     }
     function ReadStoreDataCookie() {
@@ -2397,11 +2397,12 @@ class YkController extends AppController {
             $this->redirect(MAIN_PATH.'yk/login/'.$companyid.'/'.$storecode.'/401');
             exit;
         } 
-        $this->Cookie->destroy();
         return $storeData;
     }
     function GetUserInfoFromSns($provider, $companyid, $storecode) {
         $antiCSRFtoken = $this->Cookie->read('CSRFtoken');
+        $this->Cookie->destroy();
+        
         $params = $this->params['url'];
         if (!isset($params['code'], $params['state']) || $params['state'] != $antiCSRFtoken) {
             // If it is not appropriate access, redirect it.
@@ -2498,11 +2499,6 @@ class YkController extends AppController {
     
 }
 
-abstract class SNSProviderName {
-    const FACEBOOK  = "Facebook";
-    const LINE      = "Line";
-    const GOOGLE    = "Google";
-}
 abstract class SNS {
     public $name;
     public $clientid; 
@@ -2511,12 +2507,12 @@ abstract class SNS {
     public $accessTokenUrl;
     public $apiUrl;
 
-    abstract function SetUserInfo($customerInfo);
+    abstract function UserInfo($customerInfo);
 }
 
 class Facebook extends SNS {
     function __construct() {
-        $this->name           = SNSProviderName::FACEBOOK;
+        $this->name           = "Facebook";
         $this->clientid       = FACEBOOK_OAUTH_CHANNEL_ID;
         $this->redirectUri    = FACEBOOK_OAUTH_REDIRECT_URL;
         $this->clientSecret   = FACEBOOK_OAUTH_CHANNEL_SECRET;
@@ -2524,7 +2520,7 @@ class Facebook extends SNS {
         $this->apiUrl         = FACEBOOK_API_URL;
     }
 
-    public function SetUserInfo($customerInfo){
+    public function UserInfo($customerInfo){
         return array("userId"    => $customerInfo->id,
                      "userName"  => $customerInfo->name,
                      "userEmail" => $customerInfo->email);
@@ -2532,7 +2528,7 @@ class Facebook extends SNS {
 }
 class Line extends SNS {
     function __construct() {
-        $this->name           = SNSProviderName::LINE;
+        $this->name           = "Line";
         $this->clientid       = LINE_OAUTH_CHANNEL_ID;
         $this->redirectUri    = LINE_OAUTH_REDIRECT_URL;
         $this->clientSecret   = LINE_OAUTH_CHANNEL_SECRET;
@@ -2540,7 +2536,7 @@ class Line extends SNS {
         $this->apiUrl         = LINE_API_URL;
     }
 
-    public function SetUserInfo($customerInfo){
+    public function UserInfo($customerInfo){
         return array("userId"    => $customerInfo->userId,
                      "userName"  => $customerInfo->displayName,
                      "userEmail" => ""); // requires to apply for permission from line console app to use email
@@ -2548,7 +2544,7 @@ class Line extends SNS {
 }
 class Google extends SNS {
     function __construct() {
-        $this->name           = SNSProviderName::GOOGLE;
+        $this->name           = "Google";
         $this->clientid       = GOOGLE_OAUTH_CHANNEL_ID;
         $this->redirectUri    = GOOGLE_OAUTH_REDIRECT_URL;
         $this->clientSecret   = GOOGLE_OAUTH_CHANNEL_SECRET;
@@ -2556,7 +2552,7 @@ class Google extends SNS {
         $this->apiUrl         = GOOGLE_API_URL;
     }
 
-    public function SetUserInfo($customerInfo){
+    public function UserInfo($customerInfo){
         return array("userId"    => $customerInfo->sub,
                      "userName"  => $customerInfo->name,
                      "userEmail" => $customerInfo->email);
