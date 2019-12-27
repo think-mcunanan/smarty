@@ -810,12 +810,16 @@ class YkController extends AppController {
         }
 
         $antiCSRFtoken = md5(uniqid(rand(), true));
-        $storedata = array(
-            'companyid'      => $companyid,
-            'storecode'   => $storecode);
-        $expires = COOKIE_EXPIRATION_DAY * 60 * 60 * 24;
-        $this->Cookie->write("storedata", $storedata, true, $expires);
-        $this->Cookie->write("CSRFtoken",$antiCSRFtoken,true,$expires);
+        $storeDataCookie = array(
+            'companyid'     => $companyid,
+            'storecode'     => $storecode,
+            'antiCSRFtoken' => $antiCSRFtoken
+        );
+        $this->Cookie->path     = COOKIE_PATH;
+        $this->Cookie->domain   = COOKIE_DOMAIN;
+        $this->Cookie->secure   = COOKIE_HTTPS_ONLY;
+        $expires = date('Y-m-d H:i:s', time()+(60*30)); // 60sec * 30
+        $this->Cookie->write("storedata", $storeDataCookie, true, $expires);
 
         if (isset($this->params['form']['login'])) {
             $username = $this->params["form"]["username"];
@@ -2386,23 +2390,24 @@ class YkController extends AppController {
     }
 
     function OauthRedirects($provider) {
-        $storeData  = $this->ReadStoreDataCookie();
-        $snsUserInfo = $this->GetUserInfoFromSns($provider, $storeData['companyid'], $storeData['storecode']);
+        $storeDataCookie  = $this->ReadStoreDataCookie();
+        $snsUserInfo = $this->GetUserInfoFromSns($provider, $storeDataCookie);
         $userInfo = $provider->UserInfo($snsUserInfo);
-        $this->OauthSipssRedirects($userInfo, $provider->name, $storeData['companyid'], $storeData['storecode']);
+        $this->OauthSipssRedirects($userInfo, $provider->name, $storeDataCookie['companyid'], $storeDataCookie['storecode']);
     }
     function ReadStoreDataCookie() {
-        $storeData = $this->Cookie->read('storedata');
-        if (empty($storeData)){
-            $this->redirect(MAIN_PATH.'yk/login/'.$companyid.'/'.$storecode.'/401');
+        $storeDataCookie = $this->Cookie->read('storedata');
+        if (empty($storeDataCookie)){
+            $this->_redirect(FAIL_REDIRECT, false);
             exit;
         } 
-        return $storeData;
+        return $storeDataCookie;
     }
-    function GetUserInfoFromSns($provider, $companyid, $storecode) {
-        $antiCSRFtoken = $this->Cookie->read('CSRFtoken');
-        $this->Cookie->destroy();
-        
+    function GetUserInfoFromSns($provider, $storeDataCookie) {
+        $companyid 		= $storeDataCookie['companyid']; 
+        $storecode 		= $storeDataCookie['storecode'];
+        $antiCSRFtoken 	= $storeDataCookie['antiCSRFtoken'];
+
         $params = $this->params['url'];
         if (!isset($params['code'], $params['state']) || $params['state'] != $antiCSRFtoken) {
             // If it is not appropriate access, redirect it.
@@ -2480,7 +2485,10 @@ class YkController extends AppController {
             'snsemail'   => $userInfo["userEmail"],
             'snsname'    => $userInfo["userName"],
             'provider'   => $providerName
-         );
+        );
+        $this->Cookie->path     = COOKIE_PATH;
+        $this->Cookie->domain   = COOKIE_DOMAIN;
+        $this->Cookie->secure   = COOKIE_HTTPS_ONLY;
         $expires = COOKIE_EXPIRATION_DAY * 60 * 60 * 24;
         $this->Cookie->write("snsdata", $snsdata, true, $expires);
 
