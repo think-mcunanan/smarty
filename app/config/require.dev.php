@@ -7,7 +7,6 @@ define('MAIN_PATH',     'https://wsdev.bmy.jp/mobile_station_beauty/serverside/'
 // For Cookies
 define('COOKIE_DOMAIN','.bmy.jp');
 define('COOKIE_PATH','/yk/');
-define('COOKIE_HTTPS_ONLY', true);
 
 //Line Credentials
 define('LINE_OAUTH_CHANNEL_ID', '1653327469');
