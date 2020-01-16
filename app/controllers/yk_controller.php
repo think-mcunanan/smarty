@@ -810,14 +810,9 @@ class YkController extends AppController {
         }
 
         $antiCSRFtoken = md5(uniqid(rand(), true));
-        $storeDataCookie = array(
-            'companyid'     => $companyid,
-            'storecode'     => $storecode,
-            'antiCSRFtoken' => $antiCSRFtoken
-        );
+        $storeDataCookie = compact('companyid', 'storecode', 'antiCSRFtoken');
         $this->Cookie->path     = COOKIE_PATH;
         $this->Cookie->domain   = COOKIE_DOMAIN;
-        $this->Cookie->secure   = COOKIE_HTTPS_ONLY;
         $expires = date('Y-m-d H:i:s', time()+(60*30)); // 60sec * 30
         $this->Cookie->write("storedata", $storeDataCookie, true, $expires);
 
@@ -2397,7 +2392,7 @@ class YkController extends AppController {
     }
     function ReadStoreDataCookie() {
         $storeDataCookie = $this->Cookie->read('storedata');
-        if (empty($storeDataCookie)){
+        if (!isset($storeDataCookie)){
             $this->_redirect(FAIL_REDIRECT, false);
             exit;
         } 
