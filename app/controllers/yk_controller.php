@@ -810,12 +810,13 @@ class YkController extends AppController {
         }
 
         $antiCSRFtoken = md5(uniqid(rand(), true));
-        $storeDataCookie = compact('companyid', 'storecode', 'antiCSRFtoken');
+        $state = rawurlencode(json_encode(compact('companyid', 'storecode', 'antiCSRFtoken')));
+        
         $this->Cookie->path     = COOKIE_PATH;
         $this->Cookie->domain   = COOKIE_DOMAIN;
         $this->Cookie->secure   = COOKIE_HTTPS_ONLY;
         $expires = date('Y-m-d H:i:s', time()+(60*30)); // 60sec * 30
-        $this->Cookie->write("storedata", $storeDataCookie, true, $expires);
+        $this->Cookie->write("antiCSRFCookie", $antiCSRFtoken, true, $expires);
 
         if (isset($this->params['form']['login'])) {
             $username = $this->params["form"]["username"];
@@ -885,9 +886,9 @@ class YkController extends AppController {
         }
         $this->set('sitepath',MOBASUTE_PATH.$store_info['storeid'].'/');
         $this->set('storename',$store_info['STORENAME']);
-        $this->set('line_url', "https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=".LINE_OAUTH_CHANNEL_ID."&redirect_uri=".LINE_OAUTH_REDIRECT_URL."&state=".$antiCSRFtoken."&scope=profile");
-        $this->set('facebook_url', "https://www.facebook.com/".FACEBOOK_API_VERSION."/dialog/oauth?response_type=code&client_id=".FACEBOOK_OAUTH_CHANNEL_ID."&redirect_uri=".FACEBOOK_OAUTH_REDIRECT_URL."&state=".$antiCSRFtoken."&scope=email");
-        $this->set('google_url', "https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=".GOOGLE_OAUTH_CHANNEL_ID."&redirect_uri=".GOOGLE_OAUTH_REDIRECT_URL."&state=".$antiCSRFtoken."&scope=profile email");
+        $this->set('line_url', "https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=".LINE_OAUTH_CHANNEL_ID."&redirect_uri=".LINE_OAUTH_REDIRECT_URL."&state={$state}&scope=profile");
+        $this->set('facebook_url', "https://www.facebook.com/".FACEBOOK_API_VERSION."/dialog/oauth?response_type=code&client_id=".FACEBOOK_OAUTH_CHANNEL_ID."&redirect_uri=".FACEBOOK_OAUTH_REDIRECT_URL."&state={$state}&scope=email");
+        $this->set('google_url', "https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=".GOOGLE_OAUTH_CHANNEL_ID."&redirect_uri=".GOOGLE_OAUTH_REDIRECT_URL."&state={$state}&scope=profile email");
         $this->set('form_action', MAIN_PATH."yk/login/".$companyid."/".$storecode."/".$sessionid);
         $this->set('privacypath', "privacy/".$companyid."/".$storecode);
         $this->prepare_carrier_output($keitai_carrier, $store_info['storeid'],$errcode);
@@ -2386,26 +2387,17 @@ class YkController extends AppController {
     }
 
     function OauthRedirects($provider) {
-        $storeDataCookie  = $this->ReadStoreDataCookie();
-        $snsUserInfo = $this->GetUserInfoFromSns($provider, $storeDataCookie);
-        $userInfo = $provider->UserInfo($snsUserInfo);
-        $this->OauthSipssRedirects($userInfo, $provider->name, $storeDataCookie['companyid'], $storeDataCookie['storecode']);
-    }
-    function ReadStoreDataCookie() {
-        $storeDataCookie = $this->Cookie->read('storedata');
-        if (!isset($storeDataCookie)){
-            $this->_redirect(FAIL_REDIRECT, false);
-            exit;
-        } 
-        return $storeDataCookie;
-    }
-    function GetUserInfoFromSns($provider, $storeDataCookie) {
-        $companyid 		= $storeDataCookie['companyid']; 
-        $storecode 		= $storeDataCookie['storecode'];
-        $antiCSRFtoken 	= $storeDataCookie['antiCSRFtoken'];
-
         $params = $this->params['url'];
-        if (!isset($params['code'], $params['state']) || $params['state'] != $antiCSRFtoken) {
+        extract(json_decode(rawurldecode($params['state']), true));
+        $snsUserInfo = $this->GetUserInfoFromSns($provider, $params['code'], $companyid, $storecode, $antiCSRFtoken);
+        $userInfo = $provider->UserInfo($snsUserInfo);
+        $this->OauthSipssRedirects($userInfo, $provider->name, $companyid, $storecode);
+    }
+
+    function GetUserInfoFromSns($provider, $snsCode, $companyid, $storecode, $antiCSRF_URLtoken) {
+
+        $antiCSRF_CookieToken  = $this->Cookie->read('antiCSRFCookie');
+        if (!isset($snsCode, $antiCSRF_CookieToken, $antiCSRF_URLtoken) || $antiCSRF_CookieToken != $antiCSRF_URLtoken) {
             // If it is not appropriate access, redirect it.
             $this->redirect(MAIN_PATH.'yk/login/'.$companyid.'/'.$storecode);
             exit;
@@ -2416,7 +2408,7 @@ class YkController extends AppController {
             'client_id'     => $provider->clientid,
             'redirect_uri'  => $provider->redirectUri,
             'client_secret' => $provider->clientSecret,
-            'code'          => $params['code']
+            'code'          => $snsCode
         ));
 
         $curl = curl_init();
