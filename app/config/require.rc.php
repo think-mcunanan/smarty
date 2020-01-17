@@ -7,6 +7,7 @@ define('MAIN_PATH',     'https://rcwsb2.sipss.jp/mobile_station_beauty/serversid
 // For Cookies
 define('COOKIE_DOMAIN','.sipss.jp');
 define('COOKIE_PATH','/mobile_station_beauty/serverside/yk/');
+define('COOKIE_HTTPS_ONLY', true);
 
 //Line Credentials
 define('LINE_OAUTH_CHANNEL_ID', '1653327469');

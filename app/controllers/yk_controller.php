@@ -813,7 +813,7 @@ class YkController extends AppController {
         $storeDataCookie = compact('companyid', 'storecode', 'antiCSRFtoken');
         $this->Cookie->path     = COOKIE_PATH;
         $this->Cookie->domain   = COOKIE_DOMAIN;
-        $this->Cookie->secure   = true;
+        $this->Cookie->secure   = COOKIE_HTTPS_ONLY;
         $expires = date('Y-m-d H:i:s', time()+(60*30)); // 60sec * 30
         $this->Cookie->write("storedata", $storeDataCookie, true, $expires);
 
@@ -2484,7 +2484,7 @@ class YkController extends AppController {
         );
         $this->Cookie->path     = COOKIE_PATH;
         $this->Cookie->domain   = COOKIE_DOMAIN;
-        $this->Cookie->secure   = true;
+        $this->Cookie->secure   = COOKIE_HTTPS_ONLY;
         $expires = COOKIE_EXPIRATION_DAY * 60 * 60 * 24;
         $this->Cookie->write("snsdata", $snsdata, true, $expires);
 
