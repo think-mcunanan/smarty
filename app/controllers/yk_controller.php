@@ -2388,10 +2388,10 @@ class YkController extends AppController {
 
     function OauthRedirects($provider) {
         $params = $this->params['url'];
-        extract(json_decode(rawurldecode($params['state']), true));
-        $snsUserInfo = $this->GetUserInfoFromSns($provider, $params['code'], $companyid, $storecode, $antiCSRFtoken);
+        $state = json_decode(rawurldecode($params['state']));
+        $snsUserInfo = $this->GetUserInfoFromSns($provider, $params['code'], $state->companyid, $state->storecode, $state->antiCSRFtoken);
         $userInfo = $provider->UserInfo($snsUserInfo);
-        $this->OauthSipssRedirects($userInfo, $provider->name, $companyid, $storecode);
+        $this->OauthSipssRedirects($userInfo, $provider->name, $state->companyid, $state->storecode);
     }
 
     function GetUserInfoFromSns($provider, $snsCode, $companyid, $storecode, $antiCSRF_URLtoken) {
