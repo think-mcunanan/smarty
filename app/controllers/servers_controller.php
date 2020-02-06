@@ -888,6 +888,7 @@ class ServersController extends WebServicesController
                              'KanzashiInfo' => array(
                                  'struct' => array(
                                      'SalonId'                                 => 'xsd:int',
+                                     'Status'                                  => 'xsd:int',
                                      'SyncKanzashiEnabledStaffReservationOnly' => 'xsd:boolean',
                                      'FreeStaffcode'                           => 'xsd:int',
                                      'SigninUrl'                               => 'xsd:string',
@@ -2909,13 +2910,13 @@ class ServersController extends WebServicesController
             $sql = "
                 SELECT
                     kanzashi_id,
+                    status,
                     sync_kanzashi_enabled_staff_reservation_only,
                     free_staffcode
                 FROM sipssbeauty_kanzashi.salon
                 WHERE
                     companyid = ? AND
-                    storecode = ? AND
-                    status NOT IN (12, 13)
+                    storecode = ?
             ";
             $param = array($arrReturn['companyid'], $arrReturn['storecode']);
             $rs = $this->StoreSettings->query($sql, $param, false);
@@ -2924,6 +2925,7 @@ class ServersController extends WebServicesController
             if ($salon) {
                 $arrReturn['KanzashiInfo'] = array(
                     'SalonId'                                 => $salon['kanzashi_id'],
+                    'Status'                                  => $salon['status'],
                     'SyncKanzashiEnabledStaffReservationOnly' => (bool)$salon['sync_kanzashi_enabled_staff_reservation_only'],
                     'FreeStaffcode'                           => $salon['free_staffcode'],
                     'SigninUrl'                               => KANZASHI_SIGNIN_URL,
