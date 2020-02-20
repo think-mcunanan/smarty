@@ -888,6 +888,7 @@ class ServersController extends WebServicesController
                              'KanzashiInfo' => array(
                                  'struct' => array(
                                      'SalonId'                                 => 'xsd:int',
+                                     'Status'                                  => 'xsd:int',
                                      'SyncKanzashiEnabledStaffReservationOnly' => 'xsd:boolean',
                                      'FreeStaffcode'                           => 'xsd:int',
                                      'SigninUrl'                               => 'xsd:string',
@@ -1414,7 +1415,9 @@ class ServersController extends WebServicesController
                                         'HIDECUSTOMERINFO_FLG' => 'xsd:int',
                                         'USE_SIPSS_MENU' => 'xsd:int',
                                         'USE_MENU_AVAILABILITY_LIMIT' => 'xsd:int',
-                                        'JIKAIUPDATEOPTION_FLG' => 'xsd:int')),
+                                        'JIKAIUPDATEOPTION_FLG' => 'xsd:int',
+                                        'KANZASHI_RESERVATION_PAY_ENABLED' => 'xsd:int',
+                                        'KANZASHI_RESERVATION_PAY_DEFAULT_PRICE_TYPE' => 'xsd:int')),
                              //- ####################################################
 
 
@@ -2907,13 +2910,13 @@ class ServersController extends WebServicesController
             $sql = "
                 SELECT
                     kanzashi_id,
+                    status,
                     sync_kanzashi_enabled_staff_reservation_only,
                     free_staffcode
                 FROM sipssbeauty_kanzashi.salon
                 WHERE
                     companyid = ? AND
-                    storecode = ? AND
-                    status NOT IN (12, 13)
+                    storecode = ?
             ";
             $param = array($arrReturn['companyid'], $arrReturn['storecode']);
             $rs = $this->StoreSettings->query($sql, $param, false);
@@ -2922,6 +2925,7 @@ class ServersController extends WebServicesController
             if ($salon) {
                 $arrReturn['KanzashiInfo'] = array(
                     'SalonId'                                 => $salon['kanzashi_id'],
+                    'Status'                                  => $salon['status'],
                     'SyncKanzashiEnabledStaffReservationOnly' => (bool)$salon['sync_kanzashi_enabled_staff_reservation_only'],
                     'FreeStaffcode'                           => $salon['free_staffcode'],
                     'SigninUrl'                               => KANZASHI_SIGNIN_URL,
@@ -6427,6 +6431,25 @@ class ServersController extends WebServicesController
         }//end if
         //---------------------------------------------------------------------------
 
+        $query = '
+            SELECT
+                reservation_pay_enabled,
+                reservation_pay_default_price_type
+            FROM sipssbeauty_kanzashi.salon
+            WHERE
+                companyid = ? AND
+                storecode = ?
+        ';
+
+        $param = array($storeinfo['companyid'], $storeinfo['storecode']);
+        $records = $this->StoreSettings->query($query, $param, false);
+
+        if ($records) {
+            $salon = $records[0]['salon'];
+            $settings_two['KANZASHI_RESERVATION_PAY_ENABLED'] = $salon['reservation_pay_enabled'];
+            $settings_two['KANZASHI_RESERVATION_PAY_DEFAULT_PRICE_TYPE'] = $salon['reservation_pay_default_price_type'];
+        }
+
         $arrReturn = array_merge($settings_one[0], $settings_two);
         return $arrReturn;
     }
@@ -6549,6 +6572,19 @@ class ServersController extends WebServicesController
                 $this->StoreSettings->query($SqlSTime);
                 //-----------------------------------------------------------------------------------
             }//end if
+
+            $query = '
+                UPDATE sipssbeauty_kanzashi.salon
+                SET
+                    reservation_pay_enabled = ?,
+                    reservation_pay_default_price_type = ?
+                WHERE
+                    companyid = ? AND
+                    storecode = ?
+            ';
+
+            $param = array($param['KANZASHI_RESERVATION_PAY_ENABLED'], $param['KANZASHI_RESERVATION_PAY_DEFAULT_PRICE_TYPE'], $storeinfo['companyid'], $storeinfo['storecode']);
+            $this->StoreSettings->query($query, $param, false);
 
             return true;
         }
