@@ -10528,8 +10528,7 @@ class ServersController extends WebServicesController
         } else {
             $query = "
                 INSERT INTO kanzashi_reservation(transcode, staffcode)
-                VALUES(?, ?)
-                ON DUPLICATE KEY UPDATE transcode = VALUES(transcode);
+                VALUES(?, ?);
             ";
 
             $param = array($transcode, $staffcode);
