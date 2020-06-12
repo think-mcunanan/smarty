@@ -805,15 +805,6 @@ class ServersController extends WebServicesController
                         ),
                         'output' => array('return' => 'xsd:boolean')
                     ),
-                    'wsUpdateKanzashiReservationStaffCode' => array(
-                        'doc'    => 'かんざし予約連携スタッフ更新',
-                        'input'  => array(
-                            'sessionid' => 'xsd:string',
-                            'transcode' => 'xsd:string',
-                            'staffcode' => 'xsd:int'
-                        ),
-                        'output' => array('return' => 'xsd:boolean')
-                    ),
                     'wsPushKanzashiStylist' => array(
                         'doc'    => 'かんざしスタイリストPUSH',
                         'input'  => array(
@@ -1602,7 +1593,7 @@ class ServersController extends WebServicesController
                                         'origination'       => 'xsd:int',
                                         'bmstaff'           => 'xsd:string',
                                         'secondnote'        => 'xsd:string',
-                                        'KANZASHI_STAFFCODE' => 'xsd:int',
+                                        'MAINSTAFFCODE'     => 'xsd:int',
                                     /*--------------------------------------------*/
                                     /* add by albert for bm connection 2015-10-29 */
                                     /*--------------------------------------------*/
@@ -7002,7 +6993,7 @@ class ServersController extends WebServicesController
                         bmtble.sex as bmsex, bmtble.name_kn_sei as knfirstname, bmtble.name_kn_mei as knlastname, bmtble.tel as bmtel,
 			            bmtble.zipcode as bmzip, bmtble.address as bmaddress, bmtble.mail as bmmail, bmtble.menu_info, bmtble.memo,
                         transaction.origination, bmtble.staffname as bmstaff, str_bm_notes.secondnote as secondnote,
-                        COALESCE(kr.staffcode, -1) KANZASHI_STAFFCODE
+                        COALESCE(transaction.MAINSTAFFCODE, -1) MAINSTAFFCODE
                 FROM store_transaction as transaction
                     LEFT JOIN store_transaction_details as details ON
                         transaction.TRANSCODE = details.TRANSCODE AND
@@ -7043,8 +7034,6 @@ class ServersController extends WebServicesController
                         yoyaku.uketsukestaff = staff2.staffcode
                     left join store_transaction_second_notes as str_bm_notes on
                         transaction.transcode = str_bm_notes.transcode and transaction.keyno = str_bm_notes.keyno
-                    LEFT JOIN kanzashi_reservation kr ON
-                        kr.transcode = transaction.transcode
                     left join (select 7 as origination,
                                         bm_reservation.route,
                                         bm_reservation.reservation_system,
@@ -7646,7 +7635,8 @@ class ServersController extends WebServicesController
                         HASSERVICES = ".$param['HASSERVICES'].",
                         TEMPSTATUS = ".$param['TEMPSTATUS'].",
                         PRIORITYTYPE = ".$param['PRIORITYTYPE'].",
-                        SEX = ".$param['SEX']."
+                        SEX = ".$param['SEX'].",
+                        MAINSTAFFCODE = ".$param['MAINSTAFFCODE']."
                      WHERE TRANSCODE = ".$s.$param['TRANSCODE'].$s."
                             AND KEYNO = ".$param['KEYNO'];
             //-------------------------------------------------------------------------
@@ -7660,7 +7650,8 @@ class ServersController extends WebServicesController
             $fields = "TRANSCODE, KEYNO, STORECODE, IDNO, TRANSDATE, YOYAKUTIME,
                    ENDTIME, CCODE, REGULARCUSTOMER, KYAKUKUBUN, RATETAX, ZEIOPTION,
                    SOGOKEIOPTION, CNAME, APT_COLOR, NOTES, PRIORITY, STAFFCODE,
-                   YOYAKU, CUST_TELNO, HASSERVICES, TEMPSTATUS, PRIORITYTYPE, SEX, ORIGINATION ";
+                   YOYAKU, CUST_TELNO, HASSERVICES, TEMPSTATUS, PRIORITYTYPE, SEX,
+                   ORIGINATION, MAINSTAFFCODE ";
             $values = "'" . $param['TRANSCODE']      . "', " . $param['KEYNO']      . " ,
                         " . $param['STORECODE']      . " , " . $param['IDNO']       . " ,
                        '" . $param['TRANSDATE']      . "','" . $param['YOYAKUTIME'] . "',
@@ -7672,7 +7663,8 @@ class ServersController extends WebServicesController
                         " . $param['PRIORITY']       . " , " . $param['STAFFCODE']  . " ,
                         " . $param['YOYAKU']         . " ,'" . $param['CUST_TELNO'] . "',
                         " . $param['HASSERVICES']    . " , " . $param['TEMPSTATUS'] . " ,
-                        " . $param['PRIORITYTYPE']   . " , " . $param['SEX'] . " , " . $param['origination'];
+                        " . $param['PRIORITYTYPE']   . " , " . $param['SEX'] . " ,
+                        " . $param['origination']    . " , " . $param['MAINSTAFFCODE'];
             $sql = "REPLACE INTO store_transaction (".$fields.") VALUES(".$values.")";
 
             //===============================================================================================
@@ -10215,7 +10207,8 @@ class ServersController extends WebServicesController
                         trans.SOGOKEIOPTION,
                         trans.APT_COLOR,
                         trans.NOTES,
-                        trans.STAFFCODE
+                        trans.STAFFCODE,
+                        trans.MAINSTAFFCODE
                 FROM store_transaction AS trans
                 WHERE trans.transcode = '".$transcode."'
                     AND trans.delflg IS NULL";
@@ -10488,53 +10481,6 @@ class ServersController extends WebServicesController
             $this->StoreHoliday->query($query);
         }
 
-        return true;
-    }
-
-    /**
-     * かんざし予約連携スタッフ更新
-     *
-     * @param string $sessionid セッションID
-     * @param string $transcode 伝票コード
-     * @param int $staffcode スタッフコード
-     */
-    function wsUpdateKanzashiReservationStaffCode($sessionid, $transcode, $staffcode) {
-        $store_info = $this->YoyakuSession->Check($this);
-
-        if (!$store_info) {
-            $this->_soap_server->fault(1, '', INVALID_SESSION);
-            return;
-        }
-
-        $this->StoreTransaction->set_company_database($store_info['dbname'], $this->StoreTransaction);
-
-        $query = "
-            SELECT TRUE
-            FROM kanzashi_reservation
-            WHERE transcode = ?;
-        ";
-
-        $param = array($transcode);
-        $is_update = (bool)$this->StoreTransaction->query($query, $param, false);
-
-        if ($is_update) {
-            $query = "
-                UPDATE kanzashi_reservation
-                SET staffcode = ?
-                WHERE transcode = ?;
-            ";
-
-            $param = array($staffcode, $transcode);
-        } else {
-            $query = "
-                INSERT INTO kanzashi_reservation(transcode, staffcode)
-                VALUES(?, ?);
-            ";
-
-            $param = array($transcode, $staffcode);
-        }
-
-        $this->StoreTransaction->query($query, $param, false);
         return true;
     }
 
