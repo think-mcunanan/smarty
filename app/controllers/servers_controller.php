@@ -6993,7 +6993,7 @@ class ServersController extends WebServicesController
                         bmtble.sex as bmsex, bmtble.name_kn_sei as knfirstname, bmtble.name_kn_mei as knlastname, bmtble.tel as bmtel,
 			            bmtble.zipcode as bmzip, bmtble.address as bmaddress, bmtble.mail as bmmail, bmtble.menu_info, bmtble.memo,
                         transaction.origination, bmtble.staffname as bmstaff, str_bm_notes.secondnote as secondnote,
-                        COALESCE(transaction.MAINSTAFFCODE, -1) MAINSTAFFCODE
+                        transaction.MAINSTAFFCODE
                 FROM store_transaction as transaction
                     LEFT JOIN store_transaction_details as details ON
                         transaction.TRANSCODE = details.TRANSCODE AND
