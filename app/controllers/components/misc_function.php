@@ -1684,11 +1684,12 @@ class MiscFunctionComponent extends Object
         $response = "";
 
         $options += array(
-            CURLOPT_URL => $url,
-            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CONNECTTIMEOUT => 0,
             CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_RETURNTRANSFER => true,
             CURLOPT_SSL_VERIFYHOST => false,
-            CURLOPT_TIMEOUT => 5
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_URL => $url
         );
 
         $curl = curl_init();
