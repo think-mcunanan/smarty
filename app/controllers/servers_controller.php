@@ -2485,7 +2485,7 @@ class ServersController extends WebServicesController
         10: SIPSS Tablet
         11: Yoyaku App
         12: かんざし連携
-        13: もばすてWeb予約(PC) (new)
+        13: Web予約システム
          */
 
         $storecodecond = $strcode > 0 ? " and str_hdr.storecode = {$strcode} " : '';
@@ -2568,7 +2568,7 @@ class ServersController extends WebServicesController
         10: SIPSS Tablet
         11: Yoyaku App
         12: かんざし連携
-        13: もばすてWeb予約(PC) (new)
+        13: Web予約システム
          */
 
         switch ($origination) {
