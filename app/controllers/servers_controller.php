@@ -2485,6 +2485,7 @@ class ServersController extends WebServicesController
         10: SIPSS Tablet
         11: Yoyaku App
         12: かんざし連携
+        13: もばすてWeb予約(PC) (new)
          */
 
         $storecodecond = $strcode > 0 ? " and str_hdr.storecode = {$strcode} " : '';
@@ -2493,7 +2494,7 @@ class ServersController extends WebServicesController
                 from (
                       select
                            count(if(origination in (7,8,9,11,12), transcode, null)) as bmr,
-                           count(if(origination in (1,2), transcode, null)) as wrkr
+                           count(if(origination in (1,2,13), transcode, null)) as wrkr
                       from (
                             select
                                 str_hdr.transcode,
@@ -2508,7 +2509,7 @@ class ServersController extends WebServicesController
                             join stafftype on stafftype.staffcode = stff.staffcode and stafftype.delflg is null or str_dtl.staffcode = 0
                             join storetype on storetype.delflg is null and storetype.storecode = str_hdr.storecode
                             left join store_transaction2 as str_trans2_hdr on str_hdr.transcode = str_trans2_hdr.transcode and str_hdr.keyno = str_trans2_hdr.keyno
-                            where str_hdr.origination in (1,2,7,8,9,11,12)
+                            where str_hdr.origination in (1,2,7,8,9,11,12,13)
                                 and str_hdr.transdate >= date(now())
                                 {$storecodecond}
                             group by str_hdr.transcode
@@ -2567,6 +2568,7 @@ class ServersController extends WebServicesController
         10: SIPSS Tablet
         11: Yoyaku App
         12: かんざし連携
+        13: もばすてWeb予約(PC) (new)
          */
 
         switch ($origination) {
@@ -2574,7 +2576,7 @@ class ServersController extends WebServicesController
                 $wherecond = " str_hdr.origination in (1) ";
                 break;
             case 2:
-                $wherecond = " str_hdr.origination in (2) ";
+                $wherecond = " str_hdr.origination in (2, 13) ";
                 break;
             case 3:
                 $wherecond = " str_hdr.origination in (7, 8, 9) ";
@@ -2586,7 +2588,7 @@ class ServersController extends WebServicesController
                 $wherecond = " str_hdr.origination in (12) ";
                 break;
             default:
-                $wherecond = " str_hdr.origination in (1, 2, 7, 8, 9, 11, 12) ";
+                $wherecond = " str_hdr.origination in (1, 2, 7, 8, 9, 11, 12, 13) ";
                 break;
         }
 
