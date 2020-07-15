@@ -721,7 +721,7 @@ class MiscFunctionComponent extends Object
             $arrList[$ctr]['WITHMARKETING'] = $arrData[$i]['drejimarketing']['WITHMARKETING'];
             #------------------------------------------------------------------------------------------------------------------------
             $arrList[$ctr]['secondnote'] = $arrData[$i]['str_bm_notes']['secondnote'];
-            $arrList[$ctr]['KANZASHI_STAFFCODE'] = $arrData[$i][0]['KANZASHI_STAFFCODE'];
+            $arrList[$ctr]['MAINSTAFFCODE'] = $arrData[$i]['transaction']['MAINSTAFFCODE'];
 
             if ($arrData[$i]['transaction']['origination'] !== '12') {
                 // かんざし連携以外の場合
