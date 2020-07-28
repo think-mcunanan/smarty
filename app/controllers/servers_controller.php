@@ -1557,17 +1557,14 @@ class ServersController extends WebServicesController
                                         'GCODE'            => 'xsd:int',
                                         'YOYAKU'           => 'xsd:int',
                                         'STARTTIME'        => 'xsd:string',
-                                        'SERVICESNAME'     => 'xsd:string', //Update by MarvinC - Added param for syscode
-                                        'YOYAKU_STATUS'    => 'xsd:string', //Update by MarvinC - Added param for syscode
+                                        'SERVICESNAME'     => 'xsd:string', 
+                                        'YOYAKU_STATUS'    => 'xsd:string', 
                                         'INCOMPLETE'       => 'xsd:int',
                                         'UKETSUKESTAFFNAME'=> 'xsd:string',
-                                        'DATETIMECREATED'  => 'xsd:string', //Update by MarvinC - 2016-05-11
-                                        'CREATENEWTRANS'   => 'xsd:int', //Update by MarvinC - 2016-06-30
-                                        'PREVTRANSCODE'    => 'xsd:string', //Update by MarvinC - 2016-06-30
-                                        'DELPREVTRANSGCODES'    => 'xsd:string', //Update by MarvinC - 2016-06-30
-                                    /*--------------------------------------------*/
-                                    /* add by albert for bm connection 2015-10-29 */
-                                    /*--------------------------------------------*/
+                                        'DATETIMECREATED'  => 'xsd:string', 
+                                        'CREATENEWTRANS'   => 'xsd:int', 
+                                        'PREVTRANSCODE'    => 'xsd:string', 
+                                        'DELPREVTRANSGCODES'    => 'xsd:string', 
                                         'route'            => 'xsd:string',
                                         'reservation_system'=> 'xsd:string',
                                         'reserve_date'      => 'xsd:string',
@@ -1585,6 +1582,7 @@ class ServersController extends WebServicesController
                                         'nomination_fee'    => 'xsd:int',
                                         'bmTprice'          => 'xsd:int',
                                         'use_point'         => 'xsd:int',
+                                        'coupon_point'      => 'xsd:int',
                                         'grant_point'       => 'xsd:int',
                                         'visit_num'         => 'xsd:int',
                                         'firstname'         => 'xsd:string',
@@ -1602,9 +1600,6 @@ class ServersController extends WebServicesController
                                         'bmstaff'           => 'xsd:string',
                                         'secondnote'        => 'xsd:string',
                                         'MAINSTAFFCODE'     => 'xsd:int',
-                                    /*--------------------------------------------*/
-                                    /* add by albert for bm connection 2015-10-29 */
-                                    /*--------------------------------------------*/
                                         'details'           => 'tns:_storeTransactionDetailInformation',
                                         'rejimarketing'     => 'tns:_rejiMarketingInformation')),
                              '_storeTransactionInformation' => array(

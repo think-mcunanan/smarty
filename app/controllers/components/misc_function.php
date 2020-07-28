@@ -776,6 +776,7 @@ class MiscFunctionComponent extends Object
                 $arrList[$ctr]['nomination_fee']      = 0;
                 $arrList[$ctr]['bmTprice']            = $json->price;
                 $arrList[$ctr]['use_point']           = $json->point;
+                $arrList[$ctr]['coupon_point']        = $json->coupon_point;
                 $arrList[$ctr]['grant_point']         = 0;
                 $arrList[$ctr]['visit_num']           = 0;
                 $arrList[$ctr]['firstname']           = $json->customer->name;
