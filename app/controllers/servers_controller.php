@@ -1121,7 +1121,8 @@ class ServersController extends WebServicesController
             'oemflg'            => 'xsd:int',
             'storetype'         => 'tns:storetypeInformation',
             'allstoretype'      => 'tns:AllStoreTypes',
-            'KanzashiInfo'      => 'tns:KanzashiInfo'
+            'KanzashiInfo'      => 'tns:KanzashiInfo',
+            'facility_enabled'  => 'xsd:boolean'
         )),
 
         '_AllStoreTypes' => array('struct' => array(
@@ -3136,7 +3137,7 @@ class ServersController extends WebServicesController
             $store_rec = $this->Store->find('all', array('conditions' => array('storecode' => $arrReturn['storecode'])));
             $arrReturn['storename'] = $store_rec[0]['Store']['STORENAME'];
             $arrReturn['storemail'] = $store_rec[0]['Store']['mail'];
-
+            $arrReturn['facility_enabled'] = $store_rec[0]['Store']['facility_enabled'];
 
             //-- 会社データベースを設定する (Set the Company Database)
             $this->StoreSettings->set_company_database($arrReturn['dbname'], $this->StoreSettings);
