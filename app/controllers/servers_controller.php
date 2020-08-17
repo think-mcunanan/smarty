@@ -1310,6 +1310,19 @@ class ServersController extends WebServicesController
             'record_count' => 'xsd:int'
         )),
 
+        'facilityInformation' => array('struct' => array(
+            'FACILITYID'       => 'xsd:int',
+            'FACILITYNAME'     => 'xsd:string',
+            'ROWS'             => 'xsd:int'
+        )),
+
+        '_facilityInformation' => array(
+            'array' => 'facilityInformation'
+        ),
+        'return_facilityInformation' => array('struct' => array(
+            'records'      => 'tns:_facilityInformation',
+        )),
+
         'staffRowsHistoryInformation' => array('struct' => array(
             'STAFFCODE'        => 'xsd:int',
             'STORECODE'        => 'xsd:int',
@@ -1326,8 +1339,6 @@ class ServersController extends WebServicesController
             'record_count' => 'xsd:int'
         )),
         //- ####################################################
-
-
 
         // STAFF SHIFT -----------------------------------------
         'staffShiftSearchCriteria' => array('struct' => array(
@@ -2008,11 +2019,12 @@ class ServersController extends WebServicesController
         )),
 
         'return_dataOfTheDayInformation' => array('struct' => array(
-            'store'       => 'tns:basicInformation',
-            'holiday'     => 'xsd:string',
-            'messages'    => 'tns:return_yoyakuMessage',
-            'calendar'    => 'tns:return_transactionCalendarViewInformation',
-            'records'     => 'tns:return_staffInformation'
+            'store'             => 'tns:basicInformation',
+            'holiday'           => 'xsd:string',
+            'messages'          => 'tns:return_yoyakuMessage',
+            'calendar'          => 'tns:return_transactionCalendarViewInformation',
+            'staff_records'     => 'tns:return_staffInformation',
+            'facility_records'  => 'tns:return_facilityInformation',
         )),
         //- ####################################################
 
@@ -9094,13 +9106,14 @@ class ServersController extends WebServicesController
             $finaldata[$ctr] = $trans;
         }
 
-
-
         $transaction["records"] = $finaldata;
+
+        $facilities = array();
         #----------------------------------------------------------------------------------------------------------------
-
-
-
+        if ($this->MiscFunction->IsFacilityEnabled($this, $storeinfo['dbname'], $param['STORECODE'])) {
+            $facilities = $this->MiscFunction
+                ->GetAvailableFacilities($this, $storeinfo['dbname'], $param['STORECODE']);
+        }
 
         //--------------------------------------------------------------------------------------------------------
         $staff          = $this->wsSearchAvailableStaff($sessionid, $param);
@@ -9277,15 +9290,15 @@ class ServersController extends WebServicesController
                 $records[$key]["transaction"]["records"] = $transactions;
             }
         }
-        $ret["records"]["records"] = $records;
-        #----------------------------------------------------------------------------------------------------------------
+
+        $ret['records']['records'] = $records;
+        $ret['staff_records'] = $ret['records'];
+        $ret['facility_records']['records'] = $facilities;
+        unset($ret['records']);
         return $ret;
         //---------------------------------------------------------------------------------------------
     } //end function
     //- #############################################################################
-
-
-
 
     // TRANSACTION CALENDAR VIEW FUNCTIONS ------------------------------------------
     /**
