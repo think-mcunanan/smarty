@@ -1819,12 +1819,12 @@ class MiscFunctionComponent extends Object
     {
         $controller->Store->set_company_database($dbname, $controller->Store);
         $query = "
-            SELECT
-                facility_enabled
-            FROM store
+            SELECT *
+            FROM store_settings
             WHERE 
                 storecode = :storecode AND
-                facility_enabled = 1
+                optionname = 'KireiFacilityEnabled' AND
+                optionvaluei = 1
         ";
 
         $param = compact('storecode');
