@@ -1122,7 +1122,7 @@ class ServersController extends WebServicesController
             'storetype'         => 'tns:storetypeInformation',
             'allstoretype'      => 'tns:AllStoreTypes',
             'KanzashiInfo'      => 'tns:KanzashiInfo',
-            'KIREI_FACILITY_ENABLED'  => 'xsd:boolean'
+            'FACILITY_ENABLED'  => 'xsd:boolean'
         )),
 
         '_AllStoreTypes' => array('struct' => array(
@@ -3214,7 +3214,7 @@ class ServersController extends WebServicesController
                         $arrReturn['UPPER_LIMIT_OP'] = $itm['StoreSettings']['OPTIONVALUES'];
                         break;
                     case 'KireiFacilityEnabled':
-                        $arrReturn['KIREI_FACILITY_ENABLED'] = $itm['StoreSettings']['OPTIONVALUEI'];
+                        $arrReturn['FACILITY_ENABLED'] = $itm['StoreSettings']['OPTIONVALUEI'];
                         break;
                 }
             }
@@ -9113,7 +9113,7 @@ class ServersController extends WebServicesController
 
         $facilities = array();
         #----------------------------------------------------------------------------------------------------------------
-        if ($this->MiscFunction->IsKireiFacilityEnabled($this, $storeinfo['dbname'], $param['STORECODE'])) {
+        if ($this->MiscFunction->IsFacilityEnabled($this, $storeinfo['dbname'], $param['STORECODE'])) {
             $facilities = $this->MiscFunction
                 ->GetAvailableFacilities($this, $storeinfo['dbname'], $param['STORECODE']);
         }

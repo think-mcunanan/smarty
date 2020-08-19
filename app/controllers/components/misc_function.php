@@ -1808,14 +1808,14 @@ class MiscFunctionComponent extends Object
     }
 
     /**
-     * Determine whether Kirei Facility is Enabled
+     * Determine whether Facility is Enabled
      *
      * @param controller &$controller
      * @param string $dbname
      * @param int $storecode 
      * @return boolean 
      */
-    function IsKireiFacilityEnabled(&$controller, $dbname, $storecode)
+    function IsFacilityEnabled(&$controller, $dbname, $storecode)
     {
         $controller->Store->set_company_database($dbname, $controller->Store);
         $query = "
