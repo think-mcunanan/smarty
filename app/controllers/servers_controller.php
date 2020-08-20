@@ -3315,7 +3315,7 @@ class ServersController extends WebServicesController
                 // The below if block was added so that the program can return an error 
                 // because our current program doesn't support KIREI salons or multiple accounts.
                 // Please note that this fix is temporary 
-                // and should be removed after receiving support for multiple accounts. 
+                // and should be removed after receiving support for KIREI salon. 
                 if ($salon['kanzashi_type'] == "KIREI" or count($rs) > 1) {
                     $arrReturn['sessionid'] = "";
                     return $arrReturn;
