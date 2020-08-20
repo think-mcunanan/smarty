@@ -3168,8 +3168,7 @@ class ServersController extends WebServicesController
             $tmp .= "OPTIONNAME = 'YoyakuUpperLimitOption' OR ";
             //--------------------------------------------
             $tmp .= "OPTIONNAME  = 'YoyakuStart' OR ";
-            $tmp .= "OPTIONNAME  = 'YoyakuEnd' OR ";
-            $tmp .= "OPTIONNAME  = 'KireiFacilityEnabled')";
+            $tmp .= "OPTIONNAME  = 'YoyakuEnd')";
 
             $criteria   = array('STORECODE' => $arrReturn['storecode']);
             $criteria[] = $tmp;
@@ -3213,11 +3212,11 @@ class ServersController extends WebServicesController
                     case 'YoyakuUpperLimitOption':
                         $arrReturn['UPPER_LIMIT_OP'] = $itm['StoreSettings']['OPTIONVALUES'];
                         break;
-                    case 'KireiFacilityEnabled':
-                        $arrReturn['FACILITY_ENABLED'] = $itm['StoreSettings']['OPTIONVALUEI'];
-                        break;
                 }
             }
+
+            $arrReturn['FACILITY_ENABLED'] = $this->MiscFunction
+                ->IsFacilityEnabled($this, $arrReturn['dbname'], $arrReturn['storecode']);
 
             if ($arrReturn['YOYAKU_HYOU_OPEN_TIME'] == "") {
                 $arrReturn['YOYAKU_HYOU_OPEN_TIME'] = $arrReturn['OPEN_TIME'];
