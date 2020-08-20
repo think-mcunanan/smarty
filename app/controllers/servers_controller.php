@@ -2926,6 +2926,10 @@ class ServersController extends WebServicesController
             ";
             $param = array($arrReturn['companyid'], $arrReturn['storecode']);
             $rs = $this->StoreSettings->query($sql, $param, false);
+            if (count($rs) > 1) {
+                $arrReturn['sessionid'] = "";
+                return $arrReturn;
+            }
             $salon = $rs ? $rs[0]['salon'] : null;
 
             if ($salon) {
