@@ -3297,6 +3297,7 @@ class ServersController extends WebServicesController
             //------------------------------------------------------------------
             $sql = "
                 SELECT
+                    kanzashi_type,
                     kanzashi_id,
                     status,
                     sync_kanzashi_enabled_staff_reservation_only,
@@ -3308,13 +3309,15 @@ class ServersController extends WebServicesController
             ";
             $param = array($arrReturn['companyid'], $arrReturn['storecode']);
             $rs = $this->StoreSettings->query($sql, $param, false);
-            if (count($rs) > 1) {
-                $arrReturn['sessionid'] = "";
-                return $arrReturn;
-            }
             $salon = $rs ? $rs[0]['salon'] : null;
 
             if ($salon) {
+
+                if ($salon['kanzashi_type'] == "KIREI" or count($rs) > 1) {
+                    $arrReturn['sessionid'] = "";
+                    return $arrReturn;
+                }
+
                 $arrReturn['KanzashiInfo'] = array(
                     'SalonId'                                 => $salon['kanzashi_id'],
                     'Status'                                  => $salon['status'],
