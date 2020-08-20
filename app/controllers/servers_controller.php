@@ -24,1902 +24,2267 @@ class ServersController extends WebServicesController
 
     var $name           = 'Servers';
 
-    var $uses           = array('Login', 'LogSession', 'Customer', 'Store', 'Staff',
-                                'StoreAccount', 'WebyanAccount', 'Service', 'StoreService',
-                                'Position', 'Sublevel', 'StaffRowsHistory', 'Zipcode',
-                                'StaffShift', 'Shift', 'SubService','StoreTransaction',
-                                'StaffAssignToStore', 'StoreSettings', 'StoreTransactionColors',
-                                'BreakTime', 'FinishedShift', 'StoreHoliday', 'YoyakuMessage',
-                                'YoyakuStaffServiceTime','YoyakuNext','Stafftype', 'Syscode', //Update by MarvinC 2015-06-24
+    var $uses           = array(
+        'Login', 'LogSession', 'Customer', 'Store', 'Staff',
+        'StoreAccount', 'WebyanAccount', 'Service', 'StoreService',
+        'Position', 'Sublevel', 'StaffRowsHistory', 'Zipcode',
+        'StaffShift', 'Shift', 'SubService', 'StoreTransaction',
+        'StaffAssignToStore', 'StoreSettings', 'StoreTransactionColors',
+        'BreakTime', 'FinishedShift', 'StoreHoliday', 'YoyakuMessage',
+        'YoyakuStaffServiceTime', 'YoyakuNext', 'Stafftype', 'Syscode', //Update by MarvinC 2015-06-24
 
-        );
+    );
 
 
 
 
-    var $components     = array('YoyakuSession','RequestHandler','MiscFunction');
+    var $components     = array('YoyakuSession', 'RequestHandler', 'MiscFunction');
     var $autoRender     = false;
 
-    var $arrDays        = array('day1', 'day2', 'day3', 'day4', 'day5',
-                                'day6', 'day7', 'day8', 'day9', 'day10',
-                                'day11','day12','day13','day14','day15',
-                                'day16','day17','day18','day19','day20',
-                                'day21','day22','day23','day24','day25',
-                                'day26','day27','day28','day29','day30', 'day31');
+    var $arrDays        = array(
+        'day1', 'day2', 'day3', 'day4', 'day5',
+        'day6', 'day7', 'day8', 'day9', 'day10',
+        'day11', 'day12', 'day13', 'day14', 'day15',
+        'day16', 'day17', 'day18', 'day19', 'day20',
+        'day21', 'day22', 'day23', 'day24', 'day25',
+        'day26', 'day27', 'day28', 'day29', 'day30', 'day31'
+    );
 
 
     //--.NETクライアント側の使用してるSOAP機能 (SOAP Functions used by .NET client)
-    var $api = array(// LOGIN / LOGOUT FUNCTIONS ------------------------------------
-                     'wsLogin' => array(
-                            'doc'    => 'ログインとセッション作成',
-                            'input'  => array('param'  => 'loginInfo'),
-                            'output' => array('return' => 'return_storeInfo')),
-
-                     'wsLogout' => array(
-                            'doc'    => 'ログアウトとセッション削除',
-                            'input'  => array('sessionid' => 'xsd:string'),
-                            'output' => array('return'    => 'xsd:boolean')),
-                     //- ############################################################
-
-                     // MISC FUNCTION -----------------------------------------------
-                     'wsGetServerDateTime' => array(
-                            'doc'    => 'サーバーの日付時刻を取得する',
-                            'input'  => array('sessionid'   => 'xsd:string'),
-                            'output' => array('return'      => 'xsd:string')),
-
-                     // CUSTOMER FUNCTIONS ------------------------------------------
-                     'wsSearchCustomer' => array(
-                            'doc'    => '顧客検索',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'customerSearchCriteria'),
-                            'output' => array('return'    => 'return_customerInformation')),
-
-                     'wsSearchCustomerHistory' => array(
-                            'doc'    => '顧客歴史検索',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'ccode'     => 'xsd:string'),
-                            'output' => array('return'    => 'return_storeTransactionInformation')),
-
-                     'wsAddUpdateCustomer' => array(
-                            'doc'    => '顧客追加・アップデート',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'customerInformation'),
-                            'output' => array('return'    => 'return_customerIDs')),
-
-                     'wsDeleteCustomer' => array(
-                            'doc'    => '顧客削除',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'ccode'     => 'xsd:string'),
-                            'output' => array('return'    => 'xsd:boolean')),
-                     //- ############################################################
-
-
-
-                     // STAFF FUNCTIONS ---------------------------------------------
-                     'wsSearchStaff' => array(
-                            'doc'    => 'スタッフ検索',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'staffSearchCriteria'),
-                            'output' => array('return'    => 'return_staffInformation')),
-
-                     'wsSearchAvailableStaff' => array(
-                            'doc'    => '有効スタッフ検索',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'availableStaffSearchCriteria'),
-                            'output' => array('return'    => 'return_staffInformation')),
-
-                     'wsAddUpdateStaff' => array(
-                            'doc'    => 'スタッフの追加・アップデート',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'staffInformation'),
-                            'output' => array('return'    => 'xsd:int')),
-
-                     'wsAddUpdateStaffRowsHistory' => array(
-                            'doc'    => 'スタッフ歴史行の追加と更新機能',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'staffRowsHistoryInformation'),
-                            'output' => array('return'    => 'xsd:int')),
-
-                     'wsAddStaffRowsHistories' => array(
-                            'doc'    => 'スタッフ予約列複数追加',
-                            'input'  => array('sessionid'  => 'xsd:string',
-                                              'storecode'  => 'xsd:int',
-                                              'staffcode'  => 'xsd:int',
-                                              'params'     => '_staffRowsHistoryInformation',
-                                              'pre_delete' => 'xsd:boolean'),
-                            'output' => array('return'     => 'xsd:boolean')),
-
-                     'wsDeleteStaffRowsHistory' => array(
-                            'doc'    => 'スタッフ予約列削除',
-                            'input'  => array('sessionid'   => 'xsd:string',
-                                              'storecode'   => 'xsd:int',
-                                              'staffcode'   => 'xsd:int',
-                                              'datechanges' => 'SOAP-ENC:Array'),
-                            'output' => array('return'      => 'xsd:boolean')),
-
-                     'wsSearchStaffRowsHistory' => array(
-                            'doc'    => 'スタッフ予約列検索',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'storecode' => 'xsd:int',
-                                              'staffcode' => 'xsd:int'),
-                            'output' => array('return'    => 'return_staffRowsHistoryInformation')),
-
-                     'wsDeleteStaff' => array(
-                            'doc'    => 'スタッフ削除',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'staffcode' => 'xsd:int'),
-                            'output' => array('return'    => 'xsd:boolean')),
-
-                     'wsUpdateFlagsStaff' => array(
-                            'doc'    => '表示フラグをアップデート',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'staffInformation'),
-                            'output' => array('return'    => 'xsd:boolean')),
-
-                     'wsUpdateStaffType' => array(
-                            'doc'        => 'UpdateStaffType',
-                            'input'      => array('sessionid'      => 'xsd:string',
-                                                  'staffcode'      => 'xsd:int',
-                                                  'stafftypecodes' => 'xsd:string'),
-                            'output'     => array('return'         => 'xsd:boolean')),
-
-
-                     //- ############################################################
-                     'wsUpdateStaffDisplayGyoshukubun' => array(
-                            'doc'        => 'UpdateStaffYoyakuView',
-                            'input'      => array('sessionid'      => 'xsd:string',
-                                                  'staffcode'      => 'xsd:int',
-                                                  'stafftypecodes' => 'xsd:string'),
-                            'output'     => array('return'         => 'xsd:boolean')),
-                     //- ############################################################
-
-
-
-                     // STAFF SHIFT FUNCTIONS ---------------------------------------
-                     'wsSearchStaffShift' => array(
-                            'doc'    => 'スタッフシフト検索',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'staffShiftSearchCriteria'),
-                            'output' => array('return'    => 'return_staffShiftInformation')),
-
-                     'wsAddUpdateDeleteStaffShift' => array(
-                            'doc'    => 'スタッフシフト追加・アップデート・削除',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => '_staffShiftInformation'),
-                            'output' => array('return'    => 'xsd:boolean')),
-                     //- ############################################################
-
-
-
-                     // STORE FUNCTIONS ---------------------------------------------
-                     'wsSearchStore' => array(
-                            'doc'    => '店舗検索',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'storeSearchCriteria'),
-                            'output' => array('return'    => 'return_storeInformation')),
-
-                     'wsAddUpdateStore' => array(
-                            'doc'    => '店舗追加・アップデート',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'storeInformation'),
-                            'output' => array('return'    => 'xsd:int')),
-
-                     'wsDeleteStore' => array(
-                            'doc'    => '店舗削除',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'storecode' => 'xsd:int'),
-                            'output' => array('return'    => 'xsd:boolean')),
-                          //- ############################################################
-
-
-
-                     // STORE HOLIDAY FUNCTIONS -------------------------------------
-                     'wsSearchStoreHoliday' => array(
-                            'doc'    => '店舗休日検索',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'storeHolidaySearchCriteria'),
-                            'output' => array('return'    => 'return_storeHolidayInformation')),
-
-                     'wsAddUpdateDeleteStoreHoliday' => array(
-                            'doc'    => '店舗休日追加・アップデート・削除',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'storeHolidayInformation'),
-                            'output' => array('return'    => 'xsd:boolean')),
-                     //- ############################################################
-
-
-
-                     // SERVICE FUNCTIONS -------------------------------------------
-                     'wsSearchService' => array(
-                            'doc'    => '技術検索',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'serviceSearchCriteria'),
-                            'output' => array('return'    => 'return_serviceInformation')),
-
-                     'wsAddUpdateService' => array(
-                            'doc'    => '技術追加・アップデート',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'serviceInformation'),
-                            'output' => array('return'    => 'xsd:int')),
-
-                     'wsDeleteService' => array(
-                            'doc'    => '技術削除',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'gdcode'    => 'xsd:int'),
-                            'output' => array('return'    => 'xsd:boolean')),
-                     //- ############################################################
-
-
-
-                     // SHIFT FUNCTIONS ---------------------------------------------
-                     'wsSearchShift' => array(
-                            'doc'    => 'シフト検索',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'shiftSearchCriteria'),
-                            'output' => array('return'    => 'return_shiftInformation')),
-
-                     'wsAddUpdateShift' => array(
-                            'doc'    => 'シフト追加・アップデート',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'shiftInformation'),
-                            'output' => array('return'    => 'xsd:int')),
-
-                     'wsDeleteShift' => array(
-                            'doc'    => 'シフト削除',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'shiftid'   => 'xsd:int'),
-                            'output' => array('return'    => 'xsd:boolean')),
-                     //- ############################################################
-
-
-
-                     // STORE SERVICE FUNCTIONS -------------------------------------
-                     'wsSearchStoreService' => array(
-                            'doc'    => '店舗技術検索',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'storeServiceSearchCriteria'),
-                            'output' => array('return'    => 'return_storeServiceInformation')),
-
-                     'wsAddUpdateDeleteStoreService' => array(
-                            'doc'    => '店舗技術追加・アップデート・削除',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'storeServiceInformation'),
-                            'output' => array('return'    => 'return_serviceIDs')),
-
-                     'wsSearchStoreServiceWhosUsing' => array(
-                            'doc'    => '店舗技術利用検索',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'storeServiceWhosUsingSearchCriteria'),
-                            'output' => array('return'    => 'return_storeInformation')),
-                     //- ############################################################
-
-
-
-                     // POSITION FUNCTIONS ------------------------------------------
-                     'wsSearchPosition' => array(
-                            'doc'    => 'Position検索',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'positionSearchCriteria'),
-                            'output' => array('return'    => 'return_positionInformation')),
-                     //- ############################################################
-
-
-
-                     // SUBLEVEL FUNCTIONS ------------------------------------------
-                     'wsSearchSublevel' => array(
-                            'doc'    => 'Sublevel検索',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'sublevelSearchCriteria'),
-                            'output' => array('return'    => 'return_sublevelInformation')),
-                     //- ############################################################
-
-
-
-                     // ZIPCODE FUNCTIONS -------------------------------------------
-                     'wsSearchZipcode' => array(
-                            'doc'    => '郵便番号検索',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'zipcodeSearchCriteria'),
-                            'output' => array('return'    => 'return_zipcodeInformation')),
-                     //- ############################################################
-
-
-
-                     // BASIC SETTINGS FUNCTIONS ------------------------------------
-                     'wsReadBasicSettings' => array(
-                            'doc'    => '基本情報設定を読み込む',
-                            'input'  => array('sessionid' => 'xsd:string'),
-                            'output' => array('return'    => 'basicInformation')),
-                     'wsWriteBasicSettings' => array(
-                            'doc'    => '基本情報設定を書き込む',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'basicInformation'),
-                            'output' => array('return'    => 'xsd:boolean')),
-                     //- ############################################################
-
-
-
-                     // MESSAGE SETTINGS FUNCTIONS ----------------------------------
-                     'wsReadMessageSettings' => array(
-                            'doc'    => 'メセッジ設定を読み込む',
-                            'input'  => array('sessionid' => 'xsd:string'),
-                            'output' => array('return'    => 'messageInformation')),
-                     'wsWriteMessageSettings' => array(
-                            'doc'    => 'メセッジ設定を書き込む',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'messageInformation'),
-                            'output' => array('return'    => 'xsd:boolean')),
-                     //- ############################################################
-
-
-
-                     // COLOR FUNCTIONS ---------------------------------------------
-                     'wsSearchColor' => array(
-                            'doc'    => '店舗の色設定を検索する',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'colorSearchCriteria'),
-                            'output' => array('return'    => 'return_colorInformation')),
-                     'wsAddUpdateColor' => array(
-                            'doc'    => '店舗の色設定を追加・編集する',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'colorInformation'),
-                            'output' => array('return'    => 'xsd:int')),
-                     'wsDeleteColor' => array(
-                            'doc'    => '店舗の色設定を削除する',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'id'        => 'xsd:int'),
-                            'output' => array('return'    => 'xsd:boolean')),
-                     //- ############################################################
-
-
-
-                     // STORE TRANSACTION FUNCTIONS ---------------------------------
-                     'wsSearchStoreTransaction' => array(
-                            'doc'    => 'トランザクション検索',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'storeTransactionSearchCriteria'),
-                            'output' => array('return'    => 'return_storeTransactionInformation')),
-
-                     'wsAddUpdateStoreTransaction' => array(
-                            'doc'    => 'トランザクションの追加・アップデート',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'storeTransactionInformation'),
-                            'output' => array('return'    => 'return_transactionIDs')),
-
-                     'wsDeleteStoreTransaction' => array(
-                            'doc'    => 'トランザクション削除',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'transcode' => 'xsd:string'),
-                            'output' => array('return'    => 'xsd:boolean')),
-
-                     'wsCancelStoreTransaction' => array(
-                            'doc'    => 'トランザクションキャンセル',
-                            'input'  => array('sessionid'  => 'xsd:string',
-                                              'transcode'  => 'xsd:string',
-                                              'keyno'      => 'xsd:int'),
-                            'output' => array('return'     => 'xsd:boolean')),
-                     //- ############################################################
-
-                     //----------------------------------
-                     //Add Update Staff Menu Service Time
-                     //----------------------------------
-                     'wsAddUpdateStaffMenuServiceTime' => array(
-                            'doc'    => 'AddUpdateStaffMenuServiceTime',
-                            'input'  => array('sessionid'           => 'xsd:string',
-                                              'storecode'           => 'xsd:int',
-                                              'staffcode'           => 'xsd:int',
-                                              'gcode'               => 'xsd:int',
-                                              'ismale'              => 'xsd:boolean',
-                                              'time'                => 'xsd:int'),
-                            'output' => array('return'    => 'xsd:boolean')),
-
-
-                     // BREAK TIME FUNCTIONS ----------------------------------------
-                     'wsSearchBreakTime' => array(
-                            'doc'    => '外出検索',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'breakTimeSearchCriteria'),
-                            'output' => array('return'    => 'return_breakTimeInformation')),
-
-                     'wsAddUpdateBreakTime' => array(
-                            'doc'    => '外出の追加・アップデート',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'breakTimeInformation'),
-                            'output' => array('return'    => 'xsd:int')),
-
-                     'wsDeleteBreakTime' => array(
-                            'doc'    => '外出削除',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'breakid'   => 'xsd:int'),
-                            'output' => array('return'    => 'xsd:boolean')),
-                     //- ############################################################
-
-
-
-                     // DATA OF THE DAY FUNCTIONS -----------------------------------
-                     'wsGetDataOfTheDay' => array(
-                            'doc'    => '日のデータを取得',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'dataOfTheDaySearchCriteria'),
-                            'output' => array('return'    => 'return_dataOfTheDayInformation')),
-                     //- ############################################################
-
-
-
-                     // TRANSACTION CALENDAR VIEW FUNCTIONS -------------------------
-                     'wsGetTransactionCalendarView' => array(
-                            'doc'    => 'トランザクションの検索カレンダー',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'param'     => 'transactionCalendarViewSearchCriteria'),
-                            'output' => array('return'    => 'return_transactionCalendarViewInformation')),
-                     //- ############################################################
-
-
-                      // Get Staff Menu Service Time -------------------------
-                     'wsGetStaffMenuServiceTime' => array(
-                            'doc'    => 'wsGetStaffMenuServiceTime',
-                            'input'  => array('sessionid'     => 'xsd:string',
-                                              'storecode'     => 'xsd:int',
-                                              'staffcode'     => 'xsd:int',
-                                              'gcode'         => 'xsd:int'),
-                            'output' => array('success'      => 'xsd:boolean',
-                                              'female_time'   => 'xsd:int',
-                                              'male_time'     => 'xsd:int')),
-                     //- ############################################################
-
-
-                     // Get Store Menu Service Time -------------------------
-                     'wsGetStoreMenuServiceTime' => array(
-                            'doc'    => 'wsGetStoreMenuServiceTime',
-                            'input'  => array('sessionid'   => 'xsd:string',
-                                              'storecode'   => 'xsd:int'),
-                            'output' => array('return'      => '_storeMenuServiceTime')),
-                     //- ############################################################
-
-
-                     // STAFF TAB FUNCTIONS -----------------------------------------
-                     'wsGetAllOnStaffTab' => array(
-                            'doc'    => '位置とサブレベルのと店舗リストデータを取得',
-                            'input'  => array('sessionid' => 'xsd:string'),
-                            'output' => array('return'    => 'return_staffTabInformation')),
-                     //- ############################################################
-
-
-
-                     // FIRST LOAD FUNCTIONS ----------------------------------------
-                     'wsGetAllOnFirstLoad' => array(
-                            'doc'    => '最初の負荷に関するデータを得て',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'date'      => 'xsd:string'),
-                            'output' => array('return'    => 'return_firstLoadInformation')),
-                     //- ############################################################
-
-
-
-                     // YOYAKU DETAILS FUNCTIONS ------------------------------------
-                     'wsSearchYoyakuDetails' => array(
-                            'doc'    => '予約詳細検索',
-                            'input'  => array('sessionid'         => 'xsd:string',
-                                              'begindate'         => 'xsd:string',
-                                              'enddate'           => 'xsd:string',
-                                              'storecode'         => 'xsd:int',
-                                              'staffcode'         => 'xsd:int',
-                                              'uketsukestaffcode' => 'xsd:int',
-                                              'staffcode_sthdr'   => 'xsd:int'),
-                                              'output' => array('return'    => 'return_yoyakuDetailsInformation')),
-                     //- ############################################################
-
-
-                      // GET MARKETING -----------------------------------
-                     'wsGetMarketing' => array(
-                            'doc'    => 'GetMarketing',
-                            'input'  => array('sessionid'    => 'xsd:string',
-                                              'storecode'    => 'xsd:int',
-                                              'ymd'          => 'xsd:string'),
-                            'output' => array('return'    => 'return_rejiMarketingInformation')),
-                     //- ############################################################
-
-                     // GET STAFFS RECORD  -----------------------------------
-                     'wsGetStaffs' => array(
-                            'doc'    => 'GetStaffs',
-                            'input'  => array('sessionid'    => 'xsd:string',
-                                              'storecode'    => 'xsd:int',
-                                              'ymd'          => 'xsd:string'),
-                            'output' => array('return'    => 'return_staffInformation')),
-                     //- ############################################################
-
-
-                     // GET GYOSHU KUBUN(servicesys)  -----------------------------------
-                     'wsGetGyoshuKubun' => array(
-                            'doc'    => 'GetGyoshuKubun',
-                            'input'  => array('sessionid'    => 'xsd:string',
-                                              'storecode'    => 'xsd:int'),
-                            'output' => array('return'    => 'return_gyoshukubun')),
-                     //- ############################################################
-
-                     // GET HOW KNOWS THE STORE RECORDS  -----------------------------------
-                     'wsGetHowKnowsTheStore' => array(
-                            'doc'    => 'GetHowKnowsTheStore',
-                            'input'  => array('sessionid'    => 'xsd:string'),
-                            'output' => array('return'    => 'return_howKnowsTheStoreInformation')),
-                     //- ############################################################
-
-                     // MAIL FUNCTIONS ------------------------------------
-                     'wsSendMail' => array(
-                            'doc'    => 'メール送信',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'from'      => 'xsd:string',
-                                              'to'        => 'xsd:string',
-                                              'cc'        => 'xsd:string',
-                                              'bcc'       => 'xsd:string',
-                                              'subject'   => 'xsd:string',
-                                              'body'      => 'xsd:string'),
-                                              'output'    => 'xsd:boolean'),
-                     //- ############################################################
-
-                     // JIKAI_YOYAKU DETAILS FUNCTIONS ------------------------------------
-                     'wsSearchJikaiYoyaku' => array(
-                            'doc'    => '次回予約リスト',
-                            'input'  => array('sessionid'         => 'xsd:string',
-                                              'storecode'         => 'xsd:int',
-                                              'ccode'             => 'xsd:string',
-                                              'transcode'         => 'xsd:string'),
-                            'output' => array('return'    => 'return_storeTransactionInformation')),
-
-                     'wsDeleteJikaiYoyaku' => array(
-                            'doc'    => '次回予約削除',
-                            'input'  => array('sessionid' =>'xsd:string',
-                                              'transcode' => 'xsd:string',
-                         					  'storecode' => 'xsd:int',
-                                              'changeyoyaku'=> 'xsd:boolean' ),
-                            'output' => array('return'    =>'xsd:boolean')),
-
-                     //- ############################################################
-                     // GetOkotowariTodaysCount -----------------------------------
-                     'wsGetOkotowariTodaysCount' => array(
-                            'doc'    => 'wsGetOkotowariTodaysCount',
-                            'input'  => array('sessionid'    => 'xsd:string',
-                                              'storecode'    => 'xsd:int',
-                                              'ymd'          => 'xsd:string'),
-                            'output' => array('unregistered'    => 'xsd:int',
-                                              'registered'    => 'xsd:int')),
-                     //- ############################################################
-
-                     // wsAddOkotowari -----------------------------------
-                     'wsAddOkotowari' => array(
-                            'doc'    => 'wsAddOkotowari',
-                            'input'  => array('sessionid'    => 'xsd:string',
-                                              'storecode'    => 'xsd:int',
-                                              'ymd'          => 'xsd:string',
-                                              'time'          => 'xsd:string',
-                                              'ccode'          => 'xsd:string'),
-                            'output' => array()),
-                     //- ############################################################
-
-                     // wsUpdateOkotowari -----------------------------------
-                     'wsUpdateOkotowari' => array(
-                            'doc'    => 'wsUpdateOkotowari',
-                            'input'  => array('sessionid'    => 'xsd:string',
-                                              'oid'          => 'xsd:int',
-                                              'ymd'          => 'xsd:string',
-                                              'time'         => 'xsd:string',
-                                              'ccode'        => 'xsd:string'),
-                            'output' => array()),
-                     //- ############################################################
-
-                     // wsCheckCustomer -----------------------------------
-                     'wsCheckCustomer' => array(
-                            'doc'    => 'wsCheckCustomer',
-                            'input'  => array('sessionid'    => 'xsd:string',
-                                              'cnumber'          => 'xsd:string',
-                                              'ccode'          => 'xsd:string'),
-                            'output' => array('ccode_output'    => 'xsd:string',
-                                              'cnumber_output'    => 'xsd:string',
-                                              'cname'    => 'xsd:string',
-                                              'cnamekana'    => 'xsd:string',
-                                              'sex'    => 'xsd:int')),
-                     //- ############################################################c
-
-                     // GetOkotowariHistory -----------------------------------
-                     'GetOkotowariHistory' => array(
-                            'doc'    => 'GetOkotowariHistory',
-                            'input'  => array('sessionid'       => 'xsd:string',
-                                              'storecode'       => 'xsd:int',
-                                              'datefrom'        => 'xsd:string',
-                                              'dateto'          => 'xsd:string',
-                                              'cnumber'         => 'xsd:string',
-                                              'cname'           => 'xsd:string',
-                                              'sex'             => 'xsd:int',
-                                              'category'        => 'xsd:int'),
-                            'output' => array('return'    => '_okotowariInformation')),
-                     //- ############################################################
-
-                     // DeleteOkotowariRecord -----------------------------------
-                     'wsDeleteOkotowariRecord' => array(
-                            'doc'    => 'wsDeleteOkotowariRecord',
-                            'input'  => array('sessionid'    => 'xsd:string',
-                                              'oid'    => 'xsd:int'),
-                            'output' => array()),
-                     //- ############################################################
-
-                     // GetShiftSimulationPassword -----------------------------------
-                     'wsGetShiftSimulationPassword' => array(
-                            'doc'    => 'wsGetShiftSimulationPassword',
-                            'input'  => array('sessionid'    => 'xsd:string',
-                                              'storecode'    => 'xsd:int'),
-                            'output' => array('pwd'          => 'xsd:string')),
-                     //- ############################################################
-
-                     //wsGetYoyakuAllowTransToStore-------------------------------------
-                     'wsGetYoyakuAllowTransToStore'   => array(
-                            'doc'    => 'wsGetYoyakuAllowTransToStore',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'storecode' => 'xsd:int'),
-                            'output' => array('return' => '_YoyakuAllowTransToStore')),
-                     //- ############################################################
-
-                     //wsGetTransactionByTransCode----------------------------------------
-                     'wsGetTransactionByTransCode'   => array(
-                            'doc'    => 'wsGetTransactionStatus',
-                            'input'  => array('sessionid' => 'xsd:string',
-                                              'transcode' => 'xsd:string'),
-                            'output' => array('return'    =>'tns:storeTransactionInformation')),
-
-                     //--------------------------------------------------------------
-                     //Add or Update Transaction Uketsuke
-                     //--------------------------------------------------------------
-                      'wsAddUpdateTransUketsuke' => array(
-                            'doc'    => 'AddUpdateTransUketsuke',
-                            'input'  => array('sessionid'  => 'xsd:string',
-                                              'transcode'  => 'xsd:string',
-                                              'uketsukedate'  => 'xsd:string',
-                                              'uketsukestaff' => 'xsd:int'),
-                            'output' => array('return'     => 'xsd:boolean')),
-                     //- ############################################################
-
-                     //==============================================================
-                     //customer search listing for Ingtegration
-                     //by albert 2015-11-18
-                     //--------------------------------------------------------------
-                      'wsGetCustomerList' => array(
-                            'doc'    => 'GetCustomerListing',
-                            'input'  => array('sessionid'   => 'xsd:string',
-                                              'storecode'   => 'xsd:int',
-                                              'datefr'      => 'xsd:string',
-                                              'dateto'      => 'xsd:string',
-                                              'firstdate'   => 'xsd:boolean',
-                                              'pageindex'   => 'xsd:int',
-                                              'filename1'   => 'xsd:string',
-                                              'allstoreflg' => 'xsd:int',
-                                              'basecode'    => 'xsd:string'),
-                            'output' => array('return'      => 'tns:return_storeCustomerListing')),
-
-                            'wsCustomerMergeSave' => array(
-                            'doc'    => 'saveCustomerMerging',
-                            'input'  => array('sessionid'   => 'xsd:string',
-                                              'strcode'     => 'xsd:int',
-                                              'fromccode'   => 'xsd:string',
-                                              'toccode'     => 'xsd:string',
-                                              'transcode'   => 'xsd:string',
-                                              'keyno'       => 'xsd:int',
-                                              'companyid'   => 'xsd:int',
-                                              'param'       => 'customerInformation'),
-                            'output' => array('updatedate'      => 'xsd:string')),
-
-                      'wsGetReservation' => array(
-                            'doc'    => 'GetReservation',
-                            'input'  => array('sessionid'   => 'xsd:string',
-                                              'storecode'   => 'xsd:int',
-                                              'origination' => 'xsd:int',
-                                              'datefr'      => 'xsd:string',
-                                              'dateto'      => 'xsd:string',
-                                              'pageno'      => 'xsd:int',
-                                              'ascsort'     => 'xsd:int',
-                                              'colsort'     => 'xsd:int',
-                                              'syscode'     => 'xsd:int'),
-                            'output' => array('return'      => 'tns:return_storeReservationListing')),
-
-
-                      'wsGetReservationCounter' => array(
-                            'doc'    => 'GetReservationCounter',
-                            'input'  => array('sessionid'   => 'xsd:string',
-                                              'storecode'   => 'xsd:int',
-                                              'datefr'      => 'xsd:string',
-                                              'dateto'      => 'xsd:string'),
-                            'output' => array('return'      => 'tns:return_storeReservationCounter')),
-
-
-                      'wsUpdateTransaction2' => array(
-                            'doc'    => 'updatetransaction2',
-                            'input'  => array('sessionid'   => 'xsd:string',
-                                              'transcode'   => 'xsd:string',
-                                              'keyno'       => 'xsd:int',
-                                              'alreadyread' => 'xsd:int',
-                                              'syscode'     => 'xsd:int'),
-                            'output' => array('return'      => 'xsd:int')),
-
-                     //--------------------------------------------------------------
-                     //customer search listing for Ingtegration
-                     //by albert 2015-11-18
-                     //==============================================================
-
-                     //--------------------------------------------------------------
-                     // GET STORE EMAIL DOMAIN
-                     // Added by: MarvinC - 2015-12-05 14:34
-                     //--------------------------------------------------------------
-                      'wsGetMailDomain' => array(
-                            'doc'    => 'wsGetMailDomain',
-                            'input'  => array('sessionid'  => 'xsd:string',
-                                              'companyid'  => 'xsd:int',
-                                              'storecode'  => 'xsd:int'),
-                            'output' => array('return'     => 'xsd:string')),
-                     //- ############################################################
-
-                     //--------------------------------------------------------------
-                     // GET STORE EMAIL DOMAIN
-                     // Added by: MarvinC - 2015-12-05 14:34
-                     //--------------------------------------------------------------
-                      'wsVerifyStaffPassword' => array(
-                            'doc'    => 'wsGetMailDomain',
-                            'input'  => array('sessionid'  => 'xsd:string',
-                                              'staffcode'  => 'xsd:int',
-                                              'password'   => 'xsd:string'),
-                            'output' => array('return'     => 'xsd:int')),
-                     //- ############################################################
-
-                     //--------------------------------------------------------------
-                     // GET POWERS SETTINGS
-                     // Added by: MarvinC - 2015-12-28 16:35
-                     //--------------------------------------------------------------
-                      'wsGetReturningCustomerCountAll' => array(
-                            'doc'    => 'wsGetReturningCustomerCountAll',
-                            'input'  => array('sessionid'  => 'xsd:string'),
-                            'output' => array('return'     => 'xsd:int')),
-                     //- ############################################################
-
-                    'wsGetDailyKanzashiCustomersLimit' => array(
-                        'doc'    => '日毎かんざし時間別予約可能数取得',
-                        'input'  => array(
-                            'sessionid' => 'xsd:string',
-                            'storecode' => 'xsd:int',
-                            'ymd'       => 'xsd:date'
-                        ),
-                        'output' => array('return' => 'tns:_kanzashiCustomersLimit')
-                    ),
-                    'wsGetMonthlyKanzashiSalonHours' => array(
-                        'doc'    => '月毎かんざしサロン営業時間取得',
-                        'input'  => array(
-                            'sessionid' => 'xsd:string',
-                            'storecode' => 'xsd:int',
-                            'ymd'       => 'xsd:date'
-                        ),
-                        'output' => array('return' => 'tns:return_monthlyKanzashiSalonHours')
-                    ),
-                    'wsUpdateKanzashiCustomersLimit' => array(
-                        'doc'    => 'かんざし時間別予約可能数更新',
-                        'input'  => array(
-                            'sessionid'        => 'xsd:string',
-                            'storecode'        => 'xsd:int',
-                            'store_holiday'    => 'tns:storeHolidayInformation',
-                            'customers_limits' => 'tns:_kanzashiCustomersLimit'
-                        ),
-                        'output' => array('return' => 'xsd:boolean')
-                    ),
-                    'wsPushKanzashiStylist' => array(
-                        'doc'    => 'かんざしスタイリストPUSH',
-                        'input'  => array(
-                            'kanzashisalonid' => 'xsd:int'
-                        ),
-                        'output' => array('return' => 'xsd:string')
-                    ),
-                    'wsPushKanzashiSalonDailyHours' => array(
-                        'doc'    => 'かんざしサロン営業時間PUSH',
-                        'input'  => array(
-                            'kanzashisalonid' => 'xsd:int',
-                            'year' => 'xsd:int',
-                            'month' => 'xsd:int'
-                        ),
-                        'output' => array('return' => 'xsd:string')
-                    ),
-                    'wsPushKanzashiStylistInitialData' => array(
-                        'doc'    => 'かんざしスタイリスト初回PUSH',
-                        'input'  => array(
-                            'kanzashisalonid' => 'xsd:int',
-                            'staffid'         => 'xsd:int'
-                        ),
-                        'output' => array('return' => 'xsd:string')
-                    ),
-                    'wsPushKanzashiStylistDutyHours' => array(
-                        'doc'    => 'かんざしスタイリスト勤務時間PUSH',
-                        'input'  => array(
-                            'kanzashisalonid' => 'xsd:int',
-                            'year' => 'xsd:int',
-                            'month' => 'xsd:int',
-                            'staffcode' => 'xsd:int'
-                        ),
-                        'output' => array('return' => 'xsd:string')
-                    ),
-                    'wsPushKanzashiSalonBasicSetting' => array(
-                        'doc'    => 'かんざしサロン基本設定PUSH',
-                        'input'  => array(
-                            'kanzashisalonid' => 'xsd:int'
-                        ),
-                        'output' => array('return' => 'xsd:string')
-                    )
-
-                    //- ############################################################
-                     );
+    var $api = array( // LOGIN / LOGOUT FUNCTIONS ------------------------------------
+        'wsLogin' => array(
+            'doc'    => 'ログインとセッション作成',
+            'input'  => array('param'  => 'loginInfo'),
+            'output' => array('return' => 'return_storeInfo')
+        ),
+
+        'wsLogout' => array(
+            'doc'    => 'ログアウトとセッション削除',
+            'input'  => array('sessionid' => 'xsd:string'),
+            'output' => array('return'    => 'xsd:boolean')
+        ),
+        //- ############################################################
+
+        // MISC FUNCTION -----------------------------------------------
+        'wsGetServerDateTime' => array(
+            'doc'    => 'サーバーの日付時刻を取得する',
+            'input'  => array('sessionid'   => 'xsd:string'),
+            'output' => array('return'      => 'xsd:string')
+        ),
+
+        // CUSTOMER FUNCTIONS ------------------------------------------
+        'wsSearchCustomer' => array(
+            'doc'    => '顧客検索',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'customerSearchCriteria'
+            ),
+            'output' => array('return'    => 'return_customerInformation')
+        ),
+
+        'wsSearchCustomerHistory' => array(
+            'doc'    => '顧客歴史検索',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'ccode'     => 'xsd:string'
+            ),
+            'output' => array('return'    => 'return_storeTransactionInformation')
+        ),
+
+        'wsAddUpdateCustomer' => array(
+            'doc'    => '顧客追加・アップデート',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'customerInformation'
+            ),
+            'output' => array('return'    => 'return_customerIDs')
+        ),
+
+        'wsDeleteCustomer' => array(
+            'doc'    => '顧客削除',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'ccode'     => 'xsd:string'
+            ),
+            'output' => array('return'    => 'xsd:boolean')
+        ),
+        //- ############################################################
+
+
+
+        // STAFF FUNCTIONS ---------------------------------------------
+        'wsSearchStaff' => array(
+            'doc'    => 'スタッフ検索',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'staffSearchCriteria'
+            ),
+            'output' => array('return'    => 'return_staffInformation')
+        ),
+
+        'wsSearchAvailableStaff' => array(
+            'doc'    => '有効スタッフ検索',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'availableStaffSearchCriteria'
+            ),
+            'output' => array('return'    => 'return_staffInformation')
+        ),
+
+        'wsAddUpdateStaff' => array(
+            'doc'    => 'スタッフの追加・アップデート',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'staffInformation'
+            ),
+            'output' => array('return'    => 'xsd:int')
+        ),
+
+        'wsAddUpdateStaffRowsHistory' => array(
+            'doc'    => 'スタッフ歴史行の追加と更新機能',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'staffRowsHistoryInformation'
+            ),
+            'output' => array('return'    => 'xsd:int')
+        ),
+
+        'wsAddStaffRowsHistories' => array(
+            'doc'    => 'スタッフ予約列複数追加',
+            'input'  => array(
+                'sessionid'  => 'xsd:string',
+                'storecode'  => 'xsd:int',
+                'staffcode'  => 'xsd:int',
+                'params'     => '_staffRowsHistoryInformation',
+                'pre_delete' => 'xsd:boolean'
+            ),
+            'output' => array('return'     => 'xsd:boolean')
+        ),
+
+        'wsDeleteStaffRowsHistory' => array(
+            'doc'    => 'スタッフ予約列削除',
+            'input'  => array(
+                'sessionid'   => 'xsd:string',
+                'storecode'   => 'xsd:int',
+                'staffcode'   => 'xsd:int',
+                'datechanges' => 'SOAP-ENC:Array'
+            ),
+            'output' => array('return'      => 'xsd:boolean')
+        ),
+
+        'wsSearchStaffRowsHistory' => array(
+            'doc'    => 'スタッフ予約列検索',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'storecode' => 'xsd:int',
+                'staffcode' => 'xsd:int'
+            ),
+            'output' => array('return'    => 'return_staffRowsHistoryInformation')
+        ),
+
+        'wsDeleteStaff' => array(
+            'doc'    => 'スタッフ削除',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'staffcode' => 'xsd:int'
+            ),
+            'output' => array('return'    => 'xsd:boolean')
+        ),
+
+        'wsUpdateFlagsStaff' => array(
+            'doc'    => '表示フラグをアップデート',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'staffInformation'
+            ),
+            'output' => array('return'    => 'xsd:boolean')
+        ),
+
+        'wsUpdateStaffType' => array(
+            'doc'        => 'UpdateStaffType',
+            'input'      => array(
+                'sessionid'      => 'xsd:string',
+                'staffcode'      => 'xsd:int',
+                'stafftypecodes' => 'xsd:string'
+            ),
+            'output'     => array('return'         => 'xsd:boolean')
+        ),
+
+
+        //- ############################################################
+        'wsUpdateStaffDisplayGyoshukubun' => array(
+            'doc'        => 'UpdateStaffYoyakuView',
+            'input'      => array(
+                'sessionid'      => 'xsd:string',
+                'staffcode'      => 'xsd:int',
+                'stafftypecodes' => 'xsd:string'
+            ),
+            'output'     => array('return'         => 'xsd:boolean')
+        ),
+        //- ############################################################
+
+
+
+        // STAFF SHIFT FUNCTIONS ---------------------------------------
+        'wsSearchStaffShift' => array(
+            'doc'    => 'スタッフシフト検索',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'staffShiftSearchCriteria'
+            ),
+            'output' => array('return'    => 'return_staffShiftInformation')
+        ),
+
+        'wsAddUpdateDeleteStaffShift' => array(
+            'doc'    => 'スタッフシフト追加・アップデート・削除',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => '_staffShiftInformation'
+            ),
+            'output' => array('return'    => 'xsd:boolean')
+        ),
+        //- ############################################################
+
+
+
+        // STORE FUNCTIONS ---------------------------------------------
+        'wsSearchStore' => array(
+            'doc'    => '店舗検索',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'storeSearchCriteria'
+            ),
+            'output' => array('return'    => 'return_storeInformation')
+        ),
+
+        'wsAddUpdateStore' => array(
+            'doc'    => '店舗追加・アップデート',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'storeInformation'
+            ),
+            'output' => array('return'    => 'xsd:int')
+        ),
+
+        'wsDeleteStore' => array(
+            'doc'    => '店舗削除',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'storecode' => 'xsd:int'
+            ),
+            'output' => array('return'    => 'xsd:boolean')
+        ),
+        //- ############################################################
+
+
+
+        // STORE HOLIDAY FUNCTIONS -------------------------------------
+        'wsSearchStoreHoliday' => array(
+            'doc'    => '店舗休日検索',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'storeHolidaySearchCriteria'
+            ),
+            'output' => array('return'    => 'return_storeHolidayInformation')
+        ),
+
+        'wsAddUpdateDeleteStoreHoliday' => array(
+            'doc'    => '店舗休日追加・アップデート・削除',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'storeHolidayInformation'
+            ),
+            'output' => array('return'    => 'xsd:boolean')
+        ),
+        //- ############################################################
+
+
+
+        // SERVICE FUNCTIONS -------------------------------------------
+        'wsSearchService' => array(
+            'doc'    => '技術検索',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'serviceSearchCriteria'
+            ),
+            'output' => array('return'    => 'return_serviceInformation')
+        ),
+
+        'wsAddUpdateService' => array(
+            'doc'    => '技術追加・アップデート',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'serviceInformation'
+            ),
+            'output' => array('return'    => 'xsd:int')
+        ),
+
+        'wsDeleteService' => array(
+            'doc'    => '技術削除',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'gdcode'    => 'xsd:int'
+            ),
+            'output' => array('return'    => 'xsd:boolean')
+        ),
+        //- ############################################################
+
+
+
+        // SHIFT FUNCTIONS ---------------------------------------------
+        'wsSearchShift' => array(
+            'doc'    => 'シフト検索',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'shiftSearchCriteria'
+            ),
+            'output' => array('return'    => 'return_shiftInformation')
+        ),
+
+        'wsAddUpdateShift' => array(
+            'doc'    => 'シフト追加・アップデート',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'shiftInformation'
+            ),
+            'output' => array('return'    => 'xsd:int')
+        ),
+
+        'wsDeleteShift' => array(
+            'doc'    => 'シフト削除',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'shiftid'   => 'xsd:int'
+            ),
+            'output' => array('return'    => 'xsd:boolean')
+        ),
+        //- ############################################################
+
+
+
+        // STORE SERVICE FUNCTIONS -------------------------------------
+        'wsSearchStoreService' => array(
+            'doc'    => '店舗技術検索',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'storeServiceSearchCriteria'
+            ),
+            'output' => array('return'    => 'return_storeServiceInformation')
+        ),
+
+        'wsAddUpdateDeleteStoreService' => array(
+            'doc'    => '店舗技術追加・アップデート・削除',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'storeServiceInformation'
+            ),
+            'output' => array('return'    => 'return_serviceIDs')
+        ),
+
+        'wsSearchStoreServiceWhosUsing' => array(
+            'doc'    => '店舗技術利用検索',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'storeServiceWhosUsingSearchCriteria'
+            ),
+            'output' => array('return'    => 'return_storeInformation')
+        ),
+        //- ############################################################
+
+
+
+        // POSITION FUNCTIONS ------------------------------------------
+        'wsSearchPosition' => array(
+            'doc'    => 'Position検索',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'positionSearchCriteria'
+            ),
+            'output' => array('return'    => 'return_positionInformation')
+        ),
+        //- ############################################################
+
+
+
+        // SUBLEVEL FUNCTIONS ------------------------------------------
+        'wsSearchSublevel' => array(
+            'doc'    => 'Sublevel検索',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'sublevelSearchCriteria'
+            ),
+            'output' => array('return'    => 'return_sublevelInformation')
+        ),
+        //- ############################################################
+
+
+
+        // ZIPCODE FUNCTIONS -------------------------------------------
+        'wsSearchZipcode' => array(
+            'doc'    => '郵便番号検索',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'zipcodeSearchCriteria'
+            ),
+            'output' => array('return'    => 'return_zipcodeInformation')
+        ),
+        //- ############################################################
+
+
+
+        // BASIC SETTINGS FUNCTIONS ------------------------------------
+        'wsReadBasicSettings' => array(
+            'doc'    => '基本情報設定を読み込む',
+            'input'  => array('sessionid' => 'xsd:string'),
+            'output' => array('return'    => 'basicInformation')
+        ),
+        'wsWriteBasicSettings' => array(
+            'doc'    => '基本情報設定を書き込む',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'basicInformation'
+            ),
+            'output' => array('return'    => 'xsd:boolean')
+        ),
+        //- ############################################################
+
+
+
+        // MESSAGE SETTINGS FUNCTIONS ----------------------------------
+        'wsReadMessageSettings' => array(
+            'doc'    => 'メセッジ設定を読み込む',
+            'input'  => array('sessionid' => 'xsd:string'),
+            'output' => array('return'    => 'messageInformation')
+        ),
+        'wsWriteMessageSettings' => array(
+            'doc'    => 'メセッジ設定を書き込む',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'messageInformation'
+            ),
+            'output' => array('return'    => 'xsd:boolean')
+        ),
+        //- ############################################################
+
+
+
+        // COLOR FUNCTIONS ---------------------------------------------
+        'wsSearchColor' => array(
+            'doc'    => '店舗の色設定を検索する',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'colorSearchCriteria'
+            ),
+            'output' => array('return'    => 'return_colorInformation')
+        ),
+        'wsAddUpdateColor' => array(
+            'doc'    => '店舗の色設定を追加・編集する',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'colorInformation'
+            ),
+            'output' => array('return'    => 'xsd:int')
+        ),
+        'wsDeleteColor' => array(
+            'doc'    => '店舗の色設定を削除する',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'id'        => 'xsd:int'
+            ),
+            'output' => array('return'    => 'xsd:boolean')
+        ),
+        //- ############################################################
+
+
+
+        // STORE TRANSACTION FUNCTIONS ---------------------------------
+        'wsSearchStoreTransaction' => array(
+            'doc'    => 'トランザクション検索',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'storeTransactionSearchCriteria'
+            ),
+            'output' => array('return'    => 'return_storeTransactionInformation')
+        ),
+
+        'wsAddUpdateStoreTransaction' => array(
+            'doc'    => 'トランザクションの追加・アップデート',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'storeTransactionInformation'
+            ),
+            'output' => array('return'    => 'return_transactionIDs')
+        ),
+
+        'wsDeleteStoreTransaction' => array(
+            'doc'    => 'トランザクション削除',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'transcode' => 'xsd:string'
+            ),
+            'output' => array('return'    => 'xsd:boolean')
+        ),
+
+        'wsCancelStoreTransaction' => array(
+            'doc'    => 'トランザクションキャンセル',
+            'input'  => array(
+                'sessionid'  => 'xsd:string',
+                'transcode'  => 'xsd:string',
+                'keyno'      => 'xsd:int'
+            ),
+            'output' => array('return'     => 'xsd:boolean')
+        ),
+        //- ############################################################
+
+        //----------------------------------
+        //Add Update Staff Menu Service Time
+        //----------------------------------
+        'wsAddUpdateStaffMenuServiceTime' => array(
+            'doc'    => 'AddUpdateStaffMenuServiceTime',
+            'input'  => array(
+                'sessionid'           => 'xsd:string',
+                'storecode'           => 'xsd:int',
+                'staffcode'           => 'xsd:int',
+                'gcode'               => 'xsd:int',
+                'ismale'              => 'xsd:boolean',
+                'time'                => 'xsd:int'
+            ),
+            'output' => array('return'    => 'xsd:boolean')
+        ),
+
+
+        // BREAK TIME FUNCTIONS ----------------------------------------
+        'wsSearchBreakTime' => array(
+            'doc'    => '外出検索',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'breakTimeSearchCriteria'
+            ),
+            'output' => array('return'    => 'return_breakTimeInformation')
+        ),
+
+        'wsAddUpdateBreakTime' => array(
+            'doc'    => '外出の追加・アップデート',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'breakTimeInformation'
+            ),
+            'output' => array('return'    => 'xsd:int')
+        ),
+
+        'wsDeleteBreakTime' => array(
+            'doc'    => '外出削除',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'breakid'   => 'xsd:int'
+            ),
+            'output' => array('return'    => 'xsd:boolean')
+        ),
+        //- ############################################################
+
+
+
+        // DATA OF THE DAY FUNCTIONS -----------------------------------
+        'wsGetDataOfTheDay' => array(
+            'doc'    => '日のデータを取得',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'dataOfTheDaySearchCriteria'
+            ),
+            'output' => array('return'    => 'return_dataOfTheDayInformation')
+        ),
+        //- ############################################################
+
+
+
+        // TRANSACTION CALENDAR VIEW FUNCTIONS -------------------------
+        'wsGetTransactionCalendarView' => array(
+            'doc'    => 'トランザクションの検索カレンダー',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'param'     => 'transactionCalendarViewSearchCriteria'
+            ),
+            'output' => array('return'    => 'return_transactionCalendarViewInformation')
+        ),
+        //- ############################################################
+
+
+        // Get Staff Menu Service Time -------------------------
+        'wsGetStaffMenuServiceTime' => array(
+            'doc'    => 'wsGetStaffMenuServiceTime',
+            'input'  => array(
+                'sessionid'     => 'xsd:string',
+                'storecode'     => 'xsd:int',
+                'staffcode'     => 'xsd:int',
+                'gcode'         => 'xsd:int'
+            ),
+            'output' => array(
+                'success'      => 'xsd:boolean',
+                'female_time'   => 'xsd:int',
+                'male_time'     => 'xsd:int'
+            )
+        ),
+        //- ############################################################
+
+
+        // Get Store Menu Service Time -------------------------
+        'wsGetStoreMenuServiceTime' => array(
+            'doc'    => 'wsGetStoreMenuServiceTime',
+            'input'  => array(
+                'sessionid'   => 'xsd:string',
+                'storecode'   => 'xsd:int'
+            ),
+            'output' => array('return'      => '_storeMenuServiceTime')
+        ),
+        //- ############################################################
+
+
+        // STAFF TAB FUNCTIONS -----------------------------------------
+        'wsGetAllOnStaffTab' => array(
+            'doc'    => '位置とサブレベルのと店舗リストデータを取得',
+            'input'  => array('sessionid' => 'xsd:string'),
+            'output' => array('return'    => 'return_staffTabInformation')
+        ),
+        //- ############################################################
+
+
+
+        // FIRST LOAD FUNCTIONS ----------------------------------------
+        'wsGetAllOnFirstLoad' => array(
+            'doc'    => '最初の負荷に関するデータを得て',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'date'      => 'xsd:string'
+            ),
+            'output' => array('return'    => 'return_firstLoadInformation')
+        ),
+        //- ############################################################
+
+
+
+        // YOYAKU DETAILS FUNCTIONS ------------------------------------
+        'wsSearchYoyakuDetails' => array(
+            'doc'    => '予約詳細検索',
+            'input'  => array(
+                'sessionid'         => 'xsd:string',
+                'begindate'         => 'xsd:string',
+                'enddate'           => 'xsd:string',
+                'storecode'         => 'xsd:int',
+                'staffcode'         => 'xsd:int',
+                'uketsukestaffcode' => 'xsd:int',
+                'staffcode_sthdr'   => 'xsd:int'
+            ),
+            'output' => array('return'    => 'return_yoyakuDetailsInformation')
+        ),
+        //- ############################################################
+
+
+        // GET MARKETING -----------------------------------
+        'wsGetMarketing' => array(
+            'doc'    => 'GetMarketing',
+            'input'  => array(
+                'sessionid'    => 'xsd:string',
+                'storecode'    => 'xsd:int',
+                'ymd'          => 'xsd:string'
+            ),
+            'output' => array('return'    => 'return_rejiMarketingInformation')
+        ),
+        //- ############################################################
+
+        // GET STAFFS RECORD  -----------------------------------
+        'wsGetStaffs' => array(
+            'doc'    => 'GetStaffs',
+            'input'  => array(
+                'sessionid'    => 'xsd:string',
+                'storecode'    => 'xsd:int',
+                'ymd'          => 'xsd:string'
+            ),
+            'output' => array('return'    => 'return_staffInformation')
+        ),
+        //- ############################################################
+
+
+        // GET GYOSHU KUBUN(servicesys)  -----------------------------------
+        'wsGetGyoshuKubun' => array(
+            'doc'    => 'GetGyoshuKubun',
+            'input'  => array(
+                'sessionid'    => 'xsd:string',
+                'storecode'    => 'xsd:int'
+            ),
+            'output' => array('return'    => 'return_gyoshukubun')
+        ),
+        //- ############################################################
+
+        // GET HOW KNOWS THE STORE RECORDS  -----------------------------------
+        'wsGetHowKnowsTheStore' => array(
+            'doc'    => 'GetHowKnowsTheStore',
+            'input'  => array('sessionid'    => 'xsd:string'),
+            'output' => array('return'    => 'return_howKnowsTheStoreInformation')
+        ),
+        //- ############################################################
+
+        // MAIL FUNCTIONS ------------------------------------
+        'wsSendMail' => array(
+            'doc'    => 'メール送信',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'from'      => 'xsd:string',
+                'to'        => 'xsd:string',
+                'cc'        => 'xsd:string',
+                'bcc'       => 'xsd:string',
+                'subject'   => 'xsd:string',
+                'body'      => 'xsd:string'
+            ),
+            'output'    => 'xsd:boolean'
+        ),
+        //- ############################################################
+
+        // JIKAI_YOYAKU DETAILS FUNCTIONS ------------------------------------
+        'wsSearchJikaiYoyaku' => array(
+            'doc'    => '次回予約リスト',
+            'input'  => array(
+                'sessionid'         => 'xsd:string',
+                'storecode'         => 'xsd:int',
+                'ccode'             => 'xsd:string',
+                'transcode'         => 'xsd:string'
+            ),
+            'output' => array('return'    => 'return_storeTransactionInformation')
+        ),
+
+        'wsDeleteJikaiYoyaku' => array(
+            'doc'    => '次回予約削除',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'transcode' => 'xsd:string',
+                'storecode' => 'xsd:int',
+                'changeyoyaku' => 'xsd:boolean'
+            ),
+            'output' => array('return'    => 'xsd:boolean')
+        ),
+
+        //- ############################################################
+        // GetOkotowariTodaysCount -----------------------------------
+        'wsGetOkotowariTodaysCount' => array(
+            'doc'    => 'wsGetOkotowariTodaysCount',
+            'input'  => array(
+                'sessionid'    => 'xsd:string',
+                'storecode'    => 'xsd:int',
+                'ymd'          => 'xsd:string'
+            ),
+            'output' => array(
+                'unregistered'    => 'xsd:int',
+                'registered'    => 'xsd:int'
+            )
+        ),
+        //- ############################################################
+
+        // wsAddOkotowari -----------------------------------
+        'wsAddOkotowari' => array(
+            'doc'    => 'wsAddOkotowari',
+            'input'  => array(
+                'sessionid'    => 'xsd:string',
+                'storecode'    => 'xsd:int',
+                'ymd'          => 'xsd:string',
+                'time'          => 'xsd:string',
+                'ccode'          => 'xsd:string'
+            ),
+            'output' => array()
+        ),
+        //- ############################################################
+
+        // wsUpdateOkotowari -----------------------------------
+        'wsUpdateOkotowari' => array(
+            'doc'    => 'wsUpdateOkotowari',
+            'input'  => array(
+                'sessionid'    => 'xsd:string',
+                'oid'          => 'xsd:int',
+                'ymd'          => 'xsd:string',
+                'time'         => 'xsd:string',
+                'ccode'        => 'xsd:string'
+            ),
+            'output' => array()
+        ),
+        //- ############################################################
+
+        // wsCheckCustomer -----------------------------------
+        'wsCheckCustomer' => array(
+            'doc'    => 'wsCheckCustomer',
+            'input'  => array(
+                'sessionid'    => 'xsd:string',
+                'cnumber'          => 'xsd:string',
+                'ccode'          => 'xsd:string'
+            ),
+            'output' => array(
+                'ccode_output'    => 'xsd:string',
+                'cnumber_output'    => 'xsd:string',
+                'cname'    => 'xsd:string',
+                'cnamekana'    => 'xsd:string',
+                'sex'    => 'xsd:int'
+            )
+        ),
+        //- ############################################################c
+
+        // GetOkotowariHistory -----------------------------------
+        'GetOkotowariHistory' => array(
+            'doc'    => 'GetOkotowariHistory',
+            'input'  => array(
+                'sessionid'       => 'xsd:string',
+                'storecode'       => 'xsd:int',
+                'datefrom'        => 'xsd:string',
+                'dateto'          => 'xsd:string',
+                'cnumber'         => 'xsd:string',
+                'cname'           => 'xsd:string',
+                'sex'             => 'xsd:int',
+                'category'        => 'xsd:int'
+            ),
+            'output' => array('return'    => '_okotowariInformation')
+        ),
+        //- ############################################################
+
+        // DeleteOkotowariRecord -----------------------------------
+        'wsDeleteOkotowariRecord' => array(
+            'doc'    => 'wsDeleteOkotowariRecord',
+            'input'  => array(
+                'sessionid'    => 'xsd:string',
+                'oid'    => 'xsd:int'
+            ),
+            'output' => array()
+        ),
+        //- ############################################################
+
+        // GetShiftSimulationPassword -----------------------------------
+        'wsGetShiftSimulationPassword' => array(
+            'doc'    => 'wsGetShiftSimulationPassword',
+            'input'  => array(
+                'sessionid'    => 'xsd:string',
+                'storecode'    => 'xsd:int'
+            ),
+            'output' => array('pwd'          => 'xsd:string')
+        ),
+        //- ############################################################
+
+        //wsGetYoyakuAllowTransToStore-------------------------------------
+        'wsGetYoyakuAllowTransToStore'   => array(
+            'doc'    => 'wsGetYoyakuAllowTransToStore',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'storecode' => 'xsd:int'
+            ),
+            'output' => array('return' => '_YoyakuAllowTransToStore')
+        ),
+        //- ############################################################
+
+        //wsGetTransactionByTransCode----------------------------------------
+        'wsGetTransactionByTransCode'   => array(
+            'doc'    => 'wsGetTransactionStatus',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'transcode' => 'xsd:string'
+            ),
+            'output' => array('return'    => 'tns:storeTransactionInformation')
+        ),
+
+        //--------------------------------------------------------------
+        //Add or Update Transaction Uketsuke
+        //--------------------------------------------------------------
+        'wsAddUpdateTransUketsuke' => array(
+            'doc'    => 'AddUpdateTransUketsuke',
+            'input'  => array(
+                'sessionid'  => 'xsd:string',
+                'transcode'  => 'xsd:string',
+                'uketsukedate'  => 'xsd:string',
+                'uketsukestaff' => 'xsd:int'
+            ),
+            'output' => array('return'     => 'xsd:boolean')
+        ),
+        //- ############################################################
+
+        //==============================================================
+        //customer search listing for Ingtegration
+        //by albert 2015-11-18
+        //--------------------------------------------------------------
+        'wsGetCustomerList' => array(
+            'doc'    => 'GetCustomerListing',
+            'input'  => array(
+                'sessionid'   => 'xsd:string',
+                'storecode'   => 'xsd:int',
+                'datefr'      => 'xsd:string',
+                'dateto'      => 'xsd:string',
+                'firstdate'   => 'xsd:boolean',
+                'pageindex'   => 'xsd:int',
+                'filename1'   => 'xsd:string',
+                'allstoreflg' => 'xsd:int',
+                'basecode'    => 'xsd:string'
+            ),
+            'output' => array('return'      => 'tns:return_storeCustomerListing')
+        ),
+
+        'wsCustomerMergeSave' => array(
+            'doc'    => 'saveCustomerMerging',
+            'input'  => array(
+                'sessionid'   => 'xsd:string',
+                'strcode'     => 'xsd:int',
+                'fromccode'   => 'xsd:string',
+                'toccode'     => 'xsd:string',
+                'transcode'   => 'xsd:string',
+                'keyno'       => 'xsd:int',
+                'companyid'   => 'xsd:int',
+                'param'       => 'customerInformation'
+            ),
+            'output' => array('updatedate'      => 'xsd:string')
+        ),
+
+        'wsGetReservation' => array(
+            'doc'    => 'GetReservation',
+            'input'  => array(
+                'sessionid'   => 'xsd:string',
+                'storecode'   => 'xsd:int',
+                'origination' => 'xsd:int',
+                'datefr'      => 'xsd:string',
+                'dateto'      => 'xsd:string',
+                'pageno'      => 'xsd:int',
+                'ascsort'     => 'xsd:int',
+                'colsort'     => 'xsd:int',
+                'syscode'     => 'xsd:int'
+            ),
+            'output' => array('return'      => 'tns:return_storeReservationListing')
+        ),
+
+
+        'wsGetReservationCounter' => array(
+            'doc'    => 'GetReservationCounter',
+            'input'  => array(
+                'sessionid'   => 'xsd:string',
+                'storecode'   => 'xsd:int',
+                'datefr'      => 'xsd:string',
+                'dateto'      => 'xsd:string'
+            ),
+            'output' => array('return'      => 'tns:return_storeReservationCounter')
+        ),
+
+
+        'wsUpdateTransaction2' => array(
+            'doc'    => 'updatetransaction2',
+            'input'  => array(
+                'sessionid'   => 'xsd:string',
+                'transcode'   => 'xsd:string',
+                'keyno'       => 'xsd:int',
+                'alreadyread' => 'xsd:int',
+                'syscode'     => 'xsd:int'
+            ),
+            'output' => array('return'      => 'xsd:int')
+        ),
+
+        //--------------------------------------------------------------
+        //customer search listing for Ingtegration
+        //by albert 2015-11-18
+        //==============================================================
+
+        //--------------------------------------------------------------
+        // GET STORE EMAIL DOMAIN
+        // Added by: MarvinC - 2015-12-05 14:34
+        //--------------------------------------------------------------
+        'wsGetMailDomain' => array(
+            'doc'    => 'wsGetMailDomain',
+            'input'  => array(
+                'sessionid'  => 'xsd:string',
+                'companyid'  => 'xsd:int',
+                'storecode'  => 'xsd:int'
+            ),
+            'output' => array('return'     => 'xsd:string')
+        ),
+        //- ############################################################
+
+        //--------------------------------------------------------------
+        // GET STORE EMAIL DOMAIN
+        // Added by: MarvinC - 2015-12-05 14:34
+        //--------------------------------------------------------------
+        'wsVerifyStaffPassword' => array(
+            'doc'    => 'wsGetMailDomain',
+            'input'  => array(
+                'sessionid'  => 'xsd:string',
+                'staffcode'  => 'xsd:int',
+                'password'   => 'xsd:string'
+            ),
+            'output' => array('return'     => 'xsd:int')
+        ),
+        //- ############################################################
+
+        //--------------------------------------------------------------
+        // GET POWERS SETTINGS
+        // Added by: MarvinC - 2015-12-28 16:35
+        //--------------------------------------------------------------
+        'wsGetReturningCustomerCountAll' => array(
+            'doc'    => 'wsGetReturningCustomerCountAll',
+            'input'  => array('sessionid'  => 'xsd:string'),
+            'output' => array('return'     => 'xsd:int')
+        ),
+        //- ############################################################
+
+        'wsGetDailyKanzashiCustomersLimit' => array(
+            'doc'    => '日毎かんざし時間別予約可能数取得',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'storecode' => 'xsd:int',
+                'ymd'       => 'xsd:date'
+            ),
+            'output' => array('return' => 'tns:_kanzashiCustomersLimit')
+        ),
+        'wsGetMonthlyKanzashiSalonHours' => array(
+            'doc'    => '月毎かんざしサロン営業時間取得',
+            'input'  => array(
+                'sessionid' => 'xsd:string',
+                'storecode' => 'xsd:int',
+                'ymd'       => 'xsd:date'
+            ),
+            'output' => array('return' => 'tns:return_monthlyKanzashiSalonHours')
+        ),
+        'wsUpdateKanzashiCustomersLimit' => array(
+            'doc'    => 'かんざし時間別予約可能数更新',
+            'input'  => array(
+                'sessionid'        => 'xsd:string',
+                'storecode'        => 'xsd:int',
+                'store_holiday'    => 'tns:storeHolidayInformation',
+                'customers_limits' => 'tns:_kanzashiCustomersLimit'
+            ),
+            'output' => array('return' => 'xsd:boolean')
+        ),
+        'wsPushKanzashiStylist' => array(
+            'doc'    => 'かんざしスタイリストPUSH',
+            'input'  => array(
+                'kanzashisalonid' => 'xsd:int'
+            ),
+            'output' => array('return' => 'xsd:string')
+        ),
+        'wsPushKanzashiSalonDailyHours' => array(
+            'doc'    => 'かんざしサロン営業時間PUSH',
+            'input'  => array(
+                'kanzashisalonid' => 'xsd:int',
+                'year' => 'xsd:int',
+                'month' => 'xsd:int'
+            ),
+            'output' => array('return' => 'xsd:string')
+        ),
+        'wsPushKanzashiStylistInitialData' => array(
+            'doc'    => 'かんざしスタイリスト初回PUSH',
+            'input'  => array(
+                'kanzashisalonid' => 'xsd:int',
+                'staffid'         => 'xsd:int'
+            ),
+            'output' => array('return' => 'xsd:string')
+        ),
+        'wsPushKanzashiStylistDutyHours' => array(
+            'doc'    => 'かんざしスタイリスト勤務時間PUSH',
+            'input'  => array(
+                'kanzashisalonid' => 'xsd:int',
+                'year' => 'xsd:int',
+                'month' => 'xsd:int',
+                'staffcode' => 'xsd:int'
+            ),
+            'output' => array('return' => 'xsd:string')
+        ),
+        'wsPushKanzashiSalonBasicSetting' => array(
+            'doc'    => 'かんざしサロン基本設定PUSH',
+            'input'  => array(
+                'kanzashisalonid' => 'xsd:int'
+            ),
+            'output' => array('return' => 'xsd:string')
+        )
+
+        //- ############################################################
+    );
 
     //-- Complexタイプの参照 (Complex Type Definitions)
-    var $complexTypes = array(// LOGIN ----------------------------------------------
-                             'return_storeInfo' => array('struct' => array(
-                                        'sessionid'         => 'xsd:string',
-                                        'companyid'         => 'xsd:int',
-                                        'storecode'         => 'xsd:int',
-                                        'storename'         => 'xsd:string',
-                                        'hasTenpo'          => 'xsd:int',
-                                        'hasCust'           => 'xsd:int',
-                                        'hasHonbu'          => 'xsd:int',
-                                        'hasBrowser'        => 'xsd:int',
-                                        'hasYoyaku'         => 'xsd:int',
-                                        'YOYAKU_OPEN_TIME'  => 'xsd:int',
-                                        'YOYAKU_CLOSE_TIME' => 'xsd:int',
-                                        'YOYAKU_HYOU_OPEN_TIME'  => 'xsd:int',
-                                        'YOYAKU_HYOU_CLOSE_TIME' => 'xsd:int',
-                                        'YOYAKU_OPEN_TIME_SATSUN'  => 'xsd:int',
-                                        'YOYAKU_CLOSE_TIME_SATSUN' => 'xsd:int',
-                                        'UPPER_LIMIT'         => 'xsd:int',
-                                        'UPPER_LIMIT_OP'      => 'xsd:string',
-                                        'OPEN_TIME'         => 'xsd:int',
-                                        'CLOSE_TIME'        => 'xsd:int',
-                                        'storemail'         => 'xsd:string',
-                                        'oemflg'            => 'xsd:int',
-                                        'storetype'         => 'tns:storetypeInformation',
-                                        'allstoretype'      => 'tns:AllStoreTypes',
-                                        'KanzashiInfo'      => 'tns:KanzashiInfo')),
-
-                             '_AllStoreTypes' => array('struct' => array(
-                                                        'STORECODE'       => 'xsd:int',
-                                                        'STORETYPES'      => 'xsd:string')),
-                             'AllStoreTypes' => array(
-                                                      'array' => '_AllStoreTypes'),
-
-                             '_storetypeInformation' => array('struct' => array(
-                                                    'STORECODE'       => 'xsd:int',
-                                                    'STAFFCODE'       => 'xsd:int',
-                                                    'SYSCODE'         => 'xsd:int',
-                                                    'SHORTCUTCODE'    => 'xsd:string',
-                                                    'DESCRIPTION'     => 'xsd:string')),
-                             'storetypeInformation' => array(
-                                        'array' => '_storetypeInformation'),
-
-                             'KanzashiInfo' => array(
-                                 'struct' => array(
-                                     'SalonId'                                 => 'xsd:int',
-                                     'Status'                                  => 'xsd:int',
-                                     'SyncKanzashiEnabledStaffReservationOnly' => 'xsd:boolean',
-                                     'FreeStaffcode'                           => 'xsd:int',
-                                     'SigninUrl'                               => 'xsd:string',
-                                     'SigninHashKey'                           => 'xsd:string',
-                                     'SigninMedia'                             => 'xsd:string',
-                                     'SigninVersion'                           => 'xsd:string'
-                                 )
-                             ),
-
-                             'loginInfo' => array('struct' => array(
-                                        'username'     => 'xsd:string',
-                                        'password'     => 'xsd:string',
-                                        'computername' => 'xsd:string')),
-                             //- ####################################################
-
-
-
-                             // CUSTOMER --------------------------------------------
-                             'customerSearchCriteria' => array('struct' => array(
-                                        'SEARCHSHAREDSTORE' => 'xsd:boolean',
-                                        'CSTORECODE'        => 'xsd:int',
-                                        'CCODE'             => 'xsd:string',
-                                        'CNUMBER'           => 'xsd:string',
-                                        'CNAME'             => 'xsd:string',
-                                        'CNAMEKANA'         => 'xsd:string',
-                                        'PHONE'             => 'xsd:string',
-                                        'MAILADDRESS'       => 'xsd:string',
-                                        'ADDRESS'           => 'xsd:string',
-                                        'keyword'           => 'xsd:string',
-                                        'free_customer'     => 'xsd:int',
-                                        'orderby'           => 'xsd:string',
-                                        'limit'             => 'xsd:int',
-                                        'page'              => 'xsd:int')),
-
-                             'customerInformation' => array('struct' => array(
-                                        'CCODE'         => 'xsd:string',
-                                        'CNUMBER'       => 'xsd:string',
-                                        'CID'           => 'xsd:int',
-                                        'CSTORECODE'    => 'xsd:int',
-                                        'CNAME'         => 'xsd:string',
-                                        'CNAMEKANA'     => 'xsd:string',
-                                        'SEX'           => 'xsd:int',
-                                        'REGULAR'       => 'xsd:int',
-                                        'ZIPCODE1'      => 'xsd:string',
-                                        'KEN1'          => 'xsd:string',
-                                        'SITYO1'        => 'xsd:string',
-                                        'MANSIONMEI'    => 'xsd:string',
-                                        'SI1'           => 'xsd:string',
-                                        'TYO1'          => 'xsd:string',
-                                        'ADDRESS1'      => 'xsd:string',
-                                        'ADDRESS1_1'    => 'xsd:string',
-                                        'TEL1'          => 'xsd:string',
-                                        'TEL2'          => 'xsd:string',
-                                        'BIRTHDATE'     => 'xsd:string',
-                                        'CHRISTIAN_ERA' => 'xsd:int',
-                                        'AGERANGE'      => 'xsd:int',
-                                        'MAILADDRESS1'  => 'xsd:string',
-                                        'MAILADDRESS2'  => 'xsd:string',
-                                        'MEMBERSCATEGORY' => 'xsd:int',
-                                        'MAILKUBUN'     => 'xsd:int',
-                                        'HOWKNOWSCODE'  => 'xsd:int',
-                                        'HOWKNOWS'      => 'xsd:string',
-                                        'FIRSTDATE'     => 'xsd:string',
-                                        'LASTSTAFFCODE' => 'xsd:int',
-                                        'LASTSTAFFNAME' => 'xsd:string',
-                                        'BLOODTYPE'      => 'xsd:string',
-                                        'BMCODE'         => 'xsd:string',
-                                        'MEMBER_CODE'    => 'xsd:string',
-                                        'SMOKING'        => 'xsd:int',
-                                        'DMKUBUN'        => 'xsd:int',
-                                        'JOBINDUSTRYCODE'=> 'xsd:int',
-                                        'JOBINDUSTRY'    => 'xsd:string',
-                                        'CREATEDFROMCODE'=> 'xsd:int',
-										'SystemDesc'     => 'xsd:string',
-                                        'FULLADDRESS'    => 'xsd:string',
-                                        'INTRODUCETYPE'  => 'xsd:int',
-                                        'REFERRALCODE'   => 'xsd:string',
-                                        'REFERRALRELATIONCODE'          => 'xsd:int',
-                                        'STAFF_INCHARGE_SELECTED'       => 'xsd:int',
-                                        'REFERRALNAME'   => 'xsd:string',
-                                        'REFERRALRELATIONCODENAME'      => 'xsd:string',
-                                        'STAFF_INCHARGE_SELECTED_NAME'  => 'xsd:string',
-                                        'STOREDATE'      => 'xsd:string'
-                                        )),
-                             '_customerInformation' => array(
-                                        'array' => 'customerInformation'),
-                             'return_customerInformation' => array('struct' => array(
-                                        'records'      => 'tns:_customerInformation',
-                                        'record_count' => 'xsd:int')),
-
-                             'return_customerIDs' => array('struct' => array(
-                                        'CCODE'         => 'xsd:string',
-                                        'CNUMBER'       => 'xsd:string')),
-                             //- ####################################################
-
-
-
-                             // STAFF -----------------------------------------------
-                             'staffSearchCriteria' => array('struct' => array(
-                                        'STORECODE'     => 'xsd:int',
-                                        'STAFFCODE'     => 'xsd:int',
-                                        'showfreestaff' => 'xsd:int',
-                                        'orderby'       => 'xsd:string',
-                                        'limit'         => 'xsd:int',
-                                        'page'          => 'xsd:int',
-                                        'syscode'       => 'xsd:int')),
-
-                             'availableStaffSearchCriteria' => array('struct' => array(
-                                        'STORECODE'     => 'xsd:int',
-                                        'STAFFCODE'     => 'xsd:int',
-                                        'date'          => 'xsd:string',
-                                        'orderby'       => 'xsd:string',
-                                        'limit'         => 'xsd:int',
-                                        'page'          => 'xsd:int')),
-
-                             'staffInformation' => array('struct' => array(
-                                        'STAFFCODE'        => 'xsd:int',
-                                        'STAFFNAME'        => 'xsd:string',
-                                        'origrows'         => 'xsd:int',
-                                        'origphonerows'    => 'xsd:int',
-                                        'STAFFNAME2'       => 'xsd:string',
-                                        'STORECODE'        => 'xsd:int',
-                                        'STORENAME'        => 'xsd:string',
-                                        'SUBLEVELCODE'     => 'xsd:int',
-                                        'SUBLEVELNAME'     => 'xsd:string',
-                                        'POSITIONCODE'     => 'xsd:int',
-                                        'POSITIONNAME'     => 'xsd:string',
-                                        'RETIREDATE'       => 'xsd:string',
-                                        'HIREDATE'         => 'xsd:string',
-                                        'TRAVEL_ALLOWANCE' => 'xsd:int',
-                                        'SEX'              => 'xsd:int',
-                                        'YOYAKU_DISPLAY'   => 'xsd:int',
-                                        'WEB_DISPLAY'      => 'xsd:int',
-                                        'KANZASHI_ENABLED' => 'xsd:int',
-                                        'ROWS'             => 'xsd:int',
-                                        'PHONEROWS'        => 'xsd:int',
-                                        'DISPLAY_ORDER'    => 'xsd:int',
-                                        'SYSCODES'         => 'xsd:string',
-                                        'STAFFTYPES'       => 'xsd:string',
-                                        'STAFFTYPECODES'   => 'xsd:string',
-                                        'STAFF_PASSWORD'   => 'xsd:string',
-                                        'STAFFVIEWS'       => 'xsd:string', //UPDATE by SHIMIZU 20150906
-                                        'transaction'      => 'tns:return_storeTransactionInformation',
-                                        'breaktime'        => 'tns:return_breakTimeInformation',
-                                        'shift'            => 'tns:return_staffShiftInformation')),
-
-                             '_staffInformation' => array(
-                                        'array' => 'staffInformation'),
-                             'return_staffInformation' => array('struct' => array(
-                                        'records'      => 'tns:_staffInformation',
-                                        'record_count' => 'xsd:int')),
-
-                             'staffRowsHistoryInformation' => array('struct' => array(
-                                        'STAFFCODE'        => 'xsd:int',
-                                        'STORECODE'        => 'xsd:int',
-                                        'date'             => 'xsd:string',
-                                        'ROWS'             => 'xsd:int',
-                                        'PHONEROWS'        => 'xsd:int')),
-
-                             '_staffRowsHistoryInformation' => array(
-                                        'array' => 'staffRowsHistoryInformation'),
-                             'return_staffRowsHistoryInformation' => array('struct' => array(
-                                        'records'      => 'tns:_staffRowsHistoryInformation',
-                                        'record_count' => 'xsd:int')),
-                             //- ####################################################
-
-
-
-                             // STAFF SHIFT -----------------------------------------
-                             'staffShiftSearchCriteria' => array('struct' => array(
-                                        'storecode' => 'xsd:int',
-                                        'STAFFCODE' => 'xsd:int',
-                                        'year'      => 'xsd:int',
-                                        'month'     => 'xsd:int',
-                                        'day'       => 'xsd:int')),
-
-                             'staffShiftInformation' => array('struct' => array(
-                                        'year'              => 'xsd:int',
-                                        'month'             => 'xsd:int',
-                                        'STORECODE'         => 'xsd:int',
-                                        'STAFFCODE'         => 'xsd:int',
-                                        'STAFFNAME'         => 'xsd:string',
-                                        'HIREDATE'          => 'xsd:string',
-                                        'RETIREDATE'        => 'xsd:string',
-                                        'STARTTIME'         => 'xsd:string',
-                                        'ENDTIME'           => 'xsd:string',
-                                        'SALARYTYPE'        => 'xsd:int',
-                                        'SALARYAMOUNT'      => 'xsd:int',
-                                        'TRAVEL_ALLOWANCE'  => 'xsd:int',
-                                        'day1'              => 'xsd:string',
-                                        'day2'              => 'xsd:string',
-                                        'day3'              => 'xsd:string',
-                                        'day4'              => 'xsd:string',
-                                        'day5'              => 'xsd:string',
-                                        'day6'              => 'xsd:string',
-                                        'day7'              => 'xsd:string',
-                                        'day8'              => 'xsd:string',
-                                        'day9'              => 'xsd:string',
-                                        'day10'             => 'xsd:string',
-                                        'day11'             => 'xsd:string',
-                                        'day12'             => 'xsd:string',
-                                        'day13'             => 'xsd:string',
-                                        'day14'             => 'xsd:string',
-                                        'day15'             => 'xsd:string',
-                                        'day16'             => 'xsd:string',
-                                        'day17'             => 'xsd:string',
-                                        'day18'             => 'xsd:string',
-                                        'day19'             => 'xsd:string',
-                                        'day20'             => 'xsd:string',
-                                        'day21'             => 'xsd:string',
-                                        'day22'             => 'xsd:string',
-                                        'day23'             => 'xsd:string',
-                                        'day24'             => 'xsd:string',
-                                        'day25'             => 'xsd:string',
-                                        'day26'             => 'xsd:string',
-                                        'day27'             => 'xsd:string',
-                                        'day28'             => 'xsd:string',
-                                        'day29'             => 'xsd:string',
-                                        'day30'             => 'xsd:string',
-                                        'day31'             => 'xsd:string')),
-
-                             '_staffShiftInformation' => array(
-                                        'array' => 'staffShiftInformation'),
-                             'return_staffShiftInformation' => array('struct' => array(
-                                        'finished'     => 'xsd:int',
-                                        'records'      => 'tns:_staffShiftInformation',
-                                        'record_count' => 'xsd:int')),
-                             //- ####################################################
-
-
-
-                             // STORE -----------------------------------------------
-                             'storeSearchCriteria' => array('struct' => array(
-                                        'STORECODE'         => 'xsd:int',
-                                        'STORENAME'         => 'xsd:string',
-                                        'OnlySharedStore'    => 'xsd:boolean',
-                                        'orderby'           => 'xsd:string',
-                                        'limit'             => 'xsd:int',
-                                        'page'              => 'xsd:int')),
-
-                             'storeInformation' => array('struct' => array(
-                                        'STORECODE'       => 'xsd:int',
-                                        'STORENAME'       => 'xsd:string',
-                                        'STORENAME_KANA'  => 'xsd:string',
-                                        'TEL'             => 'xsd:string',
-                                        'FAX'             => 'xsd:string',
-                                        'ZIP'             => 'xsd:string',
-                                        'ADDRESS1'        => 'xsd:string',
-                                        'ADDRESS2'        => 'xsd:string',
-                                        'LOCATION'        => 'xsd:int',
-                                        'GROUPCODE'       => 'xsd:int',
-                                        'WEBYAN_HOMEPAGE' => 'xsd:string',
-                                        'PC_HOMEPAGE'     => 'xsd:string',
-                                        'storeid'         => 'xsd:string')),
-                             '_storeInformation' => array(
-                                        'array' => 'storeInformation'),
-                             'return_storeInformation' => array('struct' => array(
-                                        'records'      => 'tns:_storeInformation',
-                                        'record_count' => 'xsd:int')),
-
-                             'storeMenuServiceTime'        => array('struct' => array(
-                                        'staffcode'        => 'xsd:int',
-                                        'gcode'            => 'xsd:int',
-                                        'female_time'      => 'xsd:int',
-                                        'male_time'        => 'xsd:int')),
-                             '_storeMenuServiceTime'       => array(
-                                        'array'            => 'storeMenuServiceTime'),
-
-                             //- ####################################################
-
-
-
-                             // STORE HOLIDAY ---------------------------------------
-                             'storeHolidaySearchCriteria' => array('struct' => array(
-                                        'storecode' => 'xsd:int',
-                                        'year'      => 'xsd:int',
-                                        'month'     => 'xsd:int',
-                                        'day'       => 'xsd:int')),
-
-                             'storeHolidayInformation' => array('struct' => array(
-                                        'year'        => 'xsd:int',
-                                        'month'       => 'xsd:int',
-                                        'STORECODE'   => 'xsd:int',
-                                        'day1'        => 'xsd:string',
-                                        'day2'        => 'xsd:string',
-                                        'day3'        => 'xsd:string',
-                                        'day4'        => 'xsd:string',
-                                        'day5'        => 'xsd:string',
-                                        'day6'        => 'xsd:string',
-                                        'day7'        => 'xsd:string',
-                                        'day8'        => 'xsd:string',
-                                        'day9'        => 'xsd:string',
-                                        'day10'       => 'xsd:string',
-                                        'day11'       => 'xsd:string',
-                                        'day12'       => 'xsd:string',
-                                        'day13'       => 'xsd:string',
-                                        'day14'       => 'xsd:string',
-                                        'day15'       => 'xsd:string',
-                                        'day16'       => 'xsd:string',
-                                        'day17'       => 'xsd:string',
-                                        'day18'       => 'xsd:string',
-                                        'day19'       => 'xsd:string',
-                                        'day20'       => 'xsd:string',
-                                        'day21'       => 'xsd:string',
-                                        'day22'       => 'xsd:string',
-                                        'day23'       => 'xsd:string',
-                                        'day24'       => 'xsd:string',
-                                        'day25'       => 'xsd:string',
-                                        'day26'       => 'xsd:string',
-                                        'day27'       => 'xsd:string',
-                                        'day28'       => 'xsd:string',
-                                        'day29'       => 'xsd:string',
-                                        'day30'       => 'xsd:string',
-                                        'day31'       => 'xsd:string')),
-
-                             'return_storeHolidayInformation' => array('struct' => array(
-                                        'records'      => 'tns:storeHolidayInformation',
-                                        'record_count' => 'xsd:int')),
-                             //- ####################################################
-
-
-
-                             // SERVICE ---------------------------------------------
-                             'serviceSearchCriteria' => array('struct' => array(
-                                        'STORECODE'            => 'xsd:int',
-                                        'maxServiceIndex'      => 'xsd:string',
-                                        'maxStoreServiceIndex' => 'xsd:string',
-                                        'orderby'              => 'xsd:string',
-                                        'limit'                => 'xsd:int',
-                                        'page'                 => 'xsd:int',
-                                        'syscode'              =>'xsd:int')
-                                 ),
-
-                             'serviceInformation' => array('struct' => array(
-                                        'GDCODE'        => 'xsd:int',
-                                        'BUNRUINAME'    => 'xsd:string',
-                                        'SYSCODE'       => 'xsd:int',
-                                        'store_service' => 'tns:return_storeServiceInformation')),
-                             '_serviceInformation' => array(
-                                        'array' => 'serviceInformation'),
-                             'return_serviceInformation' => array('struct' => array(
-                                        'records'              => 'tns:_serviceInformation',
-                                        'record_count'         => 'xsd:int',
-                                        'maxServiceIndex'      => 'xsd:string',
-                                        'maxStoreServiceIndex' => 'xsd:string')),
-                             //- ####################################################
-
-
-
-                             // SHIFT -----------------------------------------------
-                             'shiftSearchCriteria' => array('struct' => array(
-                                        'orderby'     => 'xsd:string',
-                                        'limit'       => 'xsd:int',
-                                        'page'        => 'xsd:int')),
-
-                             'shiftInformation' => array('struct' => array(
-                                        'SHIFTID'      => 'xsd:int',
-                                        'SHIFTNAME'    => 'xsd:string',
-                                        'STARTTIME'    => 'xsd:string',
-                                        'ENDTIME'      => 'xsd:string')),
-                             '_shiftInformation' => array(
-                                        'array' => 'shiftInformation'),
-                             'return_shiftInformation' => array('struct' => array(
-                                        'records'      => 'tns:_shiftInformation',
-                                        'record_count' => 'xsd:int')),
-                             //- ####################################################
-
-
-
-                             // STORE SERVICE ---------------------------------------
-                             'storeServiceSearchCriteria' => array('struct' => array(
-                                        'STORECODE'   => 'xsd:int',
-                                        'GDCODE'      => 'xsd:int',
-                                        'hasHonbu'    => 'xsd:int',
-                                        'orderby'     => 'xsd:string',
-                                        'limit'       => 'xsd:int',
-                                        'page'        => 'xsd:int',
-                                        'STAFF_TANTOU_STORECODE'      => 'xsd:int',
-                                        'STAFF_TANTOU_STAFFCODE'      => 'xsd:int')),
-
-                             'storeServiceInformation' => array('struct' => array(
-                                        'hasHonbu'     => 'xsd:int',
-                                        'GDCODE'       => 'xsd:int',
-                                        'GSCODE'       => 'xsd:int',
-                                        'GCODE'        => 'xsd:int',
-                                        'MENUNAME'     => 'xsd:string',
-                                        'YOYAKUMARK'   => 'xsd:string',
-                                        'INSTORE'      => 'xsd:int',
-                                        'WEB_DISPLAY'  => 'xsd:int',
-                                        'SERVICE_TIME' => 'xsd:int',
-                                        'SERVICE_TIME_MALE' => 'xsd:int',
-                                        'PRICE'        => 'xsd:int',
-                                        'MEMBERPRICE'  => 'xsd:int',
-                                        'ZEIKUBUN'     => 'xsd:int',
-                                        'POINTKASAN1'  => 'xsd:float',
-                                        'POINTKASAN2'  => 'xsd:float',
-                                        'POINTKASAN3'  => 'xsd:float',
-                                        'delete'       => 'xsd:int',
-                                        'STAFF_TANTOU_STAFFCODE'  => 'xsd:int'
-                                        , 'KEYCODE'    => 'xsd:string'
-                                        )),
-                             '_storeServiceInformation' => array(
-                                        'array' => 'storeServiceInformation'),
-                             'return_storeServiceInformation' => array('struct' => array(
-                                        'records'      => 'tns:_storeServiceInformation',
-                                        'record_count' => 'xsd:int')),
-
-                             'storeServiceWhosUsingSearchCriteria' => array('struct' => array(
-                                        'GSCODE'      => 'xsd:int',
-                                        'orderby'     => 'xsd:string',
-                                        'limit'       => 'xsd:int',
-                                        'page'        => 'xsd:int')),
-
-                             'return_serviceIDs' => array('struct' => array(
-                                        'GCODE'        => 'xsd:int',
-                                        'GSCODE'       => 'xsd:int')),
-                             //- ####################################################
-
-
-
-                             // POSITION --------------------------------------------
-                             'positionSearchCriteria' => array('struct' => array(
-                                        'POSITIONCODE' => 'xsd:int',
-                                        'POSITIONNAME' => 'xsd:string',
-                                        'orderby'      => 'xsd:string',
-                                        'limit'        => 'xsd:int',
-                                        'page'         => 'xsd:int')),
-
-                             'positionInformation' => array('struct' => array(
-                                        'POSITIONCODE' => 'xsd:int',
-                                        'POSITIONNAME' => 'xsd:string')),
-                             '_positionInformation' => array(
-                                        'array' => 'positionInformation'),
-                             'return_positionInformation' => array('struct' => array(
-                                        'records'      => 'tns:_positionInformation',
-                                        'record_count' => 'xsd:int')),
-                             //- ####################################################
-
-
-
-                             // SUBLEVEL --------------------------------------------
-                             'sublevelSearchCriteria' => array('struct' => array(
-                                        'SUBLEVELCODE' => 'xsd:int',
-                                        'SUBLEVELNAME' => 'xsd:string',
-                                        'orderby'      => 'xsd:string',
-                                        'limit'        => 'xsd:int',
-                                        'page'         => 'xsd:int')),
-
-                             'sublevelInformation' => array('struct' => array(
-                                        'SUBLEVELCODE' => 'xsd:int',
-                                        'SUBLEVELNAME' => 'xsd:string')),
-                             '_sublevelInformation' => array(
-                                        'array' => 'sublevelInformation'),
-                             'return_sublevelInformation' => array('struct' => array(
-                                        'records'      => 'tns:_sublevelInformation',
-                                        'record_count' => 'xsd:int')),
-                             //- ####################################################
-
-
-
-                             // ZIPCODE ---------------------------------------------
-                             'zipcodeSearchCriteria' => array('struct' => array(
-                                        'ZIPCODE'     => 'xsd:string',
-                                        'ADDRESS'     => 'xsd:string',
-                                        'orderby'     => 'xsd:string',
-                                        'limit'       => 'xsd:int',
-                                        'page'        => 'xsd:int')),
-
-                             'zipcodeInformation' => array('struct' => array(
-                                        'ID'       => 'xsd:int',
-                                        'ZIPCODE'  => 'xsd:string',
-                                        'KEN'      => 'xsd:string',
-                                        'SI'       => 'xsd:string',
-                                        'TYO'      => 'xsd:string',
-                                        'SITYO'    => 'xsd:string')),
-                             '_zipcodeInformation' => array(
-                                        'array' => 'zipcodeInformation'),
-                             'return_zipcodeInformation' => array('struct' => array(
-                                        'records'      => 'tns:_zipcodeInformation',
-                                        'record_count' => 'xsd:int')),
-                             //- ####################################################
-
-
-
-                             // BASIC SETTINGS --------------------------------------
-                             'basicInformation' => array('struct' => array(
-                                        'STORENAME'           => 'xsd:string',
-                                        'TEL'                 => 'xsd:string',
-                                        'FAX'                 => 'xsd:string',
-                                        'ADDRESS1'            => 'xsd:string',
-                                        'WEBYAN_HOMEPAGE'     => 'xsd:string',
-                                        'PC_HOMEPAGE'         => 'xsd:string',
-                                        'INTERVAL'            => 'xsd:int',
-                                        'REMINDER'            => 'xsd:int',
-                                        'CANCEL_LIMIT'        => 'xsd:int',
-                                        'CUSTOMER_LIMIT'      => 'xsd:string',
-                                        'LOWER_LIMIT'         => 'xsd:int',
-                                        'LOWER_LIMIT_OP'      => 'xsd:string',
-                                        'UPPER_LIMIT'         => 'xsd:int',
-                                        'UPPER_LIMIT_OP'      => 'xsd:string',
-                                        'AVAILABLE_TIMES'     => 'xsd:int',
-                                        'OPEN_TIME'           => 'xsd:int',
-                                        'CLOSE_TIME'          => 'xsd:int',
-                                        'YOYAKU_OPEN_TIME'    => 'xsd:int',
-                                        'YOYAKU_CLOSE_TIME'   => 'xsd:int',
-                                        'YOYAKU_HYOU_OPEN_TIME'  => 'xsd:int',
-                                        'YOYAKU_HYOU_CLOSE_TIME' => 'xsd:int',
-                                        'YOYAKU_OPEN_TIME_SATSUN'  => 'xsd:int',
-                                        'YOYAKU_CLOSE_TIME_SATSUN' => 'xsd:int',
-                                        'SHOW_MENU_NAME_ONLY' => 'xsd:int',
-                                        'AUTO_CUST_LIMIT' => 'xsd:int',
-                                        'YOYAKU_MSG' => 'xsd:int',
-                                        'YOYAKU_MENU_TANTOU' => 'xsd:int',
-                                        'YOYAKU_TIME_SETTING' => 'xsd:int',
-                                        'YOYAKU_TIME_SETTINGS_OP' => 'xsd:string',
-                                        'YOYAKU_TIME_SECOND_SETTING' => 'xsd:int',
-                                        'FOLLOW_MAIL_SETTING' => 'xsd:int',
-                                        'HIDE_HOLIDAY_STAFF' => 'xsd:int',
-                                        'RECORD_YOYAKU_DETAIL' => 'xsd:int',
-                                        'MODIFYING_MAIL' => 'xsd:int',
-                                        'YOYAKU_DRAGDROP_TIMEINTERVAL' => 'xsd:int',
-                                        'HIDE_RAITEN' => 'xsd:int',
-                                        'OKOTOWARI_TIME' => 'xsd:int',
-                                        'HIDECUSTOMERINFO_FLG' => 'xsd:int',
-                                        'USE_SIPSS_MENU' => 'xsd:int',
-                                        'USE_MENU_AVAILABILITY_LIMIT' => 'xsd:int',
-                                        'JIKAIUPDATEOPTION_FLG' => 'xsd:int',
-                                        'KANZASHI_RESERVATION_PAY_ENABLED' => 'xsd:int',
-                                        'KANZASHI_RESERVATION_PAY_DEFAULT_PRICE_TYPE' => 'xsd:int')),
-                             //- ####################################################
-
-
-
-                             // MESSAGE SETTINGS ------------------------------------
-                             'messageInformation' => array('struct' => array(
-                                        'REGISTRATION'       => 'xsd:string',
-                                        'NEWYOYAKU'          => 'xsd:string',
-                                        'CANCEL'             => 'xsd:string',
-                                        'MAILREGISTRATION'   => 'xsd:string',
-                                        'MAILNEWYOYAKU'      => 'xsd:string',
-                                        'MAILNOTICE'         => 'xsd:string',
-                                        'MAILNOTICESECOND'   => 'xsd:string',
-                                        'MODIFYING_MAIL_MSG' => 'xsd:string',
-                                        'FOLLOW_MAIL_MSG'    => 'xsd:string',
-                                        'MAILSIGNATURE'      => 'xsd:string')),
-                             //- ####################################################
-
-
-
-                             // COLOR -----------------------------------------------
-                             'colorSearchCriteria' => array('struct' => array(
-                                        'STORECODE'    => 'xsd:int',
-                                        'limit'        => 'xsd:int',
-                                        'page'         => 'xsd:int')),
-                             'colorInformation' => array('struct' => array(
-                                        'id'          => 'xsd:int',
-                                        'color'       => 'xsd:string',
-                                        'comment'     => 'xsd:string')),
-                             '_colorInformation' => array(
-                                        'array' => 'colorInformation'),
-                             'return_colorInformation' => array('struct' => array(
-                                        'records'      => 'tns:_colorInformation',
-                                        'record_count' => 'xsd:int')),
-                             //- ####################################################
-
-
-
-                             // STORE TRANSACTION -----------------------------------
-                             'storeTransactionSearchCriteria' => array('struct' => array(
-                                        'STORECODE'   => 'xsd:int',
-                                        'TRANSCODE'   => 'xsd:string',
-                                        'CCODE'       => 'xsd:string',
-                                        'date'        => 'xsd:string')),
-
-                             'storeTransactionDetailInformation' => array('struct' => array(
-                                        'ROWNO'            => 'xsd:int',
-                                        'GDCODE'           => 'xsd:int',
-                                        'BUNRUINAME'       => 'xsd:string',
-                                        'GCODE'            => 'xsd:int',
-                                        'MENUNAME'         => 'xsd:string',
-                                        'YOYAKUMARK'       => 'xsd:string',
-                                        'MENUTIME'         => 'xsd:int',
-                                        'TRANTYPE'         => 'xsd:int',
-                                        'QUANTITY'         => 'xsd:int',
-                                        'PRICE'            => 'xsd:int',
-                                        'CLAIMED'          => 'xsd:int',
-                                        'POINTKASAN1'      => 'xsd:float',
-                                        'POINTKASAN2'      => 'xsd:float',
-                                        'POINTKASAN3'      => 'xsd:float',
-                                        'ZEIKUBUN'         => 'xsd:int',
-                                        'STAFFCODE'        => 'xsd:int',
-                                        'STAFFNAME'        => 'xsd:string',
-                                        'STAFFCODESIMEI'   => 'xsd:int',
-                                        'TEMPSTATUS'       => 'xsd:int',
-                                        'DELFLG'           => 'xsd:string',
-                                        'KEYCODE'          => 'xsd:string',
-                                        'STARTTIME'        => 'xsd:string',
-                                        'ENDTIME'          => 'xsd:string',
-                                        'SYSCODE'          => 'xsd:int',
-                                        'TAX'              => 'xsd:int',
-                                        'QUANTITY'         => 'xsd:int',
-                                        'TOTALTAX'         => 'xsd:int',
-                                        'PRICETAXINC'      => 'xsd:int',
-                                        'ISMENUDELETED'    => 'xsd:int')),
-                             '_storeTransactionDetailInformation' => array(
-                                        'array' => 'storeTransactionDetailInformation'),
-
-                             'storeTransactionInformation' => array('struct' => array(
-                                        'TRANSCODE'        => 'xsd:string',
-                                        'KEYNO'            => 'xsd:int',
-                                        'STORECODE'        => 'xsd:int',
-                                        'IDNO'             => 'xsd:int',
-                                        'TRANSDATE'        => 'xsd:string',
-                                        'UPDATEDATE'       => 'xsd:string',
-                                        'YOYAKUTIME'       => 'xsd:string',
-                                        'ENDTIME'          => 'xsd:string',
-                                        'ADJUSTED_ENDTIME' => 'xsd:string',
-                                        'CCODE'            => 'xsd:string',
-                                        'CNUMBER'          => 'xsd:string',
-                                        'CSTORECODE'       => 'xsd:int',
-                                        'REGULARCUSTOMER'  => 'xsd:int',
-                                        'KYAKUKUBUN'       => 'xsd:int',
-                                        'SEX'              => 'xsd:int',
-                                        'RATETAX'          => 'xsd:float',
-                                        'ZEIOPTION'        => 'xsd:int',
-                                        'SOGOKEIOPTION'    => 'xsd:int',
-                                        'TEMPSTATUS'       => 'xsd:int',
-                                        'CNAME'            => 'xsd:string',
-                                        'APT_COLOR'        => 'xsd:int',
-                                        'NOTES'            => 'xsd:string',
-                                        'RANKING'          => 'xsd:string',
-                                        'PRIORITY'         => 'xsd:int',
-                                        'PRIORITYTYPE'     => 'xsd:string',
-                                        'STAFFCODE'        => 'xsd:int',
-                                        'HASSERVICES'      => 'xsd:int',
-                                        'DELFLG'           => 'xsd:string',
-                                        'CNAMEKANA'        => 'xsd:string',
-                                        'TEL1'             => 'xsd:string',
-                                        'TEL2'             => 'xsd:string',
-                                        'TEMPSTATUS'       => 'xsd:int',
-                                        'BIRTHDATE'        => 'xsd:string',
-                                        'CUST_TELNO'       => 'xsd:string',
-                                        'MEMBERSCATEGORY'  => 'xsd:int',
-                                        'CLAIMKYAKUFLG'    => 'xsd:int',
-                                        'UPDATEDATE'       => 'xsd:string',
-                                        'newcustomer'      => 'xsd:int',
-                                        'ignoreConflict'   => 'xsd:int',
-                                        'newRowValue'      => 'xsd:int',
-                                        'newPhoneRowValue' => 'xsd:int',
-                                        'UKETSUKEDATE'     => 'xsd:string',
-                                        'UKETSUKESTAFF'    => 'xsd:int',
-                                        'BEFORE_TRANSCODE' => 'xsd:string',
-                                        'STAFF_CHANGE_JIKAI_LINK'=> 'xsd:int',
-                                        'HOWKNOWSCODE'     => 'xsd:int',
-                                        'HOWKNOWS'         => 'xsd:string',
-                                        'STIME'            => 'xsd:string',
-                                        'ETIME'            => 'xsd:string',
-                                        'GCODE'            => 'xsd:int',
-                                        'YOYAKU'           => 'xsd:int',
-                                        'STARTTIME'        => 'xsd:string',
-                                        'SERVICESNAME'     => 'xsd:string', 
-                                        'YOYAKU_STATUS'    => 'xsd:string', 
-                                        'INCOMPLETE'       => 'xsd:int',
-                                        'UKETSUKESTAFFNAME'=> 'xsd:string',
-                                        'DATETIMECREATED'  => 'xsd:string', 
-                                        'CREATENEWTRANS'   => 'xsd:int', 
-                                        'PREVTRANSCODE'    => 'xsd:string', 
-                                        'DELPREVTRANSGCODES'    => 'xsd:string', 
-                                        'route'            => 'xsd:string',
-                                        'reservation_system'=> 'xsd:string',
-                                        'reserve_date'      => 'xsd:string',
-                                        'reserve_code'      => 'xsd:string',
-                                        'v_date'            => 'xsd:string',
-                                        'start_time'        => 'xsd:string',
-                                        'end_time'          => 'xsd:string',
-                                        'coupon_info'       => 'xsd:string',
-                                        'comment'           => 'xsd:string',
-                                        'shop_comment'      => 'xsd:string',
-                                        'next_coming_comment'   => 'xsd:string',
-                                        'demand'            => 'xsd:string',
-                                        'site_customer_id'  => 'xsd:string',
-                                        'bmPrice'           => 'xsd:int',
-                                        'nomination_fee'    => 'xsd:int',
-                                        'bmTprice'          => 'xsd:int',
-                                        'use_point'         => 'xsd:int',
-                                        'coupon_point'      => 'xsd:int',
-                                        'grant_point'       => 'xsd:int',
-                                        'visit_num'         => 'xsd:int',
-                                        'firstname'         => 'xsd:string',
-                                        'lastname'          => 'xsd:string',
-                                        'bmsex'             => 'xsd:int',
-                                        'knfirstname'       => 'xsd:string',
-                                        'knlastname'        => 'xsd:string',
-                                        'bmtel'             => 'xsd:string',
-                                        'bmzip'             => 'xsd:string',
-                                        'bmaddress'         => 'xsd:string',
-                                        'bmmail'            => 'xsd:string',
-                                        'menu_info'         => 'xsd:string',
-                                        'memo'              => 'xsd:string',
-                                        'origination'       => 'xsd:int',
-                                        'bmstaff'           => 'xsd:string',
-                                        'secondnote'        => 'xsd:string',
-                                        'MAINSTAFFCODE'     => 'xsd:int',
-                                        'details'           => 'tns:_storeTransactionDetailInformation',
-                                        'rejimarketing'     => 'tns:_rejiMarketingInformation')),
-                             '_storeTransactionInformation' => array(
-                                        'array' => 'storeTransactionInformation'),
-                             'return_storeTransactionInformation' => array('struct' => array(
-                                        'records'      => 'tns:_storeTransactionInformation',
-                                        'record_count' => 'xsd:int')),
-
-                             'return_transactionIDs' => array('struct' => array(
-                                        'TRANSCODE'     => 'xsd:string',
-                                        'KEYNO'         => 'xsd:int',
-                                        'IDNO'          => 'xsd:int',
-                                        'CCODE'         => 'xsd:string',
-                                        'CNUMBER'       => 'xsd:string',
-                                        'UPDATEDATE'    => 'xsd:string')),
-                             //- ####################################################
-
-                             'rejiMarketingInformation' => array('struct' => array(
-                                        'TRANSCODE'        => 'xsd:string',
-                                        'KEYNO'            => 'xsd:int',
-                                        'STORECODE'        => 'xsd:int',
-                                        'ROWNO'            => 'xsd:int',
-                                        'TRANSDATE'        => 'xsd:string',
-                                        'MARKETINGID'      => 'xsd:int',
-                                        'MARKETINGIDNO'    => 'xsd:int',
-                                        'MARKETINGDESC'    => 'xsd:string',
-                                        'STAFFCODE'        => 'xsd:int',
-                                        'STAFFNAME'        => 'xsd:string',
-                                        'TEMPFLG'          => 'xsd:int',
-                                        'LEAFLETSCOUNT'    => 'xsd:int',
-                                        'QUANTITY'         => 'xsd:int',
-                                        'MARKETINGCODE'    => 'xsd:int')),
-                             '_rejiMarketingInformation' => array(
-                                        'array' => 'rejiMarketingInformation'),
-                             'return_rejiMarketingInformation' => array('struct' => array(
-                                        'records'      => 'tns:_rejiMarketingInformation',
-                                        'record_count' => 'xsd:int')),
-                             //- ####################################################
-
-                             //HOW KNOWS THE STORE COMPLEX tYPES
-                             'howKnowsTheStoreInformation' => array('struct' => array(
-                                        'HOWKNOWSCODE'        => 'xsd:int',
-                                        'HOWKNOWS'            => 'xsd:string')),
-                             '_howKnowsTheStoreInformation' => array(
-                                        'array' => 'howKnowsTheStoreInformation'),
-                             'return_howKnowsTheStoreInformation' => array('struct' => array(
-                                        'records'      => 'tns:_howKnowsTheStoreInformation',
-                                        'record_count' => 'xsd:int')),
-                             //- ####################################################
-
-                             // BREAK TIME ------------------------------------------
-                             'breakTimeSearchCriteria' => array('struct' => array(
-                                        'STORECODE'   => 'xsd:int',
-                                        'STAFFCODE'   => 'xsd:int',
-                                        'date'        => 'xsd:string')),
-
-                             'breakTimeInformation' => array('struct' => array(
-                                        'BREAKID'          => 'xsd:int',
-                                        'STAFFCODE'        => 'xsd:int',
-                                        'STORECODE'        => 'xsd:int',
-                                        'DATE'             => 'xsd:string',
-                                        'REMARKS'          => 'xsd:string',
-                                        'PRIORITY'         => 'xsd:int',
-                                        'STARTTIME'        => 'xsd:string',
-                                        'ENDTIME'          => 'xsd:string')),
-                             '_breakTimeInformation' => array(
-                                        'array' => 'breakTimeInformation'),
-                             'return_breakTimeInformation' => array('struct' => array(
-                                        'records'      => 'tns:_breakTimeInformation',
-                                        'record_count' => 'xsd:int')),
-                             //- ####################################################
-
-
-
-                             // DATA OF THE DAY -------------------------------------
-                             'dataOfTheDaySearchCriteria' => array('struct' => array(
-                                        'STORECODE'   => 'xsd:int',
-                                        'STAFFCODE'   => 'xsd:int',
-                                        'useYoyakuMessage'   => 'xsd:int',
-                                        'date'        => 'xsd:string',
-                                        'PRIORITYTYPE'        => 'xsd:int',
-                                        'kanzashiSalonId' => 'xsd:int')),
-
-                             'return_dataOfTheDayInformation' => array('struct' => array(
-                                        'store'       => 'tns:basicInformation',
-                                        'holiday'     => 'xsd:string',
-                                        'messages'    => 'tns:return_yoyakuMessage',
-                                        'calendar'    => 'tns:return_transactionCalendarViewInformation',
-                                        'records'     => 'tns:return_staffInformation')),
-                             //- ####################################################
-
-
-
-                             // TRANSACTION CALENDAR VIEW ---------------------------
-                             'transactionCalendarViewSearchCriteria' => array('struct' => array(
-                                        'STORECODE'    => 'xsd:int',
-                                        'year'         => 'xsd:int',
-                                        'month'        => 'xsd:int')),
-
-                             'transactionCalendarViewInformation' => array('struct' => array(
-                                        'year'      => 'xsd:int',
-                                        'month'     => 'xsd:int',
-                                        'day1'      => 'xsd:string',
-                                        'day2'      => 'xsd:string',
-                                        'day3'      => 'xsd:string',
-                                        'day4'      => 'xsd:string',
-                                        'day5'      => 'xsd:string',
-                                        'day6'      => 'xsd:string',
-                                        'day7'      => 'xsd:string',
-                                        'day8'      => 'xsd:string',
-                                        'day9'      => 'xsd:string',
-                                        'day10'     => 'xsd:string',
-                                        'day11'     => 'xsd:string',
-                                        'day12'     => 'xsd:string',
-                                        'day13'     => 'xsd:string',
-                                        'day14'     => 'xsd:string',
-                                        'day15'     => 'xsd:string',
-                                        'day16'     => 'xsd:string',
-                                        'day17'     => 'xsd:string',
-                                        'day18'     => 'xsd:string',
-                                        'day19'     => 'xsd:string',
-                                        'day20'     => 'xsd:string',
-                                        'day21'     => 'xsd:string',
-                                        'day22'     => 'xsd:string',
-                                        'day23'     => 'xsd:string',
-                                        'day24'     => 'xsd:string',
-                                        'day25'     => 'xsd:string',
-                                        'day26'     => 'xsd:string',
-                                        'day27'     => 'xsd:string',
-                                        'day28'     => 'xsd:string',
-                                        'day29'     => 'xsd:string',
-                                        'day30'     => 'xsd:string',
-                                        'day31'     => 'xsd:string')),
-                             '_transactionCalendarViewInformation' => array(
-                                        'array' => 'transactionCalendarViewInformation'),
-                             'return_transactionCalendarViewInformation' => array('struct' => array(
-                                        'records'      => 'tns:_transactionCalendarViewInformation')),
-                             //- ####################################################
-
-
-
-                             // STAFF TAB -------------------------------------------
-                             'return_staffTabInformation' => array('struct' => array(
-                                        'store'       => 'tns:return_storeInformation',
-                                        'position'    => 'tns:return_positionInformation',
-                                        'sublevel'    => 'tns:return_sublevelInformation')),
-                             //- ####################################################
-
-
-
-                             // FIRST LOAD ------------------------------------------
-                             'return_firstLoadInformation' => array('struct' => array(
-                                        'transaction' => 'tns:return_dataOfTheDayInformation',
-                                        'service'     => 'tns:return_serviceInformation',
-                                        'color'       => 'tns:return_colorInformation')),
-                             //- ####################################################
-
-                             // NEW YOYAKU MESSAGE ------------------------------------------
-
-                             'yoyakuMessage' => array('struct' => array(
-                                        'CNAME'          => 'xsd:string',
-                                        'YOYAKUDATETIME' => 'xsd:string',
-                                        'STAFFNAME'      => 'xsd:string',
-                                        'MSG'            => 'xsd:string')),
-                             '_yoyakuMessage' => array(
-                                        'array' => 'yoyakuMessage'),
-                             'return_yoyakuMessage' => array('struct' => array(
-                                        'messages'      => 'tns:_yoyakuMessage',
-                                        'message_count' => 'xsd:int')),
-
-                             //- ####################################################
-
-
-
-                             // YOYAKU DETAILS --------------------------------------
-                             'yoyakuDetailsInformation' => array('struct' => array(
-                                        'STORECODE'         => 'xsd:int',
-                                        'TRANSDATE'         => 'xsd:string',
-                                        'BEGINTIME'         => 'xsd:string',
-                                        'ENDTIME'           => 'xsd:string',
-                                        'CUSTOMERNAME'      => 'xsd:string',
-                                        'STAFFNAME'         => 'xsd:string',
-                                        'PRIORITYTYPE'      => 'xsd:int',
-                                        'YOYAKU'            => 'xsd:int',
-                                        'UKETSUKEDATE'      => 'xsd:string',
-                                        'UKETSUKESTAFFNAME' => 'xsd:string',
-                                        'CANCEL'            => 'xsd:int',
-                                        'YOYAKUNEXTFLG'     => 'xsd:int',
-                                        'ORIGINATION'       => 'xsd:int', //add by albert 2016-01-27
-                                        'TEMPSTATUS'        => 'xsd:int',
-                                        'TRANSCODE'         => 'xsd:string',
-                                        'MENUNAME'          => 'xsd:string',
-                                        'BMTYPE'            => 'xsd:string',
-                                        'RVTYPE'            => 'xsd:string',
-                                 )),
-                             '_yoyakuDetailsInformation' => array(
-                                        'array' => 'yoyakuDetailsInformation'),
-                             'return_yoyakuDetailsInformation' => array('struct' => array(
-                                        'records'      => 'tns:_yoyakuDetailsInformation')),
-                             //- ####################################################
-
-                             //OKOTOWARI COMPLEX tYPES
-                             'okotowariInformation' => array('struct' => array(
-                                        'OID'            => 'xsd:int',
-                                        'STORECODE'      => 'xsd:int',
-                                        'YMD'            => 'xsd:string',
-                                        'OTIME'          => 'xsd:string',
-                                        'CCODE'          => 'xsd:string',
-                                        'CNUMBER'        => 'xsd:string',
-                                        'CNAME'          => 'xsd:string',
-                                        'SEX'            => 'xsd:int')),
-                             '_okotowariInformation' => array(
-                                        'array' => 'okotowariInformation'),
-                             'return_okotowariInformation' => array('struct' => array(
-                                        'records'      => 'tns:_okotowariInformation',
-                                        'record_count' => 'xsd:int')),
-                             //- ####################################################
-
-                             //GYOSHUKUBUN COMPLEX TYPES
-                             'gyoshukubunInformation' => array('struct' => array(
-                                        'SYSCODE'            => 'xsd:int',
-                                        'SERVICESNAME'         => 'xsd:string',
-                                        'DESCRIPTION'          => 'xsd:string')),
-                             '_gyoshukubunInformation' => array(
-                                        'array' => 'gyoshukubunInformation'),
-                             'return_gyoshukubun' => array('struct' => array(
-                                        'records'      => 'tns:_gyoshukubunInformation',
-                                        'record_count' => 'xsd:int')),
-
-                            'YoyakuAllowTransToStore' => array('struct' => array(
-                                    'storecode'         => 'xsd:int',
-                                    'tostorecode'    => 'xsd:int',
-                                    'tostorename'    => 'xsd:string')),
-                             '_YoyakuAllowTransToStore' => array (
-                                    'array'     =>   'YoyakuAllowTransToStore'),
-
-
-
-                            //==============================================================
-                            //customer search listing for Integration
-                            //by albert 2015-11-18
-                            //--------------------------------------------------------------
-                            'storeCustomerListing' => array('struct' => array(
-                                        'ccode'         => 'xsd:string',
-                                        'cnumber'       => 'xsd:string',
-                                        'cname'         => 'xsd:string',
-                                        'cnamekana'     => 'xsd:string',
-                                        'sex'           => 'xsd:string',
-                                        'tel1'          => 'xsd:string',
-                                        'tel2'          => 'xsd:string',
-                                        'birthdate'     => 'xsd:string',
-                                        'christian_era' => 'xsd:string',
-                                        'mailaddress1'  => 'xsd:string',
-                                        'mailaddress2'  => 'xsd:string',
-                                        'zipcode1'      => 'xsd:string',
-                                        'address1'      => 'xsd:string',
-                                        'mansionmei'    => 'xsd:string',
-                                        'cstorecode'    => 'xsd:string',
-                                        'firstdate'     => 'xsd:string',
-                                        'lastdate'      => 'xsd:string',
-                                        'storename'     => 'xsd:string')),
-                            '_storeCustomerListing' => array(
-                                        'array' => 'storeCustomerListing'),
-                            'return_storeCustomerListing' => array('struct' => array(
-                                        'records'      => 'tns:_storeCustomerListing',
-                                        'record_count' => 'xsd:int',
-                                        'totalrecords'  => 'xsd:string')),
-
-                            'storeReservationListing'   => array('struct' => array(
-                                        'transdate'     => 'xsd:string',
-                                        'starttime'     => 'xsd:string',
-                                        'cname'         => 'xsd:string',
-                                        'staffname'     => 'xsd:string',
-                                        'reservationdt' => 'xsd:string',
-                                        'reservationtm' => 'xsd:string',
-                                        'transstat'     => 'xsd:string',
-                                        'alreadyread'   => 'xsd:int',
-                                        'keyno'         => 'xsd:int',
-                                        'transcode'     => 'xsd:string',
-                                        'route'         => 'xsd:string',
-                                        'syscode'       => 'xsd:string',
-                                        'recctr'         => 'xsd:string')),
-                            '_storeReservationListing'  => array(
-                                        'array' => 'storeReservationListing'),
-                            'return_storeReservationListing' => array('struct' => array(
-                                        'records'       => 'tns:_storeReservationListing')),
-
-
-                            'storeReservationCounter'   => array('struct' => array(
-                                        'wrkr'          => 'xsd:int',
-                                        'bmr'           => 'xsd:int')),
-                            '_storeReservationCounter'  => array(
-                                        'array' => 'storeReservationCounter'),
-                            'return_storeReservationCounter' => array('struct' => array(
-                                        'records'       => 'tns:_storeReservationCounter')),
-                            //--------------------------------------------------------------
-                            //customer search listing for Integration
-                            //by albert 2015-11-18
-                            //==============================================================
-
-                            // かんざし時間別予約可能数
-                            'kanzashiCustomersLimit' => array(
-                                'struct' => array(
-                                    'ymd'         => 'xsd:date',
-                                    'begin_time'  => 'xsd:time',
-                                    'end_time'    => 'xsd:time',
-                                    'limit_count' => 'xsd:int'
-                                )
-                            ),
-                            '_kanzashiCustomersLimit' => array(
-                                'array' => 'kanzashiCustomersLimit'
-                            ),
-                            'return_monthlyKanzashiSalonHours' => array(
-                                'struct' => array(
-                                    'store_holiday'    => 'tns:storeHolidayInformation',
-                                    'customers_limits' => 'tns:_kanzashiCustomersLimit'
-                                )
-                            )
-
-                         );
+    var $complexTypes = array( // LOGIN ----------------------------------------------
+        'return_storeInfo' => array('struct' => array(
+            'sessionid'         => 'xsd:string',
+            'companyid'         => 'xsd:int',
+            'storecode'         => 'xsd:int',
+            'storename'         => 'xsd:string',
+            'hasTenpo'          => 'xsd:int',
+            'hasCust'           => 'xsd:int',
+            'hasHonbu'          => 'xsd:int',
+            'hasBrowser'        => 'xsd:int',
+            'hasYoyaku'         => 'xsd:int',
+            'YOYAKU_OPEN_TIME'  => 'xsd:int',
+            'YOYAKU_CLOSE_TIME' => 'xsd:int',
+            'YOYAKU_HYOU_OPEN_TIME'  => 'xsd:int',
+            'YOYAKU_HYOU_CLOSE_TIME' => 'xsd:int',
+            'YOYAKU_OPEN_TIME_SATSUN'  => 'xsd:int',
+            'YOYAKU_CLOSE_TIME_SATSUN' => 'xsd:int',
+            'UPPER_LIMIT'         => 'xsd:int',
+            'UPPER_LIMIT_OP'      => 'xsd:string',
+            'OPEN_TIME'         => 'xsd:int',
+            'CLOSE_TIME'        => 'xsd:int',
+            'storemail'         => 'xsd:string',
+            'oemflg'            => 'xsd:int',
+            'storetype'         => 'tns:storetypeInformation',
+            'allstoretype'      => 'tns:AllStoreTypes',
+            'KanzashiInfo'      => 'tns:KanzashiInfo',
+            'FACILITY_ENABLED'  => 'xsd:boolean'
+        )),
+
+        '_AllStoreTypes' => array('struct' => array(
+            'STORECODE'       => 'xsd:int',
+            'STORETYPES'      => 'xsd:string'
+        )),
+        'AllStoreTypes' => array(
+            'array' => '_AllStoreTypes'
+        ),
+
+        '_storetypeInformation' => array('struct' => array(
+            'STORECODE'       => 'xsd:int',
+            'STAFFCODE'       => 'xsd:int',
+            'SYSCODE'         => 'xsd:int',
+            'SHORTCUTCODE'    => 'xsd:string',
+            'DESCRIPTION'     => 'xsd:string'
+        )),
+        'storetypeInformation' => array(
+            'array' => '_storetypeInformation'
+        ),
+
+        'KanzashiInfo' => array(
+            'struct' => array(
+                'SalonId'                                 => 'xsd:int',
+                'Status'                                  => 'xsd:int',
+                'SyncKanzashiEnabledStaffReservationOnly' => 'xsd:boolean',
+                'FreeStaffcode'                           => 'xsd:int',
+                'SigninUrl'                               => 'xsd:string',
+                'SigninHashKey'                           => 'xsd:string',
+                'SigninMedia'                             => 'xsd:string',
+                'SigninVersion'                           => 'xsd:string'
+            )
+        ),
+
+        'loginInfo' => array('struct' => array(
+            'username'     => 'xsd:string',
+            'password'     => 'xsd:string',
+            'computername' => 'xsd:string'
+        )),
+        //- ####################################################
+
+
+
+        // CUSTOMER --------------------------------------------
+        'customerSearchCriteria' => array('struct' => array(
+            'SEARCHSHAREDSTORE' => 'xsd:boolean',
+            'CSTORECODE'        => 'xsd:int',
+            'CCODE'             => 'xsd:string',
+            'CNUMBER'           => 'xsd:string',
+            'CNAME'             => 'xsd:string',
+            'CNAMEKANA'         => 'xsd:string',
+            'PHONE'             => 'xsd:string',
+            'MAILADDRESS'       => 'xsd:string',
+            'ADDRESS'           => 'xsd:string',
+            'keyword'           => 'xsd:string',
+            'free_customer'     => 'xsd:int',
+            'orderby'           => 'xsd:string',
+            'limit'             => 'xsd:int',
+            'page'              => 'xsd:int'
+        )),
+
+        'customerInformation' => array('struct' => array(
+            'CCODE'         => 'xsd:string',
+            'CNUMBER'       => 'xsd:string',
+            'CID'           => 'xsd:int',
+            'CSTORECODE'    => 'xsd:int',
+            'CNAME'         => 'xsd:string',
+            'CNAMEKANA'     => 'xsd:string',
+            'SEX'           => 'xsd:int',
+            'REGULAR'       => 'xsd:int',
+            'ZIPCODE1'      => 'xsd:string',
+            'KEN1'          => 'xsd:string',
+            'SITYO1'        => 'xsd:string',
+            'MANSIONMEI'    => 'xsd:string',
+            'SI1'           => 'xsd:string',
+            'TYO1'          => 'xsd:string',
+            'ADDRESS1'      => 'xsd:string',
+            'ADDRESS1_1'    => 'xsd:string',
+            'TEL1'          => 'xsd:string',
+            'TEL2'          => 'xsd:string',
+            'BIRTHDATE'     => 'xsd:string',
+            'CHRISTIAN_ERA' => 'xsd:int',
+            'AGERANGE'      => 'xsd:int',
+            'MAILADDRESS1'  => 'xsd:string',
+            'MAILADDRESS2'  => 'xsd:string',
+            'MEMBERSCATEGORY' => 'xsd:int',
+            'MAILKUBUN'     => 'xsd:int',
+            'HOWKNOWSCODE'  => 'xsd:int',
+            'HOWKNOWS'      => 'xsd:string',
+            'FIRSTDATE'     => 'xsd:string',
+            'LASTSTAFFCODE' => 'xsd:int',
+            'LASTSTAFFNAME' => 'xsd:string',
+            'BLOODTYPE'      => 'xsd:string',
+            'BMCODE'         => 'xsd:string',
+            'MEMBER_CODE'    => 'xsd:string',
+            'SMOKING'        => 'xsd:int',
+            'DMKUBUN'        => 'xsd:int',
+            'JOBINDUSTRYCODE' => 'xsd:int',
+            'JOBINDUSTRY'    => 'xsd:string',
+            'CREATEDFROMCODE' => 'xsd:int',
+            'SystemDesc'     => 'xsd:string',
+            'FULLADDRESS'    => 'xsd:string',
+            'INTRODUCETYPE'  => 'xsd:int',
+            'REFERRALCODE'   => 'xsd:string',
+            'REFERRALRELATIONCODE'          => 'xsd:int',
+            'STAFF_INCHARGE_SELECTED'       => 'xsd:int',
+            'REFERRALNAME'   => 'xsd:string',
+            'REFERRALRELATIONCODENAME'      => 'xsd:string',
+            'STAFF_INCHARGE_SELECTED_NAME'  => 'xsd:string',
+            'STOREDATE'      => 'xsd:string'
+        )),
+        '_customerInformation' => array(
+            'array' => 'customerInformation'
+        ),
+        'return_customerInformation' => array('struct' => array(
+            'records'      => 'tns:_customerInformation',
+            'record_count' => 'xsd:int'
+        )),
+
+        'return_customerIDs' => array('struct' => array(
+            'CCODE'         => 'xsd:string',
+            'CNUMBER'       => 'xsd:string'
+        )),
+        //- ####################################################
+
+
+
+        // STAFF -----------------------------------------------
+        'staffSearchCriteria' => array('struct' => array(
+            'STORECODE'     => 'xsd:int',
+            'STAFFCODE'     => 'xsd:int',
+            'showfreestaff' => 'xsd:int',
+            'orderby'       => 'xsd:string',
+            'limit'         => 'xsd:int',
+            'page'          => 'xsd:int',
+            'syscode'       => 'xsd:int'
+        )),
+
+        'availableStaffSearchCriteria' => array('struct' => array(
+            'STORECODE'     => 'xsd:int',
+            'STAFFCODE'     => 'xsd:int',
+            'date'          => 'xsd:string',
+            'orderby'       => 'xsd:string',
+            'limit'         => 'xsd:int',
+            'page'          => 'xsd:int'
+        )),
+
+        'staffInformation' => array('struct' => array(
+            'STAFFCODE'        => 'xsd:int',
+            'STAFFNAME'        => 'xsd:string',
+            'origrows'         => 'xsd:int',
+            'origphonerows'    => 'xsd:int',
+            'STAFFNAME2'       => 'xsd:string',
+            'STORECODE'        => 'xsd:int',
+            'STORENAME'        => 'xsd:string',
+            'SUBLEVELCODE'     => 'xsd:int',
+            'SUBLEVELNAME'     => 'xsd:string',
+            'POSITIONCODE'     => 'xsd:int',
+            'POSITIONNAME'     => 'xsd:string',
+            'RETIREDATE'       => 'xsd:string',
+            'HIREDATE'         => 'xsd:string',
+            'TRAVEL_ALLOWANCE' => 'xsd:int',
+            'SEX'              => 'xsd:int',
+            'YOYAKU_DISPLAY'   => 'xsd:int',
+            'WEB_DISPLAY'      => 'xsd:int',
+            'KANZASHI_ENABLED' => 'xsd:int',
+            'ROWS'             => 'xsd:int',
+            'PHONEROWS'        => 'xsd:int',
+            'DISPLAY_ORDER'    => 'xsd:int',
+            'SYSCODES'         => 'xsd:string',
+            'STAFFTYPES'       => 'xsd:string',
+            'STAFFTYPECODES'   => 'xsd:string',
+            'STAFF_PASSWORD'   => 'xsd:string',
+            'STAFFVIEWS'       => 'xsd:string', //UPDATE by SHIMIZU 20150906
+            'transaction'      => 'tns:return_storeTransactionInformation',
+            'breaktime'        => 'tns:return_breakTimeInformation',
+            'shift'            => 'tns:return_staffShiftInformation'
+        )),
+
+        '_staffInformation' => array(
+            'array' => 'staffInformation'
+        ),
+        'return_staffInformation' => array('struct' => array(
+            'records'      => 'tns:_staffInformation',
+            'record_count' => 'xsd:int'
+        )),
+
+        'facilityInformation' => array('struct' => array(
+            'FACILITYID'       => 'xsd:int',
+            'FACILITYNAME'     => 'xsd:string',
+            'ROWS'             => 'xsd:int'
+        )),
+
+        '_facilityInformation' => array(
+            'array' => 'facilityInformation'
+        ),
+        'return_facilityInformation' => array('struct' => array(
+            'records'      => 'tns:_facilityInformation',
+        )),
+
+        'staffRowsHistoryInformation' => array('struct' => array(
+            'STAFFCODE'        => 'xsd:int',
+            'STORECODE'        => 'xsd:int',
+            'date'             => 'xsd:string',
+            'ROWS'             => 'xsd:int',
+            'PHONEROWS'        => 'xsd:int'
+        )),
+
+        '_staffRowsHistoryInformation' => array(
+            'array' => 'staffRowsHistoryInformation'
+        ),
+        'return_staffRowsHistoryInformation' => array('struct' => array(
+            'records'      => 'tns:_staffRowsHistoryInformation',
+            'record_count' => 'xsd:int'
+        )),
+        //- ####################################################
+
+        // STAFF SHIFT -----------------------------------------
+        'staffShiftSearchCriteria' => array('struct' => array(
+            'storecode' => 'xsd:int',
+            'STAFFCODE' => 'xsd:int',
+            'year'      => 'xsd:int',
+            'month'     => 'xsd:int',
+            'day'       => 'xsd:int'
+        )),
+
+        'staffShiftInformation' => array('struct' => array(
+            'year'              => 'xsd:int',
+            'month'             => 'xsd:int',
+            'STORECODE'         => 'xsd:int',
+            'STAFFCODE'         => 'xsd:int',
+            'STAFFNAME'         => 'xsd:string',
+            'HIREDATE'          => 'xsd:string',
+            'RETIREDATE'        => 'xsd:string',
+            'STARTTIME'         => 'xsd:string',
+            'ENDTIME'           => 'xsd:string',
+            'SALARYTYPE'        => 'xsd:int',
+            'SALARYAMOUNT'      => 'xsd:int',
+            'TRAVEL_ALLOWANCE'  => 'xsd:int',
+            'day1'              => 'xsd:string',
+            'day2'              => 'xsd:string',
+            'day3'              => 'xsd:string',
+            'day4'              => 'xsd:string',
+            'day5'              => 'xsd:string',
+            'day6'              => 'xsd:string',
+            'day7'              => 'xsd:string',
+            'day8'              => 'xsd:string',
+            'day9'              => 'xsd:string',
+            'day10'             => 'xsd:string',
+            'day11'             => 'xsd:string',
+            'day12'             => 'xsd:string',
+            'day13'             => 'xsd:string',
+            'day14'             => 'xsd:string',
+            'day15'             => 'xsd:string',
+            'day16'             => 'xsd:string',
+            'day17'             => 'xsd:string',
+            'day18'             => 'xsd:string',
+            'day19'             => 'xsd:string',
+            'day20'             => 'xsd:string',
+            'day21'             => 'xsd:string',
+            'day22'             => 'xsd:string',
+            'day23'             => 'xsd:string',
+            'day24'             => 'xsd:string',
+            'day25'             => 'xsd:string',
+            'day26'             => 'xsd:string',
+            'day27'             => 'xsd:string',
+            'day28'             => 'xsd:string',
+            'day29'             => 'xsd:string',
+            'day30'             => 'xsd:string',
+            'day31'             => 'xsd:string'
+        )),
+
+        '_staffShiftInformation' => array(
+            'array' => 'staffShiftInformation'
+        ),
+        'return_staffShiftInformation' => array('struct' => array(
+            'finished'     => 'xsd:int',
+            'records'      => 'tns:_staffShiftInformation',
+            'record_count' => 'xsd:int'
+        )),
+        //- ####################################################
+
+
+
+        // STORE -----------------------------------------------
+        'storeSearchCriteria' => array('struct' => array(
+            'STORECODE'         => 'xsd:int',
+            'STORENAME'         => 'xsd:string',
+            'OnlySharedStore'    => 'xsd:boolean',
+            'orderby'           => 'xsd:string',
+            'limit'             => 'xsd:int',
+            'page'              => 'xsd:int'
+        )),
+
+        'storeInformation' => array('struct' => array(
+            'STORECODE'       => 'xsd:int',
+            'STORENAME'       => 'xsd:string',
+            'STORENAME_KANA'  => 'xsd:string',
+            'TEL'             => 'xsd:string',
+            'FAX'             => 'xsd:string',
+            'ZIP'             => 'xsd:string',
+            'ADDRESS1'        => 'xsd:string',
+            'ADDRESS2'        => 'xsd:string',
+            'LOCATION'        => 'xsd:int',
+            'GROUPCODE'       => 'xsd:int',
+            'WEBYAN_HOMEPAGE' => 'xsd:string',
+            'PC_HOMEPAGE'     => 'xsd:string',
+            'storeid'         => 'xsd:string'
+        )),
+        '_storeInformation' => array(
+            'array' => 'storeInformation'
+        ),
+        'return_storeInformation' => array('struct' => array(
+            'records'      => 'tns:_storeInformation',
+            'record_count' => 'xsd:int'
+        )),
+
+        'storeMenuServiceTime'        => array('struct' => array(
+            'staffcode'        => 'xsd:int',
+            'gcode'            => 'xsd:int',
+            'female_time'      => 'xsd:int',
+            'male_time'        => 'xsd:int'
+        )),
+        '_storeMenuServiceTime'       => array(
+            'array'            => 'storeMenuServiceTime'
+        ),
+
+        //- ####################################################
+
+
+
+        // STORE HOLIDAY ---------------------------------------
+        'storeHolidaySearchCriteria' => array('struct' => array(
+            'storecode' => 'xsd:int',
+            'year'      => 'xsd:int',
+            'month'     => 'xsd:int',
+            'day'       => 'xsd:int'
+        )),
+
+        'storeHolidayInformation' => array('struct' => array(
+            'year'        => 'xsd:int',
+            'month'       => 'xsd:int',
+            'STORECODE'   => 'xsd:int',
+            'day1'        => 'xsd:string',
+            'day2'        => 'xsd:string',
+            'day3'        => 'xsd:string',
+            'day4'        => 'xsd:string',
+            'day5'        => 'xsd:string',
+            'day6'        => 'xsd:string',
+            'day7'        => 'xsd:string',
+            'day8'        => 'xsd:string',
+            'day9'        => 'xsd:string',
+            'day10'       => 'xsd:string',
+            'day11'       => 'xsd:string',
+            'day12'       => 'xsd:string',
+            'day13'       => 'xsd:string',
+            'day14'       => 'xsd:string',
+            'day15'       => 'xsd:string',
+            'day16'       => 'xsd:string',
+            'day17'       => 'xsd:string',
+            'day18'       => 'xsd:string',
+            'day19'       => 'xsd:string',
+            'day20'       => 'xsd:string',
+            'day21'       => 'xsd:string',
+            'day22'       => 'xsd:string',
+            'day23'       => 'xsd:string',
+            'day24'       => 'xsd:string',
+            'day25'       => 'xsd:string',
+            'day26'       => 'xsd:string',
+            'day27'       => 'xsd:string',
+            'day28'       => 'xsd:string',
+            'day29'       => 'xsd:string',
+            'day30'       => 'xsd:string',
+            'day31'       => 'xsd:string'
+        )),
+
+        'return_storeHolidayInformation' => array('struct' => array(
+            'records'      => 'tns:storeHolidayInformation',
+            'record_count' => 'xsd:int'
+        )),
+        //- ####################################################
+
+
+
+        // SERVICE ---------------------------------------------
+        'serviceSearchCriteria' => array('struct' => array(
+            'STORECODE'            => 'xsd:int',
+            'maxServiceIndex'      => 'xsd:string',
+            'maxStoreServiceIndex' => 'xsd:string',
+            'orderby'              => 'xsd:string',
+            'limit'                => 'xsd:int',
+            'page'                 => 'xsd:int',
+            'syscode'              => 'xsd:int'
+        )),
+
+        'serviceInformation' => array('struct' => array(
+            'GDCODE'        => 'xsd:int',
+            'BUNRUINAME'    => 'xsd:string',
+            'SYSCODE'       => 'xsd:int',
+            'store_service' => 'tns:return_storeServiceInformation'
+        )),
+        '_serviceInformation' => array(
+            'array' => 'serviceInformation'
+        ),
+        'return_serviceInformation' => array('struct' => array(
+            'records'              => 'tns:_serviceInformation',
+            'record_count'         => 'xsd:int',
+            'maxServiceIndex'      => 'xsd:string',
+            'maxStoreServiceIndex' => 'xsd:string'
+        )),
+        //- ####################################################
+
+
+
+        // SHIFT -----------------------------------------------
+        'shiftSearchCriteria' => array('struct' => array(
+            'orderby'     => 'xsd:string',
+            'limit'       => 'xsd:int',
+            'page'        => 'xsd:int'
+        )),
+
+        'shiftInformation' => array('struct' => array(
+            'SHIFTID'      => 'xsd:int',
+            'SHIFTNAME'    => 'xsd:string',
+            'STARTTIME'    => 'xsd:string',
+            'ENDTIME'      => 'xsd:string'
+        )),
+        '_shiftInformation' => array(
+            'array' => 'shiftInformation'
+        ),
+        'return_shiftInformation' => array('struct' => array(
+            'records'      => 'tns:_shiftInformation',
+            'record_count' => 'xsd:int'
+        )),
+        //- ####################################################
+
+
+
+        // STORE SERVICE ---------------------------------------
+        'storeServiceSearchCriteria' => array('struct' => array(
+            'STORECODE'   => 'xsd:int',
+            'GDCODE'      => 'xsd:int',
+            'hasHonbu'    => 'xsd:int',
+            'orderby'     => 'xsd:string',
+            'limit'       => 'xsd:int',
+            'page'        => 'xsd:int',
+            'STAFF_TANTOU_STORECODE'      => 'xsd:int',
+            'STAFF_TANTOU_STAFFCODE'      => 'xsd:int'
+        )),
+
+        'storeServiceInformation' => array('struct' => array(
+            'hasHonbu'     => 'xsd:int',
+            'GDCODE'       => 'xsd:int',
+            'GSCODE'       => 'xsd:int',
+            'GCODE'        => 'xsd:int',
+            'MENUNAME'     => 'xsd:string',
+            'YOYAKUMARK'   => 'xsd:string',
+            'INSTORE'      => 'xsd:int',
+            'WEB_DISPLAY'  => 'xsd:int',
+            'SERVICE_TIME' => 'xsd:int',
+            'SERVICE_TIME_MALE' => 'xsd:int',
+            'PRICE'        => 'xsd:int',
+            'MEMBERPRICE'  => 'xsd:int',
+            'ZEIKUBUN'     => 'xsd:int',
+            'POINTKASAN1'  => 'xsd:float',
+            'POINTKASAN2'  => 'xsd:float',
+            'POINTKASAN3'  => 'xsd:float',
+            'delete'       => 'xsd:int',
+            'STAFF_TANTOU_STAFFCODE'  => 'xsd:int', 'KEYCODE'    => 'xsd:string'
+        )),
+        '_storeServiceInformation' => array(
+            'array' => 'storeServiceInformation'
+        ),
+        'return_storeServiceInformation' => array('struct' => array(
+            'records'      => 'tns:_storeServiceInformation',
+            'record_count' => 'xsd:int'
+        )),
+
+        'storeServiceWhosUsingSearchCriteria' => array('struct' => array(
+            'GSCODE'      => 'xsd:int',
+            'orderby'     => 'xsd:string',
+            'limit'       => 'xsd:int',
+            'page'        => 'xsd:int'
+        )),
+
+        'return_serviceIDs' => array('struct' => array(
+            'GCODE'        => 'xsd:int',
+            'GSCODE'       => 'xsd:int'
+        )),
+        //- ####################################################
+
+
+
+        // POSITION --------------------------------------------
+        'positionSearchCriteria' => array('struct' => array(
+            'POSITIONCODE' => 'xsd:int',
+            'POSITIONNAME' => 'xsd:string',
+            'orderby'      => 'xsd:string',
+            'limit'        => 'xsd:int',
+            'page'         => 'xsd:int'
+        )),
+
+        'positionInformation' => array('struct' => array(
+            'POSITIONCODE' => 'xsd:int',
+            'POSITIONNAME' => 'xsd:string'
+        )),
+        '_positionInformation' => array(
+            'array' => 'positionInformation'
+        ),
+        'return_positionInformation' => array('struct' => array(
+            'records'      => 'tns:_positionInformation',
+            'record_count' => 'xsd:int'
+        )),
+        //- ####################################################
+
+
+
+        // SUBLEVEL --------------------------------------------
+        'sublevelSearchCriteria' => array('struct' => array(
+            'SUBLEVELCODE' => 'xsd:int',
+            'SUBLEVELNAME' => 'xsd:string',
+            'orderby'      => 'xsd:string',
+            'limit'        => 'xsd:int',
+            'page'         => 'xsd:int'
+        )),
+
+        'sublevelInformation' => array('struct' => array(
+            'SUBLEVELCODE' => 'xsd:int',
+            'SUBLEVELNAME' => 'xsd:string'
+        )),
+        '_sublevelInformation' => array(
+            'array' => 'sublevelInformation'
+        ),
+        'return_sublevelInformation' => array('struct' => array(
+            'records'      => 'tns:_sublevelInformation',
+            'record_count' => 'xsd:int'
+        )),
+        //- ####################################################
+
+
+
+        // ZIPCODE ---------------------------------------------
+        'zipcodeSearchCriteria' => array('struct' => array(
+            'ZIPCODE'     => 'xsd:string',
+            'ADDRESS'     => 'xsd:string',
+            'orderby'     => 'xsd:string',
+            'limit'       => 'xsd:int',
+            'page'        => 'xsd:int'
+        )),
+
+        'zipcodeInformation' => array('struct' => array(
+            'ID'       => 'xsd:int',
+            'ZIPCODE'  => 'xsd:string',
+            'KEN'      => 'xsd:string',
+            'SI'       => 'xsd:string',
+            'TYO'      => 'xsd:string',
+            'SITYO'    => 'xsd:string'
+        )),
+        '_zipcodeInformation' => array(
+            'array' => 'zipcodeInformation'
+        ),
+        'return_zipcodeInformation' => array('struct' => array(
+            'records'      => 'tns:_zipcodeInformation',
+            'record_count' => 'xsd:int'
+        )),
+        //- ####################################################
+
+
+
+        // BASIC SETTINGS --------------------------------------
+        'basicInformation' => array('struct' => array(
+            'STORENAME'           => 'xsd:string',
+            'TEL'                 => 'xsd:string',
+            'FAX'                 => 'xsd:string',
+            'ADDRESS1'            => 'xsd:string',
+            'WEBYAN_HOMEPAGE'     => 'xsd:string',
+            'PC_HOMEPAGE'         => 'xsd:string',
+            'INTERVAL'            => 'xsd:int',
+            'REMINDER'            => 'xsd:int',
+            'CANCEL_LIMIT'        => 'xsd:int',
+            'CUSTOMER_LIMIT'      => 'xsd:string',
+            'LOWER_LIMIT'         => 'xsd:int',
+            'LOWER_LIMIT_OP'      => 'xsd:string',
+            'UPPER_LIMIT'         => 'xsd:int',
+            'UPPER_LIMIT_OP'      => 'xsd:string',
+            'AVAILABLE_TIMES'     => 'xsd:int',
+            'OPEN_TIME'           => 'xsd:int',
+            'CLOSE_TIME'          => 'xsd:int',
+            'YOYAKU_OPEN_TIME'    => 'xsd:int',
+            'YOYAKU_CLOSE_TIME'   => 'xsd:int',
+            'YOYAKU_HYOU_OPEN_TIME'  => 'xsd:int',
+            'YOYAKU_HYOU_CLOSE_TIME' => 'xsd:int',
+            'YOYAKU_OPEN_TIME_SATSUN'  => 'xsd:int',
+            'YOYAKU_CLOSE_TIME_SATSUN' => 'xsd:int',
+            'SHOW_MENU_NAME_ONLY' => 'xsd:int',
+            'AUTO_CUST_LIMIT' => 'xsd:int',
+            'YOYAKU_MSG' => 'xsd:int',
+            'YOYAKU_MENU_TANTOU' => 'xsd:int',
+            'YOYAKU_TIME_SETTING' => 'xsd:int',
+            'YOYAKU_TIME_SETTINGS_OP' => 'xsd:string',
+            'YOYAKU_TIME_SECOND_SETTING' => 'xsd:int',
+            'FOLLOW_MAIL_SETTING' => 'xsd:int',
+            'HIDE_HOLIDAY_STAFF' => 'xsd:int',
+            'RECORD_YOYAKU_DETAIL' => 'xsd:int',
+            'MODIFYING_MAIL' => 'xsd:int',
+            'YOYAKU_DRAGDROP_TIMEINTERVAL' => 'xsd:int',
+            'HIDE_RAITEN' => 'xsd:int',
+            'OKOTOWARI_TIME' => 'xsd:int',
+            'HIDECUSTOMERINFO_FLG' => 'xsd:int',
+            'USE_SIPSS_MENU' => 'xsd:int',
+            'USE_MENU_AVAILABILITY_LIMIT' => 'xsd:int',
+            'JIKAIUPDATEOPTION_FLG' => 'xsd:int',
+            'KANZASHI_RESERVATION_PAY_ENABLED' => 'xsd:int',
+            'KANZASHI_RESERVATION_PAY_DEFAULT_PRICE_TYPE' => 'xsd:int'
+        )),
+        //- ####################################################
+
+
+
+        // MESSAGE SETTINGS ------------------------------------
+        'messageInformation' => array('struct' => array(
+            'REGISTRATION'       => 'xsd:string',
+            'NEWYOYAKU'          => 'xsd:string',
+            'CANCEL'             => 'xsd:string',
+            'MAILREGISTRATION'   => 'xsd:string',
+            'MAILNEWYOYAKU'      => 'xsd:string',
+            'MAILNOTICE'         => 'xsd:string',
+            'MAILNOTICESECOND'   => 'xsd:string',
+            'MODIFYING_MAIL_MSG' => 'xsd:string',
+            'FOLLOW_MAIL_MSG'    => 'xsd:string',
+            'MAILSIGNATURE'      => 'xsd:string'
+        )),
+        //- ####################################################
+
+
+
+        // COLOR -----------------------------------------------
+        'colorSearchCriteria' => array('struct' => array(
+            'STORECODE'    => 'xsd:int',
+            'limit'        => 'xsd:int',
+            'page'         => 'xsd:int'
+        )),
+        'colorInformation' => array('struct' => array(
+            'id'          => 'xsd:int',
+            'color'       => 'xsd:string',
+            'comment'     => 'xsd:string'
+        )),
+        '_colorInformation' => array(
+            'array' => 'colorInformation'
+        ),
+        'return_colorInformation' => array('struct' => array(
+            'records'      => 'tns:_colorInformation',
+            'record_count' => 'xsd:int'
+        )),
+        //- ####################################################
+
+
+
+        // STORE TRANSACTION -----------------------------------
+        'storeTransactionSearchCriteria' => array('struct' => array(
+            'STORECODE'   => 'xsd:int',
+            'TRANSCODE'   => 'xsd:string',
+            'CCODE'       => 'xsd:string',
+            'date'        => 'xsd:string'
+        )),
+
+        'storeTransactionDetailInformation' => array('struct' => array(
+            'ROWNO'            => 'xsd:int',
+            'GDCODE'           => 'xsd:int',
+            'BUNRUINAME'       => 'xsd:string',
+            'GCODE'            => 'xsd:int',
+            'MENUNAME'         => 'xsd:string',
+            'YOYAKUMARK'       => 'xsd:string',
+            'MENUTIME'         => 'xsd:int',
+            'TRANTYPE'         => 'xsd:int',
+            'QUANTITY'         => 'xsd:int',
+            'PRICE'            => 'xsd:int',
+            'CLAIMED'          => 'xsd:int',
+            'POINTKASAN1'      => 'xsd:float',
+            'POINTKASAN2'      => 'xsd:float',
+            'POINTKASAN3'      => 'xsd:float',
+            'ZEIKUBUN'         => 'xsd:int',
+            'STAFFCODE'        => 'xsd:int',
+            'STAFFNAME'        => 'xsd:string',
+            'STAFFCODESIMEI'   => 'xsd:int',
+            'TEMPSTATUS'       => 'xsd:int',
+            'DELFLG'           => 'xsd:string',
+            'KEYCODE'          => 'xsd:string',
+            'STARTTIME'        => 'xsd:string',
+            'ENDTIME'          => 'xsd:string',
+            'SYSCODE'          => 'xsd:int',
+            'TAX'              => 'xsd:int',
+            'QUANTITY'         => 'xsd:int',
+            'TOTALTAX'         => 'xsd:int',
+            'PRICETAXINC'      => 'xsd:int',
+            'ISMENUDELETED'    => 'xsd:int'
+        )),
+        '_storeTransactionDetailInformation' => array(
+            'array' => 'storeTransactionDetailInformation'
+        ),
+
+        'storeTransactionInformation' => array('struct' => array(
+            'TRANSCODE'        => 'xsd:string',
+            'KEYNO'            => 'xsd:int',
+            'STORECODE'        => 'xsd:int',
+            'IDNO'             => 'xsd:int',
+            'TRANSDATE'        => 'xsd:string',
+            'UPDATEDATE'       => 'xsd:string',
+            'YOYAKUTIME'       => 'xsd:string',
+            'ENDTIME'          => 'xsd:string',
+            'ADJUSTED_ENDTIME' => 'xsd:string',
+            'CCODE'            => 'xsd:string',
+            'CNUMBER'          => 'xsd:string',
+            'CSTORECODE'       => 'xsd:int',
+            'REGULARCUSTOMER'  => 'xsd:int',
+            'KYAKUKUBUN'       => 'xsd:int',
+            'SEX'              => 'xsd:int',
+            'RATETAX'          => 'xsd:float',
+            'ZEIOPTION'        => 'xsd:int',
+            'SOGOKEIOPTION'    => 'xsd:int',
+            'TEMPSTATUS'       => 'xsd:int',
+            'CNAME'            => 'xsd:string',
+            'APT_COLOR'        => 'xsd:int',
+            'NOTES'            => 'xsd:string',
+            'RANKING'          => 'xsd:string',
+            'PRIORITY'         => 'xsd:int',
+            'PRIORITYTYPE'     => 'xsd:string',
+            'STAFFCODE'        => 'xsd:int',
+            'HASSERVICES'      => 'xsd:int',
+            'DELFLG'           => 'xsd:string',
+            'CNAMEKANA'        => 'xsd:string',
+            'TEL1'             => 'xsd:string',
+            'TEL2'             => 'xsd:string',
+            'TEMPSTATUS'       => 'xsd:int',
+            'BIRTHDATE'        => 'xsd:string',
+            'CUST_TELNO'       => 'xsd:string',
+            'MEMBERSCATEGORY'  => 'xsd:int',
+            'CLAIMKYAKUFLG'    => 'xsd:int',
+            'UPDATEDATE'       => 'xsd:string',
+            'newcustomer'      => 'xsd:int',
+            'ignoreConflict'   => 'xsd:int',
+            'newRowValue'      => 'xsd:int',
+            'newPhoneRowValue' => 'xsd:int',
+            'UKETSUKEDATE'     => 'xsd:string',
+            'UKETSUKESTAFF'    => 'xsd:int',
+            'BEFORE_TRANSCODE' => 'xsd:string',
+            'STAFF_CHANGE_JIKAI_LINK' => 'xsd:int',
+            'HOWKNOWSCODE'     => 'xsd:int',
+            'HOWKNOWS'         => 'xsd:string',
+            'STIME'            => 'xsd:string',
+            'ETIME'            => 'xsd:string',
+            'GCODE'            => 'xsd:int',
+            'YOYAKU'           => 'xsd:int',
+            'STARTTIME'        => 'xsd:string',
+            'SERVICESNAME'     => 'xsd:string',
+            'YOYAKU_STATUS'    => 'xsd:string',
+            'INCOMPLETE'       => 'xsd:int',
+            'UKETSUKESTAFFNAME' => 'xsd:string',
+            'DATETIMECREATED'  => 'xsd:string',
+            'CREATENEWTRANS'   => 'xsd:int',
+            'PREVTRANSCODE'    => 'xsd:string',
+            'DELPREVTRANSGCODES'    => 'xsd:string',
+            'route'            => 'xsd:string',
+            'reservation_system' => 'xsd:string',
+            'reserve_date'      => 'xsd:string',
+            'reserve_code'      => 'xsd:string',
+            'v_date'            => 'xsd:string',
+            'start_time'        => 'xsd:string',
+            'end_time'          => 'xsd:string',
+            'coupon_info'       => 'xsd:string',
+            'comment'           => 'xsd:string',
+            'shop_comment'      => 'xsd:string',
+            'next_coming_comment'   => 'xsd:string',
+            'demand'            => 'xsd:string',
+            'site_customer_id'  => 'xsd:string',
+            'bmPrice'           => 'xsd:int',
+            'nomination_fee'    => 'xsd:int',
+            'bmTprice'          => 'xsd:int',
+            'use_point'         => 'xsd:int',
+            'coupon_point'      => 'xsd:int',
+            'grant_point'       => 'xsd:int',
+            'visit_num'         => 'xsd:int',
+            'firstname'         => 'xsd:string',
+            'lastname'          => 'xsd:string',
+            'bmsex'             => 'xsd:int',
+            'knfirstname'       => 'xsd:string',
+            'knlastname'        => 'xsd:string',
+            'bmtel'             => 'xsd:string',
+            'bmzip'             => 'xsd:string',
+            'bmaddress'         => 'xsd:string',
+            'bmmail'            => 'xsd:string',
+            'menu_info'         => 'xsd:string',
+            'memo'              => 'xsd:string',
+            'origination'       => 'xsd:int',
+            'bmstaff'           => 'xsd:string',
+            'secondnote'        => 'xsd:string',
+            'MAINSTAFFCODE'     => 'xsd:int',
+            'details'           => 'tns:_storeTransactionDetailInformation',
+            'rejimarketing'     => 'tns:_rejiMarketingInformation'
+        )),
+        '_storeTransactionInformation' => array(
+            'array' => 'storeTransactionInformation'
+        ),
+        'return_storeTransactionInformation' => array('struct' => array(
+            'records'      => 'tns:_storeTransactionInformation',
+            'record_count' => 'xsd:int'
+        )),
+
+        'return_transactionIDs' => array('struct' => array(
+            'TRANSCODE'     => 'xsd:string',
+            'KEYNO'         => 'xsd:int',
+            'IDNO'          => 'xsd:int',
+            'CCODE'         => 'xsd:string',
+            'CNUMBER'       => 'xsd:string',
+            'UPDATEDATE'    => 'xsd:string'
+        )),
+        //- ####################################################
+
+        'rejiMarketingInformation' => array('struct' => array(
+            'TRANSCODE'        => 'xsd:string',
+            'KEYNO'            => 'xsd:int',
+            'STORECODE'        => 'xsd:int',
+            'ROWNO'            => 'xsd:int',
+            'TRANSDATE'        => 'xsd:string',
+            'MARKETINGID'      => 'xsd:int',
+            'MARKETINGIDNO'    => 'xsd:int',
+            'MARKETINGDESC'    => 'xsd:string',
+            'STAFFCODE'        => 'xsd:int',
+            'STAFFNAME'        => 'xsd:string',
+            'TEMPFLG'          => 'xsd:int',
+            'LEAFLETSCOUNT'    => 'xsd:int',
+            'QUANTITY'         => 'xsd:int',
+            'MARKETINGCODE'    => 'xsd:int'
+        )),
+        '_rejiMarketingInformation' => array(
+            'array' => 'rejiMarketingInformation'
+        ),
+        'return_rejiMarketingInformation' => array('struct' => array(
+            'records'      => 'tns:_rejiMarketingInformation',
+            'record_count' => 'xsd:int'
+        )),
+        //- ####################################################
+
+        //HOW KNOWS THE STORE COMPLEX tYPES
+        'howKnowsTheStoreInformation' => array('struct' => array(
+            'HOWKNOWSCODE'        => 'xsd:int',
+            'HOWKNOWS'            => 'xsd:string'
+        )),
+        '_howKnowsTheStoreInformation' => array(
+            'array' => 'howKnowsTheStoreInformation'
+        ),
+        'return_howKnowsTheStoreInformation' => array('struct' => array(
+            'records'      => 'tns:_howKnowsTheStoreInformation',
+            'record_count' => 'xsd:int'
+        )),
+        //- ####################################################
+
+        // BREAK TIME ------------------------------------------
+        'breakTimeSearchCriteria' => array('struct' => array(
+            'STORECODE'   => 'xsd:int',
+            'STAFFCODE'   => 'xsd:int',
+            'date'        => 'xsd:string'
+        )),
+
+        'breakTimeInformation' => array('struct' => array(
+            'BREAKID'          => 'xsd:int',
+            'STAFFCODE'        => 'xsd:int',
+            'STORECODE'        => 'xsd:int',
+            'DATE'             => 'xsd:string',
+            'REMARKS'          => 'xsd:string',
+            'PRIORITY'         => 'xsd:int',
+            'STARTTIME'        => 'xsd:string',
+            'ENDTIME'          => 'xsd:string'
+        )),
+        '_breakTimeInformation' => array(
+            'array' => 'breakTimeInformation'
+        ),
+        'return_breakTimeInformation' => array('struct' => array(
+            'records'      => 'tns:_breakTimeInformation',
+            'record_count' => 'xsd:int'
+        )),
+        //- ####################################################
+
+
+
+        // DATA OF THE DAY -------------------------------------
+        'dataOfTheDaySearchCriteria' => array('struct' => array(
+            'STORECODE'   => 'xsd:int',
+            'STAFFCODE'   => 'xsd:int',
+            'useYoyakuMessage'   => 'xsd:int',
+            'date'        => 'xsd:string',
+            'PRIORITYTYPE'        => 'xsd:int',
+            'kanzashiSalonId' => 'xsd:int'
+        )),
+
+        'return_dataOfTheDayInformation' => array('struct' => array(
+            'store'             => 'tns:basicInformation',
+            'holiday'           => 'xsd:string',
+            'messages'          => 'tns:return_yoyakuMessage',
+            'calendar'          => 'tns:return_transactionCalendarViewInformation',
+            'staff_records'     => 'tns:return_staffInformation',
+            'facility_records'  => 'tns:return_facilityInformation',
+        )),
+        //- ####################################################
+
+
+
+        // TRANSACTION CALENDAR VIEW ---------------------------
+        'transactionCalendarViewSearchCriteria' => array('struct' => array(
+            'STORECODE'    => 'xsd:int',
+            'year'         => 'xsd:int',
+            'month'        => 'xsd:int'
+        )),
+
+        'transactionCalendarViewInformation' => array('struct' => array(
+            'year'      => 'xsd:int',
+            'month'     => 'xsd:int',
+            'day1'      => 'xsd:string',
+            'day2'      => 'xsd:string',
+            'day3'      => 'xsd:string',
+            'day4'      => 'xsd:string',
+            'day5'      => 'xsd:string',
+            'day6'      => 'xsd:string',
+            'day7'      => 'xsd:string',
+            'day8'      => 'xsd:string',
+            'day9'      => 'xsd:string',
+            'day10'     => 'xsd:string',
+            'day11'     => 'xsd:string',
+            'day12'     => 'xsd:string',
+            'day13'     => 'xsd:string',
+            'day14'     => 'xsd:string',
+            'day15'     => 'xsd:string',
+            'day16'     => 'xsd:string',
+            'day17'     => 'xsd:string',
+            'day18'     => 'xsd:string',
+            'day19'     => 'xsd:string',
+            'day20'     => 'xsd:string',
+            'day21'     => 'xsd:string',
+            'day22'     => 'xsd:string',
+            'day23'     => 'xsd:string',
+            'day24'     => 'xsd:string',
+            'day25'     => 'xsd:string',
+            'day26'     => 'xsd:string',
+            'day27'     => 'xsd:string',
+            'day28'     => 'xsd:string',
+            'day29'     => 'xsd:string',
+            'day30'     => 'xsd:string',
+            'day31'     => 'xsd:string'
+        )),
+        '_transactionCalendarViewInformation' => array(
+            'array' => 'transactionCalendarViewInformation'
+        ),
+        'return_transactionCalendarViewInformation' => array('struct' => array(
+            'records'      => 'tns:_transactionCalendarViewInformation'
+        )),
+        //- ####################################################
+
+
+
+        // STAFF TAB -------------------------------------------
+        'return_staffTabInformation' => array('struct' => array(
+            'store'       => 'tns:return_storeInformation',
+            'position'    => 'tns:return_positionInformation',
+            'sublevel'    => 'tns:return_sublevelInformation'
+        )),
+        //- ####################################################
+
+
+
+        // FIRST LOAD ------------------------------------------
+        'return_firstLoadInformation' => array('struct' => array(
+            'transaction' => 'tns:return_dataOfTheDayInformation',
+            'service'     => 'tns:return_serviceInformation',
+            'color'       => 'tns:return_colorInformation'
+        )),
+        //- ####################################################
+
+        // NEW YOYAKU MESSAGE ------------------------------------------
+
+        'yoyakuMessage' => array('struct' => array(
+            'CNAME'          => 'xsd:string',
+            'YOYAKUDATETIME' => 'xsd:string',
+            'STAFFNAME'      => 'xsd:string',
+            'MSG'            => 'xsd:string'
+        )),
+        '_yoyakuMessage' => array(
+            'array' => 'yoyakuMessage'
+        ),
+        'return_yoyakuMessage' => array('struct' => array(
+            'messages'      => 'tns:_yoyakuMessage',
+            'message_count' => 'xsd:int'
+        )),
+
+        //- ####################################################
+
+
+
+        // YOYAKU DETAILS --------------------------------------
+        'yoyakuDetailsInformation' => array('struct' => array(
+            'STORECODE'         => 'xsd:int',
+            'TRANSDATE'         => 'xsd:string',
+            'BEGINTIME'         => 'xsd:string',
+            'ENDTIME'           => 'xsd:string',
+            'CUSTOMERNAME'      => 'xsd:string',
+            'STAFFNAME'         => 'xsd:string',
+            'PRIORITYTYPE'      => 'xsd:int',
+            'YOYAKU'            => 'xsd:int',
+            'UKETSUKEDATE'      => 'xsd:string',
+            'UKETSUKESTAFFNAME' => 'xsd:string',
+            'CANCEL'            => 'xsd:int',
+            'YOYAKUNEXTFLG'     => 'xsd:int',
+            'ORIGINATION'       => 'xsd:int', //add by albert 2016-01-27
+            'TEMPSTATUS'        => 'xsd:int',
+            'TRANSCODE'         => 'xsd:string',
+            'MENUNAME'          => 'xsd:string',
+            'BMTYPE'            => 'xsd:string',
+            'RVTYPE'            => 'xsd:string',
+        )),
+        '_yoyakuDetailsInformation' => array(
+            'array' => 'yoyakuDetailsInformation'
+        ),
+        'return_yoyakuDetailsInformation' => array('struct' => array(
+            'records'      => 'tns:_yoyakuDetailsInformation'
+        )),
+        //- ####################################################
+
+        //OKOTOWARI COMPLEX tYPES
+        'okotowariInformation' => array('struct' => array(
+            'OID'            => 'xsd:int',
+            'STORECODE'      => 'xsd:int',
+            'YMD'            => 'xsd:string',
+            'OTIME'          => 'xsd:string',
+            'CCODE'          => 'xsd:string',
+            'CNUMBER'        => 'xsd:string',
+            'CNAME'          => 'xsd:string',
+            'SEX'            => 'xsd:int'
+        )),
+        '_okotowariInformation' => array(
+            'array' => 'okotowariInformation'
+        ),
+        'return_okotowariInformation' => array('struct' => array(
+            'records'      => 'tns:_okotowariInformation',
+            'record_count' => 'xsd:int'
+        )),
+        //- ####################################################
+
+        //GYOSHUKUBUN COMPLEX TYPES
+        'gyoshukubunInformation' => array('struct' => array(
+            'SYSCODE'            => 'xsd:int',
+            'SERVICESNAME'         => 'xsd:string',
+            'DESCRIPTION'          => 'xsd:string'
+        )),
+        '_gyoshukubunInformation' => array(
+            'array' => 'gyoshukubunInformation'
+        ),
+        'return_gyoshukubun' => array('struct' => array(
+            'records'      => 'tns:_gyoshukubunInformation',
+            'record_count' => 'xsd:int'
+        )),
+
+        'YoyakuAllowTransToStore' => array('struct' => array(
+            'storecode'         => 'xsd:int',
+            'tostorecode'    => 'xsd:int',
+            'tostorename'    => 'xsd:string'
+        )),
+        '_YoyakuAllowTransToStore' => array(
+            'array'     =>   'YoyakuAllowTransToStore'
+        ),
+
+
+
+        //==============================================================
+        //customer search listing for Integration
+        //by albert 2015-11-18
+        //--------------------------------------------------------------
+        'storeCustomerListing' => array('struct' => array(
+            'ccode'         => 'xsd:string',
+            'cnumber'       => 'xsd:string',
+            'cname'         => 'xsd:string',
+            'cnamekana'     => 'xsd:string',
+            'sex'           => 'xsd:string',
+            'tel1'          => 'xsd:string',
+            'tel2'          => 'xsd:string',
+            'birthdate'     => 'xsd:string',
+            'christian_era' => 'xsd:string',
+            'mailaddress1'  => 'xsd:string',
+            'mailaddress2'  => 'xsd:string',
+            'zipcode1'      => 'xsd:string',
+            'address1'      => 'xsd:string',
+            'mansionmei'    => 'xsd:string',
+            'cstorecode'    => 'xsd:string',
+            'firstdate'     => 'xsd:string',
+            'lastdate'      => 'xsd:string',
+            'storename'     => 'xsd:string'
+        )),
+        '_storeCustomerListing' => array(
+            'array' => 'storeCustomerListing'
+        ),
+        'return_storeCustomerListing' => array('struct' => array(
+            'records'      => 'tns:_storeCustomerListing',
+            'record_count' => 'xsd:int',
+            'totalrecords'  => 'xsd:string'
+        )),
+
+        'storeReservationListing'   => array('struct' => array(
+            'transdate'     => 'xsd:string',
+            'starttime'     => 'xsd:string',
+            'cname'         => 'xsd:string',
+            'staffname'     => 'xsd:string',
+            'reservationdt' => 'xsd:string',
+            'reservationtm' => 'xsd:string',
+            'transstat'     => 'xsd:string',
+            'alreadyread'   => 'xsd:int',
+            'keyno'         => 'xsd:int',
+            'transcode'     => 'xsd:string',
+            'route'         => 'xsd:string',
+            'syscode'       => 'xsd:string',
+            'recctr'         => 'xsd:string'
+        )),
+        '_storeReservationListing'  => array(
+            'array' => 'storeReservationListing'
+        ),
+        'return_storeReservationListing' => array('struct' => array(
+            'records'       => 'tns:_storeReservationListing'
+        )),
+
+
+        'storeReservationCounter'   => array('struct' => array(
+            'wrkr'          => 'xsd:int',
+            'bmr'           => 'xsd:int'
+        )),
+        '_storeReservationCounter'  => array(
+            'array' => 'storeReservationCounter'
+        ),
+        'return_storeReservationCounter' => array('struct' => array(
+            'records'       => 'tns:_storeReservationCounter'
+        )),
+        //--------------------------------------------------------------
+        //customer search listing for Integration
+        //by albert 2015-11-18
+        //==============================================================
+
+        // かんざし時間別予約可能数
+        'kanzashiCustomersLimit' => array(
+            'struct' => array(
+                'ymd'         => 'xsd:date',
+                'begin_time'  => 'xsd:time',
+                'end_time'    => 'xsd:time',
+                'limit_count' => 'xsd:int'
+            )
+        ),
+        '_kanzashiCustomersLimit' => array(
+            'array' => 'kanzashiCustomersLimit'
+        ),
+        'return_monthlyKanzashiSalonHours' => array(
+            'struct' => array(
+                'store_holiday'    => 'tns:storeHolidayInformation',
+                'customers_limits' => 'tns:_kanzashiCustomersLimit'
+            )
+        )
+
+    );
 
 
     // wsGetCustomerList  ------------------------------------------------------------------------------------------------------------------------
@@ -1928,7 +2293,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return customerlistinginfo
      */
-    function wsGetCustomerList($sessionid, $storecode, $datefr, $dateto, $firstdate, $pageindex, $filename1, $allstoreflg, $basecode){
+    function wsGetCustomerList($sessionid, $storecode, $datefr, $dateto, $firstdate, $pageindex, $filename1, $allstoreflg, $basecode)
+    {
 
         //===================================================================================
         //(Verify Session and Get DB name)
@@ -1943,21 +2309,21 @@ class ServersController extends WebServicesController
 
         if (strlen($storecode) == 3) {
             $tmpccode = $storecode . "0000000";
-        }elseif (strlen($storecode) == 2) {
+        } elseif (strlen($storecode) == 2) {
             $tmpccode = "0" . $storecode . "0000000";
-        }elseif (strlen($storecode) == 1) {
+        } elseif (strlen($storecode) == 1) {
             $tmpccode = "00" . $storecode . "0000000";
         }
 
         $strcond = "";
-        if ($allstoreflg == 0){
+        if ($allstoreflg == 0) {
             $strcond = " and cstorecode = " . $storecode;
-        }else{
+        } else {
             $strcond = " and cstorecode > 0 ";
         }
 
         $firstdatecond = "";
-        if ($firstdate == true){
+        if ($firstdate == true) {
             $firstdatecond = " and firstdate between '" . $datefr . "' and '" . $dateto . "'";
         }
 
@@ -2058,7 +2424,8 @@ class ServersController extends WebServicesController
      * @param mixed $params - Customer Object
      * @return mixed
      */
-    function wsCustomerMergeSave($sessionid, $strcode, $fromccode, $toccode, $transcode, $keyno, $companyid, $params){
+    function wsCustomerMergeSave($sessionid, $strcode, $fromccode, $toccode, $transcode, $keyno, $companyid, $params)
+    {
         //--------------------------------------------------------------------------------------------------------------------------------------------------
         // NOTE: Please note that if ever changes are made with this function, you have to
         //       consider changing the same function in TENPO.
@@ -2082,10 +2449,10 @@ class ServersController extends WebServicesController
 
         if (count($data) > 0) {
             $newstorecode = (int)$data[0]["customer"]["cstorecode"];
-        }else{
+        } else {
             return false;
         }
-        if($newstorecode == 0){
+        if ($newstorecode == 0) {
             return false;
         }
 
@@ -2137,34 +2504,35 @@ class ServersController extends WebServicesController
         //--------------------------------------------------------------------------------------------------------------------------------------------------
         // SQL to updated following tables
         //--------------------------------------------------------------------------------------------------------------------------------------------------
-        $tablenames = array("store_transaction",
-                            "credit_trans",
-                            "coupon_trans",
-                            "customer_mails",
-                            "customer_mail_reservation",
-                            "customer_mail_reservation_details",
-                            "auto_mail_history",
-                            "customer_ticket",
-                            "store_transaction_item",
-                            "store_transaction_apsales",
-                            "customer_next_coming_dates",
-                            "karte",
-                            "bm_reservation",
-                            "rv_customer",
-                            "customer_sns",
-                            "kanzashi_customer",
-                            "yoyakuapp_user",
-                            "cti"
-                            );
+        $tablenames = array(
+            "store_transaction",
+            "credit_trans",
+            "coupon_trans",
+            "customer_mails",
+            "customer_mail_reservation",
+            "customer_mail_reservation_details",
+            "auto_mail_history",
+            "customer_ticket",
+            "store_transaction_item",
+            "store_transaction_apsales",
+            "customer_next_coming_dates",
+            "karte",
+            "bm_reservation",
+            "rv_customer",
+            "customer_sns",
+            "kanzashi_customer",
+            "yoyakuapp_user",
+            "cti"
+        );
 
-        if($this->MiscFunction->IsPowerFlgOn($this)){
+        if ($this->MiscFunction->IsPowerFlgOn($this)) {
             $tablenames[] = "store_transaction_gdcode_kyakukubun";
             $tablenames[] = "store_transaction_kyakukubun";
         }
 
-        foreach ($tablenames as $tablename){
+        foreach ($tablenames as $tablename) {
 
-            if($tablename == 'store_transaction'){
+            if ($tablename == 'store_transaction') {
                 // disable the trigger first to preserved transaction data
                 $sqlstatements[] = "Update dbsettings set dbvalue = 1 where dbset = 'DISABLE_TRIGGER'";
 
@@ -2174,11 +2542,10 @@ class ServersController extends WebServicesController
 
                 // enable trigger
                 $sqlstatements[] = "Update dbsettings set dbvalue = 0 where dbset = 'DISABLE_TRIGGER'";
-            }else{
+            } else {
                 //update ccode for the following table
                 $sqlstatements[] = "Update {$tablename} set ccode = '{$toccode}' where ccode = '{$fromccode}'";
             }
-
         }
         unset($tablenames);
         //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2208,7 +2575,7 @@ class ServersController extends WebServicesController
 
         $sqlstatements[] = "DELETE FROM customer_relation WHERE ccode = torelationccode AND ccode = '{$toccode}'";
 
-        if(!empty($params['REFERRALCODE'])){
+        if (!empty($params['REFERRALCODE'])) {
             $sqlstatements[] = "UPDATE customer_relation
                                     SET relationcode = {$params['REFERRALRELATIONCODE']}
                                 WHERE (ccode = '{$toccode}' AND torelationccode = '{$params['REFERRALCODE']}')
@@ -2403,12 +2770,11 @@ class ServersController extends WebServicesController
 
             $source->begin();
 
-            foreach($sqlstatements as $sqlstatement){
+            foreach ($sqlstatements as $sqlstatement) {
 
                 if ($this->Customer->query($sqlstatement) === false) {
                     throw new Exception();
                 }
-
             }
 
             $source->commit();
@@ -2430,8 +2796,8 @@ class ServersController extends WebServicesController
             // Delete Old customer_sns User Record
             //====================================================================================
             if (count($snsData) > 0) {
-                for($ctr=0; $ctr<count($snsData); $ctr++){
-                    if((int)$snsData[$ctr][0]["users"] > 1){
+                for ($ctr = 0; $ctr < count($snsData); $ctr++) {
+                    if ((int)$snsData[$ctr][0]["users"] > 1) {
                         $oldSnsidDate = $snsData[$ctr][0]["old_snsid_date"];
                         $sql = "DELETE FROM customer_sns
                                 WHERE ccode = '{$toccode}'
@@ -2444,15 +2810,14 @@ class ServersController extends WebServicesController
             }
 
             return $this->MiscFunction->GetTransactionUpdateDate($this->Customer,  $transcode, $keyno);
-        }
-        catch (Exception $ex) {
+        } catch (Exception $ex) {
             $source->rollback();
             unset($source, $sqlstatements);
             return null;
         }
         //--------------------------------------------------------------------------------------------------------------------------------------------------
 
-    }//function close
+    } //function close
     //</editor-fold>
 
 
@@ -2464,7 +2829,8 @@ class ServersController extends WebServicesController
      * @param mixed $dateto
      * @return array[]
      */
-    function wsGetReservationCounter($sessionid, $strcode, $datefr, $dateto){
+    function wsGetReservationCounter($sessionid, $strcode, $datefr, $dateto)
+    {
 
         //===================================================================================
         //(Verify Session and Get DB name)
@@ -2543,7 +2909,8 @@ class ServersController extends WebServicesController
      * @param mixed $syscode
      * @return array[]
      */
-    function wsGetReservation($sessionid, $strcode, $origination, $datefr, $dateto, $pageno, $ascsort, $colsort, $syscode){
+    function wsGetReservation($sessionid, $strcode, $origination, $datefr, $dateto, $pageno, $ascsort, $colsort, $syscode)
+    {
 
         //===================================================================================
         //(Verify Session and Get DB name)
@@ -2595,21 +2962,21 @@ class ServersController extends WebServicesController
                 break;
         }
 
-        if ($strcode > 0){
+        if ($strcode > 0) {
             $wherecond .= " and str_hdr.storecode = {$strcode}";
         }
 
 
-        if ($dateto !== ""){
+        if ($dateto !== "") {
             $wherecond .= " and str_hdr.transdate between '{$datefr}' and '{$dateto}' ";
         }
 
-        if ($syscode !== 0){
+        if ($syscode !== 0) {
             $wherecond .= " and svr.syscode in ({$syscode})";
         }
 
 
-        switch ($colsort){
+        switch ($colsort) {
             case 0:
                 $orderby = ' alreadyread ';
                 break;
@@ -2633,7 +3000,7 @@ class ServersController extends WebServicesController
                 break;
         }
 
-        if(!empty($orderby)){
+        if (!empty($orderby)) {
             $orderby .= $ascsort == 0 ? ' desc ' : ' asc ';
         }
 
@@ -2697,7 +3064,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return update transaction 2
      */
-    function wsUpdateTransaction2($sessionid, $transcode, $keyno, $read, $syscode){
+    function wsUpdateTransaction2($sessionid, $transcode, $keyno, $read, $syscode)
+    {
         //===================================================================================
         //(Verify Session and Get DB name)
         //-----------------------------------------------------------------------------------
@@ -2711,7 +3079,7 @@ class ServersController extends WebServicesController
 
         $sql = "insert into store_transaction2(transcode, keyno, `read`, datetimecreated)
                                     values('" . $transcode . "', " . $keyno . ", " . $read . ", now())
-			On Duplicate Key Update `read` = ". $read ;
+			On Duplicate Key Update `read` = " . $read;
 
         $GetData = $this->Customer->query($sql);
         //===================================================================================
@@ -2728,36 +3096,46 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return return_storeInfo
      */
-    function wsLogin($param) {
-        $condition1 = array('StoreAccount.username' => $param['username'],
-                                       'StoreAccount.passwd'   => $param['password'],
-                                       'StoreAccount.tenpo'    => 1,
-                                       '(WebyanAccount.delflg IS NULL OR WebyanAccount.delflg = ?)'  => array(0));
-        $condition2 = array('StoreAccount.username' => $param['username'],
-                                       'StoreAccount.passwd'   => $param['password'],
-                                       'StoreAccount.yoyakuf'    => 1);
+    function wsLogin($param)
+    {
+        $condition1 = array(
+            'StoreAccount.username' => $param['username'],
+            'StoreAccount.passwd'   => $param['password'],
+            'StoreAccount.tenpo'    => 1,
+            '(WebyanAccount.delflg IS NULL OR WebyanAccount.delflg = ?)'  => array(0)
+        );
+        $condition2 = array(
+            'StoreAccount.username' => $param['username'],
+            'StoreAccount.passwd'   => $param['password'],
+            'StoreAccount.yoyakuf'    => 1
+        );
         $condition['OR'] = array($condition1, $condition2);
 
         $rec = $this->StoreAccount->find('all', array(
-                 'conditions' => $condition,
-                 'fields' => array('Company.dbname',
-                                   'Company.oemflg',
-                                   'StoreAccount.storecode',
-                                   'StoreAccount.companyid',
-                                   'StoreAccount.tenpo AS hasTenpo',
-                                   'StoreAccount.cust AS hasCust',
-                                   //'StoreAccount.honbu AS hasHonbu',
-                                   'StoreAccount.browser AS hasBrowser',
-                                   'StoreAccount.yoyakuf AS hasYoyaku')
-                                ));
+            'conditions' => $condition,
+            'fields' => array(
+                'Company.dbname',
+                'Company.oemflg',
+                'StoreAccount.storecode',
+                'StoreAccount.companyid',
+                'StoreAccount.tenpo AS hasTenpo',
+                'StoreAccount.cust AS hasCust',
+                //'StoreAccount.honbu AS hasHonbu',
+                'StoreAccount.browser AS hasBrowser',
+                'StoreAccount.yoyakuf AS hasYoyaku'
+            )
+        ));
 
         if (!empty($rec)) {
             //-- リターンデータを準備する (Prepare Return Data) --
             $arrReturn = array_merge($rec[0]['StoreAccount'], $rec[0]['Company']);
 
             $honbu = $this->StoreAccount->find('all', array(
-                 'conditions' => array('StoreAccount.companyid' => $arrReturn['companyid'],
-                                       'StoreAccount.honbu' => 1)));
+                'conditions' => array(
+                    'StoreAccount.companyid' => $arrReturn['companyid'],
+                    'StoreAccount.honbu' => 1
+                )
+            ));
             if (count($honbu) > 0) {
                 $arrReturn['hasHonbu'] = 1;
             } else {
@@ -2771,7 +3149,6 @@ class ServersController extends WebServicesController
             $store_rec = $this->Store->find('all', array('conditions' => array('storecode' => $arrReturn['storecode'])));
             $arrReturn['storename'] = $store_rec[0]['Store']['STORENAME'];
             $arrReturn['storemail'] = $store_rec[0]['Store']['mail'];
-
 
             //-- 会社データベースを設定する (Set the Company Database)
             $this->StoreSettings->set_company_database($arrReturn['dbname'], $this->StoreSettings);
@@ -2812,33 +3189,34 @@ class ServersController extends WebServicesController
                     case 'YoyakuHyouEnd':
                         $arrReturn['YOYAKU_HYOU_CLOSE_TIME'] = $itm['StoreSettings']['OPTIONVALUEI'];
                         break;
-                    //-------------------------------------------------------------------------------
-                    //yoyaku time for saturday and sunday
-                    //-------------------------------------------------------------------------------
+                        //-------------------------------------------------------------------------------
+                        //yoyaku time for saturday and sunday
+                        //-------------------------------------------------------------------------------
                     case 'YoyakuStart_satsun':
                         $arrReturn['YOYAKU_OPEN_TIME_SATSUN'] = $itm['StoreSettings']['OPTIONVALUEI'];
                         break;
                     case 'YoyakuEnd_satsun':
                         $arrReturn['YOYAKU_CLOSE_TIME_SATSUN'] = $itm['StoreSettings']['OPTIONVALUEI'];
                         break;
-                    //-------------------------------------------------------------------------------
+                        //-------------------------------------------------------------------------------
                     case 'YoyakuStart':
                         $arrReturn['YOYAKU_OPEN_TIME'] = $itm['StoreSettings']['OPTIONVALUEI'];
                         break;
                     case 'YoyakuEnd':
                         $arrReturn['YOYAKU_CLOSE_TIME'] = $itm['StoreSettings']['OPTIONVALUEI'];
                         break;
-                    //-------------------------------------------------------------------------------
+                        //-------------------------------------------------------------------------------
                     case 'YoyakuUpperLimit':
                         $arrReturn['UPPER_LIMIT'] = $itm['StoreSettings']['OPTIONVALUEI'];
                         break;
                     case 'YoyakuUpperLimitOption':
                         $arrReturn['UPPER_LIMIT_OP'] = $itm['StoreSettings']['OPTIONVALUES'];
                         break;
-
-
                 }
             }
+
+            $arrReturn['FACILITY_ENABLED'] = $this->MiscFunction
+                ->IsFacilityEnabled($this, $arrReturn['dbname'], $arrReturn['storecode']);
 
             if ($arrReturn['YOYAKU_HYOU_OPEN_TIME'] == "") {
                 $arrReturn['YOYAKU_HYOU_OPEN_TIME'] = $arrReturn['OPEN_TIME'];
@@ -2850,10 +3228,10 @@ class ServersController extends WebServicesController
             //------------------------------------------------------------------
             if ($arrReturn['YOYAKU_OPEN_TIME_SATSUN'] == "") {
                 $arrReturn['YOYAKU_OPEN_TIME_SATSUN'] = $arrReturn['YOYAKU_OPEN_TIME'];
-            }//end if
+            } //end if
             if ($arrReturn['YOYAKU_CLOSE_TIME_SATSUN'] == "") {
                 $arrReturn['YOYAKU_CLOSE_TIME_SATSUN'] = $arrReturn['YOYAKU_CLOSE_TIME'];
-            }//end if
+            } //end if
             //------------------------------------------------------------------
             unset($arrReturn['dbname']);
             $this->MiscFunction->DeleteKeitaiSession($this);
@@ -2869,7 +3247,7 @@ class ServersController extends WebServicesController
                               JOIN servicessys SYS
                                   ON SYS.syscode = ST.syscode
                           WHERE ST.delflg IS NULL
-                              AND ST.storecode = ".$arrReturn['storecode']."
+                              AND ST.storecode = " . $arrReturn['storecode'] . "
                           ORDER BY ST.syscode
                           ) tblresult";
             //------------------------------------------------------------------
@@ -2879,13 +3257,15 @@ class ServersController extends WebServicesController
             //------------------------------------------------------------------
             if (count($recdata) > 0) {
                 foreach ($recdata as $rec) {
-                    $storetypes[] = array("STORECODE"       => (int)$rec["tblresult"]["storecode"],
-                                          "STAFFCODE"       => (int)$rec["tblresult"]["staffcode"],
-                                          "SYSCODE"         => (int)$rec["tblresult"]["syscode"],
-                                          "SHORTCUTCODE"    => $rec["tblresult"]["shortcutcode"],
-                                          "DESCRIPTION"     => $rec["tblresult"]["description"]);
-                }//end foreach
-            }//end if
+                    $storetypes[] = array(
+                        "STORECODE"       => (int)$rec["tblresult"]["storecode"],
+                        "STAFFCODE"       => (int)$rec["tblresult"]["staffcode"],
+                        "SYSCODE"         => (int)$rec["tblresult"]["syscode"],
+                        "SHORTCUTCODE"    => $rec["tblresult"]["shortcutcode"],
+                        "DESCRIPTION"     => $rec["tblresult"]["description"]
+                    );
+                } //end foreach
+            } //end if
             //------------------------------------------------------------------
             $arrReturn = array_merge($arrReturn, array("storetype" => $storetypes));
             //------------------------------------------------------------------
@@ -2904,12 +3284,14 @@ class ServersController extends WebServicesController
                 //--------------------------------------------------------------
                 $arr_storetypes_allstore = array();
                 //--------------------------------------------------------------
-                foreach ($rs_storetypes_allstore AS $rec) {
-                    $arr_storetypes_allstore[] = array("STORECODE"  => $rec['storetype']['STORECODE'],
-                                                       "STORETYPES" => $rec[0]['STORETYPES']);
-                }//end foreach
+                foreach ($rs_storetypes_allstore as $rec) {
+                    $arr_storetypes_allstore[] = array(
+                        "STORECODE"  => $rec['storetype']['STORECODE'],
+                        "STORETYPES" => $rec[0]['STORETYPES']
+                    );
+                } //end foreach
                 //--------------------------------------------------------------
-            }//end if
+            } //end if
             //------------------------------------------------------------------
             $arrReturn = array_merge($arrReturn, array("allstoretype" => $arr_storetypes_allstore));
             //------------------------------------------------------------------
@@ -2952,8 +3334,8 @@ class ServersController extends WebServicesController
             $arrReturn['sessionid'] = "";
             return $arrReturn;
             //------------------------------------------------------------------
-        }//end if else
-    }//end function
+        } //end if else
+    } //end function
 
 
     /**
@@ -2963,7 +3345,8 @@ class ServersController extends WebServicesController
      * @param string $sessionid
      * @return boolean
      */
-    function wsLogout($sessionid) {
+    function wsLogout($sessionid)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -2990,7 +3373,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return return_customerInformation
      */
-    function wsSearchCustomer($sessionid, $param) {
+    function wsSearchCustomer($sessionid, $param)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -2999,8 +3383,11 @@ class ServersController extends WebServicesController
         }
 
         $honbu = $this->StoreAccount->find('all', array(
-                 'conditions' => array('StoreAccount.companyid' => $storeinfo['companyid'],
-                                       'StoreAccount.honbu' => 1)));
+            'conditions' => array(
+                'StoreAccount.companyid' => $storeinfo['companyid'],
+                'StoreAccount.honbu' => 1
+            )
+        ));
 
         $sharedStoreList = array();
 
@@ -3019,13 +3406,13 @@ class ServersController extends WebServicesController
         foreach ($param as $key => $val) {
             if ((!empty($val) || $val === '0') && $key != 'limit' && $key != 'page' && $key != 'orderby' && $key != 'SEARCHSHAREDSTORE') {
                 if ($key == "PHONE") {
-                    $criteria['(TEL1 LIKE ? OR TEL2 LIKE ?)'] = array('%'.$val.'%', '%'.$val.'%');
+                    $criteria['(TEL1 LIKE ? OR TEL2 LIKE ?)'] = array('%' . $val . '%', '%' . $val . '%');
                 } elseif ($key == "MAILADDRESS") {
-                    $criteria['(MAILADDRESS1 LIKE ? OR MAILADDRESS2 LIKE ?)'] = array('%'.$val.'%', '%'.$val.'%');
+                    $criteria['(MAILADDRESS1 LIKE ? OR MAILADDRESS2 LIKE ?)'] = array('%' . $val . '%', '%' . $val . '%');
                 } elseif ($key == "CNAME") {
                     $val = ereg_replace("　", "", $val);
                     $val = ereg_replace(" ", "", $val);
-                    $criteria['(REPLACE(CNAME, "　", "") LIKE ? OR REPLACE(CNAME, " ", "") LIKE ?)'] = array('%'.$val.'%','%'.$val.'%');
+                    $criteria['(REPLACE(CNAME, "　", "") LIKE ? OR REPLACE(CNAME, " ", "") LIKE ?)'] = array('%' . $val . '%', '%' . $val . '%');
                 } elseif ($key == "CNAMEKANA") {
                     //--------------------------------------------------------------------------------------------------------------------
                     $val = ereg_replace("　", "", $val);
@@ -3040,26 +3427,30 @@ class ServersController extends WebServicesController
                     $criteria['(REPLACE(CNAMEKANA, "　", "") LIKE ?
                                 OR REPLACE(CNAMEKANA, " ", "") LIKE ?
                                 OR REPLACE(CNAMEKANA, "　", "") LIKE ?
-                                 OR REPLACE(CNAMEKANA, " ", "") LIKE ?)'] = array('%'.$val.'%',
-                                                                                  '%'.$val.'%',
-                                                                                  '%'.$kanafull.'%',
-                                                                                  '%'.$kanafull.'%');
+                                 OR REPLACE(CNAMEKANA, " ", "") LIKE ?)'] = array(
+                        '%' . $val . '%',
+                        '%' . $val . '%',
+                        '%' . $kanafull . '%',
+                        '%' . $kanafull . '%'
+                    );
                     //--------------------------------------------------------------------------------------------------------------------
                 } elseif ($key == "ADDRESS") {
-                    $criteria['(ADDRESS1_1 LIKE ? OR concat(KEN1, SITYO1, MANSIONMEI, ADDRESS1) LIKE ?)'] = array('%'.$val.'%','%'.$val.'%');
+                    $criteria['(ADDRESS1_1 LIKE ? OR concat(KEN1, SITYO1, MANSIONMEI, ADDRESS1) LIKE ?)'] = array('%' . $val . '%', '%' . $val . '%');
                 } elseif ($key == "keyword") {
-                    $kword['(TEL1 LIKE ? OR TEL2 LIKE ?)'] = array('%'.$val.'%', '%'.$val.'%');
-                    $kword['(MAILADDRESS1 LIKE ? OR MAILADDRESS2 LIKE ?)'] = array('%'.$val.'%', '%'.$val.'%');
-                    $kword['(CNAME LIKE ?)'] = array('%'.$val.'%');
+                    $kword['(TEL1 LIKE ? OR TEL2 LIKE ?)'] = array('%' . $val . '%', '%' . $val . '%');
+                    $kword['(MAILADDRESS1 LIKE ? OR MAILADDRESS2 LIKE ?)'] = array('%' . $val . '%', '%' . $val . '%');
+                    $kword['(CNAME LIKE ?)'] = array('%' . $val . '%');
                     //--------------------------------------------------------------------------------------------------------------------
                     $val = mb_convert_kana($val, "kV", "UTF8");
                     $kanafull = mb_convert_kana($val, "KV", "UTF8");
                     //--------------------------------------------------------------------------------------------------------------------
                     $kword['(CNAMEKANA LIKE ?
-                             OR CNAMEKANA LIKE ?)'] = array('%'.$val.'%',
-                                                            '%'.$kanafull.'%');
+                             OR CNAMEKANA LIKE ?)'] = array(
+                        '%' . $val . '%',
+                        '%' . $kanafull . '%'
+                    );
                     //--------------------------------------------------------------------------------------------------------------------
-                    $kword['(ADDRESS1_1 LIKE ? OR concat(KEN1, SITYO1, MANSIONMEI, ADDRESS1) LIKE ?)'] = array('%'.$val.'%','%'.$val.'%');
+                    $kword['(ADDRESS1_1 LIKE ? OR concat(KEN1, SITYO1, MANSIONMEI, ADDRESS1) LIKE ?)'] = array('%' . $val . '%', '%' . $val . '%');
                     $kword['IF(CONVERT(?, SIGNED INTEGER) > 0, (CSTORECODE = ?), "")'] = array($val, $val);
                     $keyword['OR'] = $kword;
                     $criteria[] = $keyword;
@@ -3069,23 +3460,26 @@ class ServersController extends WebServicesController
             }
         }
 
-        if($param['SEARCHSHAREDSTORE']){
+        if ($param['SEARCHSHAREDSTORE']) {
             $criteria['CSTORECODE'] = $sharedStoreList;
-         }
+        }
 
 
-        $criteria[] = array('CNAME <> ' => null,
-                            'CNAME <> ' => '');
+        $criteria[] = array(
+            'CNAME <> ' => null,
+            'CNAME <> ' => ''
+        );
         $criteria['DELFLG'] = null;
 
-        $fields = array('CCODE', 'CNUMBER', 'CID', 'CSTORECODE', 'CNAME', 'CNAMEKANA',
-                        'SEX', 'ZIPCODE1', 'KEN1', 'SITYO1', 'MANSIONMEI', 'SI1', 'REGULAR',
-                        'TYO1', 'ADDRESS1', 'ADDRESS1_1', 'TEL1', 'TEL2', 'BIRTHDATE', 'MEMBERSCATEGORY',
-                        'CHRISTIAN_ERA', 'AGERANGE', 'MAILADDRESS1', 'MAILADDRESS2', 'MAILKUBUN', 'FIRSTDATE',
-                        'HOWKNOWSCODE',
-                        'BLOODTYPE', 'MEMBER_CODE', 'SMOKING', 'DMKUBUN', 'JOBINDUSTRYCODE', 'CREATEDFROMCODE', //add by albert 2016-07-15 --> redmine 0650
-                        'INTRODUCETYPE', 'REFERRALCODE', 'REFERRALRELATIONCODE', 'STAFF_INCHARGE_SELECTED', 'STOREDATE'
-                        );
+        $fields = array(
+            'CCODE', 'CNUMBER', 'CID', 'CSTORECODE', 'CNAME', 'CNAMEKANA',
+            'SEX', 'ZIPCODE1', 'KEN1', 'SITYO1', 'MANSIONMEI', 'SI1', 'REGULAR',
+            'TYO1', 'ADDRESS1', 'ADDRESS1_1', 'TEL1', 'TEL2', 'BIRTHDATE', 'MEMBERSCATEGORY',
+            'CHRISTIAN_ERA', 'AGERANGE', 'MAILADDRESS1', 'MAILADDRESS2', 'MAILKUBUN', 'FIRSTDATE',
+            'HOWKNOWSCODE',
+            'BLOODTYPE', 'MEMBER_CODE', 'SMOKING', 'DMKUBUN', 'JOBINDUSTRYCODE', 'CREATEDFROMCODE', //add by albert 2016-07-15 --> redmine 0650
+            'INTRODUCETYPE', 'REFERRALCODE', 'REFERRALRELATIONCODE', 'STAFF_INCHARGE_SELECTED', 'STOREDATE'
+        );
 
         if (!in_array($param['orderby'], $fields)) {
             $param['orderby'] = "CNAME";    //$this->Customer->primaryKey
@@ -3101,15 +3495,19 @@ class ServersController extends WebServicesController
 
 
         if ($param['limit'] <> -1) {
-            $v = $this->Customer->find('all', array('conditions' => $criteria,
-                                                    'fields'     => $fields,
-                                                    'order'      => array($param['orderby']),
-                                                    'limit'      => $param['limit'],
-                                                    'page'       => $param['page']));
+            $v = $this->Customer->find('all', array(
+                'conditions' => $criteria,
+                'fields'     => $fields,
+                'order'      => array($param['orderby']),
+                'limit'      => $param['limit'],
+                'page'       => $param['page']
+            ));
         } else {
-            $v = $this->Customer->find('all', array('conditions' => $criteria,
-                                                    'fields'     => $fields,
-                                                    'order'      => array($param['orderby'])));
+            $v = $this->Customer->find('all', array(
+                'conditions' => $criteria,
+                'fields'     => $fields,
+                'order'      => array($param['orderby'])
+            ));
         }
 
         $ret = array();
@@ -3124,7 +3522,7 @@ class ServersController extends WebServicesController
             $tmpObject = null;
             $ctr = 0;
             //-----------------------------------------------------------------------
-            foreach($ret['records'] as $data) {
+            foreach ($ret['records'] as $data) {
                 //------------------------------------------------------------------
                 $GetData = array();
                 //------------------------------------------------------------------
@@ -3132,7 +3530,7 @@ class ServersController extends WebServicesController
                     //--------------------------------------------------------------
                     $Sql = "SELECT HOWKNOWSCODE, HOWKNOWS
                              FROM howknows_thestore
-                             WHERE HOWKNOWSCODE = ".$data['HOWKNOWSCODE'];
+                             WHERE HOWKNOWSCODE = " . $data['HOWKNOWSCODE'];
                     //--------------------------------------------------------------
                     $GetData = $this->Customer->query($Sql);
                     //--------------------------------------------------------------
@@ -3140,9 +3538,9 @@ class ServersController extends WebServicesController
                         $tmpObject = array_merge($data, $GetData[0]['howknows_thestore']);
                     } else {
                         $tmpObject = $data;
-                    }//end if
+                    } //end if
                     //--------------------------------------------------------------
-                }//end if
+                } //end if
                 else {
                     //--------------------------------------------------------------
                     $GetData[0]['howknows_thestore']['HOWKNOWSCODE'] = -1;
@@ -3150,19 +3548,19 @@ class ServersController extends WebServicesController
                     //--------------------------------------------------------------
                     $tmpObject = array_merge($data, $GetData[0]['howknows_thestore']);
                     //--------------------------------------------------------------
-                }//end else
+                } //end else
                 //------------------------------------------------------------------
                 $ret['records'][$ctr] = $tmpObject;
                 $ctr++;
                 //------------------------------------------------------------------
-            }//end for each
+            } //end for each
             //-----------------------------------------------------------------------
 
 
             //Get REFERRALNAME, STAFF_INCHARGE_SELECTED_NAME and REFERRALRELATIONCODENAME
             $ctr = 0;
             foreach ($ret['records'] as &$rec) {
-                if($rec['INTRODUCETYPE'] == 0){
+                if ($rec['INTRODUCETYPE'] == 0) {
                     continue;
                 }
 
@@ -3184,7 +3582,7 @@ class ServersController extends WebServicesController
 
                 $datarec = $this->Customer->query($Sql);
 
-                if(count($datarec) == 0){
+                if (count($datarec) == 0) {
                     continue;
                 }
 
@@ -3193,8 +3591,7 @@ class ServersController extends WebServicesController
                 $rec['REFERRALNAME'] = $datarec[0]['REFERRALNAME'];
                 $rec['STAFF_INCHARGE_SELECTED_NAME'] = $datarec[0]['STAFF_INCHARGE_SELECTED_NAME'];
                 $rec['REFERRALRELATIONCODENAME'] = $datarec[0]['REFERRALRELATIONCODENAME'];
-
-            }//end foreach
+            } //end foreach
             unset($rec);
 
             //---------------------------------------------------------------------------
@@ -3204,18 +3601,22 @@ class ServersController extends WebServicesController
             //---------------------------------------------------------------------------
             $ctr = 0;
             foreach ($ret['records'] as $rec) {
-                $Sql = "SELECT f_get_last_staffcodename(".$storeinfo['storecode'].", "."'".$rec['CCODE']."') AS laststaffcodename";
+                $Sql = "SELECT f_get_last_staffcodename(" . $storeinfo['storecode'] . ", " . "'" . $rec['CCODE'] . "') AS laststaffcodename";
                 $datarec = $this->Customer->query($Sql);
                 if (count($datarec) > 0) {
                     list($laststaffcode, $laststaffname) = split('[#]', $datarec[0][0]["laststaffcodename"]);
-                    $ret['records'][$ctr] = array_merge($rec, array('LASTSTAFFCODE' => (int)$laststaffcode,
-                                                                    'LASTSTAFFNAME' => $laststaffname));
+                    $ret['records'][$ctr] = array_merge($rec, array(
+                        'LASTSTAFFCODE' => (int)$laststaffcode,
+                        'LASTSTAFFNAME' => $laststaffname
+                    ));
                 } else {
-                    $ret['records'][$ctr] = array_merge($rec, array('LASTSTAFFCODE' => 0,
-                                                                    'LASTSTAFFNAME' => ''));
-                }//end if else
+                    $ret['records'][$ctr] = array_merge($rec, array(
+                        'LASTSTAFFCODE' => 0,
+                        'LASTSTAFFNAME' => ''
+                    ));
+                } //end if else
                 $ctr++;
-            }//end foreach
+            } //end foreach
 
             //---------------------------------------------------------------------------
             // Updated By: Homer Pasamba 2013/02/05
@@ -3224,46 +3625,46 @@ class ServersController extends WebServicesController
             $ctr = 0;
             foreach ($ret['records'] as $rec) {
                 $FullAddress['FULLADDRESS'] = '';
-                $FullAddress['FULLADDRESS'] = $ret['records'][$ctr]['KEN1'].
-                                              $ret['records'][$ctr]['SITYO1'].
-                                              $ret['records'][$ctr]['MANSIONMEI'].
-                                              $ret['records'][$ctr]['ADDRESS1'];
+                $FullAddress['FULLADDRESS'] = $ret['records'][$ctr]['KEN1'] .
+                    $ret['records'][$ctr]['SITYO1'] .
+                    $ret['records'][$ctr]['MANSIONMEI'] .
+                    $ret['records'][$ctr]['ADDRESS1'];
                 $ret['records'][$ctr] = array_merge($rec, $FullAddress);
                 $ctr++;
-            }// End foreach ($ret['records'] as $rec)
+            } // End foreach ($ret['records'] as $rec)
             unset($rec);
             //---------------------------------------------------------------------------
             // by albert 2015-10-27 for BM connection -------------------------------
             //---------------------------------------------------------------------------
             //check and get BMCODE if the customer have BM record
             $ctr = 0;
-            foreach($ret['records'] as $data) {
+            foreach ($ret['records'] as $data) {
 
                 $BMCustID['BMCODE'] = "";
-				$SysDesc['SystemDesc'] = "";
+                $SysDesc['SystemDesc'] = "";
 
-				$Sql = "select distinct site_customer_id as BMCODE
+                $Sql = "select distinct site_customer_id as BMCODE
 						from bm_reservation
-						where ccode = '".$data['CCODE']."'";
-				$GetData = $this->Customer->query($Sql);
-				if (count($GetData) > 0) {
+						where ccode = '" . $data['CCODE'] . "'";
+                $GetData = $this->Customer->query($Sql);
+                if (count($GetData) > 0) {
                     $BMCustID['BMCODE'] = $GetData[0]['bm_reservation']['BMCODE'];
-				}
+                }
                 $ret['records'][$ctr] = array_merge($data, $BMCustID);
 
-				if ((int)$data['CREATEDFROMCODE'] == 1) {
+                if ((int)$data['CREATEDFROMCODE'] == 1) {
                     $SysDesc['SystemDesc'] = "店舗（顧客情報）";
-                }else if ((int)$data['CREATEDFROMCODE'] == 2) {
+                } else if ((int)$data['CREATEDFROMCODE'] == 2) {
                     $SysDesc['SystemDesc'] = " 店舗（受付）";
-                }else if ((int)$data['CREATEDFROMCODE'] == 3) {
+                } else if ((int)$data['CREATEDFROMCODE'] == 3) {
                     $SysDesc['SystemDesc'] = "もばすて";
-                }else if ((int)$data['CREATEDFROMCODE'] == 4) {
+                } else if ((int)$data['CREATEDFROMCODE'] == 4) {
                     $SysDesc['SystemDesc'] = "Web予約（PC）";
-                }else if ((int)$data['CREATEDFROMCODE'] == 5) {
+                } else if ((int)$data['CREATEDFROMCODE'] == 5) {
                     $SysDesc['SystemDesc'] = "Web予約（携帯）";
-                }else if ((int)$data['CREATEDFROMCODE'] == 7) {
+                } else if ((int)$data['CREATEDFROMCODE'] == 7) {
                     $SysDesc['SystemDesc'] = "BeautyMerit";
-                }else if ((int)$data['CREATEDFROMCODE'] == 8) {
+                } else if ((int)$data['CREATEDFROMCODE'] == 8) {
                     $SysDesc['SystemDesc'] = "Reservia";
                 }
                 $ret['records'][$ctr] = array_merge($data, $SysDesc);
@@ -3275,12 +3676,12 @@ class ServersController extends WebServicesController
             //get jobindustry description
             $ctr = 0;
 
-            foreach($ret['records'] as $data) {
+            foreach ($ret['records'] as $data) {
                 $JobInd['JOBINDUSTRY'] = "なし";
-                if ($data['JOBINDUSTRYCODE'] > 0){
+                if ($data['JOBINDUSTRYCODE'] > 0) {
                     $Sql = "select jobindustry
                             from job_industry
-                            where delflg is null and jobindustrycode = ".$data['JOBINDUSTRYCODE'];
+                            where delflg is null and jobindustrycode = " . $data['JOBINDUSTRYCODE'];
                     $GetData = $this->Customer->query($Sql);
                     if (count($GetData) > 0) {
                         $JobInd['JOBINDUSTRY'] = $GetData[0]['job_industry']['jobindustry'];
@@ -3296,7 +3697,7 @@ class ServersController extends WebServicesController
 
         return $ret;
         //---------------------------------------------------------------------------
-    }//end function
+    } //end function
 
     private function GetSharedStoreCode($dbName, $storeCode)
     {
@@ -3321,7 +3722,8 @@ class ServersController extends WebServicesController
      * @param string $ccode
      * @return return Array _storeTransactionInformation
      */
-    function wsSearchCustomerHistory($sessionid, $ccode) {
+    function wsSearchCustomerHistory($sessionid, $ccode)
+    {
         //-----------------------------------------------------------------------------------------------------------------
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         //-----------------------------------------------------------------------------------------------------------------
@@ -3450,7 +3852,7 @@ class ServersController extends WebServicesController
                         LEFT JOIN howknows_thestore as howknows_thestore
                                 ON howknows_thestore.howknowscode = customer.howknowscode
                 WHERE  (transaction.tempstatus = 0 OR transaction.transdate >= DATE_FORMAT(NOW(),'%Y-%m-%d'))
-                        AND transaction.ccode = '".$ccode."'
+                        AND transaction.ccode = '" . $ccode . "'
                         AND transaction.delflg IS NULL
                 GROUP BY transaction.transcode, transaction.keyno, details.trantype, details.rowno
                 ORDER BY transaction.transdate DESC, transaction.idno, details.trantype, details.rowno";
@@ -3476,7 +3878,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return return_customerIDs
      */
-    function wsAddUpdateCustomer($sessionid, $param) {
+    function wsAddUpdateCustomer($sessionid, $param)
+    {
 
         // Remove REGULAR field so it will not update
         unset($param['REGULAR']);
@@ -3486,11 +3889,11 @@ class ServersController extends WebServicesController
         // these fields where added for customer merge purpose only
         //---------------------------------------------------------------
         unset($param['INTRODUCETYPE'],
-              $param['REFERRALCODE'],
-              $param['STOREDATE'],
-              $param['REFERRALRELATIONCODE'],
-              $param['AGERANGE'],
-              $param['STAFF_INCHARGE_SELECTED']);
+        $param['REFERRALCODE'],
+        $param['STOREDATE'],
+        $param['REFERRALRELATIONCODE'],
+        $param['AGERANGE'],
+        $param['STAFF_INCHARGE_SELECTED']);
         //---------------------------------------------------------------
 
 
@@ -3519,9 +3922,9 @@ class ServersController extends WebServicesController
         //-- CCODEは設定してない場合、新規CCODEを作成 (Check CCODE, create new if none)
         if (empty($param['CCODE'])) {
             $sc = $param['CSTORECODE'];
-            $querty_txt = "select ".
-                          "f_get_sequence_key('cid',".$sc.", '') as cid, ".
-                          "f_get_sequence_key('cnumber', ".$sc.", '') as cnumber";
+            $querty_txt = "select " .
+                "f_get_sequence_key('cid'," . $sc . ", '') as cid, " .
+                "f_get_sequence_key('cnumber', " . $sc . ", '') as cnumber";
 
             $tmp_data = $this->Customer->query($querty_txt);
             $param['CID']     = $tmp_data[0][0]['cid'];
@@ -3543,11 +3946,11 @@ class ServersController extends WebServicesController
 
             $result = $this->StoreTransaction->query($sql);
 
-            if (count($result) > 0){
-                foreach ($result as $val){
-                    if($val["store_settings"]["optionname"] == "EmailIssue"){
+            if (count($result) > 0) {
+                foreach ($result as $val) {
+                    if ($val["store_settings"]["optionname"] == "EmailIssue") {
                         $param["MAILKUBUN"] = ($val["store_settings"]["optionvalues"] == "True") ? 1 : 0;
-                    }elseif($val["store_settings"]["optionname"] == "MailIssue"){
+                    } elseif ($val["store_settings"]["optionname"] == "MailIssue") {
                         $param["DMKUBUN"] = ($val["store_settings"]["optionvalues"] == "True") ? 1 : 0;
                     }
                 }
@@ -3610,7 +4013,8 @@ class ServersController extends WebServicesController
      * @param string $ccode
      * @return boolean
      */
-    function wsDeleteCustomer($sessionid, $ccode) {
+    function wsDeleteCustomer($sessionid, $ccode)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -3642,7 +4046,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return return_staffInformation
      */
-    function wsSearchStaff($sessionid, $param) {
+    function wsSearchStaff($sessionid, $param)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -3660,51 +4065,71 @@ class ServersController extends WebServicesController
 
         $bindarray = NULL;
         $this->Stafftype->set_company_database($storeinfo['dbname'], $this->Stafftype);
-        if($use_syscode){
+        if ($use_syscode) {
             //$this->Stafftype->set_company_database($storeinfo['dbname'], $this->Stafftype);
             $bindarray = array(
-            'hasOne' => array('Sublevel' => array(
-                                      'foreignKey' => false,
-                                      'conditions' => array('Sublevel.SUBLEVELCODE = Staff.SUBLEVELCODE')),
-                              'Position' => array(
-                                      'foreignKey' => false,
-                                      'conditions' => array('Position.POSITIONCODE = Staff.POSITIONCODE')),
-                              'StaffAssignToStore' => array(
-                                      'foreignKey' => false,
-                                      'conditions' => array('StaffAssignToStore.STAFFCODE = Staff.STAFFCODE',
-                                                            'StaffAssignToStore.STORECODE = ' . $storeinfo['storecode'])),
-                              'Stafftype' => array(
-                                      'type' => 'inner',
-                                      'foreignKey' => 'STAFFCODE',
-                                      'conditions' => array('Stafftype.STAFFCODE = Staff.STAFFCODE',
-                                                            'Stafftype.SYSCODE ='.$param['syscode']))
-                              ));
+                'hasOne' => array(
+                    'Sublevel' => array(
+                        'foreignKey' => false,
+                        'conditions' => array('Sublevel.SUBLEVELCODE = Staff.SUBLEVELCODE')
+                    ),
+                    'Position' => array(
+                        'foreignKey' => false,
+                        'conditions' => array('Position.POSITIONCODE = Staff.POSITIONCODE')
+                    ),
+                    'StaffAssignToStore' => array(
+                        'foreignKey' => false,
+                        'conditions' => array(
+                            'StaffAssignToStore.STAFFCODE = Staff.STAFFCODE',
+                            'StaffAssignToStore.STORECODE = ' . $storeinfo['storecode']
+                        )
+                    ),
+                    'Stafftype' => array(
+                        'type' => 'inner',
+                        'foreignKey' => 'STAFFCODE',
+                        'conditions' => array(
+                            'Stafftype.STAFFCODE = Staff.STAFFCODE',
+                            'Stafftype.SYSCODE =' . $param['syscode']
+                        )
+                    )
+                )
+            );
         } else {
             //--------------------------------------------------------------------------------------------------------------------
             $bindarray = array(
-            'hasOne' => array('Sublevel' => array(
-                                        'foreignKey' => false,
-                                        'conditions' => array('Sublevel.SUBLEVELCODE = Staff.SUBLEVELCODE')),
-                                'Position' => array(
-                                        'foreignKey' => false,
-                                        'conditions' => array('Position.POSITIONCODE = Staff.POSITIONCODE')),
-                                'StaffAssignToStore' => array(
-                                        'foreignKey' => false,
-                                        'conditions' => array('StaffAssignToStore.STAFFCODE = Staff.STAFFCODE',
-                                                              'StaffAssignToStore.STORECODE = ' . $storeinfo['storecode'])),
-                                'Stafftype' => array(
-                                        'type' => 'inner',
-                                        'foreignKey' => 'STAFFCODE',
-                                        'conditions' => array('Stafftype.STAFFCODE = Staff.STAFFCODE',
-                                                              'Stafftype.delflg IS NULL OR (StaffAssignToStore.STAFFCODE = 0
-                                                                                                AND StaffAssignToStore.storecode = '.$storeinfo['storecode'].')',
-                                                              'Stafftype.SYSCODE in (SELECT syscode
+                'hasOne' => array(
+                    'Sublevel' => array(
+                        'foreignKey' => false,
+                        'conditions' => array('Sublevel.SUBLEVELCODE = Staff.SUBLEVELCODE')
+                    ),
+                    'Position' => array(
+                        'foreignKey' => false,
+                        'conditions' => array('Position.POSITIONCODE = Staff.POSITIONCODE')
+                    ),
+                    'StaffAssignToStore' => array(
+                        'foreignKey' => false,
+                        'conditions' => array(
+                            'StaffAssignToStore.STAFFCODE = Staff.STAFFCODE',
+                            'StaffAssignToStore.STORECODE = ' . $storeinfo['storecode']
+                        )
+                    ),
+                    'Stafftype' => array(
+                        'type' => 'inner',
+                        'foreignKey' => 'STAFFCODE',
+                        'conditions' => array(
+                            'Stafftype.STAFFCODE = Staff.STAFFCODE',
+                            'Stafftype.delflg IS NULL OR (StaffAssignToStore.STAFFCODE = 0
+                                                                                                AND StaffAssignToStore.storecode = ' . $storeinfo['storecode'] . ')',
+                            'Stafftype.SYSCODE in (SELECT syscode
                                                                                     FROM storetype
                                                                                     WHERE delflg IS NULL
-                                                                                            AND storecode = '.$storeinfo['storecode'].')'))
-                                ));
+                                                                                            AND storecode = ' . $storeinfo['storecode'] . ')'
+                        )
+                    )
+                )
+            );
             //--------------------------------------------------------------------------------------------------------------------
-        }//end else
+        } //end else
 
         $this->Staff->bindModel($bindarray);
         $this->Staff->unbindModel(array('belongsTo' => array('Sublevel', 'Position')));
@@ -3725,14 +4150,15 @@ class ServersController extends WebServicesController
         }
 
         foreach ($param as $key => $val) {
-            if (    !empty($val) &&
-                    $key != 'limit' &&
-                    $key != 'page' &&
-                    $key != 'orderby' &&
-                    $key != 'showfreestaff' &&
-                    $key != 'syscode'
-                    ) {
-                $criteria['Staff.'.$key] = $val;
+            if (
+                !empty($val) &&
+                $key != 'limit' &&
+                $key != 'page' &&
+                $key != 'orderby' &&
+                $key != 'showfreestaff' &&
+                $key != 'syscode'
+            ) {
+                $criteria['Staff.' . $key] = $val;
             }
         }
 
@@ -3746,8 +4172,10 @@ class ServersController extends WebServicesController
         }
 
         if ($param['showfreestaff'] == 1) {
-            $criteria_top['or'] = array($criteria,
-                                    'Staff.staffcode' => 0);
+            $criteria_top['or'] = array(
+                $criteria,
+                'Staff.staffcode' => 0
+            );
         } else {
             $criteria_top = $criteria;
         }
@@ -3759,53 +4187,58 @@ class ServersController extends WebServicesController
         //Update by: Marvin marvin@think-ahead.jp 2012-01-04
         //Add Field Array to prevent overflow and get only the fields needed not all fields in the table
         //------------------------------------------------------------------------------------------------
-        $arrFields = array("DISTINCT Staff.STAFFCODE",
-                           "Staff.STAFFNAME",
-                           "Staff.STAFFNAME2",
-                           "Staff.STORECODE",
-                           "Staff.KEYNO",
-                           "Staff.SUBLEVELCODE",
-                           "Staff.POSITIONCODE",
-                           "Staff.TRAVEL_ALLOWANCE",
-                           "Staff.SEX",
-                           "Staff.HIREDATE",
-                           "Staff.RETIREDATE",
-                           "Staff.YOYAKUKUBUN",
-                           "Staff.STAFFIMGFLG",
-                           "Staff.DISPLAY_ORDER",
-                           "Staff.WEBFLG",
-                           "Staff.WEBYAN_DISPLAY",
-                           "Staff.c_member_id",
-                           "Staff.email",
-                           "Staff.create_comm_flag",
-                           "Staff.BLOG_URL",
-                           "Position.POSITIONCODE",
-                           "Position.POSITIONNAME",
-                           "Position.DISPLAY_ORDER",
-                           "Sublevel.SUBLEVELCODE",
-                           "Sublevel.SUBLEVELNAME",
-                           "Sublevel.LEVELCODE",
-                           "StaffAssignToStore.STORECODE",
-                           "StaffAssignToStore.STAFFCODE",
-                           "StaffAssignToStore.KEYNO",
-                           "StaffAssignToStore.ASSIGN_YOYAKU",
-                           "StaffAssignToStore.WEBYAN_DISPLAY",
-                           "StaffAssignToStore.KANZASHI_ENABLED",
-                           "StaffAssignToStore.ASSIGN",
-                           "StaffAssignToStore.DISPLAY_ORDER"
-            );
+        $arrFields = array(
+            "DISTINCT Staff.STAFFCODE",
+            "Staff.STAFFNAME",
+            "Staff.STAFFNAME2",
+            "Staff.STORECODE",
+            "Staff.KEYNO",
+            "Staff.SUBLEVELCODE",
+            "Staff.POSITIONCODE",
+            "Staff.TRAVEL_ALLOWANCE",
+            "Staff.SEX",
+            "Staff.HIREDATE",
+            "Staff.RETIREDATE",
+            "Staff.YOYAKUKUBUN",
+            "Staff.STAFFIMGFLG",
+            "Staff.DISPLAY_ORDER",
+            "Staff.WEBFLG",
+            "Staff.WEBYAN_DISPLAY",
+            "Staff.c_member_id",
+            "Staff.email",
+            "Staff.create_comm_flag",
+            "Staff.BLOG_URL",
+            "Position.POSITIONCODE",
+            "Position.POSITIONNAME",
+            "Position.DISPLAY_ORDER",
+            "Sublevel.SUBLEVELCODE",
+            "Sublevel.SUBLEVELNAME",
+            "Sublevel.LEVELCODE",
+            "StaffAssignToStore.STORECODE",
+            "StaffAssignToStore.STAFFCODE",
+            "StaffAssignToStore.KEYNO",
+            "StaffAssignToStore.ASSIGN_YOYAKU",
+            "StaffAssignToStore.WEBYAN_DISPLAY",
+            "StaffAssignToStore.KANZASHI_ENABLED",
+            "StaffAssignToStore.ASSIGN",
+            "StaffAssignToStore.DISPLAY_ORDER"
+        );
 
         //------------------------------------------------------------------------------------------------
         if ($param['limit'] <> -1) {
-            $v = $this->Staff->find('all', array('conditions' => $criteria_top,
+            $v = $this->Staff->find('all', array(
+                'conditions' => $criteria_top,
                 'fields' => $arrFields,
                 'order' => array($param['orderby']),
                 'limit' => $param['limit'],
-                'page' => $param['page']));
+                'page' => $param['page']
+            ));
         } else {
-            $v = $this->Staff->find('all', array('conditions' => $criteria_top,
+            $v = $this->Staff->find('all', array(
+                'conditions' => $criteria_top,
                 'fields' => $arrFields,
-                'order' => array($param['orderby'])));
+                'order' => array($param['orderby'])
+            ));
         }
 
         for ($i = 0; $i < count($v); $i++) {
@@ -3818,41 +4251,41 @@ class ServersController extends WebServicesController
 
         $ret = array();
         $ret['records'] = set::extract($v, '{n}.Staff');
-        $ret['record_count'] = $this->Staff->find('count', array('conditions' => $criteria_top,
-                                                  'fields' => 'DISTINCT Staff.STAFFCODE'));
+        $ret['record_count'] = $this->Staff->find('count', array(
+            'conditions' => $criteria_top,
+            'fields' => 'DISTINCT Staff.STAFFCODE'
+        ));
         if (count($ret['records']) > 0) {
             $ctr = 0;
-            foreach ($ret['records'] AS $rec) {
+            foreach ($ret['records'] as $rec) {
                 $staffsycodes = "";
                 $staffviewcodes = "";
                 $Sql = "SELECT syscode,YOYAKU_VIEW
                         FROM stafftype
                         WHERE delflg IS NULL
-                            AND staffcode = ".$rec["STAFFCODE"];
+                            AND staffcode = " . $rec["STAFFCODE"];
                 $rs = $this->Staff->query($Sql);
                 if (count($rs) > 0) {
-                    foreach ($rs AS $da) {
-                        if ($staffsycodes != ""){
+                    foreach ($rs as $da) {
+                        if ($staffsycodes != "") {
                             $staffsycodes .= " ";
                         }
                         $staffsycodes .= $da["stafftype"]["syscode"];
 
-                        if ($staffviewcodes != ""){
+                        if ($staffviewcodes != "") {
                             $staffviewcodes .= " ";
                         }
-                        if($da["stafftype"]["YOYAKU_VIEW"] == 1)
-                        {
+                        if ($da["stafftype"]["YOYAKU_VIEW"] == 1) {
                             $staffviewcodes .= $da["stafftype"]["syscode"];
                         }
-
-                    }//end foreach
-                }//end if
+                    } //end foreach
+                } //end if
                 $rec["SYSCODES"] = $staffsycodes;
                 $rec["STAFFVIEWS"] = $staffviewcodes;
                 $ret['records'][$ctr] = $rec;
                 $ctr++;
-            }//end foreach
-        }//end if
+            } //end foreach
+        } //end if
         return $ret;
     }
 
@@ -3864,7 +4297,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return return_staffInformation
      */
-    function wsSearchAvailableStaff($sessionid, $param) {
+    function wsSearchAvailableStaff($sessionid, $param)
+    {
         if ($param['ignoreSessionCheck'] <> 1) {
             //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
             $storeinfo = $this->YoyakuSession->Check($this);
@@ -3909,10 +4343,10 @@ class ServersController extends WebServicesController
 		            Store.STORENAME,
                     IF (Staff.STORECODE = StaffAssignToStore.STORECODE OR Staff.STAFFCODE = 0, StaffAssignToStore.WEBYAN_DISPLAY, 0) AS WEBYAN_DISPLAY,
                     IF (Staff.STORECODE = StaffAssignToStore.STORECODE OR Staff.STAFFCODE = 0, StaffAssignToStore.KANZASHI_ENABLED, 0) AS KANZASHI_ENABLED,
-                    IFNULL(StaffRowsHistory.ROWS, ".DEFAULT_ROWS.") as origrows,
-		            IFNULL(StaffRowsHistory.PHONEROWS, ".DEFAULT_PHONEROWS.") as origphonerows,
-		            IFNULL(StaffRowsHistory.ROWS, ".DEFAULT_ROWS.") as ROWS,
-		            IFNULL(StaffRowsHistory.PHONEROWS, ".DEFAULT_PHONEROWS.") as PHONEROWS,
+                    IFNULL(StaffRowsHistory.ROWS, " . DEFAULT_ROWS . ") as origrows,
+		            IFNULL(StaffRowsHistory.PHONEROWS, " . DEFAULT_PHONEROWS . ") as origphonerows,
+		            IFNULL(StaffRowsHistory.ROWS, " . DEFAULT_ROWS . ") as ROWS,
+		            IFNULL(StaffRowsHistory.PHONEROWS, " . DEFAULT_PHONEROWS . ") as PHONEROWS,
 		            CONVERT(tblstafftypes.STAFFTYPES USING UTF8) AS STAFFTYPES,
 		            CONVERT(tblstafftypes.STAFFVIEWS USING UTF8) AS STAFFVIEWS
                 FROM staff_assign_to_store as StaffAssignToStore
@@ -3926,7 +4360,7 @@ class ServersController extends WebServicesController
 				            AND stafftype.syscode IN (SELECT syscode
 													  FROM storetype
 													  WHERE delflg IS NULL
-													    AND storecode = ".$param['STORECODE']."
+													    AND storecode = " . $param['STORECODE'] . "
 													  )
 			            GROUP BY staffcode
 
@@ -3946,7 +4380,7 @@ class ServersController extends WebServicesController
                             FROM(
                             SELECT *
                                 FROM staffrowshistory as StaffRowsHistory
-                                WHERE StaffRowsHistory.STORECODE = " . $param['STORECODE'] ."
+                                WHERE StaffRowsHistory.STORECODE = " . $param['STORECODE'] . "
                                     {$staff_rows_history_extra}
                                 ORDER BY StaffRowsHistory.DATECHANGE DESC
                                 ) as TMPTBL
@@ -3969,7 +4403,7 @@ class ServersController extends WebServicesController
                                 SHIFT
                             FROM staff_holiday
                             WHERE YMD = '" . $param['date'] . "'
-                                AND storecode = ".$param['STORECODE']."
+                                AND storecode = " . $param['STORECODE'] . "
                                 AND staff_holiday.delflg IS NULL
                             GROUP BY storecode,YMD,staffcode
             	            ) as Holiday
@@ -3998,7 +4432,7 @@ class ServersController extends WebServicesController
             $v = $this->StaffAssignToStore->query($sql_limit_offset);
         } else {
             $v = $this->StaffAssignToStore->query($sql);
-        }//end if else
+        } //end if else
         //-------------------------------------------------------------------------------------------------
         for ($i = 0; $i < count($v); $i++) {
             $v[$i]['StaffAssignToStore']['STAFFNAME']  = $v[$i]['Staff']['STAFFNAME'];
@@ -4006,31 +4440,35 @@ class ServersController extends WebServicesController
 
             if ($v[$i][0]['origrows'] == "" || $v[$i][0]['origrows'] == 0) {
                 $v[$i]['StaffAssignToStore']['origrows'] = DEFAULT_ROWS;
-            }else{
+            } else {
                 $v[$i]['StaffAssignToStore']['origrows'] = $v[$i][0]['origrows'];
             }
             if ($v[$i][0]['origphonerows'] == "" || $v[$i][0]['origphonerows'] == 0) {
                 $v[$i]['StaffAssignToStore']['origphonerows'] = DEFAULT_PHONEROWS;
-            }else{
+            } else {
                 $v[$i]['StaffAssignToStore']['origphonerows'] = $v[$i][0]['origphonerows'];
             }
 
-            $v[$i]['StaffAssignToStore']['WEB_DISPLAY']= $v[$i][0]['WEBYAN_DISPLAY'];
-            $v[$i]['StaffAssignToStore']['KANZASHI_ENABLED']= $v[$i][0]['KANZASHI_ENABLED'];
+            $v[$i]['StaffAssignToStore']['WEB_DISPLAY'] = $v[$i][0]['WEBYAN_DISPLAY'];
+            $v[$i]['StaffAssignToStore']['KANZASHI_ENABLED'] = $v[$i][0]['KANZASHI_ENABLED'];
             $v[$i]['StaffAssignToStore']['STORENAME']  = $v[$i]['Store']['STORENAME'];
-            if ($v[$i][0]['ROWS'] == "" ||
-                $v[$i][0]['ROWS'] == 0) {
+            if (
+                $v[$i][0]['ROWS'] == "" ||
+                $v[$i][0]['ROWS'] == 0
+            ) {
                 $v[$i][0]['ROWS'] = DEFAULT_ROWS;
             }
-            if ($v[$i][0]['PHONEROWS'] == "" ||
-                $v[$i][0]['PHONEROWS'] == 0) {
+            if (
+                $v[$i][0]['PHONEROWS'] == "" ||
+                $v[$i][0]['PHONEROWS'] == 0
+            ) {
                 $v[$i][0]['PHONEROWS'] = DEFAULT_PHONEROWS;
             }
             $v[$i]['StaffAssignToStore']['ROWS']       = $v[$i][0]['ROWS'];
             $v[$i]['StaffAssignToStore']['PHONEROWS']  = $v[$i][0]['PHONEROWS'];
             $v[$i]['StaffAssignToStore']['STAFFTYPES']  = $v[$i][0]['STAFFTYPES'];
             $v[$i]['StaffAssignToStore']['STAFFVIEWS']  = $v[$i][0]['STAFFVIEWS'];
-        }//end for
+        } //end for
 
         $ret = array();
         $ret['records']      = set::extract($v, '{n}.StaffAssignToStore');
@@ -4041,7 +4479,7 @@ class ServersController extends WebServicesController
         //-------------------------------------------------------------------------------------------------
         return $ret;
         //-------------------------------------------------------------------------------------------------
-    }//end function
+    } //end function
 
 
     /**
@@ -4052,7 +4490,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return STAFFCODE
      */
-    function wsAddUpdateStaffRowsHistory($sessionid, $param) {
+    function wsAddUpdateStaffRowsHistory($sessionid, $param)
+    {
         if ($param['ignoreSessionCheck'] <> 1) {
             //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
             $storeinfo = $this->YoyakuSession->Check($this);
@@ -4069,12 +4508,12 @@ class ServersController extends WebServicesController
 
         $fields = "STORECODE, STAFFCODE, DATECHANGE, ROWS, PHONEROWS";
         $values = $param['STORECODE'] . "," .
-                  $param['STAFFCODE'] . ", '" .
-                  $param['date']      . "', " .
-                  $param['ROWS']      . "," .
-                  $param['PHONEROWS'];
+            $param['STAFFCODE'] . ", '" .
+            $param['date']      . "', " .
+            $param['ROWS']      . "," .
+            $param['PHONEROWS'];
 
-        $sql = "REPLACE INTO staffrowshistory (".$fields.") VALUES(".$values.")";
+        $sql = "REPLACE INTO staffrowshistory (" . $fields . ") VALUES(" . $values . ")";
 
         $this->StaffRowsHistory->query($sql);
 
@@ -4093,7 +4532,8 @@ class ServersController extends WebServicesController
      * @param bool $pre_delete
      * @return bool
      */
-    function wsAddStaffRowsHistories($sessionid, $storecode, $staffcode, $params, $pre_delete) {
+    function wsAddStaffRowsHistories($sessionid, $storecode, $staffcode, $params, $pre_delete)
+    {
         $storeinfo = $this->YoyakuSession->Check($this);
 
         if (!$storeinfo) {
@@ -4109,10 +4549,10 @@ class ServersController extends WebServicesController
 
             if ($pre_delete) {
                 $query =
-                    "DELETE FROM staffrowshistory ".
-                    "WHERE ".
-                        "STORECODE = {$storecode} AND ".
-                        "STAFFCODE = {$staffcode} ";
+                    "DELETE FROM staffrowshistory " .
+                    "WHERE " .
+                    "STORECODE = {$storecode} AND " .
+                    "STAFFCODE = {$staffcode} ";
 
                 if ($this->StaffRowsHistory->query($query) === false) {
                     throw new Exception();
@@ -4129,13 +4569,13 @@ class ServersController extends WebServicesController
                 $values_query = implode(', ', $values_query);
 
                 $query =
-                    "INSERT INTO staffrowshistory ( ".
-                        "STAFFCODE, ".
-                        "DATECHANGE, ".
-                        "ROWS, ".
-                        "PHONEROWS, ".
-                        "STORECODE, ".
-                        "SHOWINCALENDAR ".
+                    "INSERT INTO staffrowshistory ( " .
+                    "STAFFCODE, " .
+                    "DATECHANGE, " .
+                    "ROWS, " .
+                    "PHONEROWS, " .
+                    "STORECODE, " .
+                    "SHOWINCALENDAR " .
                     ") VALUES {$values_query} ";
 
                 if ($this->StaffRowsHistory->query($query) === false) {
@@ -4145,8 +4585,7 @@ class ServersController extends WebServicesController
 
             $source->commit();
             return true;
-        }
-        catch (Exception $ex) {
+        } catch (Exception $ex) {
             $source->rollback();
             return false;
         }
@@ -4163,7 +4602,8 @@ class ServersController extends WebServicesController
      * @param array $datechanges
      * @return bool
      */
-    function wsDeleteStaffRowsHistory($sessionid, $storecode, $staffcode, $datechanges) {
+    function wsDeleteStaffRowsHistory($sessionid, $storecode, $staffcode, $datechanges)
+    {
         $storeinfo = $this->YoyakuSession->Check($this);
 
         if (!$storeinfo) {
@@ -4180,7 +4620,7 @@ class ServersController extends WebServicesController
 
         if (count($datechanges) > 0) {
             for ($i = 0; $i < count($datechanges); $i++) {
-            	$datechanges[$i] = "'{$datechanges[$i]}'";
+                $datechanges[$i] = "'{$datechanges[$i]}'";
             }
 
             $where_query[] = "DATECHANGE IN(" . implode(',', $datechanges) . ")";
@@ -4189,7 +4629,7 @@ class ServersController extends WebServicesController
         $where_query = implode(' AND ', $where_query);
 
         $query =
-            "DELETE FROM staffrowshistory ".
+            "DELETE FROM staffrowshistory " .
             "WHERE {$where_query} ";
 
         return $this->StaffRowsHistory->query($query) !== false;
@@ -4205,7 +4645,8 @@ class ServersController extends WebServicesController
      * @param int $staffcode
      * @return return_staffRowsHistoryInformation
      */
-    function wsSearchStaffRowsHistory($sessionid, $storecode, $staffcode) {
+    function wsSearchStaffRowsHistory($sessionid, $storecode, $staffcode)
+    {
         $storeinfo = $this->YoyakuSession->Check($this);
 
         if (!$storeinfo) {
@@ -4227,17 +4668,17 @@ class ServersController extends WebServicesController
         $where_query = implode(' AND ', $where_query);
 
         $query =
-            "SELECT ".
-                "STAFFCODE, ".
-                "STORECODE, ".
-                "DATECHANGE date, ".
-                "ROWS, ".
-                "PHONEROWS ".
-            "FROM staffrowshistory ".
-            "WHERE {$where_query} ".
-            "ORDER BY ".
-                "STAFFCODE, ".
-                "date DESC ";
+            "SELECT " .
+            "STAFFCODE, " .
+            "STORECODE, " .
+            "DATECHANGE date, " .
+            "ROWS, " .
+            "PHONEROWS " .
+            "FROM staffrowshistory " .
+            "WHERE {$where_query} " .
+            "ORDER BY " .
+            "STAFFCODE, " .
+            "date DESC ";
 
         $result = $this->StaffRowsHistory->query($query);
         $records = array();
@@ -4261,7 +4702,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return STAFFCODE
      */
-    function wsAddUpdateStaff($sessionid, $param) {
+    function wsAddUpdateStaff($sessionid, $param)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -4280,21 +4722,21 @@ class ServersController extends WebServicesController
 
         //-- STAFFCODEは設定してない場合、新規STAFFCODEを作成 (Check STAFFCODE, create new if none)
         if (empty($param['STAFFCODE'])) {
-            $tmp_data = $this->Staff->query("select f_get_sequence_key('staffcode', ".
-                                             $param['STORECODE'].", '') as staffcode");
+            $tmp_data = $this->Staff->query("select f_get_sequence_key('staffcode', " .
+                $param['STORECODE'] . ", '') as staffcode");
             $param['STAFFCODE'] = $tmp_data[0][0]['staffcode'];
         }
 
         //-- スタッフ情報を準備する (prepare staff information)
         foreach ($param as $key => $val) {
-            if ( $key != 'WEB_DISPLAY' && $key != 'YOYAKU_DISPLAY' && $key != 'DISPLAY_ORDER') {
+            if ($key != 'WEB_DISPLAY' && $key != 'YOYAKU_DISPLAY' && $key != 'DISPLAY_ORDER') {
                 $this->Staff->set($key, $val);
 
                 if ($key == 'STAFFTYPECODES') {
                     $this->wsUpdateStaffType($sessionid, $param['STAFFCODE'], $val);
                 } // end if
 
-            }// end if
+            } // end if
         } // end for
 
         //$this->Staff->set('WEBYAN_DISPLAY', intval($param['WEB_DISPLAY']));
@@ -4327,7 +4769,8 @@ class ServersController extends WebServicesController
      * @param <String> $stafftypecodes
      * @return boolean
      */
-    function wsUpdateStaffType($sessionid, $staffcode, $stafftypecodes){
+    function wsUpdateStaffType($sessionid, $staffcode, $stafftypecodes)
+    {
         //=======================================================================
         // Verify Session and Get DB name
         //-----------------------------------------------------------------------
@@ -4336,7 +4779,7 @@ class ServersController extends WebServicesController
         if ($storeinfo == false) {
             $this->_soap_server->fault(1, '', INVALID_SESSION);
             return;
-        }// End If
+        } // End If
         //-----------------------------------------------------------------------
         $this->Staff->set_company_database($storeinfo['dbname'], $this->Staff);
         //=======================================================================
@@ -4344,7 +4787,7 @@ class ServersController extends WebServicesController
         //-----------------------------------------------------------------------
         $Sql_delflg = 'UPDATE stafftype
                        SET DELFLG = NOW()
-                       WHERE STAFFCODE = '.$staffcode;
+                       WHERE STAFFCODE = ' . $staffcode;
         //-----------------------------------------------------------------------
         $this->Staff->query($Sql_delflg);
         //=======================================================================
@@ -4353,41 +4796,41 @@ class ServersController extends WebServicesController
         // BEAUTY , 1
         //-----------------------------------------------------------------------
         $val = "";
-        if (strstr($stafftypecodes,'1') != ''){
-            $val = "(".$staffcode.", 1),";
+        if (strstr($stafftypecodes, '1') != '') {
+            $val = "(" . $staffcode . ", 1),";
         } //End If
         //-----------------------------------------------------------------------
         // NAIL , 2
         //-----------------------------------------------------------------------
-        if (strstr($stafftypecodes,'2') != ''){
-            $val .= " (".$staffcode.", 2),";
+        if (strstr($stafftypecodes, '2') != '') {
+            $val .= " (" . $staffcode . ", 2),";
         } //End If
         //-----------------------------------------------------------------------
         // Matsu , 3
         //-----------------------------------------------------------------------
-        if (strstr($stafftypecodes,'3') != ''){
-            $val .= " (".$staffcode.", 3),";
+        if (strstr($stafftypecodes, '3') != '') {
+            $val .= " (" . $staffcode . ", 3),";
         }
         //-----------------------------------------------------------------------
         // ESTE , 4
         //-----------------------------------------------------------------------
-        if (strstr($stafftypecodes,'4') != ''){
-            $val .= " (".$staffcode.", 4),";
+        if (strstr($stafftypecodes, '4') != '') {
+            $val .= " (" . $staffcode . ", 4),";
         } //End If
         //=======================================================================
         if ($val != '') {
             //-------------------------------------------------------------------
-            $val = substr($val, 0, strlen($val)-1);
+            $val = substr($val, 0, strlen($val) - 1);
             //-------------------------------------------------------------------
             $Sql = "INSERT INTO stafftype (staffcode,syscode)
-                VALUES ".$val.
+                VALUES " . $val .
                 " ON DUPLICATE KEY UPDATE DELFLG = null";
             //-------------------------------------------------------------------
             $this->Staff->query($Sql);
             //-------------------------------------------------------------------
             return true;
             //-------------------------------------------------------------------
-        }else {
+        } else {
             //-------------------------------------------------------------------
             return False;
             //-------------------------------------------------------------------
@@ -4404,7 +4847,8 @@ class ServersController extends WebServicesController
      * @param int $staffcode
      * @return boolean
      */
-    function wsDeleteStaff($sessionid, $staffcode) {
+    function wsDeleteStaff($sessionid, $staffcode)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -4433,7 +4877,8 @@ class ServersController extends WebServicesController
      * @param string $stafftypecodes
      * @return boolean
      */
-    function wsUpdateStaffDisplayGyoshukubun($sessionid, $staffcode, $stafftypecodes) {
+    function wsUpdateStaffDisplayGyoshukubun($sessionid, $staffcode, $stafftypecodes)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         //=======================================================================
         // Verify Session and Get DB name
@@ -4443,7 +4888,7 @@ class ServersController extends WebServicesController
         if ($storeinfo == false) {
             $this->_soap_server->fault(1, '', INVALID_SESSION);
             return;
-        }// End If
+        } // End If
         //-----------------------------------------------------------------------
         $this->Staff->set_company_database($storeinfo['dbname'], $this->Staff);
         //=======================================================================
@@ -4451,7 +4896,7 @@ class ServersController extends WebServicesController
         //-----------------------------------------------------------------------
         $Sql_delflg = 'UPDATE stafftype
                        SET YOYAKU_VIEW = 0
-                       WHERE STAFFCODE = '.$staffcode;
+                       WHERE STAFFCODE = ' . $staffcode;
         //-----------------------------------------------------------------------
         $this->Staff->query($Sql_delflg);
         //=======================================================================
@@ -4460,41 +4905,41 @@ class ServersController extends WebServicesController
         // BEAUTY , 1
         //-----------------------------------------------------------------------
         $val = "";
-        if (strstr($stafftypecodes,'1') != ''){
-            $val = "(".$staffcode.", 1),";
+        if (strstr($stafftypecodes, '1') != '') {
+            $val = "(" . $staffcode . ", 1),";
         } //End If
         //-----------------------------------------------------------------------
         // NAIL , 2
         //-----------------------------------------------------------------------
-        if (strstr($stafftypecodes,'2') != ''){
-            $val .= " (".$staffcode.", 2),";
+        if (strstr($stafftypecodes, '2') != '') {
+            $val .= " (" . $staffcode . ", 2),";
         } //End If
         //-----------------------------------------------------------------------
         // Matsu , 3
         //-----------------------------------------------------------------------
-        if (strstr($stafftypecodes,'3') != ''){
-            $val .= " (".$staffcode.", 3),";
+        if (strstr($stafftypecodes, '3') != '') {
+            $val .= " (" . $staffcode . ", 3),";
         }
         //-----------------------------------------------------------------------
         // ESTE , 4
         //-----------------------------------------------------------------------
-        if (strstr($stafftypecodes,'4') != ''){
-            $val .= " (".$staffcode.", 4),";
+        if (strstr($stafftypecodes, '4') != '') {
+            $val .= " (" . $staffcode . ", 4),";
         } //End If
         //=======================================================================
         if ($val != '') {
             //-------------------------------------------------------------------
-            $val = substr($val, 0, strlen($val)-1);
+            $val = substr($val, 0, strlen($val) - 1);
             //-------------------------------------------------------------------
             $Sql = "INSERT INTO stafftype (staffcode,syscode)
-                VALUES ".$val.
+                VALUES " . $val .
                 " ON DUPLICATE KEY UPDATE YOYAKU_VIEW = 1";
             //-------------------------------------------------------------------
             $this->Staff->query($Sql);
             //-------------------------------------------------------------------
             return true;
             //-------------------------------------------------------------------
-        }else {
+        } else {
             //-------------------------------------------------------------------
             return False;
             //-------------------------------------------------------------------
@@ -4511,7 +4956,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return boolean
      */
-    function wsUpdateFlagsStaff($sessionid, $param) {
+    function wsUpdateFlagsStaff($sessionid, $param)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -4547,7 +4993,7 @@ class ServersController extends WebServicesController
         //=============================================================================================================================
         // Update yoyaku_staff_service_time of the Staff, Follow Sipss3 Mobaste Rule Dont Allow Staff from Other Store
         //-----------------------------------------------------------------------------------------------------------------------------
-        If ((int)$param['YOYAKU_DISPLAY'] == 1) {
+        if ((int)$param['YOYAKU_DISPLAY'] == 1) {
             //-------------------------------------------------------------------------------------------------------------------------
             $StaffServicesSql = "INSERT IGNORE INTO yoyaku_staff_service_time(storecode,
                                                                           staffcode,
@@ -4561,10 +5007,10 @@ class ServersController extends WebServicesController
                                     STO.servicetime_male
                                 FROM staff STA
                                     JOIN store_services STO
-                                            ON STO.storecode  = ".$storeinfo['storecode']."
+                                            ON STO.storecode  = " . $storeinfo['storecode'] . "
                                                     AND STO.delflg IS NULL
                                 WHERE STA.delflg IS NULL
-                                    AND STA.staffcode = ".$param['STAFFCODE'];
+                                    AND STA.staffcode = " . $param['STAFFCODE'];
             //------------------------------------------------------------------------------------------------------------------------
             $this->StaffAssignToStore->query($StaffServicesSql);
             //------------------------------------------------------------------------------------------------------------------------
@@ -4587,7 +5033,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return return_staffShiftInformation
      */
-    function wsSearchStaffShift($sessionid, $param) {
+    function wsSearchStaffShift($sessionid, $param)
+    {
         if ($param['ignoreSessionCheck'] <> 1) {
             //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
             $storeinfo = $this->YoyakuSession->Check($this);
@@ -4601,17 +5048,19 @@ class ServersController extends WebServicesController
 
         //-- Checks if the shift for the month has been set already
         $this->FinishedShift->set_company_database($storeinfo['dbname'], $this->FinishedShift);
-        $condition = array('FinishedShift.storecode' => $param['storecode'],
-                           'FinishedShift.year'      => $param['year'],
-                           'FinishedShift.month'     => $param['month'],
-                           'FinishedShift.complete'  => 1);
+        $condition = array(
+            'FinishedShift.storecode' => $param['storecode'],
+            'FinishedShift.year'      => $param['year'],
+            'FinishedShift.month'     => $param['month'],
+            'FinishedShift.complete'  => 1
+        );
         $finishedShift = $this->FinishedShift->find('all', array('conditions' => $condition));
 
         if (count($finishedShift) > 0) {
             $finished = 1;
         }
 
-        for ($i=31; $i>=28; $i--) {
+        for ($i = 31; $i >= 28; $i--) {
             if (checkdate($param['month'], $i, $param['year'])) {
                 $this->enddate = $param['year'] . "-" . $param['month'] . "-" . $i;
                 break;
@@ -4626,11 +5075,13 @@ class ServersController extends WebServicesController
         $this->Shift->set_company_database($storeinfo['dbname'], $this->Shift);
         $this->StaffShift->set_company_database($storeinfo['dbname'], $this->StaffShift);
 
-        $criteria = array('StaffShift.STORECODE'  => $param['storecode'],
-                          'YEAR(StaffShift.YMD)'  => $param['year'],
-                          'MONTH(StaffShift.YMD)' => $param['month'],
-                          'StaffShift.DELFLG IS NULL',
-                          'Shift.DELFLG IS NULL');
+        $criteria = array(
+            'StaffShift.STORECODE'  => $param['storecode'],
+            'YEAR(StaffShift.YMD)'  => $param['year'],
+            'MONTH(StaffShift.YMD)' => $param['month'],
+            'StaffShift.DELFLG IS NULL',
+            'Shift.DELFLG IS NULL'
+        );
 
         if ($param['day'] <> 0) {
             $criteria['DAY(StaffShift.YMD)'] = $param['day'];
@@ -4648,7 +5099,7 @@ class ServersController extends WebServicesController
             $month = "0" . $param['month'];
         } else {
             $month = $param['month'];
-        }//end if ele
+        } //end if ele
         //----------------------------------------------------------------------------------------------------
         //Get Staff Types Recordset Object
         //----------------------------------------------------------------------------------------------------
@@ -4665,14 +5116,15 @@ class ServersController extends WebServicesController
             //------------------------------------------------------------------------------------------------
             $arr_stafftypes = array();
             //------------------------------------------------------------------------------------------------
-            foreach ($rs_stafftypes AS $rec) {
-                $arr_stafftypes[] = array("STAFFCODE" => $rec['stafftype']['STAFFCODE'],
-                                          "STAFFTYPES" => $rec[0]['STAFFTYPES'],
-                                          "STAFFVIEWS" => $rec[0]['STAFFVIEWS']
-                    );
-            }//end foreach
+            foreach ($rs_stafftypes as $rec) {
+                $arr_stafftypes[] = array(
+                    "STAFFCODE" => $rec['stafftype']['STAFFCODE'],
+                    "STAFFTYPES" => $rec[0]['STAFFTYPES'],
+                    "STAFFVIEWS" => $rec[0]['STAFFVIEWS']
+                );
+            } //end foreach
             //------------------------------------------------------------------------------------------------
-        }//end if
+        } //end if
         //----------------------------------------------------------------------------------------------------
         //- スタッフの配列をループ処理 (Loops through the array of Staff)
         for ($i = 0; $i < count($arrStaff); $i++) {
@@ -4688,14 +5140,14 @@ class ServersController extends WebServicesController
             //-----------------------------------------------------------------------------------
             $stafftypes = "";
             if (count($arr_stafftypes) > 0) {
-                foreach ($arr_stafftypes AS $sdata) {
+                foreach ($arr_stafftypes as $sdata) {
                     if ((int)$sdata['STAFFCODE'] === (int)$arrStaff[$i]['StaffAssignToStore']['STAFFCODE']) {
                         $stafftypes = $sdata['STAFFTYPES'];
                         $staffviews = $sdata['STAFFVIEWS'];
                         break;
-                    }//end if
-                }//end foreach
-            }//end if
+                    } //end if
+                } //end foreach
+            } //end if
             $arrStaffShift[$i]['STAFFTYPES'] = $stafftypes;
             $arrStaffShift[$i]['STAFFVIEWS'] = $staffviews;
             //-----------------------------------------------------------------------------------
@@ -4716,14 +5168,16 @@ class ServersController extends WebServicesController
                     //- スタッフシフトの配列をループ処理　(Loops through the array of StaffShifts)
                     for ($k = 0; $k < count($arrShift); $k++) {
 
-                        if ($arrStaff[$i]['StaffAssignToStore']['STAFFCODE'] == $arrShift[$k]['StaffShift']['STAFFCODE']
-                                && $date == $arrShift[$k]['StaffShift']['YMD']) {
+                        if (
+                            $arrStaff[$i]['StaffAssignToStore']['STAFFCODE'] == $arrShift[$k]['StaffShift']['STAFFCODE']
+                            && $date == $arrShift[$k]['StaffShift']['YMD']
+                        ) {
                             if ($arrShift[$k]['StaffShift']['SHIFT'] <> "") {
                                 $val = $arrShift[$k]['StaffShift']['HOLIDAYTYPE'] . "-" .
-                                       $arrShift[$k]['StaffShift']['SHIFT'];
+                                    $arrShift[$k]['StaffShift']['SHIFT'];
                                 if ($param['day'] <> 0) {
-                                    $arrStaffShift[$i]['STARTTIME'] = substr($arrShift[$k]['Shift']['STARTTIME'],0,5);
-                                    $arrStaffShift[$i]['ENDTIME']   = substr($arrShift[$k]['Shift']['ENDTIME'],0,5);
+                                    $arrStaffShift[$i]['STARTTIME'] = substr($arrShift[$k]['Shift']['STARTTIME'], 0, 5);
+                                    $arrStaffShift[$i]['ENDTIME']   = substr($arrShift[$k]['Shift']['ENDTIME'], 0, 5);
                                 }
                             } else {
                                 $val = $arrShift[$k]['StaffShift']['HOLIDAYTYPE'];
@@ -4753,7 +5207,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return boolean
      */
-    function wsAddUpdateDeleteStaffShift($sessionid, $param) {
+    function wsAddUpdateDeleteStaffShift($sessionid, $param)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -4765,7 +5220,7 @@ class ServersController extends WebServicesController
 
         $arrDays = $this->arrDays;
 
-        for ($ctr=0; $ctr < count($param); $ctr++) {
+        for ($ctr = 0; $ctr < count($param); $ctr++) {
 
             //- 日間の配列をループ処理　(Loops through the array of Days)
             for ($i = 0; $i < count($arrDays); $i++) {
@@ -4775,7 +5230,7 @@ class ServersController extends WebServicesController
                 $this->date = "{$year}-{$month}-{$day}";
                 $storeCode = $param[$ctr]['STORECODE'];
                 $staffCode = $param[$ctr]['STAFFCODE'];
-                $holidayType = substr($param[$ctr][$arrDays[$i]],0,1);
+                $holidayType = substr($param[$ctr][$arrDays[$i]], 0, 1);
 
 
                 //-----------------------------------------------------------------
@@ -4790,15 +5245,17 @@ class ServersController extends WebServicesController
 
                 $this->UpdateStaffTimeCardWorkingType($storeCode, $staffCode, $holidayType);
 
-                if (checkdate($month, $day, $year) &&
-                    $param[$ctr][$arrDays[$i]] <> "") {
+                if (
+                    checkdate($month, $day, $year) &&
+                    $param[$ctr][$arrDays[$i]] <> ""
+                ) {
                     $hasData = $this->MiscFunction->CheckStaffShiftData($this, $param[$ctr]);
                     $sql = "";
 
-                    if (substr($param[$ctr][$arrDays[$i]],2) == "") {
+                    if (substr($param[$ctr][$arrDays[$i]], 2) == "") {
                         $shift_value = "NULL";
                     } else {
-                        $shift_value = substr($param[$ctr][$arrDays[$i]],2);
+                        $shift_value = substr($param[$ctr][$arrDays[$i]], 2);
                     }
 
 
@@ -4806,7 +5263,7 @@ class ServersController extends WebServicesController
                     if ($hasData == true) {
                         //準備UPDATE SQLステートメント (Prepare UPDATE Sql Statement)
                         $extra = "HOLIDAYTYPE = " . $holidayType .
-                                 ", SHIFT     = " . $shift_value;
+                            ", SHIFT     = " . $shift_value;
                         $sql = "UPDATE staff_holiday SET " . $extra . "
                                     WHERE STORECODE = " . $param[$ctr]['STORECODE'] . "
                                         AND STAFFCODE = " . $param[$ctr]['STAFFCODE'] . "
@@ -4816,19 +5273,20 @@ class ServersController extends WebServicesController
                         //準備INSERT SQLステートメント (Prepare INSERT Sql Statement)
                         $fields = "STORECODE, STAFFCODE, YMD, HOLIDAYTYPE, SHIFT";
                         $values = $param[$ctr]['STORECODE'] . ", " .
-                                  $param[$ctr]['STAFFCODE'] . ", '" .
-                                  $this->date . "', " .
-                                  $holidayType . ", " .
-                                  $shift_value;
+                            $param[$ctr]['STAFFCODE'] . ", '" .
+                            $this->date . "', " .
+                            $holidayType . ", " .
+                            $shift_value;
 
                         $sql = "INSERT INTO staff_holiday (" . $fields . ")
                                     VALUES(" . $values . ")";
                     }
 
                     $this->StaffShift->query($sql);
-
-                } elseif (checkdate($month, $day, $year) &&
-                          $param[$ctr][$arrDays[$i]] == "") {
+                } elseif (
+                    checkdate($month, $day, $year) &&
+                    $param[$ctr][$arrDays[$i]] == ""
+                ) {
                     $sql = "DELETE FROM staff_holiday
                                 WHERE STORECODE = " . $param[$ctr]['STORECODE'] . "
                                     AND STAFFCODE = " . $param[$ctr]['STAFFCODE'] . "
@@ -4840,8 +5298,8 @@ class ServersController extends WebServicesController
 
         //-- Marks the month has already assigned its shift
         $fshift = "REPLACE INTO finished_shift (storecode, year, month, complete)
-                          VALUES(".$param[0]['STORECODE'].", ".$param[0]['year'].
-                          ", ".$param[0]['month'].",1)";
+                          VALUES(" . $param[0]['STORECODE'] . ", " . $param[0]['year'] .
+            ", " . $param[0]['month'] . ",1)";
         $this->StaffShift->query($fshift);
 
         return true;
@@ -4854,7 +5312,8 @@ class ServersController extends WebServicesController
      * @param mixed $staffCode
      * @param mixed $workingType
      */
-    private function UpdateStaffTimeCardWorkingType($storeCode, $staffCode, $workingType) {
+    private function UpdateStaffTimeCardWorkingType($storeCode, $staffCode, $workingType)
+    {
 
         $workType = $workingType ? $workingType : self::REGULAR_WORKING_DAY;
         $sql = "
@@ -4878,7 +5337,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return return_storeInformation
      */
-    function wsSearchStore($sessionid, $param) {
+    function wsSearchStore($sessionid, $param)
+    {
         if ($param['ignoreSessionCheck'] <> 1) {
             //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
             $storeinfo = $this->YoyakuSession->Check($this);
@@ -4913,9 +5373,9 @@ class ServersController extends WebServicesController
         }
 
         foreach ($param as $key => $val) {
-            if (!empty($val) && $key != 'limit' && $key != 'page' && $key != 'orderby' && $key !='OnlySharedStore') {
+            if (!empty($val) && $key != 'limit' && $key != 'page' && $key != 'orderby' && $key != 'OnlySharedStore') {
                 if ($key == "STORENAME") {
-                    $criteria['(STORENAME LIKE ?)'] = array('%'.$val.'%');
+                    $criteria['(STORENAME LIKE ?)'] = array('%' . $val . '%');
                 } else {
                     $criteria[$key] = $val;
                 }
@@ -4931,13 +5391,17 @@ class ServersController extends WebServicesController
             $criteria['STORECODE'] = $sharedStoreList;
         }
         if ($param['limit'] <> -1) {
-            $v = $this->Store->find('all', array('conditions' => $criteria,
-                                                 'order'      => array($param['orderby']),
-                                                 'limit'      => $param['limit'],
-                                                 'page'       => $param['page']));
+            $v = $this->Store->find('all', array(
+                'conditions' => $criteria,
+                'order'      => array($param['orderby']),
+                'limit'      => $param['limit'],
+                'page'       => $param['page']
+            ));
         } else {
-            $v = $this->Store->find('all', array('conditions' => $criteria,
-                                                 'order'      => array($param['orderby'])));
+            $v = $this->Store->find('all', array(
+                'conditions' => $criteria,
+                'order'      => array($param['orderby'])
+            ));
         }
 
         $ret = array();
@@ -4956,7 +5420,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return STORECODE
      */
-    function wsAddUpdateStore($sessionid, $param) {
+    function wsAddUpdateStore($sessionid, $param)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -4969,8 +5434,8 @@ class ServersController extends WebServicesController
 
         //-- STORECODEは設定してない場合、新規STORECODEを作成 (Check STORECODE, create new if none)
         if (empty($param['STORECODE'])) {
-            $querty_txt = "select ".
-                          "f_get_sequence_key('storecode','', '') as storecode";
+            $querty_txt = "select " .
+                "f_get_sequence_key('storecode','', '') as storecode";
             $tmp_data = $this->Store->query($querty_txt);
             $param['STORECODE']     = $tmp_data[0][0]['storecode'];
         }
@@ -4998,7 +5463,8 @@ class ServersController extends WebServicesController
      * @param int $storecode
      * @return boolean
      */
-    function wsDeleteStore($sessionid, $storecode) {
+    function wsDeleteStore($sessionid, $storecode)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -5016,7 +5482,7 @@ class ServersController extends WebServicesController
 
         //-- WebYanアカウントを削除フラグを設定 (Set Delete flag on WebyanAccount)
         $sql = "UPDATE webyan_store_accounts SET delflg = 1
-                WHERE companyid = " .$storeinfo['companyid']. "
+                WHERE companyid = " . $storeinfo['companyid'] . "
                     AND storecode = " . $storecode;
         $this->WebyanAccount->query($sql, $cachequeries = false);
 
@@ -5036,7 +5502,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return return_storeHolidayInformation
      */
-    function wsSearchStoreHoliday($sessionid, $param) {
+    function wsSearchStoreHoliday($sessionid, $param)
+    {
         if ($param['ignoreSessionCheck'] <> 1) {
             //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
             $storeinfo = $this->YoyakuSession->Check($this);
@@ -5050,10 +5517,12 @@ class ServersController extends WebServicesController
 
         $this->StoreHoliday->set_company_database($storeinfo['dbname'], $this->StoreHoliday);
 
-        $criteria = array('StoreHoliday.STORECODE'  => $param['storecode'],
-                          'YEAR(StoreHoliday.YMD)'  => $param['year'],
-                          'MONTH(StoreHoliday.YMD)' => $param['month'],
-                          'StoreHoliday.DELFLG IS NULL');
+        $criteria = array(
+            'StoreHoliday.STORECODE'  => $param['storecode'],
+            'YEAR(StoreHoliday.YMD)'  => $param['year'],
+            'MONTH(StoreHoliday.YMD)' => $param['month'],
+            'StoreHoliday.DELFLG IS NULL'
+        );
 
         if ($param['day'] <> 0) {
             $criteria['DAY(StoreHoliday.YMD)'] = $param['day'];
@@ -5115,7 +5584,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return boolean
      */
-    function wsAddUpdateDeleteStoreHoliday($sessionid, $param) {
+    function wsAddUpdateDeleteStoreHoliday($sessionid, $param)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -5146,8 +5616,10 @@ class ServersController extends WebServicesController
             $day = $i + 1;
             $this->date = $param['year'] . "-" . $param['month'] . "-" . $day;
 
-            if (checkdate($param['month'], $day, $param['year']) &&
-                $param[$arrDays[$i]] <> "") {
+            if (
+                checkdate($param['month'], $day, $param['year']) &&
+                $param[$arrDays[$i]] <> ""
+            ) {
 
                 //'whitespace'削除　(Removed 'whitespace' string)
                 $param[$arrDays[$i]] = ereg_replace('whitespace', '', $param[$arrDays[$i]]);
@@ -5156,8 +5628,8 @@ class ServersController extends WebServicesController
                 //準備INSERT SQLステートメント (Prepare INSERT Sql Statement)
                 $fields = "STORECODE, YMD, REMARKS";
                 $values = $param['STORECODE'] . ", " .
-                          "'" . $this->date . "', " .
-                          "'" . $param[$arrDays[$i]] . "'";
+                    "'" . $this->date . "', " .
+                    "'" . $param[$arrDays[$i]] . "'";
 
                 $sql = "INSERT INTO store_holiday (" . $fields . ")
                         VALUES(" . $values . ")";
@@ -5181,7 +5653,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return return_serviceInformation
      */
-    function wsSearchService($sessionid, $param) {
+    function wsSearchService($sessionid, $param)
+    {
         if ($param['ignoreSessionCheck'] <> 1) {
             //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
             $storeinfo = $this->YoyakuSession->Check($this);
@@ -5198,16 +5671,20 @@ class ServersController extends WebServicesController
         //-- 会社データベースを設定する (Set the Company Database)
         $this->Service->set_company_database($storeinfo['dbname'], $this->Service);
 
-        $sUpdateIndex = $this->Service->find('all', array('fields'  => array('MAX(UPDATEDATE) as UPDATE_INDEX'),
-                                                          'limit'   => 1));
+        $sUpdateIndex = $this->Service->find('all', array(
+            'fields'  => array('MAX(UPDATEDATE) as UPDATE_INDEX'),
+            'limit'   => 1
+        ));
         $serviceMaxIndex = $sUpdateIndex[0][0]['UPDATE_INDEX'];
 
 
         //-- 会社データベースを設定する (Set the Company Database)
         $this->StoreService->set_company_database($storeinfo['dbname'], $this->StoreService);
 
-        $sSUpdateIndex = $this->StoreService->find('all', array('fields'  => array('MAX(UPDATEDATE) as UPDATE_INDEX'),
-                                                                'limit'   => 1));
+        $sSUpdateIndex = $this->StoreService->find('all', array(
+            'fields'  => array('MAX(UPDATEDATE) as UPDATE_INDEX'),
+            'limit'   => 1
+        ));
         $storeServiceMaxIndex = $sSUpdateIndex[0][0]['UPDATE_INDEX'];
 
         $ret['records']      = array();
@@ -5234,7 +5711,7 @@ class ServersController extends WebServicesController
         "StoreService.DELFLG IS NULL");*/
         $criteria = array("Service.DELFLG IS NULL");
 
-        if(intval($param['syscode']) > 0 ){
+        if (intval($param['syscode']) > 0) {
             $criteria["Service.SYSCODE"] = $param['syscode'];
         }
 
@@ -5244,17 +5721,21 @@ class ServersController extends WebServicesController
         }
 
         if ($param['limit'] <> -1) {
-            $v = $this->Service->find('all', array('conditions' => $criteria,
-                                                   'fields'     => $fields,
-                                                   'order'      => array($param['orderby']),
-                                                   'group'      => array("Service.GDCODE"),
-                                                   'limit'      => $param['limit'],
-                                                   'page'       => $param['page']));
+            $v = $this->Service->find('all', array(
+                'conditions' => $criteria,
+                'fields'     => $fields,
+                'order'      => array($param['orderby']),
+                'group'      => array("Service.GDCODE"),
+                'limit'      => $param['limit'],
+                'page'       => $param['page']
+            ));
         } else {
-            $v = $this->Service->find('all', array('conditions' => $criteria,
-                                                   'fields'     => $fields,
-                                                   'order'      => array($param['orderby']),
-                                                   'group'      => array("Service.GDCODE")));
+            $v = $this->Service->find('all', array(
+                'conditions' => $criteria,
+                'fields'     => $fields,
+                'order'      => array($param['orderby']),
+                'group'      => array("Service.GDCODE")
+            ));
         }
         $param['ignoreSessionCheck'] = 1;
         $param['dbname'] = $storeinfo['dbname'];
@@ -5269,7 +5750,7 @@ class ServersController extends WebServicesController
         //------------------------------------------------------------------
         //$param['infoSTORECODE'] = $storeinfo['storecode'];
         //==================================================================
-        for ($i=0; $i<count($v); $i++) {
+        for ($i = 0; $i < count($v); $i++) {
             $param['GDCODE'] = $v[$i]['Service']['GDCODE'];
             $service = array();
             $service = $this->wsSearchStoreService($sessionid, $param);
@@ -5277,8 +5758,10 @@ class ServersController extends WebServicesController
         }
         $ret = array();
         $ret['records']      = set::extract($v, '{n}.Service');
-        $ret['record_count'] = $this->Service->find('count', array('conditions' => $criteria,
-                                                                   'fields'     => 'DISTINCT Service.GDCODE'));
+        $ret['record_count'] = $this->Service->find('count', array(
+            'conditions' => $criteria,
+            'fields'     => 'DISTINCT Service.GDCODE'
+        ));
         //        }
 
         $ret['maxServiceIndex']      = $serviceMaxIndex;
@@ -5296,7 +5779,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return GDCODE
      */
-    function wsAddUpdateService($sessionid, $param) {
+    function wsAddUpdateService($sessionid, $param)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -5309,8 +5793,8 @@ class ServersController extends WebServicesController
 
         //-- GDCODEは設定してない場合、新規GDCODEを作成 (Check GDCODE, create new if none)
         if (empty($param['GDCODE'])) {
-            $querty_txt = "select ".
-                          "f_get_sequence_key('gdcode','', '') as GDCODE";
+            $querty_txt = "select " .
+                "f_get_sequence_key('gdcode','', '') as GDCODE";
 
             $tmp_data = $this->Service->query($querty_txt);
             $param['GDCODE'] = $tmp_data[0][0]['GDCODE'];
@@ -5339,7 +5823,8 @@ class ServersController extends WebServicesController
      * @param int $gdcode
      * @return boolean
      */
-    function wsDeleteService($sessionid, $gdcode) {
+    function wsDeleteService($sessionid, $gdcode)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -5371,7 +5856,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return return_storeServiceInformation
      */
-    function wsSearchStoreService($sessionid, $param) {
+    function wsSearchStoreService($sessionid, $param)
+    {
         if ($param['ignoreSessionCheck'] <> 1) {
             //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
             $storeinfo = $this->YoyakuSession->Check($this);
@@ -5394,16 +5880,16 @@ class ServersController extends WebServicesController
          * Date Nov. 04, 2016
          * ======================================================================================*/
 
-        $fields = array('StoreService.GDCODE', 'StoreService.GDCODE', 'StoreService.GSCODE',
-                        'StoreService.GCODE', 'StoreService.MENUNAME',
-                        'StoreService.SERVICETIME AS SERVICE_TIME',
-                        'StoreService.SERVICETIME_MALE AS SERVICE_TIME_MALE',
-                        'StoreService.PRICE', 'StoreService.POINTKASAN1',
-                        'StoreService.POINTKASAN2', 'StoreService.POINTKASAN3',
-                        'StoreService.ZTYPE AS ZEIKUBUN', 'StoreService.MEMBERPRICE',
-                        'StoreService.YOYAKUMARK'
-                        , 'StoreService.KEYCODE', 'if(StoreService.orderby = 0, 99999, StoreService.orderby) as orderby'
-                        );
+        $fields = array(
+            'StoreService.GDCODE', 'StoreService.GDCODE', 'StoreService.GSCODE',
+            'StoreService.GCODE', 'StoreService.MENUNAME',
+            'StoreService.SERVICETIME AS SERVICE_TIME',
+            'StoreService.SERVICETIME_MALE AS SERVICE_TIME_MALE',
+            'StoreService.PRICE', 'StoreService.POINTKASAN1',
+            'StoreService.POINTKASAN2', 'StoreService.POINTKASAN3',
+            'StoreService.ZTYPE AS ZEIKUBUN', 'StoreService.MEMBERPRICE',
+            'StoreService.YOYAKUMARK', 'StoreService.KEYCODE', 'if(StoreService.orderby = 0, 99999, StoreService.orderby) as orderby'
+        );
 
 
         if (!in_array($param['orderby'], $fields)) {
@@ -5418,9 +5904,11 @@ class ServersController extends WebServicesController
             $param['page'] = DEFAULT_STARTPAGE;
         }
 
-        $criteria = array("StoreService.STORECODE" => $storeinfo['storecode'],
-                          "StoreService.GDCODE" => $param['GDCODE'],
-                          "StoreService.DELFLG IS NULL");
+        $criteria = array(
+            "StoreService.STORECODE" => $storeinfo['storecode'],
+            "StoreService.GDCODE" => $param['GDCODE'],
+            "StoreService.DELFLG IS NULL"
+        );
         if ($param['hasHonbu'] <> 1) {
 
             //-----------------------------------------------------------------------------------------------
@@ -5429,7 +5917,7 @@ class ServersController extends WebServicesController
                 //---------------------------------------------------------------------------------------
                 $Sql = "SELECT optionvaluei
                             FROM store_settings
-                            WHERE storecode = ".$storeinfo['storecode']."
+                            WHERE storecode = " . $storeinfo['storecode'] . "
                                 AND optionname = 'YOYAKU_MENU_TANTOU'";
                 //---------------------------------------------------------------------------------------
                 $rs_yoyaku_menu_tantou_settings = $this->StoreService->query($Sql);
@@ -5438,7 +5926,7 @@ class ServersController extends WebServicesController
                 //---------------------------------------------------------------------------------------
                 if (count($rs_yoyaku_menu_tantou_settings) > 0) {
                     $yoyaku_menu_tantou_settings_on = (int)$rs_yoyaku_menu_tantou_settings[0]['[store_settings']['optionvaluei'];
-                }//end if
+                } //end if
                 //---------------------------------------------------------------------------------------
                 if ($yoyaku_menu_tantou_settings_on == 1) {
                     //---------------------------------------------------------------------------------------
@@ -5449,20 +5937,20 @@ class ServersController extends WebServicesController
                                                                                 gcode,
                                                                                 service_time,
                                                                                 service_time_male)
-                                    SELECT ".$storeinfo['storecode'].",
+                                    SELECT " . $storeinfo['storecode'] . ",
                                             ST.staffcode,
                                             STO.gcode,
                                             STO.servicetime,
                                             STO.servicetime_male
                                     FROM staff ST
                                             JOIN store_services STO
-                                                    ON STO.storecode = ".$storeinfo['storecode']."
-                                                            AND STO.gdcode = ".$param['GDCODE']."
+                                                    ON STO.storecode = " . $storeinfo['storecode'] . "
+                                                            AND STO.gdcode = " . $param['GDCODE'] . "
                                                             AND STO.delflg IS NULL
                                     WHERE ST.delflg IS NULL
-                                            AND ST.staffcode = ".$param['STAFF_TANTOU_STAFFCODE'];
+                                            AND ST.staffcode = " . $param['STAFF_TANTOU_STAFFCODE'];
                     $this->StoreService->query($SqlSTime);
-                }//end if
+                } //end if
 
                 /* ======================================================================================
                  * Update By Alberto S. Baguio
@@ -5499,8 +5987,8 @@ class ServersController extends WebServicesController
                                 FROM store_services st
                                     LEFT JOIN yoyaku_staff_service_time tblservicetime
                                         ON tblservicetime.gcode = st.gcode
-                                            AND tblservicetime.storecode = ".$param['STAFF_TANTOU_STORECODE']."
-                                            AND tblservicetime.staffcode = ".$param['STAFF_TANTOU_STAFFCODE']."
+                                            AND tblservicetime.storecode = " . $param['STAFF_TANTOU_STORECODE'] . "
+                                            AND tblservicetime.staffcode = " . $param['STAFF_TANTOU_STAFFCODE'] . "
                                 WHERE st.GDCODE = " . $param['GDCODE'] . "
                                     AND st.STORECODE = " . $storeinfo['storecode'] . "
                                     AND st.DELFLG IS NULL
@@ -5562,7 +6050,7 @@ class ServersController extends WebServicesController
                             GROUP BY GSCODE
                             ORDER BY orderby, GDCODE, KEYCODE, GCODE ";
                 //--------------------------------------------------------------------------------------
-            }//end if else
+            } //end if else
         } else {
             if ($param['STAFF_TANTOU_STAFFCODE'] >= 0) {
                 //---------------------------------------------------------------------------------------
@@ -5573,18 +6061,18 @@ class ServersController extends WebServicesController
                                                                           gcode,
                                                                           service_time,
                                                                           service_time_male)
-                             SELECT ".$storeinfo['storecode'].",
+                             SELECT " . $storeinfo['storecode'] . ",
                                     ST.staffcode,
                                     STO.gcode,
                                     STO.servicetime,
                                     STO.servicetime_male
                              FROM staff ST
                                 JOIN store_services STO
-                                        ON STO.storecode = ".$storeinfo['storecode']."
-                                                AND STO.gdcode = ".$param['GDCODE']."
+                                        ON STO.storecode = " . $storeinfo['storecode'] . "
+                                                AND STO.gdcode = " . $param['GDCODE'] . "
                                                 AND STO.delflg IS NULL
                              WHERE ST.delflg IS NULL
-                                AND ST.staffcode = ".$param['STAFF_TANTOU_STAFFCODE'];
+                                AND ST.staffcode = " . $param['STAFF_TANTOU_STAFFCODE'];
                 $this->StoreService->query($SqlSTime);
                 //---------------------------------------------------------------------------------------
 
@@ -5614,8 +6102,8 @@ class ServersController extends WebServicesController
                                 , if(orderby = 0, 99999, orderby) as orderby
                             FROM store_services
                                 LEFT JOIN yoyaku_staff_service_time tblservicetime
-                                    ON tblservicetime.storecode = ".$param['STAFF_TANTOU_STORECODE']."
-                                        AND tblservicetime.staffcode = ".$param['STAFF_TANTOU_STAFFCODE']."
+                                    ON tblservicetime.storecode = " . $param['STAFF_TANTOU_STORECODE'] . "
+                                        AND tblservicetime.staffcode = " . $param['STAFF_TANTOU_STAFFCODE'] . "
                                         AND tblservicetime.gcode = store_services.gcode
                             WHERE store_services.GDCODE = " . $param['GDCODE'] . "
                                 AND store_services.STORECODE = " . $storeinfo['storecode'] . "
@@ -5645,7 +6133,7 @@ class ServersController extends WebServicesController
                                     AND DELFLG IS NULL
                                 order by orderby, store_services.gdcode, store_services.keycode, store_services.gcode
                                 ) as data ";
-            }//end if ($param['STAFF_TANTOU_STAFFCODE'] >= 0)
+            } //end if ($param['STAFF_TANTOU_STAFFCODE'] >= 0)
         }
 
         $offset = $param['limit'] * ($param['page'] - 1);
@@ -5654,26 +6142,30 @@ class ServersController extends WebServicesController
 
         if ($param['limit'] <> -1) {
             if ($param['STORECODE'] <> 0) {
-                $v = $this->StoreService->find('all', array('conditions' => $criteria,
-                                                            'fields'     => $fields,
-                                                            'order'      => $param['orderby'],
-                                                            'limit'      => $param['limit'],
-                                                            'page'       => $param['page']));
+                $v = $this->StoreService->find('all', array(
+                    'conditions' => $criteria,
+                    'fields'     => $fields,
+                    'order'      => $param['orderby'],
+                    'limit'      => $param['limit'],
+                    'page'       => $param['page']
+                ));
             } else {
 
                 $sql_limit_offset = $sql . $limit_offset;
                 $v = $this->StoreService->query($sql_limit_offset);
                 if ($param['hasHonbu'] <> 1) {
-                    for($i=0; $i<count($v); $i++) {
+                    for ($i = 0; $i < count($v); $i++) {
                         $v[$i]['data']['YOYAKUMARK'] = $v[$i][0]['YOYAKUMARK'];
                     }
                 }
             }
         } else {
             if ($param['STORECODE'] <> 0) {
-                $v = $this->StoreService->find('all', array('conditions' => $criteria,
-                                                            'fields'     => $fields,
-                                                            'order'      => $param['orderby']));
+                $v = $this->StoreService->find('all', array(
+                    'conditions' => $criteria,
+                    'fields'     => $fields,
+                    'order'      => $param['orderby']
+                ));
             } else {
                 $v = $this->StoreService->query($sql);
             }
@@ -5700,7 +6192,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return return_storeInformation
      */
-    function wsSearchStoreServiceWhosUsing($sessionid, $param) {
+    function wsSearchStoreServiceWhosUsing($sessionid, $param)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -5726,21 +6219,27 @@ class ServersController extends WebServicesController
             $param['page'] = DEFAULT_STARTPAGE;
         }
 
-        $criteria = array("StoreService.GSCODE" => $param['GSCODE'],
-                          "StoreService.DELFLG IS NULL");
+        $criteria = array(
+            "StoreService.GSCODE" => $param['GSCODE'],
+            "StoreService.DELFLG IS NULL"
+        );
 
         if ($param['limit'] <> -1) {
-            $v = $this->StoreService->find('all', array('conditions' => $criteria,
-                                                        'fields'     => $fields,
-                                                        'order'      => array($param['orderby']),
-                                                        'group'      => 'StoreService.STORECODE',
-                                                        'limit'      => $param['limit'],
-                                                        'page'       => $param['page']));
+            $v = $this->StoreService->find('all', array(
+                'conditions' => $criteria,
+                'fields'     => $fields,
+                'order'      => array($param['orderby']),
+                'group'      => 'StoreService.STORECODE',
+                'limit'      => $param['limit'],
+                'page'       => $param['page']
+            ));
         } else {
-            $v = $this->StoreService->find('all', array('conditions' => $criteria,
-                                                        'fields'     => $fields,
-                                                        'order'      => array($param['orderby']),
-                                                        'group'      => 'StoreService.STORECODE'));
+            $v = $this->StoreService->find('all', array(
+                'conditions' => $criteria,
+                'fields'     => $fields,
+                'order'      => array($param['orderby']),
+                'group'      => 'StoreService.STORECODE'
+            ));
         }
 
         for ($i = 0; $i < count($v); $i++) {
@@ -5763,7 +6262,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return GCODE
      */
-    function wsAddUpdateDeleteStoreService($sessionid, $param) {
+    function wsAddUpdateDeleteStoreService($sessionid, $param)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -5776,9 +6276,9 @@ class ServersController extends WebServicesController
 
         //-- GCODEは設定してない場合、新規GCODEを作成 (Check GCODE, create new if none)
         if (empty($param['GCODE'])) {
-            $querty_txt = "select ".
-                          "f_get_sequence_key('gcode','', '') as GCODE,".
-                          "f_get_sequence_key('gscode','', '') as GSCODE";
+            $querty_txt = "select " .
+                "f_get_sequence_key('gcode','', '') as GCODE," .
+                "f_get_sequence_key('gscode','', '') as GSCODE";
 
             $tmp_data = $this->StoreService->query($querty_txt);
             $param['GCODE'] = $tmp_data[0][0]['GCODE'];
@@ -5790,8 +6290,8 @@ class ServersController extends WebServicesController
 
         if (empty($param['GSCODE'])) {
             $this->SubService->set_company_database($storeinfo['dbname'], $this->SubService);
-            $querty_txt = "select ".
-                          "f_get_sequence_key('gscode','', '') as GSCODE";
+            $querty_txt = "select " .
+                "f_get_sequence_key('gscode','', '') as GSCODE";
             $tmp_data = $this->SubService->query($querty_txt);
             $param['GSCODE'] = $tmp_data[0][0]['GSCODE'];
 
@@ -5844,7 +6344,7 @@ class ServersController extends WebServicesController
                 $this->MiscFunction->AddUpdateOtherStoreService($this, $param);
             }
 
-            if ( isset($subparam['DELFLG'])) {
+            if (isset($subparam['DELFLG'])) {
                 // 削除されているテンプレート(Template has been removed)
                 $ret['GCODE']  = -1;
                 $ret['GSCODE'] = -1;
@@ -5871,7 +6371,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return return_serviceInformation
      */
-    function wsSearchShift($sessionid, $param) {
+    function wsSearchShift($sessionid, $param)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -5903,31 +6404,39 @@ class ServersController extends WebServicesController
             $param['page'] = DEFAULT_STARTPAGE;
         }
 
-        $criteria = array('STORECODE' => $storeinfo['storecode'],
-                          'DELFLG IS NULL');
+        $criteria = array(
+            'STORECODE' => $storeinfo['storecode'],
+            'DELFLG IS NULL'
+        );
 
         if ($param['limit'] <> -1) {
-            $v = $this->Shift->find('all', array('conditions' => $criteria,
-                                                 'fields'     => $fields,
-                                                 'order'      => array($param['orderby']),
-                                                 'limit'      => $param['limit'],
-                                                 'page'       => $param['page']));
+            $v = $this->Shift->find('all', array(
+                'conditions' => $criteria,
+                'fields'     => $fields,
+                'order'      => array($param['orderby']),
+                'limit'      => $param['limit'],
+                'page'       => $param['page']
+            ));
         } else {
-            $v = $this->Shift->find('all', array('conditions' => $criteria,
-                                                 'fields'     => $fields,
-                                                 'order'      => array($param['orderby']) ));
+            $v = $this->Shift->find('all', array(
+                'conditions' => $criteria,
+                'fields'     => $fields,
+                'order'      => array($param['orderby'])
+            ));
         }
 
         $v_count = count($v);
-        for ($i = 0 ; $i < $v_count; $i++) {
-            $v[$i]['Shift']['STARTTIME'] = substr($v[$i]['Shift']['STARTTIME'],0,5);
-            $v[$i]['Shift']['ENDTIME']   = substr($v[$i]['Shift']['ENDTIME'],0,5);
+        for ($i = 0; $i < $v_count; $i++) {
+            $v[$i]['Shift']['STARTTIME'] = substr($v[$i]['Shift']['STARTTIME'], 0, 5);
+            $v[$i]['Shift']['ENDTIME']   = substr($v[$i]['Shift']['ENDTIME'], 0, 5);
         }
 
         $ret = array();
         $ret['records']      = set::extract($v, '{n}.Shift');
-        $ret['record_count'] = $this->Shift->find('count', array('conditions' => $criteria,
-                                                                 'fields'     => 'DISTINCT SHIFTID'));
+        $ret['record_count'] = $this->Shift->find('count', array(
+            'conditions' => $criteria,
+            'fields'     => 'DISTINCT SHIFTID'
+        ));
 
         return $ret;
     }
@@ -5941,7 +6450,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return SHIFTID
      */
-    function wsAddUpdateShift($sessionid, $param) {
+    function wsAddUpdateShift($sessionid, $param)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -5959,8 +6469,8 @@ class ServersController extends WebServicesController
 
         //-- SHIFTIDは設定してない場合、新規SHIFTIDを作成 (Check SHIFTID, create new if none)
         if (empty($param['SHIFTID'])) {
-            $querty_txt = "select ".
-                          "f_get_sequence_key('shiftid','', '') as SHIFTID";
+            $querty_txt = "select " .
+                "f_get_sequence_key('shiftid','', '') as SHIFTID";
 
             $tmp_data = $this->Shift->query($querty_txt);
             $param['SHIFTID'] = $tmp_data[0][0]['SHIFTID'];
@@ -5990,7 +6500,8 @@ class ServersController extends WebServicesController
      * @param int $shiftid
      * @return boolean
      */
-    function wsDeleteShift($sessionid, $shiftid) {
+    function wsDeleteShift($sessionid, $shiftid)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -5999,7 +6510,7 @@ class ServersController extends WebServicesController
         }
 
         //-- 「出勤」を削除できないように (Prevent Deletion of 出勤 shift)
-        if ( $shiftid == 1) {
+        if ($shiftid == 1) {
             return false;
         }
 
@@ -6027,7 +6538,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return return_positionInformation
      */
-    function wsSearchPosition($sessionid, $param) {
+    function wsSearchPosition($sessionid, $param)
+    {
         if ($param['ignoreSessionCheck'] <> 1) {
             //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
             $storeinfo = $this->YoyakuSession->Check($this);
@@ -6065,13 +6577,17 @@ class ServersController extends WebServicesController
         $criteria['DELFLG'] = null;
 
         if ($param['limit'] <> -1) {
-            $v = $this->Position->find('all', array('conditions' => $criteria,
-                                                    'order'      => array($param['orderby']),
-                                                    'limit'      => $param['limit'],
-                                                    'page'       => $param['page']));
+            $v = $this->Position->find('all', array(
+                'conditions' => $criteria,
+                'order'      => array($param['orderby']),
+                'limit'      => $param['limit'],
+                'page'       => $param['page']
+            ));
         } else {
-            $v = $this->Position->find('all', array('conditions' => $criteria,
-                                                    'order'      => array($param['orderby'])));
+            $v = $this->Position->find('all', array(
+                'conditions' => $criteria,
+                'order'      => array($param['orderby'])
+            ));
         }
 
         $ret = array();
@@ -6094,7 +6610,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return return_sublevelInformation
      */
-    function wsSearchSublevel($sessionid, $param) {
+    function wsSearchSublevel($sessionid, $param)
+    {
         if ($param['ignoreSessionCheck'] <> 1) {
             //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
             $storeinfo = $this->YoyakuSession->Check($this);
@@ -6132,13 +6649,17 @@ class ServersController extends WebServicesController
         $criteria['DELFLG'] = null;
 
         if ($param['limit'] <> -1) {
-            $v = $this->Sublevel->find('all', array('conditions' => $criteria,
-                                                    'order'      => array($param['orderby']),
-                                                    'limit'      => $param['limit'],
-                                                    'page'       => $param['page']));
+            $v = $this->Sublevel->find('all', array(
+                'conditions' => $criteria,
+                'order'      => array($param['orderby']),
+                'limit'      => $param['limit'],
+                'page'       => $param['page']
+            ));
         } else {
-            $v = $this->Sublevel->find('all', array('conditions' => $criteria,
-                                                    'order'      => array($param['orderby'])));
+            $v = $this->Sublevel->find('all', array(
+                'conditions' => $criteria,
+                'order'      => array($param['orderby'])
+            ));
         }
 
         $ret = array();
@@ -6161,7 +6682,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return return_zipcodeInformation
      */
-    function wsSearchZipcode($sessionid, $param) {
+    function wsSearchZipcode($sessionid, $param)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -6181,13 +6703,15 @@ class ServersController extends WebServicesController
             $param['page'] = DEFAULT_STARTPAGE;
         }
 
-        $fields = array('Zipcode.*',
-                        'concat(Zipcode.SI, Zipcode.TYO) AS SITYO');
+        $fields = array(
+            'Zipcode.*',
+            'concat(Zipcode.SI, Zipcode.TYO) AS SITYO'
+        );
 
         foreach ($param as $key => $val) {
             if (!empty($val) && $key != 'limit' && $key != 'page' && $key != 'orderby') {
                 if ($key == "ADDRESS") {
-                    $criteria['(ALLNAME LIKE ? OR concat(KEN, SI, TYO) LIKE ?)'] = array('%'.$val.'%','%'.$val.'%');
+                    $criteria['(ALLNAME LIKE ? OR concat(KEN, SI, TYO) LIKE ?)'] = array('%' . $val . '%', '%' . $val . '%');
                 } else {
                     $criteria[$key] = $val;
                 }
@@ -6197,15 +6721,19 @@ class ServersController extends WebServicesController
         $criteria['DELFLG'] = null;
 
         if ($param['limit'] <> -1) {
-            $v = $this->Zipcode->find('all',array('conditions' => $criteria,
-                                                  'fields'     => $fields,
-                                                  'order'      => array($param['orderby']),
-                                                  'limit'      => $param['limit'],
-                                                  'page'       => $param['page']));
+            $v = $this->Zipcode->find('all', array(
+                'conditions' => $criteria,
+                'fields'     => $fields,
+                'order'      => array($param['orderby']),
+                'limit'      => $param['limit'],
+                'page'       => $param['page']
+            ));
         } else {
-            $v = $this->Zipcode->find('all',array('conditions' => $criteria,
-                                                  'fields'     => $fields,
-                                                  'order'      => array($param['orderby'])));
+            $v = $this->Zipcode->find('all', array(
+                'conditions' => $criteria,
+                'fields'     => $fields,
+                'order'      => array($param['orderby'])
+            ));
         }
 
         $ret = array();
@@ -6230,7 +6758,8 @@ class ServersController extends WebServicesController
      * @param string $sessionid
      * @return basicInformation
      */
-    function wsReadBasicSettings($sessionid) {
+    function wsReadBasicSettings($sessionid)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -6243,18 +6772,21 @@ class ServersController extends WebServicesController
         $this->StoreSettings->set_company_database($storeinfo['dbname'], $this->StoreSettings);
 
         $criteria   = array('STORECODE' => $storeinfo['storecode']);
-        $fields     = array('STORENAME',
-                            'TEL',
-                            'FAX',
-                            'ADDRESS1',
-                            'WEBYAN_HOMEPAGE',
-                            'PC_HOMEPAGE',
-                            'HIDECUSTOMERINFO_FLG',
-                            'JIKAIUPDATEOPTION_FLG'
-                            );
+        $fields     = array(
+            'STORENAME',
+            'TEL',
+            'FAX',
+            'ADDRESS1',
+            'WEBYAN_HOMEPAGE',
+            'PC_HOMEPAGE',
+            'HIDECUSTOMERINFO_FLG',
+            'JIKAIUPDATEOPTION_FLG'
+        );
 
-        $v = $this->Store->find('all',array('conditions' => $criteria,
-                                              'fields'     => $fields));
+        $v = $this->Store->find('all', array(
+            'conditions' => $criteria,
+            'fields'     => $fields
+        ));
 
         $settings_one = set::extract($v, '{n}.Store');
 
@@ -6359,16 +6891,16 @@ class ServersController extends WebServicesController
                 case 'YoyakuHyouEnd':
                     $settings_two['YOYAKU_HYOU_CLOSE_TIME'] = $itm['StoreSettings']['OPTIONVALUEI'];
                     break;
-                //-----------------------------------------------------
-                // added yoyaku time for saturdan and sunday
-                //-----------------------------------------------------
+                    //-----------------------------------------------------
+                    // added yoyaku time for saturdan and sunday
+                    //-----------------------------------------------------
                 case 'YoyakuStart_satsun':
                     $settings_two['YOYAKU_OPEN_TIME_SATSUN'] = $itm['StoreSettings']['OPTIONVALUEI'];
                     break;
                 case 'YoyakuEnd_satsun':
                     $settings_two['YOYAKU_CLOSE_TIME_SATSUN'] = $itm['StoreSettings']['OPTIONVALUEI'];
                     break;
-                //-----------------------------------------------------
+                    //-----------------------------------------------------
                 case 'YoyakuNoticeSetting':
                     $settings_two['YOYAKU_TIME_SETTING'] = $itm['StoreSettings']['OPTIONVALUEI'];
                     break;
@@ -6390,13 +6922,13 @@ class ServersController extends WebServicesController
                 case 'YoyakuShowMenuNameOnly':
                     $settings_two['SHOW_MENU_NAME_ONLY'] = intval($itm['StoreSettings']['OPTIONVALUES']);
                     break;
-                //-----------------------------------------------------
-                //customer limit auto
-                //-----------------------------------------------------
+                    //-----------------------------------------------------
+                    //customer limit auto
+                    //-----------------------------------------------------
                 case 'YoyakuCustomersLimitAuto':
                     $settings_two['AUTO_CUST_LIMIT'] = intval($itm['StoreSettings']['OPTIONVALUES']);
                     break;
-                //-----------------------------------------------------
+                    //-----------------------------------------------------
                 case 'HIDE_HOLIDAY_STAFF':
                     $settings_two['HIDE_HOLIDAY_STAFF'] = $itm['StoreSettings']['OPTIONVALUEI'];
                     break;
@@ -6422,7 +6954,6 @@ class ServersController extends WebServicesController
                     $settings_two['USE_MENU_AVAILABILITY_LIMIT'] = $itm['StoreSettings']['OPTIONVALUEI'];
                     break;
             }
-
         }
 
         if ($settings_two['YOYAKU_HYOU_OPEN_TIME'] == "") {
@@ -6435,10 +6966,10 @@ class ServersController extends WebServicesController
         //---------------------------------------------------------------------------
         if ($settings_two['YOYAKU_OPEN_TIME_SATSUN'] == "") {
             $settings_two['YOYAKU_OPEN_TIME_SATSUN'] = $settings_two['YOYAKU_OPEN_TIME'];
-        }//end if
+        } //end if
         if ($settings_two['YOYAKU_CLOSE_TIME_SATSUN'] == "") {
             $settings_two['YOYAKU_CLOSE_TIME_SATSUN'] = $settings_two['YOYAKU_CLOSE_TIME'];
-        }//end if
+        } //end if
         //---------------------------------------------------------------------------
 
         $query = '
@@ -6473,7 +7004,8 @@ class ServersController extends WebServicesController
      * @param basicInformation $param
      * @return boolean
      */
-    function wsWriteBasicSettings($sessionid, $param) {
+    function wsWriteBasicSettings($sessionid, $param)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -6496,67 +7028,67 @@ class ServersController extends WebServicesController
             $this->Store->set('PC_HOMEPAGE',        $param['PC_HOMEPAGE']);
             $this->Store->save();
 
-            $option_int = "REPLACE INTO store_settings (STORECODE, OPTIONNAME, OPTIONVALUEI) VALUES (".$storeinfo['storecode'].",";
-            $option_str = "REPLACE INTO store_settings (STORECODE, OPTIONNAME, OPTIONVALUES) VALUES (".$storeinfo['storecode'].",";
+            $option_int = "REPLACE INTO store_settings (STORECODE, OPTIONNAME, OPTIONVALUEI) VALUES (" . $storeinfo['storecode'] . ",";
+            $option_str = "REPLACE INTO store_settings (STORECODE, OPTIONNAME, OPTIONVALUES) VALUES (" . $storeinfo['storecode'] . ",";
 
-            if ( $param['LOWER_LIMIT_OP'] != "days") {
+            if ($param['LOWER_LIMIT_OP'] != "days") {
                 $param['LOWER_LIMIT_OP'] = "hours";
             }
 
-            if ( $param['UPPER_LIMIT_OP'] != "months") {
+            if ($param['UPPER_LIMIT_OP'] != "months") {
                 $param['UPPER_LIMIT_OP'] = "days";
             }
 
-            $this->StoreSettings->query($option_int."'YoyakuTime','".intval($param['INTERVAL'])."')");
-            $this->StoreSettings->query($option_int."'YoyakuReminderLimit','".intval($param['REMINDER'])."')");
-            $this->StoreSettings->query($option_int."'YoyakuCancelLimit','".intval($param['CANCEL_LIMIT'])."')");
-            $this->StoreSettings->query($option_str."'YoyakuCustomersLimit','".$param['CUSTOMER_LIMIT']."')");
-            $this->StoreSettings->query($option_int."'YoyakuApptLimit','".intval($param['LOWER_LIMIT'])."')");
-            $this->StoreSettings->query($option_str."'YoyakuLimitOption','".$param['LOWER_LIMIT_OP']."')");
-            $this->StoreSettings->query($option_int."'YoyakuUpperLimit','".intval($param['UPPER_LIMIT'])."')");
-            $this->StoreSettings->query($option_str."'YoyakuUpperLimitOption','".$param['UPPER_LIMIT_OP']."')");
-            $this->StoreSettings->query($option_int."'YoyakuCellTimeDisplay','".intval($param['AVAILABLE_TIMES'])."')");
-            $this->StoreSettings->query($option_str."'OpenTime','".sprintf("%04d",intval($param['OPEN_TIME']))."')");
-            $this->StoreSettings->query($option_str."'CloseTime','".sprintf("%04d",intval($param['CLOSE_TIME']))."')");
-            $this->StoreSettings->query($option_int."'YoyakuStart','".intval($param['YOYAKU_OPEN_TIME'])."')");
-            $this->StoreSettings->query($option_int."'YoyakuEnd','".intval($param['YOYAKU_CLOSE_TIME'])."')");
+            $this->StoreSettings->query($option_int . "'YoyakuTime','" . intval($param['INTERVAL']) . "')");
+            $this->StoreSettings->query($option_int . "'YoyakuReminderLimit','" . intval($param['REMINDER']) . "')");
+            $this->StoreSettings->query($option_int . "'YoyakuCancelLimit','" . intval($param['CANCEL_LIMIT']) . "')");
+            $this->StoreSettings->query($option_str . "'YoyakuCustomersLimit','" . $param['CUSTOMER_LIMIT'] . "')");
+            $this->StoreSettings->query($option_int . "'YoyakuApptLimit','" . intval($param['LOWER_LIMIT']) . "')");
+            $this->StoreSettings->query($option_str . "'YoyakuLimitOption','" . $param['LOWER_LIMIT_OP'] . "')");
+            $this->StoreSettings->query($option_int . "'YoyakuUpperLimit','" . intval($param['UPPER_LIMIT']) . "')");
+            $this->StoreSettings->query($option_str . "'YoyakuUpperLimitOption','" . $param['UPPER_LIMIT_OP'] . "')");
+            $this->StoreSettings->query($option_int . "'YoyakuCellTimeDisplay','" . intval($param['AVAILABLE_TIMES']) . "')");
+            $this->StoreSettings->query($option_str . "'OpenTime','" . sprintf("%04d", intval($param['OPEN_TIME'])) . "')");
+            $this->StoreSettings->query($option_str . "'CloseTime','" . sprintf("%04d", intval($param['CLOSE_TIME'])) . "')");
+            $this->StoreSettings->query($option_int . "'YoyakuStart','" . intval($param['YOYAKU_OPEN_TIME']) . "')");
+            $this->StoreSettings->query($option_int . "'YoyakuEnd','" . intval($param['YOYAKU_CLOSE_TIME']) . "')");
             //---------------------------------------------------------------------------------------------------------------
-            $this->StoreSettings->query($option_int."'YoyakuHyouStart','".intval($param['YOYAKU_HYOU_OPEN_TIME'])."')");
-            $this->StoreSettings->query($option_int."'YoyakuHyouEnd','".intval($param['YOYAKU_HYOU_CLOSE_TIME'])."')");
+            $this->StoreSettings->query($option_int . "'YoyakuHyouStart','" . intval($param['YOYAKU_HYOU_OPEN_TIME']) . "')");
+            $this->StoreSettings->query($option_int . "'YoyakuHyouEnd','" . intval($param['YOYAKU_HYOU_CLOSE_TIME']) . "')");
             //---------------------------------------------------------------------------------------------------------------
             //yoyaku time for saturday and sunday
             //---------------------------------------------------------------------------------------------------------------
-            $this->StoreSettings->query($option_int."'YoyakuStart_satsun','".intval($param['YOYAKU_OPEN_TIME_SATSUN'])."')");
-            $this->StoreSettings->query($option_int."'YoyakuEnd_satsun','".intval($param['YOYAKU_CLOSE_TIME_SATSUN'])."')");
+            $this->StoreSettings->query($option_int . "'YoyakuStart_satsun','" . intval($param['YOYAKU_OPEN_TIME_SATSUN']) . "')");
+            $this->StoreSettings->query($option_int . "'YoyakuEnd_satsun','" . intval($param['YOYAKU_CLOSE_TIME_SATSUN']) . "')");
             //---------------------------------------------------------------------------------------------------------------
-            $this->StoreSettings->query($option_int."'YoyakuNoticeSetting','".intval($param['YOYAKU_TIME_SETTING'])."')");
-            $this->StoreSettings->query($option_str."'YoyakuSettingsOption','".$param['YOYAKU_TIME_SETTINGS_OP']."')");
-            $this->StoreSettings->query($option_int."'YoyakuNoticeSecondSetting','".intval($param['YOYAKU_TIME_SECOND_SETTING'])."')");
-            $this->StoreSettings->query($option_int."'FOLLOW_MAIL_SETTING','".intval($param['FOLLOW_MAIL_SETTING'])."')");
-            $this->StoreSettings->query($option_str."'YoyakuShowMenuNameOnly','".intval($param['SHOW_MENU_NAME_ONLY'])."')");
+            $this->StoreSettings->query($option_int . "'YoyakuNoticeSetting','" . intval($param['YOYAKU_TIME_SETTING']) . "')");
+            $this->StoreSettings->query($option_str . "'YoyakuSettingsOption','" . $param['YOYAKU_TIME_SETTINGS_OP'] . "')");
+            $this->StoreSettings->query($option_int . "'YoyakuNoticeSecondSetting','" . intval($param['YOYAKU_TIME_SECOND_SETTING']) . "')");
+            $this->StoreSettings->query($option_int . "'FOLLOW_MAIL_SETTING','" . intval($param['FOLLOW_MAIL_SETTING']) . "')");
+            $this->StoreSettings->query($option_str . "'YoyakuShowMenuNameOnly','" . intval($param['SHOW_MENU_NAME_ONLY']) . "')");
             //---------------------------------------------------------------------------------------------------------------
             //customer limit auto
             //---------------------------------------------------------------------------------------------------------------
-            $this->StoreSettings->query($option_str."'YoyakuCustomersLimitAuto','".intval($param['AUTO_CUST_LIMIT'])."')");
+            $this->StoreSettings->query($option_str . "'YoyakuCustomersLimitAuto','" . intval($param['AUTO_CUST_LIMIT']) . "')");
             //---------------------------------------------------------------------------------------------------------------
-            $this->StoreSettings->query($option_int."'YOYAKU_MSG','".intval($param['YOYAKU_MSG'])."')");
+            $this->StoreSettings->query($option_int . "'YOYAKU_MSG','" . intval($param['YOYAKU_MSG']) . "')");
 
-            $this->StoreSettings->query($option_int."'YOYAKU_MENU_TANTOU','".intval($param['YOYAKU_MENU_TANTOU'])."')");
+            $this->StoreSettings->query($option_int . "'YOYAKU_MENU_TANTOU','" . intval($param['YOYAKU_MENU_TANTOU']) . "')");
 
-            $this->StoreSettings->query($option_int."'HIDE_HOLIDAY_STAFF','".intval($param['HIDE_HOLIDAY_STAFF'])."')");
+            $this->StoreSettings->query($option_int . "'HIDE_HOLIDAY_STAFF','" . intval($param['HIDE_HOLIDAY_STAFF']) . "')");
 
-            $this->StoreSettings->query($option_int."'RECORD_YOYAKU_DETAIL','".intval($param['RECORD_YOYAKU_DETAIL'])."')");
+            $this->StoreSettings->query($option_int . "'RECORD_YOYAKU_DETAIL','" . intval($param['RECORD_YOYAKU_DETAIL']) . "')");
 
-            $this->StoreSettings->query($option_int."'MODIFYING_MAIL','".intval($param['MODIFYING_MAIL'])."')");
+            $this->StoreSettings->query($option_int . "'MODIFYING_MAIL','" . intval($param['MODIFYING_MAIL']) . "')");
 
-            $this->StoreSettings->query($option_int."'YOYAKU_DRAGDROP_TIMEINTERVAL','".intval($param['YOYAKU_DRAGDROP_TIMEINTERVAL'])."')");
+            $this->StoreSettings->query($option_int . "'YOYAKU_DRAGDROP_TIMEINTERVAL','" . intval($param['YOYAKU_DRAGDROP_TIMEINTERVAL']) . "')");
 
-            $this->StoreSettings->query($option_int."'HIDE_RAITEN','".intval($param['HIDE_RAITEN'])."')");
+            $this->StoreSettings->query($option_int . "'HIDE_RAITEN','" . intval($param['HIDE_RAITEN']) . "')");
 
-            $this->StoreSettings->query($option_int."'OKOTOWARI_TIME','".intval($param['OKOTOWARI_TIME'])."')");
+            $this->StoreSettings->query($option_int . "'OKOTOWARI_TIME','" . intval($param['OKOTOWARI_TIME']) . "')");
 
-            $this->StoreSettings->query($option_int."'USE_SIPSS_MENU','".intval($param['USE_SIPSS_MENU'])."')");
-            $this->StoreSettings->query($option_int."'USE_MENU_AVAILABILITY_LIMIT','".intval($param['USE_MENU_AVAILABILITY_LIMIT'])."')");
+            $this->StoreSettings->query($option_int . "'USE_SIPSS_MENU','" . intval($param['USE_SIPSS_MENU']) . "')");
+            $this->StoreSettings->query($option_int . "'USE_MENU_AVAILABILITY_LIMIT','" . intval($param['USE_MENU_AVAILABILITY_LIMIT']) . "')");
 
             if ((int)$param['YOYAKU_MENU_TANTOU'] == 1) {
                 //-----------------------------------------------------------------------------------
@@ -6569,19 +7101,19 @@ class ServersController extends WebServicesController
                                                                             gcode,
                                                                             service_time,
                                                                             service_time_male)
-                                SELECT ".$storeinfo['storecode'].",
+                                SELECT " . $storeinfo['storecode'] . ",
                                         ST.staffcode,
                                         STO.gcode,
                                         STO.servicetime,
                                         STO.servicetime_male
                                 FROM staff ST
                                     JOIN store_services STO
-                                            ON STO.storecode = ".$storeinfo['storecode']."
+                                            ON STO.storecode = " . $storeinfo['storecode'] . "
                                                     AND STO.delflg IS NULL
                                 WHERE ST.delflg IS NULL";
                 $this->StoreSettings->query($SqlSTime);
                 //-----------------------------------------------------------------------------------
-            }//end if
+            } //end if
 
             $query = '
                 UPDATE sipssbeauty_kanzashi.salon
@@ -6597,11 +7129,9 @@ class ServersController extends WebServicesController
             $this->StoreSettings->query($query, $param, false);
 
             return true;
-        }
-        else {
+        } else {
             return false;
         }
-
     }
     //- #############################################################################
 
@@ -6616,7 +7146,8 @@ class ServersController extends WebServicesController
      * @param string $sessionid
      * @return basicInformation
      */
-    function wsReadMessageSettings($sessionid) {
+    function wsReadMessageSettings($sessionid)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -6701,7 +7232,8 @@ class ServersController extends WebServicesController
      * @param basicInformation $param
      * @return boolean
      */
-    function wsWriteMessageSettings($sessionid, $param) {
+    function wsWriteMessageSettings($sessionid, $param)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -6724,11 +7256,21 @@ class ServersController extends WebServicesController
 
             $mailItems = $this->MiscFunction->GetMailItems($this, $storeinfo);
             if ($mailItems) {
-                if(!isset($param["MAILNOTICE"]))            { $param["MAILNOTICE"] = $mailItems["notice"]; }
-                if(!isset($param["MAILNOTICESECOND"]))      { $param["MAILNOTICESECOND"] = $mailItems["noticesecond"]; }
-                if(!isset($param["MODIFYING_MAIL_MSG"]))    { $param["MODIFYING_MAIL_MSG"] = $mailItems["modifying"]; }
-                if(!isset($param["FOLLOW_MAIL_MSG"]))       { $param["FOLLOW_MAIL_MSG"] = $mailItems["follow"]; }
-                if(!isset($param["MAILSIGNATURE"]))         { $param["MAILSIGNATURE"] = $mailItems["signature"]; }
+                if (!isset($param["MAILNOTICE"])) {
+                    $param["MAILNOTICE"] = $mailItems["notice"];
+                }
+                if (!isset($param["MAILNOTICESECOND"])) {
+                    $param["MAILNOTICESECOND"] = $mailItems["noticesecond"];
+                }
+                if (!isset($param["MODIFYING_MAIL_MSG"])) {
+                    $param["MODIFYING_MAIL_MSG"] = $mailItems["modifying"];
+                }
+                if (!isset($param["FOLLOW_MAIL_MSG"])) {
+                    $param["FOLLOW_MAIL_MSG"] = $mailItems["follow"];
+                }
+                if (!isset($param["MAILSIGNATURE"])) {
+                    $param["MAILSIGNATURE"] = $mailItems["signature"];
+                }
             }
 
             $queryParams = array(
@@ -6753,11 +7295,9 @@ class ServersController extends WebServicesController
             }
 
             return true;
-        }
-        else {
+        } else {
             return false;
         }
-
     }
     //- #############################################################################
 
@@ -6772,7 +7312,8 @@ class ServersController extends WebServicesController
      * @param string $sessionid
      * @return return_colorInformation
      */
-    function wsSearchColor($sessionid, $param) {
+    function wsSearchColor($sessionid, $param)
+    {
         if ($param['ignoreSessionCheck'] <> 1) {
             //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
             $storeinfo = $this->YoyakuSession->Check($this);
@@ -6786,7 +7327,7 @@ class ServersController extends WebServicesController
             $param['limit']         = -1;
         }
 
-        if($param['STORECODE'] == 0){
+        if ($param['STORECODE'] == 0) {
             $param['STORECODE'] = $storeinfo['storecode'];
         }
 
@@ -6804,18 +7345,25 @@ class ServersController extends WebServicesController
         }
 
         if ($param['limit'] <> -1) {
-            $v = $this->StoreTransactionColors->find('all',array('conditions' => $criteria,
-                                                                 'fields' => array('id',
-                                                                                   'color',
-                                                                                   'comment'),
-                                                                 'limit'      => $param['limit'],
-                                                                 'page'       => $param['page']));
-        }
-        else {
-            $v = $this->StoreTransactionColors->find('all',array('conditions' => $criteria,
-                                                            'fields' => array('id',
-                                                                              'color',
-                                                                              'comment')));
+            $v = $this->StoreTransactionColors->find('all', array(
+                'conditions' => $criteria,
+                'fields' => array(
+                    'id',
+                    'color',
+                    'comment'
+                ),
+                'limit'      => $param['limit'],
+                'page'       => $param['page']
+            ));
+        } else {
+            $v = $this->StoreTransactionColors->find('all', array(
+                'conditions' => $criteria,
+                'fields' => array(
+                    'id',
+                    'color',
+                    'comment'
+                )
+            ));
         }
 
         $ret = array();
@@ -6834,7 +7382,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return id color index
      */
-    function wsAddUpdateColor($sessionid, $param) {
+    function wsAddUpdateColor($sessionid, $param)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -6869,7 +7418,8 @@ class ServersController extends WebServicesController
      * @param id color index
      * @return boolean
      */
-    function wsDeleteColor($sessionid, $id) {
+    function wsDeleteColor($sessionid, $id)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -6902,7 +7452,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return return_transactionInformation
      */
-    function wsSearchStoreTransaction($sessionid, $param) {
+    function wsSearchStoreTransaction($sessionid, $param)
+    {
         //---------------------------------------------------------------------------------------------------------------------
         if ($param['ignoreSessionCheck'] <> 1) {
             $storeinfo = $this->YoyakuSession->Check($this);
@@ -6945,23 +7496,23 @@ class ServersController extends WebServicesController
         }
         //---------------------------------------------------------------------------------------------------------------------
         if ($param['STAFFCODE'] > -1) {
-            $condition .= " AND transaction.STAFFCODE = " . $param['STAFFCODE'] ;
+            $condition .= " AND transaction.STAFFCODE = " . $param['STAFFCODE'];
         }
         //---------------------------------------------------------------------------------------------------------------------
         if ($param['PRIORITYTYPE'] > 0) {
-            $condition .= " AND transaction.PRIORITYTYPE = " . $param['PRIORITYTYPE'] ;
+            $condition .= " AND transaction.PRIORITYTYPE = " . $param['PRIORITYTYPE'];
         }
         //---------------------------------------------------------------------------------------------------------------------
         if ($param['NOTTRANSCODE'] <> "") {
             $condition .= " AND transaction.TRANSCODE != '" . $param['NOTTRANSCODE'] . "'";
-        }//end if
+        } //end if
         //---------------------------------------------------------------------------------------------------------------------
         if ($param['history'] == "check") {
             $condition .= " AND transaction.TEMPSTATUS = '" . $param['TEMPSTATUS'] . "'";
             $misc_order = " transaction.TRANSDATE DESC,";
             $trantype1  = "";
             $order_trantype = " details.TRANTYPE, ";
-        }//end if
+        } //end if
         //---------------------------------------------------------------------------------------------------------------------
         $sql = "/*wsSearchStoreTransaction 1*/
                 SELECT
@@ -7011,8 +7562,8 @@ class ServersController extends WebServicesController
                                 SELECT transcode, min(staffcode) as min_staffcode, max(staffcode) as max_staffcode
                                 FROM store_transaction_details
                                 WHERE trantype = 1 AND delflg IS NULL AND claimed = 0
-                                    AND storecode = ".$param['STORECODE']."
-                                    AND transdate = '".$param['date']."'
+                                    AND storecode = " . $param['STORECODE'] . "
+                                    AND transdate = '" . $param['date'] . "'
                                 GROUP BY transcode
                                 ) tbld
                                     ON tbld.transcode = transaction.transcode
@@ -7082,8 +7633,8 @@ class ServersController extends WebServicesController
 							        ON st.transcode = bm_reservation.transcode
 							        AND st.delflg IS NULL
 							        AND st.ORIGINATION = 7
-                                    AND st.transdate = '".$param['date']."'
-                                    ".$transconde."
+                                    AND st.transdate = '" . $param['date'] . "'
+                                    " . $transconde . "
                               left join staff as stf ON bm_reservation.site_stylist_id = stf.STAFFCODE
 
                             UNION ALL
@@ -7131,8 +7682,8 @@ class ServersController extends WebServicesController
 							        ON st.transcode = rvKey.transcode
 							        AND st.delflg IS NULL
 							        AND st.ORIGINATION = 8
-                                    AND st.transdate = '".$param['date']."'
-                                    ".$transconde."
+                                    AND st.transdate = '" . $param['date'] . "'
+                                    " . $transconde . "
                             join rv_reservation as rvRes on rvKey.alliance_reserve_id = rvRes.alliance_reserve_id
                             left join staff as stf ON rvRes.staff_id = stf.STAFFCODE
                             where rvRes.delflg is null
@@ -7185,10 +7736,10 @@ class ServersController extends WebServicesController
                             LEFT JOIN staff s
                             ON hr.staff_id = s.staffcode
 
-                            WHERE st.transdate = '".$param['date']."'
+                            WHERE st.transdate = '" . $param['date'] . "'
                             AND st.origination = 9
                             AND st.delflg IS NULL
-                            ".$transconde."
+                            " . $transconde . "
 
                             UNION ALL
 
@@ -7232,10 +7783,10 @@ class ServersController extends WebServicesController
                             JOIN store_transaction2 as st2 USING(transcode)
                             JOIN yoyakuapp_reservation yr USING(transcode)
 
-                            WHERE st.transdate = '".$param['date']."'
+                            WHERE st.transdate = '" . $param['date'] . "'
                             AND st.origination = 11
                             AND st.delflg IS NULL
-                            ".$transconde."
+                            " . $transconde . "
 
                             UNION ALL
 
@@ -7278,10 +7829,10 @@ class ServersController extends WebServicesController
                             FROM store_transaction st
                             JOIN kanzashi_reservation kr USING(transcode)
 
-                            WHERE st.transdate = '".$param['date']."'
+                            WHERE st.transdate = '" . $param['date'] . "'
                             AND st.origination = 12
                             AND st.delflg IS NULL
-                            ".$transconde."
+                            " . $transconde . "
                             ) as bmtble on bmtble.transcode = transaction.TRANSCODE and bmtble.origination = transaction.origination
                 LEFT JOIN drejimarketing
 					ON drejimarketing.TRANSCODE = `transaction`.TRANSCODE
@@ -7289,7 +7840,7 @@ class ServersController extends WebServicesController
 					AND drejimarketing.DELFLG IS NULL
                 WHERE transaction.DELFLG IS NULL
                     AND details.DELFLG IS NULL
-                    " . $trantype1 . $condition . $storecond. "
+                    " . $trantype1 . $condition . $storecond . "
                 GROUP BY transaction.transcode, details.rowno
                 ORDER BY " . $misc_order . " transaction.TRANSCODE,
                            details.STAFFCODE,
@@ -7311,7 +7862,7 @@ class ServersController extends WebServicesController
         $data = $this->MiscFunction->ParseTransactionData($this, $v, $subparam);
 
         //---------------------------------------------------------------------------------------------------------------------
-        if ($param['onsave'] != 1){
+        if ($param['onsave'] != 1) {
             if (count($data) > 0) {
                 $Sql_RejiMarketing = "/*wsSearchStoreTransaction 2*/
                                         SELECT tblresult.*
@@ -7326,20 +7877,20 @@ class ServersController extends WebServicesController
                                                 left join marketing on marketing_entry.MARKETINGID = marketing.MARKETINGID
                                                 left join staff on staff.STAFFCODE = drejimarketing.STAFFCODE and staff.DELFLG is null
                                                 where drejimarketing.DELFLG is null
-                                                     AND drejimarketing.storecode = ".$param['STORECODE']."
-                                                     AND drejimarketing.transdate = '".$param['date']."'
+                                                     AND drejimarketing.storecode = " . $param['STORECODE'] . "
+                                                     AND drejimarketing.transdate = '" . $param['date'] . "'
                                                 ) tblresult";
 
                 $GetDataMarketing = $this->StoreTransaction->query($Sql_RejiMarketing);
                 $mkgrouped = array();
-                foreach ($data as $dkey => $c){
-                	$transcode = $c['TRANSCODE'];
-                    if($c['WITHMARKETING'] != ''){
-                        if(isset($mkgrouped[$c['TRANSCODE']])){
+                foreach ($data as $dkey => $c) {
+                    $transcode = $c['TRANSCODE'];
+                    if ($c['WITHMARKETING'] != '') {
+                        if (isset($mkgrouped[$c['TRANSCODE']])) {
                             $data[$dkey]['rejimarketing'] = $mkgrouped[$c['TRANSCODE']];
-                        }else{
-                            foreach ($GetDataMarketing as $mkey => $v){
-                                if($v['tblresult']['TRANSCODE'] === $transcode){
+                        } else {
+                            foreach ($GetDataMarketing as $mkey => $v) {
+                                if ($v['tblresult']['TRANSCODE'] === $transcode) {
                                     $mkgrouped[$c['TRANSCODE']][] = $v['tblresult'];
                                     $data[$dkey]['rejimarketing'][] = $v['tblresult'];
                                     unset($GetDataMarketing[$mkey]);
@@ -7350,7 +7901,7 @@ class ServersController extends WebServicesController
                 }
                 //-----------------------------------------------------------------------------------------------------------------
                 unset($GetDataMarketing, $mkgrouped);
-            }//end if
+            } //end if
             //---------------------------------------------------------------------------------------------------------------------
             /*$arr_reji_marketing = array();
             $ctr = 0;
@@ -7375,12 +7926,12 @@ class ServersController extends WebServicesController
         //---------------------------------------------------------------------------------------------------------------------
         if (count($data) > 0) {
             $ret['checked_times'] = $data[0]['checked_times'];
-        }//end if
+        } //end if
         //---------------------------------------------------------------------------------------------------------------------
 
         return $ret;
         //---------------------------------------------------------------------------------------------------------------------
-    }//end function
+    } //end function
 
 
     /**
@@ -7391,7 +7942,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return return_transactionIDs
      */
-    function wsAddUpdateStoreTransaction($sessionid, $param) {
+    function wsAddUpdateStoreTransaction($sessionid, $param)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -7399,7 +7951,7 @@ class ServersController extends WebServicesController
             return;
         }
 
-        $param['PRIORITYTYPE'] = substr($param['PRIORITYTYPE'],0,1);
+        $param['PRIORITYTYPE'] = substr($param['PRIORITYTYPE'], 0, 1);
 
         $subparam['ignoreSessionCheck'] = 1;
         $subparam['dbname'] = $storeinfo['dbname'];
@@ -7409,7 +7961,7 @@ class ServersController extends WebServicesController
          * reference to Redmine 1841 (elemenate the -1 staffcode)
          * date Oct. 26 2016
          *=============================================================================*/
-        if ($param['STAFFCODE'] == -1){
+        if ($param['STAFFCODE'] == -1) {
             $param['STAFFCODE'] = 0;
         }
         /*=============================================================================*/
@@ -7418,8 +7970,8 @@ class ServersController extends WebServicesController
         $this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction);
 
         //-- 取引が最新であるかどうかを確認する (Check if Transaction is up to date)
-        if(!empty($param['TRANSCODE'])){
-            if(!$this->MiscFunction->IsTransUpToDate($this->StoreTransaction, $param['TRANSCODE'], $param['UPDATEDATE'])){
+        if (!empty($param['TRANSCODE'])) {
+            if (!$this->MiscFunction->IsTransUpToDate($this->StoreTransaction, $param['TRANSCODE'], $param['UPDATEDATE'])) {
                 return array('TRANSCODE' => "RECORD_NOT_UPTO_DATE");
             }
         }
@@ -7464,8 +8016,8 @@ class ServersController extends WebServicesController
         //仕様変更20160225-shimizu 日付変更時にtranscode-keynoを変更せず、店舗変更時のみ変更します。
         //if (ereg_replace("-","", $param['TRANSDATE']) <> substr($param['TRANSCODE'],9,8)) {
         //削除は　サーバーのみの変更で済ますためtranscodeのstorecode利用。出来れば変更前店舗コードを取得
-        if (intval($param['STORECODE']) <> intval(substr($param['TRANSCODE'],0,7))) {
-            if ($param['TRANSCODE'] <> "" && trim($param['DELPREVTRANSGCODES']) == ""){
+        if (intval($param['STORECODE']) <> intval(substr($param['TRANSCODE'], 0, 7))) {
+            if ($param['TRANSCODE'] <> "" && trim($param['DELPREVTRANSGCODES']) == "") {
                 //              $del_sql = "DELETE FROM store_transaction
                 //                            WHERE TRANSCODE = '" . $param['TRANSCODE'] . "'";
                 //              $del_dtlsql = "DELETE FROM store_transaction_details
@@ -7495,9 +8047,9 @@ class ServersController extends WebServicesController
         $priority = explode("-", $param['PRIORITYTYPE']);
         $param['PRIORITYTYPE'] = $priority[0];
 
-        if (substr($param['CCODE'],3) == "0000000") {
+        if (substr($param['CCODE'], 3) == "0000000") {
             $custsql = "UPDATE customer set SEX = " . $param['SEX'] .
-                       " WHERE CCODE = " . $param['CCODE'];
+                " WHERE CCODE = " . $param['CCODE'];
             $retQuery[$sqlctr] = $this->StoreTransaction->query($custsql);
             $sqlctr++;
         }
@@ -7505,7 +8057,7 @@ class ServersController extends WebServicesController
         if (empty($param['CCODE']) || empty($param['CNUMBER'])) {
             $cust_param['CCODE']     = $param['CCODE'];
             $cust_param['CNUMBER']   = $param['CNUMBER'];
-            $cust_param['CSTORECODE']= $param['CSTORECODE'];
+            $cust_param['CSTORECODE'] = $param['CSTORECODE'];
             $cust_param['CNAME']     = $param['CNAME'];
             $cust_param['CNAMEKANA'] = $param['CNAMEKANA'];
             $cust_param['FIRSTDATE'] = $param['TRANSDATE'];
@@ -7531,17 +8083,17 @@ class ServersController extends WebServicesController
 
         //-- TRANSCODEは設定してない場合、新規TRANSCODEを作成 (Check TRANSCODE, create new if none)
         if (empty($param['TRANSCODE'])) {
-            $sql_idno = "select ".
-                        "f_get_sequence_key('idno',
-                                            ".$param['STORECODE']." ,
-                                            '". $param['TRANSDATE'] ."') as IDNO"; //$storeinfo['storecode']
+            $sql_idno = "select " .
+                "f_get_sequence_key('idno',
+                                            " . $param['STORECODE'] . " ,
+                                            '" . $param['TRANSDATE'] . "') as IDNO"; //$storeinfo['storecode']
             $tmp_data = $this->StoreTransaction->query($sql_idno);
 
             $idno = $tmp_data[0][0]['IDNO'];
             $roop = true;
-            while($roop) {
+            while ($roop) {
                 $subparam['storecode'] =  $param['STORECODE'];  //$storeinfo['storecode'];
-                $subparam['date']      = ereg_replace("-","", $param['TRANSDATE']);
+                $subparam['date']      = ereg_replace("-", "", $param['TRANSDATE']);
                 $subparam['idno']      = $idno;
 
                 //存在する場合、idnoに＋1をして再チェックを繰り返す add 20160308
@@ -7549,10 +8101,10 @@ class ServersController extends WebServicesController
                 $checksql = "select transcode from store_transaction where transcode = '{$temptranscode}' limit 1";
                 $tmp_data = $this->StoreTransaction->query($checksql);
 
-                if( count($tmp_data) == 0)//重複がなければ
+                if (count($tmp_data) == 0) //重複がなければ
                 {
-                    $roop = false;//ループを抜ける
-                }else{
+                    $roop = false; //ループを抜ける
+                } else {
                     $idno++;
                 }
             }
@@ -7565,7 +8117,7 @@ class ServersController extends WebServicesController
             //-------------------------------------------------------------
             $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
 
-            if(!$this->MiscFunction->IsRegularCustomer($this->Customer, $param['CCODE'])){
+            if (!$this->MiscFunction->IsRegularCustomer($this->Customer, $param['CCODE'])) {
 
                 $yoyakudatetime = date('Y-m-d H:i:s', strtotime($param['TRANSDATE'] . " " . $param['YOYAKUTIME']));
 
@@ -7597,7 +8149,7 @@ class ServersController extends WebServicesController
             foreach ($v as $itm) {
                 switch ($itm['StoreSettings']['OPTIONNAME']) {
                     case 'Tax':
-                        $param['RATETAX'] = $itm['StoreSettings']['OPTIONVALUEI']/100;
+                        $param['RATETAX'] = $itm['StoreSettings']['OPTIONVALUEI'] / 100;
                         break;
                     case 'TaxOption':
                         $param['ZEIOPTION'] = $itm['StoreSettings']['OPTIONVALUEI'];
@@ -7607,7 +8159,7 @@ class ServersController extends WebServicesController
                         break;
                 }
             }
-        }// if empty transcode
+        } // if empty transcode
 
         $s = "'";
         //-----------------------------------------------------------------------------
@@ -7625,29 +8177,29 @@ class ServersController extends WebServicesController
             //-------------------------------------------------------------------------
             //".$tmpField." = ".$s.$param['YOYAKUTIME'].$s.",
             $sql = "UPDATE store_transaction
-                    SET IDNO = ".$param['IDNO'].",
-                        TRANSDATE = ".$s.$param['TRANSDATE'].$s.",
-                        ENDTIME = ".$s.$param['ENDTIME'].$s.",
-                        CCODE = ".$s.$param['CCODE'].$s.",
-                        REGULARCUSTOMER = ".$param['REGULARCUSTOMER'].",
-                        KYAKUKUBUN = ".$param['KYAKUKUBUN'].",
-                        RATETAX = ".$param['RATETAX'].",
-                        ZEIOPTION = ".$param['ZEIOPTION'].",
-                        SOGOKEIOPTION = ".$param['SOGOKEIOPTION'].",
-                        CNAME = ".$s.$param['CNAME'].$s.",
-                        APT_COLOR = ".$s.$param['APT_COLOR'].$s.",
-                        NOTES = ".$s.addslashes($param['NOTES']).$s.",
-                        PRIORITY = ".$param['PRIORITY'].",
-                        STAFFCODE = ".$param['STAFFCODE'].",
-                        YOYAKU = ".$param['YOYAKU'].",
-                        CUST_TELNO = ".$s.$param['CUST_TELNO'].$s.",
-                        HASSERVICES = ".$param['HASSERVICES'].",
-                        TEMPSTATUS = ".$param['TEMPSTATUS'].",
-                        PRIORITYTYPE = ".$param['PRIORITYTYPE'].",
-                        SEX = ".$param['SEX'].",
-                        MAINSTAFFCODE = ".$param['MAINSTAFFCODE']."
-                     WHERE TRANSCODE = ".$s.$param['TRANSCODE'].$s."
-                            AND KEYNO = ".$param['KEYNO'];
+                    SET IDNO = " . $param['IDNO'] . ",
+                        TRANSDATE = " . $s . $param['TRANSDATE'] . $s . ",
+                        ENDTIME = " . $s . $param['ENDTIME'] . $s . ",
+                        CCODE = " . $s . $param['CCODE'] . $s . ",
+                        REGULARCUSTOMER = " . $param['REGULARCUSTOMER'] . ",
+                        KYAKUKUBUN = " . $param['KYAKUKUBUN'] . ",
+                        RATETAX = " . $param['RATETAX'] . ",
+                        ZEIOPTION = " . $param['ZEIOPTION'] . ",
+                        SOGOKEIOPTION = " . $param['SOGOKEIOPTION'] . ",
+                        CNAME = " . $s . $param['CNAME'] . $s . ",
+                        APT_COLOR = " . $s . $param['APT_COLOR'] . $s . ",
+                        NOTES = " . $s . addslashes($param['NOTES']) . $s . ",
+                        PRIORITY = " . $param['PRIORITY'] . ",
+                        STAFFCODE = " . $param['STAFFCODE'] . ",
+                        YOYAKU = " . $param['YOYAKU'] . ",
+                        CUST_TELNO = " . $s . $param['CUST_TELNO'] . $s . ",
+                        HASSERVICES = " . $param['HASSERVICES'] . ",
+                        TEMPSTATUS = " . $param['TEMPSTATUS'] . ",
+                        PRIORITYTYPE = " . $param['PRIORITYTYPE'] . ",
+                        SEX = " . $param['SEX'] . ",
+                        MAINSTAFFCODE = " . $param['MAINSTAFFCODE'] . "
+                     WHERE TRANSCODE = " . $s . $param['TRANSCODE'] . $s . "
+                            AND KEYNO = " . $param['KEYNO'];
             //-------------------------------------------------------------------------
         } else {
 
@@ -7665,7 +8217,7 @@ class ServersController extends WebServicesController
                         " . $param['STORECODE']      . " , " . $param['IDNO']       . " ,
                        '" . $param['TRANSDATE']      . "','" . $param['YOYAKUTIME'] . "',
                        '" . $param['ENDTIME']        . "','" . $param['CCODE']      . "',
-                        " . $param['REGULARCUSTOMER']. " , " . $param['KYAKUKUBUN'] . " ,
+                        " . $param['REGULARCUSTOMER'] . " , " . $param['KYAKUKUBUN'] . " ,
                         " . $param['RATETAX']        . " , " . $param['ZEIOPTION']  . " ,
                         " . $param['SOGOKEIOPTION']  . " ,'" . $param['CNAME']      . "',
                         " . $param['APT_COLOR']      . " ,'" . $param['NOTES']      . "',
@@ -7674,11 +8226,11 @@ class ServersController extends WebServicesController
                         " . $param['HASSERVICES']    . " , " . $param['TEMPSTATUS'] . " ,
                         " . $param['PRIORITYTYPE']   . " , " . $param['SEX'] . " ,
                         " . $param['origination']    . " , " . $param['MAINSTAFFCODE'];
-            $sql = "REPLACE INTO store_transaction (".$fields.") VALUES(".$values.")";
+            $sql = "REPLACE INTO store_transaction (" . $fields . ") VALUES(" . $values . ")";
 
             //===============================================================================================
 
-        }//end ifelse
+        } //end ifelse
 
         //-- 挿入または更新トランザクション (Insert or Update transaction)
         $retQuery[$sqlctr] = $this->StoreTransaction->query($sql);
@@ -7702,13 +8254,13 @@ class ServersController extends WebServicesController
         # ADDED BY MARVINC - 2015-06-22
         # For Updating Next Reservation
         #------------------------------------------------------------------------------------------------------------------------
-        $gdcode = Array();
+        $gdcode = array();
         #------------------------------------------------------------------------------------------------------------------------
 
         //-- トランザクション細部を通したループ (Loops through transaction details)
         //$starttime = $param['YOYAKUTIME'];
         //$endtime = "";
-        for ($i=0; $i<count($param['details']); $i++) {
+        for ($i = 0; $i < count($param['details']); $i++) {
 
             //$totalminutes = $param['details'][$i]['MENUTIME'];
             //$old_date_format = strtotime('+'.$totalminutes.' minutes', strtotime($starttime));
@@ -7724,8 +8276,8 @@ class ServersController extends WebServicesController
              * date Oct. 26 2016
              * i replace $param['details'][$i]['STAFFCODESIMEI'] to $tmpStaffCode
              *=============================================================================*/
-                $tmpStaffCode = $param['details'][$i]['STAFFCODESIMEI'];
-               if ($tmpStaffCode == -1){
+            $tmpStaffCode = $param['details'][$i]['STAFFCODESIMEI'];
+            if ($tmpStaffCode == -1) {
                 $tmpStaffCode = $param['STAFFCODE'];
             }
             /*=============================================================================*/
@@ -7739,10 +8291,10 @@ class ServersController extends WebServicesController
                          " . $param['details'][$i]['ZEIKUBUN']    . " , " . $param['details'][$i]['POINTKASAN1']    . ",
                          " . $param['details'][$i]['POINTKASAN2'] . " , " . $param['details'][$i]['POINTKASAN3']    . ",
                          " . $param['details'][$i]['STAFFCODE']   . " , " . $tmpStaffCode . ",
-                         " . $param['TEMPSTATUS']                 .", ' " . $param['details'][$i]['STARTTIME']      ."',
-                         '".$param['details'][$i]['ENDTIME']."'";
+                         " . $param['TEMPSTATUS']                 . ", ' " . $param['details'][$i]['STARTTIME']      . "',
+                         '" . $param['details'][$i]['ENDTIME'] . "'";
 
-            $dtlsql[$i] = "REPLACE INTO store_transaction_details (".$fld.") VALUES(".$val.")";
+            $dtlsql[$i] = "REPLACE INTO store_transaction_details (" . $fld . ") VALUES(" . $val . ")";
 
             //-- 新しいトランザクション細部挿入 (Insert new transaction detail)
             $retQuery[$sqlctr] = $this->StoreTransaction->query($dtlsql[$i]);
@@ -7757,39 +8309,39 @@ class ServersController extends WebServicesController
         # For Updating Next Reservation
         #------------------------------------------------------------------------------------------------------------------------
         $newsyscode = array();
-        $gdcodelist = implode(",",array_unique($gdcode));
+        $gdcodelist = implode(",", array_unique($gdcode));
         $this->Syscode->set_company_database($storeinfo['dbname'], $this->Syscode);
         $sql = "select SYSCODE, GDCODE from services where GDCODE in ({$gdcodelist}) and DELFLG is null group by SYSCODE order by SYSCODE";
         $newsyscodes = $this->Syscode->query($sql);
 
         $x = 0;
-        foreach ($newsyscodes as $item){
+        foreach ($newsyscodes as $item) {
             $newsyscode[$x] = $item["services"]["SYSCODE"];
             $x++;
         }
 
-        $syscodes = trim(implode(",",array_unique($newsyscode)),",");
+        $syscodes = trim(implode(",", array_unique($newsyscode)), ",");
         #------------------------------------------------------------------------------------------------------------------------
 
 
-        if(trim($param['BEFORE_TRANSCODE']) <> "" || $param['YOYAKU_STATUS'] == 2){
+        if (trim($param['BEFORE_TRANSCODE']) <> "" || $param['YOYAKU_STATUS'] == 2) {
             //$sql = "UPDATE yoyaku_next SET YOYAKU_STATUS = 2 ,NEXTCODE = '" .$param['TRANSCODE']."' WHERE TRANSCODE ='". $param['BEFORE_TRANSCODE']."'";
-            if($param['YOYAKU_STATUS'] == 2 && $param['STAFF_CHANGE_JIKAI_LINK'] == 0){
+            if ($param['YOYAKU_STATUS'] == 2 && $param['STAFF_CHANGE_JIKAI_LINK'] == 0) {
                 $transcond = " NEXTCODE = '{$param['BEFORE_TRANSCODE']}'";
-            }else{
+            } else {
 
                 $transcond = " TRANSCODE ='{$param['BEFORE_TRANSCODE']}'";
 
                 // Update the transaction in store_transaction table so it cannot be save in Tenpo
                 // just incase it is being edited at the same time
                 //--------------------------------------------------------------------------------------------------
-                if(empty($param['YOYAKU_STATUS']) || $param['STAFF_CHANGE_JIKAI_LINK'] > 0){
+                if (empty($param['YOYAKU_STATUS']) || $param['STAFF_CHANGE_JIKAI_LINK'] > 0) {
                     $retQuery[$sqlctr] = $this->MiscFunction->SetTransUpdateDate($this->StoreTransaction, $param['BEFORE_TRANSCODE']);
                     $sqlctr++;
                 }
                 //--------------------------------------------------------------------------------------------------
 
-                if($param['STAFF_CHANGE_JIKAI_LINK'] > 0){
+                if ($param['STAFF_CHANGE_JIKAI_LINK'] > 0) {
 
                     // Reset the transaction YOYAKU_STATUS to 1
                     //--------------------------------------------------------------------------------------------------
@@ -7826,13 +8378,13 @@ class ServersController extends WebServicesController
             # ADDED BY MARVINC - 2015-06-22
             # For Updating Next Reservation
             #------------------------------------------------------------------------------------------------------------------------
-            if ($param['YOYAKU_STATUS'] == 2 && $param['STAFF_CHANGE_JIKAI_LINK'] == 0){
+            if ($param['YOYAKU_STATUS'] == 2 && $param['STAFF_CHANGE_JIKAI_LINK'] == 0) {
 
                 #------------------------------------------------------------------------------------------------------------------------
                 # WILL ONLY UPDATE THOSE SERVICES THAT WAS SELECTED
                 #------------------------------------------------------------------------------------------------------------------------
                 $syscond = "";
-                if (trim($param['DELPREVTRANSGCODES']) <> ""){
+                if (trim($param['DELPREVTRANSGCODES']) <> "") {
                     $syscond = "AND SYSCODE IN({$syscodes})";
                 }
 
@@ -7846,28 +8398,27 @@ class ServersController extends WebServicesController
                         NEXTCODE = '{$param['TRANSCODE']}' WHERE NEXTCODE ='{$param['BEFORE_TRANSCODE']}' {$syscond}";
                 #------------------------------------------------------------------------------------------------------------------------
 
-            }else{
+            } else {
                 #------------------------------------------------------------------------------------------------------------------------
                 # Update by: MarvinC - 2016-01-14 15:07
                 # Check Powers Flag
                 #------------------------------------------------------------------------------------------------------------------------
-                if($this->MiscFunction->GetReturningCustomerCountAll($this) == 1){
+                if ($this->MiscFunction->GetReturningCustomerCountAll($this) == 1) {
                     #check if the service is existing if not existing it will insert a new transaction with syscode equal to 0
                     $this->Syscode->set_company_database($storeinfo['dbname'], $this->Syscode);
                     $sql = "select SYSCODE from yoyaku_next_details where transcode = '{$param['BEFORE_TRANSCODE']}' and syscode in ({$syscodes}) and yoyaku_status = 1";
                     $exists = $this->Syscode->query($sql);
 
-                    if(empty($exists)){
+                    if (empty($exists)) {
 
                         #get the staff incharge and insert one transaction with a syscode of 0
                         $sql = "INSERT INTO yoyaku_next_details
-                                SELECT TRANSCODE, MAX(ROWNO) + 1, 2, 0, '{$param['TRANSCODE']}', STAFFCODE_INCHARGE, STAFFCODE_INCHARGE,  '".$param['TRANSDATE']."', 0, null, CURRENT_DATE()
+                                SELECT TRANSCODE, MAX(ROWNO) + 1, 2, 0, '{$param['TRANSCODE']}', STAFFCODE_INCHARGE, STAFFCODE_INCHARGE,  '" . $param['TRANSDATE'] . "', 0, null, CURRENT_DATE()
                                 FROM yoyaku_next_details YND
                                 WHERE TRANSCODE = '{$param['BEFORE_TRANSCODE']}'
                                 HAVING TRANSCODE IS NOT NULL
                                 LIMIT 1";
-
-                    }else{
+                    } else {
                         #Will update all transaction changeflg according to services selected
                         $sql = "UPDATE yoyaku_next_details
                                 SET CHANGEFLG = CASE WHEN NEXTCODE IS NULL AND CHANGEFLG = 0 THEN 0 ELSE 1 END,
@@ -7876,7 +8427,7 @@ class ServersController extends WebServicesController
                                 NEXTCODE = '{$param['TRANSCODE']}' WHERE TRANSCODE = '{$param['BEFORE_TRANSCODE']}'
                                 AND SYSCODE IN ({$syscodes}) AND YOYAKU_STATUS < 2";
                     }
-                }else{
+                } else {
                     #If powers is not on it will still update all transaction. No need to check for services.
                     $sql = "UPDATE yoyaku_next_details
                             SET CHANGEFLG = CASE WHEN NEXTCODE IS NULL AND CHANGEFLG = 0 THEN 0 ELSE 1 END,
@@ -7892,7 +8443,7 @@ class ServersController extends WebServicesController
             $sqlctr++;
 
             // Save JIKAI YOYAKU LINKANGE History
-            if($param['STAFF_CHANGE_JIKAI_LINK'] > 0){
+            if ($param['STAFF_CHANGE_JIKAI_LINK'] > 0) {
 
                 $sql = "INSERT INTO yoyaku_next_history_link
                             (staffcode, nextcode, transcode, datetimechange)
@@ -7914,19 +8465,21 @@ class ServersController extends WebServicesController
         //Delete Reji Marketing First if Exists
         //-----------------------------------------------------------------------------------------------------------
         $SqlDeleteRejiMarketing = "DELETE FROM drejimarketing
-                                   WHERE transcode = '".$param['TRANSCODE']."'
-                                       AND keyno = ".$param['KEYNO'];
+                                   WHERE transcode = '" . $param['TRANSCODE'] . "'
+                                       AND keyno = " . $param['KEYNO'];
         $this->StoreTransaction->query($SqlDeleteRejiMarketing);
         //-----------------------------------------------------------------------------------------------------------
         if (count($param['rejimarketing']) > 0) {
             //-------------------------------------------------------------------------------------------------------
-            $SqlInsertRejiMarketing = $this->GenerateSqlInsertRejiMarketing($param['TRANSCODE'],
-                                                                            $param['KEYNO'],
-                                                                            $param['rejimarketing']);
+            $SqlInsertRejiMarketing = $this->GenerateSqlInsertRejiMarketing(
+                $param['TRANSCODE'],
+                $param['KEYNO'],
+                $param['rejimarketing']
+            );
             //-------------------------------------------------------------------------------------------------------
             if ($SqlInsertRejiMarketing != "") $this->StoreTransaction->query($SqlInsertRejiMarketing);
             //-------------------------------------------------------------------------------------------------------
-        }//end if
+        } //end if
         //===========================================================================================================
 
         // 履歴を詳細に記録する場合
@@ -7938,9 +8491,7 @@ class ServersController extends WebServicesController
             //-- 挿入または更新トランザクション (Insert or Update transaction)
             $retQuery[$sqlctr] = $this->StoreTransaction->query($sql);
             $sqlctr++;
-
-        }
-        else{ //if(trim($param['UKETSUKESTAFF']) == "") {
+        } else { //if(trim($param['UKETSUKESTAFF']) == "") {
             $uketsukedate = date('Y-m-d'); //詳細に記録しないケースで初回受付日はサーバー日時を使用、受付スタッフは常にフリー
             $sql = "INSERT INTO yoyaku_details(TRANSCODE, UKETSUKEDATE, UKETSUKESTAFF)
                     VALUES('{$param['TRANSCODE']}', '{$uketsukedate}', 0)
@@ -7949,13 +8500,12 @@ class ServersController extends WebServicesController
             //-- 挿入または更新トランザクション (Insert or Update transaction)
             $retQuery[$sqlctr] = $this->StoreTransaction->query($sql);
             $sqlctr++;
-
         }
 
 
         //-----------------------------------------------------------------------------------------------------------------
         //add by albert for BM second notes information 2015-12-01 --------------------------------------------------------
-        if (!is_null($param['secondnote'])){
+        if (!is_null($param['secondnote'])) {
             //delete old record for second notes
             $GetData = "";
             $Sql = "delete from store_transaction_second_notes where transcode = '" . $oldTransCode . "'";
@@ -7997,7 +8547,7 @@ class ServersController extends WebServicesController
         # ADDED BY MARVINC - 2016-06-30
         # Note: DELETE TRANSACTION THAT HAS BEEN MOVE IN DIFFERENT DATE AND UPDATE YOYAKUTIME AND ENDTIME
         #------------------------------------------------------------------------------------------------------------------------
-        if (trim($param['DELPREVTRANSGCODES']) <> ""){
+        if (trim($param['DELPREVTRANSGCODES']) <> "") {
             $sql = "DELETE FROM store_transaction_details
                     WHERE transcode = '{$param['PREVTRANSCODE']}'
                         AND keyno = {$param['KEYNO']}
@@ -8019,7 +8569,7 @@ class ServersController extends WebServicesController
 
             $result = $this->StoreTransaction->query($sql);
 
-            if(count($result) > 0){
+            if (count($result) > 0) {
                 $sql = "UPDATE store_transaction
                         SET yoyakutime = '{$result[0][0]['STARTTIME']}',
                             endtime = '{$result[0][0]['ENDTIME']}'
@@ -8036,7 +8586,7 @@ class ServersController extends WebServicesController
         //---------------------------------------------------------------------------
         //-- エラーのためのチェック (Checks if there are errors on all cued queries)
         $error = "false";
-        for ($i=0; $i<count($retQuery); $i++) {
+        for ($i = 0; $i < count($retQuery); $i++) {
             if ($retQuery[$i] === false) {
                 $error = "true";
                 $param['TRANSCODE'] = "ROLLBACK";
@@ -8053,21 +8603,21 @@ class ServersController extends WebServicesController
             #------------------------------------------------------------------------------------------------------------------------
             //-- Deletes customer mail reservation
             #Check Powers Flag
-            if($this->MiscFunction->GetReturningCustomerCountAll($this) == 1){
+            if ($this->MiscFunction->GetReturningCustomerCountAll($this) == 1) {
                 $del_mailsql = "DELETE CMRD FROM customer_mail_reservation_details CMRD
-                                WHERE CMRD.STORECODE = ".$param['STORECODE']." AND CMRD.CCODE = '".$param['CCODE']."'
-                                    AND CMRD.TRANSDATE < '".$param['TRANSDATE']."'
-                                    AND CMRD.SYSCODE IN(".$syscodes.")";
-            }else{
+                                WHERE CMRD.STORECODE = " . $param['STORECODE'] . " AND CMRD.CCODE = '" . $param['CCODE'] . "'
+                                    AND CMRD.TRANSDATE < '" . $param['TRANSDATE'] . "'
+                                    AND CMRD.SYSCODE IN(" . $syscodes . ")";
+            } else {
                 $del_mailsql = "DELETE CMRD FROM customer_mail_reservation_details CMRD
-                                WHERE CMRD.STORECODE = ".$param['STORECODE']." AND CMRD.CCODE = '".$param['CCODE']."'
-                                    AND CMRD.TRANSDATE < '".$param['TRANSDATE']."'";
+                                WHERE CMRD.STORECODE = " . $param['STORECODE'] . " AND CMRD.CCODE = '" . $param['CCODE'] . "'
+                                    AND CMRD.TRANSDATE < '" . $param['TRANSDATE'] . "'";
             }
             $this->StoreTransaction->query($del_mailsql);
 
             $del_mailsql_d = "DELETE CMR FROM customer_mail_reservation CMR
-                              WHERE STORECODE = ".$param['STORECODE']." AND CCODE = '".$param['CCODE']."'
-                                    AND TRANSDATE < '".$param['TRANSDATE']."'
+                              WHERE STORECODE = " . $param['STORECODE'] . " AND CCODE = '" . $param['CCODE'] . "'
+                                    AND TRANSDATE < '" . $param['TRANSDATE'] . "'
                                     AND NOT EXISTS(
                                                     SELECT NULL
                                                     FROM customer_mail_reservation_details CMRD
@@ -8108,12 +8658,14 @@ class ServersController extends WebServicesController
      * @param Int $time - service time for male or female
      * @return Boolean  - success flag
      */
-    function wsAddUpdateStaffMenuServiceTime($sessionid,
-                                                  $storecode,
-                                                  $staffcode,
-                                                  $gcode,
-                                                  $ismale,
-                                                  $time) {
+    function wsAddUpdateStaffMenuServiceTime(
+        $sessionid,
+        $storecode,
+        $staffcode,
+        $gcode,
+        $ismale,
+        $time
+    ) {
         //---------------------------------------------------------------
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         //---------------------------------------------------------------
@@ -8122,7 +8674,7 @@ class ServersController extends WebServicesController
         if ($staffservicetime == false) {
             $this->_soap_server->fault(1, '', INVALID_SESSION);
             return;
-        }//end if
+        } //end if
         //-- 会社データベースを設定する (Set the Company Database)
         $this->YoyakuStaffServiceTime->set_company_database($staffservicetime['dbname'], $this->YoyakuStaffServiceTime);
         //---------------------------------------------------------------
@@ -8132,12 +8684,12 @@ class ServersController extends WebServicesController
         $querty_txt = "INSERT INTO yoyaku_staff_service_time(storecode,
                                                              staffcode,
                                                              gcode,
-                                                             ".$field.")
-                       VALUES(".$storecode.",
-                              ".$staffcode.",
-                              ".$gcode.",
-                              ".$time.")
-                       ON DUPLICATE KEY UPDATE ".$field." = ".$time;
+                                                             " . $field . ")
+                       VALUES(" . $storecode . ",
+                              " . $staffcode . ",
+                              " . $gcode . ",
+                              " . $time . ")
+                       ON DUPLICATE KEY UPDATE " . $field . " = " . $time;
         //---------------------------------------------------------------
         $this->YoyakuStaffServiceTime->query($querty_txt);
         //---------------------------------------------------------------
@@ -8148,9 +8700,9 @@ class ServersController extends WebServicesController
         } else {
             $this->_soap_server->fault(1, '', 'Error Processing Data');
             return false;
-        }//end if else
+        } //end if else
         //---------------------------------------------------------------
-    }//end function
+    } //end function
 
 
 
@@ -8162,7 +8714,8 @@ class ServersController extends WebServicesController
      * @param string $transcode
      * @return boolean
      */
-    function wsDeleteStoreTransaction($sessionid, $transcode) {
+    function wsDeleteStoreTransaction($sessionid, $transcode)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -8178,7 +8731,7 @@ class ServersController extends WebServicesController
                       where delflg is null and transcode = '$transcode'";
         $tmpstat = $this->StoreTransaction->query($sql_search);
 
-        if ((int)$tmpstat[0]['store_transaction']['tempstatus'] > 1){
+        if ((int)$tmpstat[0]['store_transaction']['tempstatus'] > 1) {
 
             $del_sql = "UPDATE store_transaction
                         SET DELFLG =  NOW()
@@ -8212,10 +8765,9 @@ class ServersController extends WebServicesController
             //----------------------------------------------------------------------------------------
 
             return true;
-        }else{
+        } else {
             return false;
         }
-
     }
     //- #############################################################################
 
@@ -8229,7 +8781,8 @@ class ServersController extends WebServicesController
      * @param string $keyno
      * @return boolean
      */
-    function wsCancelStoreTransaction($sessionid, $transcode, $keyno) {
+    function wsCancelStoreTransaction($sessionid, $transcode, $keyno)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -8265,7 +8818,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return return_breakTimeInformation
      */
-    function wsSearchBreakTime($sessionid, $param) {
+    function wsSearchBreakTime($sessionid, $param)
+    {
         if ($param['ignoreSessionCheck'] <> 1) {
             //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
             $storeinfo = $this->YoyakuSession->Check($this);
@@ -8280,25 +8834,33 @@ class ServersController extends WebServicesController
         //-- 会社データベースを設定する (Set the Company Database)
         $this->BreakTime->set_company_database($storeinfo['dbname'], $this->BreakTime);
 
-        $criteria = array('BreakTime.STORECODE' => $param['STORECODE'],
-                          'BreakTime.DATE'      => $param['date']);
+        $criteria = array(
+            'BreakTime.STORECODE' => $param['STORECODE'],
+            'BreakTime.DATE'      => $param['date']
+        );
 
         if ($param['STAFFCODE'] > -1) {
             $criteria['BreakTime.STAFFCODE'] = $param['STAFFCODE'];
         }
 
-        $fields = array("BREAKID", "STAFFCODE", "STORECODE", "DATE", "PRIORITY",
-                        "STARTTIME", "ENDTIME", "REMARKS");
+        $fields = array(
+            "BREAKID", "STAFFCODE", "STORECODE", "DATE", "PRIORITY",
+            "STARTTIME", "ENDTIME", "REMARKS"
+        );
 
-        $v = $this->BreakTime->find('all',array('conditions' => $criteria,
-                                                'fields'     => $fields,
-                                                'order'      => array('BreakTime.STAFFCODE',
-                                                                      'TIMEDIFF(ENDTIME, STARTTIME) DESC')));
+        $v = $this->BreakTime->find('all', array(
+            'conditions' => $criteria,
+            'fields'     => $fields,
+            'order'      => array(
+                'BreakTime.STAFFCODE',
+                'TIMEDIFF(ENDTIME, STARTTIME) DESC'
+            )
+        ));
         $breakidcount = count($v);
 
         $staff = $param['staff'];
-        for ($i=0; $i<count($v); $i++) {
-            for ($m=0; $m<count($staff); $m++) {
+        for ($i = 0; $i < count($v); $i++) {
+            for ($m = 0; $m < count($staff); $m++) {
                 if ($staff[$m]['STAFFCODE'] == $v[$i]['BreakTime']['STAFFCODE']) {
                     $v[$i]['BreakTime']['PRIORITY'] = $staff[$m]['ROWS'];
                     break;
@@ -8307,16 +8869,17 @@ class ServersController extends WebServicesController
         }
 
         if (empty($param['staff'])) {
-            for ($i=0; $i<count($v); $i++) {
-                $v[$i]['BreakTime']['STARTTIME'] = substr($v[$i]['BreakTime']['STARTTIME'],0,5);
-                $v[$i]['BreakTime']['ENDTIME']   = substr($v[$i]['BreakTime']['ENDTIME'],0,5);
+            for ($i = 0; $i < count($v); $i++) {
+                $v[$i]['BreakTime']['STARTTIME'] = substr($v[$i]['BreakTime']['STARTTIME'], 0, 5);
+                $v[$i]['BreakTime']['ENDTIME']   = substr($v[$i]['BreakTime']['ENDTIME'], 0, 5);
 
                 if ($v[$i]['BreakTime']['PRIORITY'] == 0) {
                     $v[$i]['BreakTime']['PRIORITY'] = 1;
                 }
             }
         } else {
-            function break_time_sort($prev, $next) {
+            function break_time_sort($prev, $next)
+            {
                 if ($prev['BreakTime']['STAFFCODE'] === $next['BreakTime']['STAFFCODE']) {
                     if ($prev['BreakTime']['STARTTIME'] === $next['BreakTime']['STARTTIME']) {
                         if ($prev['BreakTime']['ENDTIME'] === $next['BreakTime']['ENDTIME']) {
@@ -8337,9 +8900,9 @@ class ServersController extends WebServicesController
 
             $assinged_start_index = 0;
 
-            for ($i=0; $i<count($v); $i++) {
-                $v[$i]['BreakTime']['STARTTIME'] = substr($v[$i]['BreakTime']['STARTTIME'],0,5);
-                $v[$i]['BreakTime']['ENDTIME']   = substr($v[$i]['BreakTime']['ENDTIME'],0,5);
+            for ($i = 0; $i < count($v); $i++) {
+                $v[$i]['BreakTime']['STARTTIME'] = substr($v[$i]['BreakTime']['STARTTIME'], 0, 5);
+                $v[$i]['BreakTime']['ENDTIME']   = substr($v[$i]['BreakTime']['ENDTIME'], 0, 5);
 
                 // PRIORITYを設定する
                 if ($i === 0 || $v[$i]['BreakTime']['STAFFCODE'] !== $v[$i - 1]['BreakTime']['STAFFCODE']) {
@@ -8382,7 +8945,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return BREAKID
      */
-    function wsAddUpdateBreakTime($sessionid, $param) {
+    function wsAddUpdateBreakTime($sessionid, $param)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -8396,8 +8960,8 @@ class ServersController extends WebServicesController
 
         //-- BREAKIDは設定してない場合、新規BREAKIDを作成 (Check BREAKID, create new if none)
         if (empty($param['BREAKID'])) {
-            $querty_txt = "select ".
-                          "f_get_sequence_key('breakid','', '') as breakid ";
+            $querty_txt = "select " .
+                "f_get_sequence_key('breakid','', '') as breakid ";
             $tmp_data = $this->BreakTime->query($querty_txt);
             $param['BREAKID'] = $tmp_data[0][0]['breakid'];
         }
@@ -8432,7 +8996,8 @@ class ServersController extends WebServicesController
      * @param int $breakid
      * @return boolean
      */
-    function wsDeleteBreakTime($sessionid, $breakid) {
+    function wsDeleteBreakTime($sessionid, $breakid)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -8451,13 +9016,13 @@ class ServersController extends WebServicesController
         $ret = $this->BreakTime->query($query);
 
         //$this->BreakTime->delete($breakid);
-        if($ret !== false){
+        if ($ret !== false) {
             $query = "delete from break_time where breakid = {$breakid}";
             $this->BreakTime->query($query);
         }
-        if($ret !== false){
+        if ($ret !== false) {
             $this->BreakTime->commit();
-        }else{
+        } else {
             $this->BreakTime->rollback();
         }
 
@@ -8477,7 +9042,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return return_dataOfTheDayInformation
      */
-    function wsGetDataOfTheDay($sessionid, $param) {
+    function wsGetDataOfTheDay($sessionid, $param)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -8485,7 +9051,7 @@ class ServersController extends WebServicesController
             return;
         }
         $param['storecode']  = $param['STORECODE'];
-        $date                = explode("-",$param['date']);
+        $date                = explode("-", $param['date']);
         $param['year']       = intval($date[0]);
         $param['month']      = intval($date[1]);
         $param['day']        = intval($date[2]);
@@ -8501,7 +9067,7 @@ class ServersController extends WebServicesController
         $prevstaffcode = -1;
         $finaldata = array();
         $getval = false;
-        $ctr= 0;
+        $ctr = 0;
 
         #----------------------------------------------------------------------------------------------------------------
         # UPDATE BY MARVINC - 2016-05-24 - 11:27
@@ -8510,7 +9076,7 @@ class ServersController extends WebServicesController
         #----------------------------------------------------------------------------------------------------------------
         $records = $transaction["records"];
 
-        foreach ($records as $trans){
+        foreach ($records as $trans) {
 
             $newtranscode = $trans["TRANSCODE"];
             $newstarttime = $trans["YOYAKUTIME"];
@@ -8520,45 +9086,46 @@ class ServersController extends WebServicesController
             //    $trans["PRIORITYTYPE"] = "1-2";
             //}
 
-            if($newtranscode === $prevtrans &&
-                    $newstaffcode === $prevstaffcode &&
-                    strtotime($prevendtime) >= strtotime($newstarttime)){
+            if (
+                $newtranscode === $prevtrans &&
+                $newstaffcode === $prevstaffcode &&
+                strtotime($prevendtime) >= strtotime($newstarttime)
+            ) {
 
-                if($trans["ADJUSTED_ENDTIME"] > $finaldata[$ctr-1]["ADJUSTED_ENDTIME"]){
-                    $finaldata[$ctr-1]["ADJUSTED_ENDTIME"] = $trans["ADJUSTED_ENDTIME"];
+                if ($trans["ADJUSTED_ENDTIME"] > $finaldata[$ctr - 1]["ADJUSTED_ENDTIME"]) {
+                    $finaldata[$ctr - 1]["ADJUSTED_ENDTIME"] = $trans["ADJUSTED_ENDTIME"];
                 }
                 $getval = false;
+            } else {
 
-            }else{
-
-                $finaldata[$ctr]= $trans;
+                $finaldata[$ctr] = $trans;
                 $getval = true;
                 $ctr++;
-
             }
 
             $prevtrans = $trans["TRANSCODE"];
             $prevstaffcode = intval($trans["STAFFCODE"]);
             $prevendtime = $trans['ADJUSTED_ENDTIME'];
-        }//END OF FOR EACH
+        } //END OF FOR EACH
 
-        if($getval == false){
-            $finaldata[$ctr]= $trans;
+        if ($getval == false) {
+            $finaldata[$ctr] = $trans;
         }
 
-
-
         $transaction["records"] = $finaldata;
+
+        $facilities = array();
         #----------------------------------------------------------------------------------------------------------------
-
-
-
+        if ($this->MiscFunction->IsFacilityEnabled($this, $storeinfo['dbname'], $param['STORECODE'])) {
+            $facilities = $this->MiscFunction
+                ->GetAvailableFacilities($this, $storeinfo['dbname'], $param['STORECODE']);
+        }
 
         //--------------------------------------------------------------------------------------------------------
         $staff          = $this->wsSearchAvailableStaff($sessionid, $param);
         $param['staff'] = $staff['records'];
         $breaktime      = $this->wsSearchBreakTime($sessionid, $param);
-        $shift          = $this->wsSearchStaffShift ($sessionid, $param);
+        $shift          = $this->wsSearchStaffShift($sessionid, $param);
         //--------------------------------------------------------------------------------------------------------
         for ($s = 0; $s < count($staff['records']); $s++) {
             //-- スタッフに割り当てるトランザクション (Assign transactions to staff)
@@ -8569,7 +9136,8 @@ class ServersController extends WebServicesController
                     //if ($staff['records'][$s]['WEB_DISPLAY'] == 1) {
                     if (($staff['records'][$s]['WEB_DISPLAY'] == 1 &&
                             $transaction['records'][$i]['PRIORITYTYPE'] == 1) ||
-                                $transaction['records'][$i]['PRIORITYTYPE'] == 2) {
+                        $transaction['records'][$i]['PRIORITYTYPE'] == 2
+                    ) {
                         //------------------------------------------------------------------------------
                         $staff['records'][$s]['transaction']['records'][$ctr] = $transaction['records'][$i];
                         $ctr++;
@@ -8586,15 +9154,17 @@ class ServersController extends WebServicesController
                             $staff['records'][$s]['PHONEROWS'] = $priority;
                         }
                         //---------------------------------------------------------------
-                    }//end if (($staff['records'][$s]['WEB_DISPLAY']
+                    } //end if (($staff['records'][$s]['WEB_DISPLAY']
                 }
             }
             if ($staff['records'][$s]['WEB_DISPLAY'] == 1) {
                 //-- 外出がスタッフに割り当てる(Assign breaktime to staff)
                 $ctr = 0;
                 for ($i = 0; $i < count($breaktime['records']); $i++) {
-                    if ($breaktime['records'][$i]['STAFFCODE'] == $staff['records'][$s]['STAFFCODE'] &&
-                        $breaktime['records'][$i]['PRIORITY'] > 0) {
+                    if (
+                        $breaktime['records'][$i]['STAFFCODE'] == $staff['records'][$s]['STAFFCODE'] &&
+                        $breaktime['records'][$i]['PRIORITY'] > 0
+                    ) {
                         $staff['records'][$s]['breaktime']['records'][$ctr] = $breaktime['records'][$i];
                         $ctr++;
                     }
@@ -8603,14 +9173,15 @@ class ServersController extends WebServicesController
                 //-- シフトがスタッフに割り当てる(Assign shift to staff)
                 $ctr = 0;
                 for ($i = 0; $i < count($shift['records']); $i++) {
-                    if ($shift['records'][$i]['STAFFCODE'] == $staff['records'][$s]['STAFFCODE'] &&
-                        $shift['records'][$i]['day'.$param['day']] <> "") {
+                    if (
+                        $shift['records'][$i]['STAFFCODE'] == $staff['records'][$s]['STAFFCODE'] &&
+                        $shift['records'][$i]['day' . $param['day']] <> ""
+                    ) {
                         $staff['records'][$s]['shift']['records'][$ctr] = $shift['records'][$i];
                         $ctr++;
                     }
                 }
             }
-
         }
 
         $ret = array();
@@ -8665,7 +9236,7 @@ class ServersController extends WebServicesController
 
         $holiday = $this->wsSearchStoreHoliday($sessionid, $param);
         if ($holiday['record_count'] > 0) {
-            $ret['holiday'] = $holiday['records']['day'.$param['day']];
+            $ret['holiday'] = $holiday['records']['day' . $param['day']];
         } else {
             $ret['holiday'] = "";
         }
@@ -8680,8 +9251,8 @@ class ServersController extends WebServicesController
         $ret['records']  = $staff;
 
         //新着メッセージ取得
-        if (array_key_exists('useYoyakuMessage',$param)) {
-            if ($param['useYoyakuMessage']==1){
+        if (array_key_exists('useYoyakuMessage', $param)) {
+            if ($param['useYoyakuMessage'] == 1) {
                 $ret['messages'] = array();
                 $ret['messages'] = $this->wsGetYoyakuMessage($sessionid, $param);
             }
@@ -8696,18 +9267,18 @@ class ServersController extends WebServicesController
         #----------------------------------------------------------------------------------------------------------------
         $records = $ret["records"]["records"];
 
-        foreach ($records as $key => $record){
-            foreach($record["transaction"] as $transactions){
+        foreach ($records as $key => $record) {
+            foreach ($record["transaction"] as $transactions) {
 
                 $transactions = $this->MiscFunction->sortBy($transactions, "YOYAKUTIME");
 
-                foreach ($transactions as $key3 => $trans){
+                foreach ($transactions as $key3 => $trans) {
                     $endtime = $trans["ADJUSTED_ENDTIME"];
 
                     $startime = $transactions[$key3 + 1]["YOYAKUTIME"];
                     $prioritytypecur = $trans["PRIORITYTYPE"];
                     $prioritytypenxt = $transactions[$key3 + 1]["PRIORITYTYPE"];
-                    if($endtime > $startime && $startime != null && $prioritytypecur == $prioritytypenxt){
+                    if ($endtime > $startime && $startime != null && $prioritytypecur == $prioritytypenxt) {
                         $conflict = true;
                         $priority = split("-", $transactions[$key3 + 1]["PRIORITYTYPE"]);
                         $starttime_s = $transactions[$key3 + 1]["YOYAKUTIME"];
@@ -8715,9 +9286,9 @@ class ServersController extends WebServicesController
                         $transcode = $transactions[$key3 + 1]["TRANSCODE"];
                         $p1 = $priority[0];
                         $p2 = "";
-		                for ($i = 1; $conflict == true; $i++){
-                            $p2 = $p1 . "-". $i;
-                            $conflict = $this->MiscFunction->CheckConflict($transactions,$transcode, $starttime_s, $endtime_s, $p2);
+                        for ($i = 1; $conflict == true; $i++) {
+                            $p2 = $p1 . "-" . $i;
+                            $conflict = $this->MiscFunction->CheckConflict($transactions, $transcode, $starttime_s, $endtime_s, $p2);
                         }
                         $transactions[$key3 + 1]["PRIORITYTYPE"] = $p2;
                     }
@@ -8725,15 +9296,15 @@ class ServersController extends WebServicesController
                 $records[$key]["transaction"]["records"] = $transactions;
             }
         }
-        $ret["records"]["records"] = $records;
-        #----------------------------------------------------------------------------------------------------------------
+
+        $ret['records']['records'] = $records;
+        $ret['staff_records'] = $ret['records'];
+        $ret['facility_records']['records'] = $facilities;
+        unset($ret['records']);
         return $ret;
         //---------------------------------------------------------------------------------------------
-    }//end function
+    } //end function
     //- #############################################################################
-
-
-
 
     // TRANSACTION CALENDAR VIEW FUNCTIONS ------------------------------------------
     /**
@@ -8744,7 +9315,8 @@ class ServersController extends WebServicesController
      * @param array $param
      * @return return_transactionCalendarViewInformation
      */
-    function wsGetTransactionCalendarView($sessionid, $param) {
+    function wsGetTransactionCalendarView($sessionid, $param)
+    {
         if ($param['ignoreSessionCheck'] <> 1) {
             //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
             $storeinfo = $this->YoyakuSession->Check($this);
@@ -8773,15 +9345,17 @@ class ServersController extends WebServicesController
         'group'      => 'TRANSDATE',
         'order'      => 'TRANSDATE'));*/
 
-        $hcriteria = array('StoreHoliday.STORECODE'  => $param['STORECODE'],
-                           'StoreHoliday.YMD BETWEEN ? AND
-                            LAST_DAY(DATE_ADD(?, INTERVAL 1 MONTH))'  => array($date, $date));
+        $hcriteria = array(
+            'StoreHoliday.STORECODE'  => $param['STORECODE'],
+            'StoreHoliday.YMD BETWEEN ? AND
+                            LAST_DAY(DATE_ADD(?, INTERVAL 1 MONTH))'  => array($date, $date)
+        );
 
         $h = $this->StoreHoliday->find('all', array('conditions' => $hcriteria));
 
         $arrDays = $this->arrDays;
 
-        for ($m=0; $m<2; $m++) {
+        for ($m = 0; $m < 2; $m++) {
 
             if ($m == 1) {
                 $param['month']++;
@@ -8821,7 +9395,7 @@ class ServersController extends WebServicesController
                     //- 休日の配列をループ処理　(Loops through the array of Holidays)
                     for ($i = 0; $i < count($h); $i++) {
                         if ($date == $h[$i]['StoreHoliday']['YMD']) {
-                            $arrData[$m][$arrDays[$j]].= "h";
+                            $arrData[$m][$arrDays[$j]] .= "h";
                             break;
                         }
                     }
@@ -8849,7 +9423,8 @@ class ServersController extends WebServicesController
      * @param string $sessionid
      * @return return_staffTabInformation
      */
-    function wsGetAllOnStaffTab($sessionid) {
+    function wsGetAllOnStaffTab($sessionid)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -8886,7 +9461,8 @@ class ServersController extends WebServicesController
      * @param string $date
      * @return return_firstLoadInformation
      */
-    function wsGetAllOnFirstLoad($sessionid, $date) {
+    function wsGetAllOnFirstLoad($sessionid, $date)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -8921,7 +9497,8 @@ class ServersController extends WebServicesController
      * @param string $date
      * @return return_yoyakuMessage
      */
-    function wsGetYoyakuMessage($sessionid, $param) {
+    function wsGetYoyakuMessage($sessionid, $param)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
 
@@ -8931,14 +9508,16 @@ class ServersController extends WebServicesController
         }
         $this->YoyakuMessage->set_company_database($storeinfo['dbname'], $this->YoyakuMessage);
         $ret = array();
-        $msgs = $this->YoyakuMessage->find('all',           array( 'conditions' => array('STORECODE' => $param['STORECODE']),
-                                                                'order'      => 'YOYAKUDATETIME ASC'));
+        $msgs = $this->YoyakuMessage->find('all',           array(
+            'conditions' => array('STORECODE' => $param['STORECODE']),
+            'order'      => 'YOYAKUDATETIME ASC'
+        ));
         $ret['messages']      = set::extract($msgs, '{n}.YoyakuMessage');
         $ret['message_count'] = count($msgs);
         /*$ret['message_count2'] = $this->YoyakuMessage->find('count',
         array('conditions' => array('STORECODE' => $param['STORECODE']),
         'fields'     => 'YoyakuMessage.CODE'));*/
-        $this->YoyakuMessage->query("delete from yoyaku_message where STORECODE=".$param['STORECODE']);
+        $this->YoyakuMessage->query("delete from yoyaku_message where STORECODE=" . $param['STORECODE']);
         return $ret;
     }
 
@@ -8952,10 +9531,12 @@ class ServersController extends WebServicesController
      * @param Int $gcode - store service code
      * @return Array - Object Array results
      */
-    function wsGetStaffMenuServiceTime($sessionid,
-                                       $storecode,
-                                       $staffcode,
-                                       $gcode) {
+    function wsGetStaffMenuServiceTime(
+        $sessionid,
+        $storecode,
+        $staffcode,
+        $gcode
+    ) {
         //-----------------------------------------------------------------
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $staffservicetime = $this->YoyakuSession->Check($this);
@@ -8963,7 +9544,7 @@ class ServersController extends WebServicesController
         if ($staffservicetime == false) {
             $this->_soap_server->fault(1, '', INVALID_SESSION);
             return;
-        }//end if
+        } //end if
 
         $female_time = 0;
         $male_time = 0;
@@ -8974,13 +9555,14 @@ class ServersController extends WebServicesController
         $Sql = "SELECT IFNULL(service_time, 0) AS service_time,
                        IFNULL(service_time_male, 0) AS service_time_male
                 FROM yoyaku_staff_service_time
-                WHERE storecode = ".$storecode."
-                     AND staffcode = ".$staffcode."
-                     AND gcode = ".$gcode;
+                WHERE storecode = " . $storecode . "
+                     AND staffcode = " . $staffcode . "
+                     AND gcode = " . $gcode;
         //-----------------------------------------------------------------
         $rs = $this->YoyakuStaffServiceTime->query($Sql);
         //-----------------------------------------------------------------
-        if (isset($rs{0})) {
+        if (isset($rs{
+        0})) {
             $female_time = $rs[0][0]['service_time'];
             $male_time = $rs[0][0]['service_time_male'];
         }
@@ -9003,7 +9585,8 @@ class ServersController extends WebServicesController
      * @param int $uketsukestaffcode
      * @return return_yoyakuDetailsInformation
      */
-    function wsSearchYoyakuDetails($sessionid, $begindate, $enddate, $storecode, $staffcode, $uketsukestaffcode, $staffcode_sthdr) {
+    function wsSearchYoyakuDetails($sessionid, $begindate, $enddate, $storecode, $staffcode, $uketsukestaffcode, $staffcode_sthdr)
+    {
 
 
         $bmrvqueryfield = " CASE WHEN ROUTE ='アプリ' THEN '1'
@@ -9016,7 +9599,7 @@ class ServersController extends WebServicesController
     			 	         CASE WHEN ALLIANCE_CUSTOMER_ID = 'guest' AND CUSTOMER_NAME = 'HPB' THEN '7'
 					           WHEN LEFT(ALLIANCE_CUSTOMER_ID, 1)='A' THEN '8'
 					           WHEN ISNULL(ALLIANCE_CUSTOMER_ID) THEN NULL
-					           ELSE '9' END as RVTYPE " ;
+					           ELSE '9' END as RVTYPE ";
 
         $bmrvqueryjoin = " LEFT JOIN bm_reservation bm_r
 	       		             ON bm_r.TRANSCODE = s_t.TRANSCODE
@@ -9033,7 +9616,7 @@ class ServersController extends WebServicesController
         if ($staffcode > -1) $whereQuery .= "AND s_t.UKETSUKESTAFF = {$staffcode} ";
         if ($uketsukestaffcode > -1) $whereQuery .= "AND y_d.UKETSUKESTAFF = {$uketsukestaffcode} ";
         if ($staffcode_sthdr > -1) $whereQuery .= "AND s_t.STAFFCODE = {$staffcode_sthdr} ";
-        $whereQuery .=" AND s_t.YOYAKU > 0 ";
+        $whereQuery .= " AND s_t.YOYAKU > 0 ";
 
         $query =
             "SELECT " .
@@ -9045,18 +9628,18 @@ class ServersController extends WebServicesController
             "  s_t.CNAME, " .
             "  s.STAFFNAME, " .
             "  s_t.PRIORITYTYPE, " .
-            "  s_t.YOYAKU, ".
+            "  s_t.YOYAKU, " .
             "  y_d.UKETSUKEDATE, " .
             "  u_s.STAFFNAME UKETSUKESTAFFNAME, " .
             "  y_d.CANCEL, " .
-            "  (CASE WHEN y_n.NEXTCODE IS NOT NULL AND y_n.YOYAKU_STATUS = 2 THEN 1 ELSE 0 END) as YOYAKUNEXTFLG, ".
+            "  (CASE WHEN y_n.NEXTCODE IS NOT NULL AND y_n.YOYAKU_STATUS = 2 THEN 1 ELSE 0 END) as YOYAKUNEXTFLG, " .
             " s_t.ORIGINATION, " .
-            "  s_t.TEMPSTATUS, ".
+            "  s_t.TEMPSTATUS, " .
             " (select group_concat(if(str_svr.menuname = 'BM', '他社連携', str_svr.menuname)) as menuname
                FROM store_transaction_details str_dtl
                     JOIN store_services str_svr ON str_dtl.gcode = str_svr.gcode
                WHERE str_dtl.delflg IS NULL AND str_dtl.claimed = 0 AND str_dtl.transdate = s_t.TRANSDATE AND str_dtl.transcode = s_t.TRANSCODE AND str_dtl.keyno = s_t.keyno
-              ) as MENUNAME, " . $bmrvqueryfield.
+              ) as MENUNAME, " . $bmrvqueryfield .
             "FROM store_transaction s_t " .
             " LEFT JOIN store_transaction_details tmp_std on s_t.transcode = tmp_std.transcode  " .
             "LEFT JOIN yoyaku_next_details y_n " .
@@ -9070,7 +9653,7 @@ class ServersController extends WebServicesController
             " " .
             "LEFT JOIN staff u_s " .
             "ON u_s.STAFFCODE = y_d.UKETSUKESTAFF " .
-            " " .$bmrvqueryjoin.
+            " " . $bmrvqueryjoin .
             "WHERE" .
             "  NOT ( " .
             "    s_t.DELFLG IS NOT NULL AND " .
@@ -9132,7 +9715,8 @@ class ServersController extends WebServicesController
      * @param string $body
      * @return boolean
      */
-    function wsSendMail($sessionid, $from, $to, $cc, $bcc, $subject, $body) {
+    function wsSendMail($sessionid, $from, $to, $cc, $bcc, $subject, $body)
+    {
         App::import("Vendor", "qdmail/qdmail");
         $mail = new Qdmail("UTF-8");
         $mail->from($from);
@@ -9142,7 +9726,7 @@ class ServersController extends WebServicesController
         $mail->subject($subject);
         $mail->text($body);
         return $mail->send();
-    }//function close
+    } //function close
 
     //- #############################################################################
 
@@ -9157,7 +9741,8 @@ class ServersController extends WebServicesController
      * @param string $transcode
      * @return return_storeTransactionInformation
      */
-    function wsSearchJikaiYoyaku($sessionid, $storecode, $ccode, $transcode) {
+    function wsSearchJikaiYoyaku($sessionid, $storecode, $ccode, $transcode)
+    {
         if ($param['ignoreSessionCheck'] <> 1) {
             //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
             $storeinfo = $this->YoyakuSession->Check($this);
@@ -9176,11 +9761,11 @@ class ServersController extends WebServicesController
         $condition = "";
 
         if ($storecode <> 0) {
-        	$condition .= " AND `transaction`.STORECODE = {$storecode}";
+            $condition .= " AND `transaction`.STORECODE = {$storecode}";
         }
 
         if ($ccode <> '') {
-        	$condition .= " AND `transaction`.CCODE = '{$ccode}'
+            $condition .= " AND `transaction`.CCODE = '{$ccode}'
                             AND NOT EXISTS (SELECT NULL
                                             FROM yoyaku_next_details YND_SUB
                                             WHERE YND_SUB.transcode = `transaction`.transcode
@@ -9299,7 +9884,8 @@ class ServersController extends WebServicesController
      * @param boolean $changeyoyaku
      * @return boolean
      */
-    function wsDeleteJikaiYoyaku($sessionid , $transcode ,$storecode,$changeyoyaku = false){
+    function wsDeleteJikaiYoyaku($sessionid, $transcode, $storecode, $changeyoyaku = false)
+    {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -9324,19 +9910,19 @@ class ServersController extends WebServicesController
                 LEFT JOIN yoyaku_next_details YND
                 ON YND.transcode = YN.transcode
                 SET YN.yoyaku_status = 0, YND.yoyaku_status = 0
-                WHERE YN.transcode = '".$transcode."' and YND.yoyaku_status  = 1";
+                WHERE YN.transcode = '" . $transcode . "' and YND.yoyaku_status  = 1";
         $this->YoyakuNext->query($sql);
         #----------------------------------------------------------------------
 
-        if($changeyoyaku == true){
+        if ($changeyoyaku == true) {
             $sql = "UPDATE store_transaction as tran SET NEXTCOMINGDATE = ( SELECT * FROM (
-			SELECT DATE_ADD( (SELECT IFNULL(trans.TRANSDATE,NOW())  FROM store_transaction as trans where trans.TRANSCODE ='".$transcode."' AND trans.DELFLG IS NULL
-			), INTERVAL (SELECT IFNULL(OPTIONVALUES,60)  FROM store_settings WHERE STORECODE ='".$storecode."' AND OPTIONNAME = 'CardYotei' ) DAY) as temp
-		    ) as next_coming_date) WHERE tran.TRANSCODE = '".$transcode."' AND tran.DELFLG IS NULL;";
+			SELECT DATE_ADD( (SELECT IFNULL(trans.TRANSDATE,NOW())  FROM store_transaction as trans where trans.TRANSCODE ='" . $transcode . "' AND trans.DELFLG IS NULL
+			), INTERVAL (SELECT IFNULL(OPTIONVALUES,60)  FROM store_settings WHERE STORECODE ='" . $storecode . "' AND OPTIONNAME = 'CardYotei' ) DAY) as temp
+		    ) as next_coming_date) WHERE tran.TRANSCODE = '" . $transcode . "' AND tran.DELFLG IS NULL;";
 
-        	$this->YoyakuNext->query($sql);
+            $this->YoyakuNext->query($sql);
 
-        	$sql = "REPLACE INTO customer_mail_reservation(storecode,
+            $sql = "REPLACE INTO customer_mail_reservation(storecode,
                                                           ccode,
                                                           transcode,
                                                           transdate,
@@ -9349,8 +9935,8 @@ class ServersController extends WebServicesController
                                                           trans.ccode,
                                                           trans.transcode,
                                                           trans.transdate,
-                                                          DATE_ADD( (SELECT IFNULL(trans.TRANSDATE,NOW())  FROM store_transaction as trans where trans.TRANSCODE ='".$transcode."' AND trans.DELFLG IS NULL
-                                                          ), INTERVAL (SELECT IFNULL(OPTIONVALUES,60)  FROM store_settings WHERE STORECODE ='".$storecode."' AND OPTIONNAME = 'CardYotei' ) DAY) as senddate,
+                                                          DATE_ADD( (SELECT IFNULL(trans.TRANSDATE,NOW())  FROM store_transaction as trans where trans.TRANSCODE ='" . $transcode . "' AND trans.DELFLG IS NULL
+                                                          ), INTERVAL (SELECT IFNULL(OPTIONVALUES,60)  FROM store_settings WHERE STORECODE ='" . $storecode . "' AND OPTIONNAME = 'CardYotei' ) DAY) as senddate,
                                                           ifnull(mail.title,\"\") as title,
                                                           ifnull(mail.body,\"\") as body,
                                                           0 as sendflg,
@@ -9359,15 +9945,15 @@ class ServersController extends WebServicesController
 				trans.STORECODE = mail.STORECODE and
 				trans.STAFFCODE = mail.STAFFCODE and
 				mail.MAILID = 'promotionmail'
-				WHERE trans.transcode = '".$transcode."' and trans.delflg is null";
+				WHERE trans.transcode = '" . $transcode . "' and trans.delflg is null";
 
-			$this->YoyakuNext->query($sql);
-        }else{
+            $this->YoyakuNext->query($sql);
+        } else {
 
             $update = $this->MiscFunction->SetTransUpdateDate($this->YoyakuNext, $transcode);
         }
         return true;
-    }//function close
+    } //function close
 
     //<editor-fold defaultstate="collapsed" desc="wsGetMarketing($sessionid, $storecode, $ymd)">
     /**
@@ -9380,14 +9966,15 @@ class ServersController extends WebServicesController
      * @param Date $ymd - given date
      * @return Object - Object Array
      */
-    function wsGetMarketing($sessionid, $storecode, $ymd) {
+    function wsGetMarketing($sessionid, $storecode, $ymd)
+    {
         //-------------------------------------------------------------------------------------------
         $storeinfo = $this->YoyakuSession->Check($this);
         //-------------------------------------------------------------------------------------------
         if ($storeinfo == false) {
             $this->_soap_server->fault(1, '', INVALID_SESSION);
             return;
-        }//end if
+        } //end if
         //-------------------------------------------------------------------------------------------
         //-- 会社データベースを設定する (Set the Company Database)
         $this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction);
@@ -9398,17 +9985,17 @@ class ServersController extends WebServicesController
         //-------------------------------------------------------------------------------------------
         $Sql = "select ifnull(optionvalues , 0) as optionvalues
                 from store_settings
-                where storecode = ".$storecode."
+                where storecode = " . $storecode . "
                 and optionname = 'MarketingDisplay'";
         //-------------------------------------------------------------------------------------------
         $GetData = $this->StoreTransaction->query($Sql);
         //-------------------------------------------------------------------------------------------
         if (count($GetData) > 0) {
             if ($GetData[0][0]['optionvalues'] == 1) {
-                $DisplayCondition = " and (mke.begindate <= date('".$ymd."')
-                                        and mke.enddate >= date('".$ymd."'))";
+                $DisplayCondition = " and (mke.begindate <= date('" . $ymd . "')
+                                        and mke.enddate >= date('" . $ymd . "'))";
             }
-        }//end if
+        } //end if
         //-------------------------------------------------------------------------------------------
         $GetData = null;
         //-------------------------------------------------------------------------------------------
@@ -9430,11 +10017,11 @@ class ServersController extends WebServicesController
                     join marketingdivision
                             on marketingdivision.marketingcode = mk.marketingcode
                             and marketingdivision.delflg is null
-                    left join store_marketing on store_marketing.storecode = ".$storecode."
-                            and store_marketing.ymd = '".$ymd."'
+                    left join store_marketing on store_marketing.storecode = " . $storecode . "
+                            and store_marketing.ymd = '" . $ymd . "'
                             and store_marketing.marketingid = mke.marketingidno
                     where mke.delflg is null
-                            and (mke.storecode <= 0 or mke.storecode = ".$storecode.") ".$DisplayCondition."
+                            and (mke.storecode <= 0 or mke.storecode = " . $storecode . ") " . $DisplayCondition . "
                       ) tblresult";
         //-------------------------------------------------------------------------------------------
         $GetData = $this->StoreTransaction->query($Sql);
@@ -9449,7 +10036,7 @@ class ServersController extends WebServicesController
         //-------------------------------------------------------------------------------------------
         return $ret;
         //-------------------------------------------------------------------------------------------
-    }//end function
+    } //end function
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="ParseDataToObjectArray($rs, $tablename)">
@@ -9462,7 +10049,8 @@ class ServersController extends WebServicesController
      * @param String $tablename - table name
      * @return mixed - Object Array
      */
-    function ParseDataToObjectArray($rs, $tablename) {
+    function ParseDataToObjectArray($rs, $tablename)
+    {
         //-------------------------------------------------------------------------------------------
         //Parse Resultset Array
         //-------------------------------------------------------------------------------------------
@@ -9472,20 +10060,20 @@ class ServersController extends WebServicesController
         //-------------------------------------------------------------------------------------------
         if (count($rs) > 0) {
             //---------------------------------------------------------------------------------------
-            foreach($rs as $data) {
+            foreach ($rs as $data) {
                 //-----------------------------------------------------------------------------------
                 $arr_object[$ctr] = $data[$tablename];
                 //----------------------------------------------------------------------------------
                 $ctr++;
                 //----------------------------------------------------------------------------------
-            }//end foreach
+            } //end foreach
             //---------------------------------------------------------------------------------------
-        }//end if
+        } //end if
 
         //-------------------------------------------------------------------------------------------
         return $arr_object;
         //-------------------------------------------------------------------------------------------
-    }//end function
+    } //end function
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="GetStaffs($sessionid, $storecode, $ymd)">
@@ -9499,14 +10087,15 @@ class ServersController extends WebServicesController
      * @param Date $ymd - given date
      * @return Object - Object Array or Null
      */
-    function wsGetStaffs($sessionid, $storecode, $ymd) {
+    function wsGetStaffs($sessionid, $storecode, $ymd)
+    {
         //-------------------------------------------------------------------------------------------
         $storeinfo = $this->YoyakuSession->Check($this);
         //-------------------------------------------------------------------------------------------
         if ($storeinfo == false) {
             $this->_soap_server->fault(1, '', INVALID_SESSION);
             return;
-        }//end if
+        } //end if
         //-------------------------------------------------------------------------------------------
         //-- 会社データベースを設定する (Set the Company Database)
         $this->Staff->set_company_database($storeinfo['dbname'], $this->Staff);
@@ -9514,7 +10103,7 @@ class ServersController extends WebServicesController
         //Set Sql Condition
         //-------------------------------------------------------------------------------------------
         $SqlCond = "";
-        if ($storecode >= 0) $SqlCond = " AND aaa.storecode = ".$storecode." ";
+        if ($storecode >= 0) $SqlCond = " AND aaa.storecode = " . $storecode . " ";
         //-------------------------------------------------------------------------------------------
         $Sql = "SELECT tblresult.*
                 FROM (
@@ -9538,12 +10127,12 @@ class ServersController extends WebServicesController
                             LEFT JOIN store ON aaa.storecode = store.storecode
                             LEFT JOIN staff_sublevel ON staff_sublevel.SUBLEVELCODE = aaa.sublevelcode
                             LEFT JOIN staff_assign_to_store ON aaa.staffcode = staff_assign_to_store.staffcode
-                                    AND staff_assign_to_store.storecode = ".$storecode."
+                                    AND staff_assign_to_store.storecode = " . $storecode . "
                     WHERE aaa.delflg IS NULL
-                            AND (aaa.hiredate <= '".$ymd."' OR aaa.hiredate IS NULL)
+                            AND (aaa.hiredate <= '" . $ymd . "' OR aaa.hiredate IS NULL)
                                     AND
-                                    (aaa.retiredate > '".$ymd."' OR aaa.retiredate IS NULL)
-                            ".$SqlCond."
+                                    (aaa.retiredate > '" . $ymd . "' OR aaa.retiredate IS NULL)
+                            " . $SqlCond . "
                             AND aaa.staffcode > 0
                     ORDER BY aaa.staffcode
                     ) tblresult";
@@ -9560,7 +10149,7 @@ class ServersController extends WebServicesController
         //-------------------------------------------------------------------------------------------
         return $ret;
         //-------------------------------------------------------------------------------------------
-    }//end function
+    } //end function
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="wsGetHowKnowsTheStore">
@@ -9572,14 +10161,15 @@ class ServersController extends WebServicesController
      * @param String $sessionid - session key
      * @return Object - Object Array or Null
      */
-    function wsGetHowKnowsTheStore($sessionid) {
+    function wsGetHowKnowsTheStore($sessionid)
+    {
         //-------------------------------------------------------------------------------------------
         $storeinfo = $this->YoyakuSession->Check($this);
         //-------------------------------------------------------------------------------------------
         if ($storeinfo == false) {
             $this->_soap_server->fault(1, '', INVALID_SESSION);
             return;
-        }//end if
+        } //end if
         //-------------------------------------------------------------------------------------------
         //-- 会社データベースを設定する (Set the Company Database)
         $this->Store->set_company_database($storeinfo['dbname'], $this->Store);
@@ -9601,7 +10191,7 @@ class ServersController extends WebServicesController
         //-------------------------------------------------------------------------------------------
         return $ret;
         //-------------------------------------------------------------------------------------------
-    }//end function
+    } //end function
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="GenerateSqlInsertRejiMarketing($transcode, $keyno, $rejimarketing)">
@@ -9615,7 +10205,8 @@ class ServersController extends WebServicesController
      * @param Object $rejimarketing - marketing object array
      * @return String - Reji Marketing Insert Sql Statement
      */
-    function GenerateSqlInsertRejiMarketing($transcode, $keyno, $rejimarketing) {
+    function GenerateSqlInsertRejiMarketing($transcode, $keyno, $rejimarketing)
+    {
         //-------------------------------------------------------------------------------------------------------------
         $SqlInsert = "";
         //-------------------------------------------------------------------------------------------------------------
@@ -9638,15 +10229,15 @@ class ServersController extends WebServicesController
                 //-----------------------------------------------------------------------------------------------------
                 //Add Comma for Multiple Values
                 //-----------------------------------------------------------------------------------------------------
-                $tmpSql = (($NextValues)?", ":"")."(";
+                $tmpSql = (($NextValues) ? ", " : "") . "(";
                 //-----------------------------------------------------------------------------------------------------
-                $tmpSql .= "'".$transcode."', ";
-                $tmpSql .= $keyno.", ";
-                $tmpSql .= $rm['ROWNO'].", ";
-                $tmpSql .= $rm['STORECODE'].", ";
-                $tmpSql .= "'".$rm['TRANSDATE']."', ";
-                $tmpSql .= $rm['MARKETINGID'].", ";
-                $tmpSql .= $rm['STAFFCODE'].", ";
+                $tmpSql .= "'" . $transcode . "', ";
+                $tmpSql .= $keyno . ", ";
+                $tmpSql .= $rm['ROWNO'] . ", ";
+                $tmpSql .= $rm['STORECODE'] . ", ";
+                $tmpSql .= "'" . $rm['TRANSDATE'] . "', ";
+                $tmpSql .= $rm['MARKETINGID'] . ", ";
+                $tmpSql .= $rm['STAFFCODE'] . ", ";
                 $tmpSql .= $rm['TEMPFLG'];
                 $tmpSql .= ")";
                 //-----------------------------------------------------------------------------------------------------
@@ -9656,13 +10247,13 @@ class ServersController extends WebServicesController
                 //-----------------------------------------------------------------------------------------------------
                 $NextValues = true;
                 //-----------------------------------------------------------------------------------------------------
-            }//end if
+            } //end if
             //---------------------------------------------------------------------------------------------------------
-        }//end if
+        } //end if
         //---------------------------------------------------------------------------------------------------------
         return $SqlInsert;
         //---------------------------------------------------------------------------------------------------------
-    }//end function
+    } //end function
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="wsGetOkotowariTodaysCount">
@@ -9677,14 +10268,15 @@ class ServersController extends WebServicesController
      * @param Date $ymd - given date
      * @return Object - Soap Object or Null
      */
-    function wsGetOkotowariTodaysCount($sessionid, $storecode, $ymd) {
+    function wsGetOkotowariTodaysCount($sessionid, $storecode, $ymd)
+    {
         //-------------------------------------------------------------------------------------------
         $storeinfo = $this->YoyakuSession->Check($this);
         //-------------------------------------------------------------------------------------------
         if ($storeinfo == false) {
             $this->_soap_server->fault(1, '', INVALID_SESSION);
             return;
-        }//end if
+        } //end if
         //-------------------------------------------------------------------------------------------
         //-- 会社データベースを設定する (Set the Company Database)
         $this->Staff->set_company_database($storeinfo['dbname'], $this->Staff);
@@ -9696,8 +10288,8 @@ class ServersController extends WebServicesController
                 FROM okotowari
                         USE INDEX (STORECODEYMD)
                 WHERE delflg IS NULL
-                        AND storecode = ".$storecode."
-                        AND ymd = '".$ymd."'";
+                        AND storecode = " . $storecode . "
+                        AND ymd = '" . $ymd . "'";
         //-------------------------------------------------------------------------------------------
         $GetData = $this->Staff->query($Sql);
         //-------------------------------------------------------------------------------------------
@@ -9710,11 +10302,11 @@ class ServersController extends WebServicesController
             //---------------------------------------------------------------------------------------
             $registered = $GetData[0][0]['registered'];
             //---------------------------------------------------------------------------------------
-        }//end if
+        } //end if
         //-------------------------------------------------------------------------------------------
-        return Array($unregistered, $registered);
+        return array($unregistered, $registered);
         //-------------------------------------------------------------------------------------------
-    }//end function
+    } //end function
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="wsAddOkotowari">
@@ -9731,18 +10323,20 @@ class ServersController extends WebServicesController
      * @param String $ccode
      * @return Null
      */
-    function wsAddOkotowari($sessionid,
-                              $storecode,
-                              $ymd,
-                              $time,
-                              $ccode) {
+    function wsAddOkotowari(
+        $sessionid,
+        $storecode,
+        $ymd,
+        $time,
+        $ccode
+    ) {
         //-------------------------------------------------------------------------------------------
         $storeinfo = $this->YoyakuSession->Check($this);
         //-------------------------------------------------------------------------------------------
         if ($storeinfo == false) {
             $this->_soap_server->fault(1, '', INVALID_SESSION);
             return;
-        }//end if
+        } //end if
         //-------------------------------------------------------------------------------------------
         //-- 会社データベースを設定する (Set the Company Database)
         $this->Staff->set_company_database($storeinfo['dbname'], $this->Staff);
@@ -9754,53 +10348,55 @@ class ServersController extends WebServicesController
         $rsID = $this->Staff->query($SqlGetID);
         if (count($rsID) > 0) {
             $oid = $rsID[0][0]['oid'];
-        }//end if
+        } //end if
         //-------------------------------------------------------------------------------------------
         $CCode_Param = "NULL";
         //-------------------------------------------------------------------------------------------
-        if ($ccode != "") $CCode_Param = "'".$ccode."'";
+        if ($ccode != "") $CCode_Param = "'" . $ccode . "'";
         //-------------------------------------------------------------------------------------------
         $Sql = "INSERT INTO okotowari(oid, storecode, ymd, otime, ccode)
-                VALUES(".$oid.",
-                        ".$storecode.",
-                        '".$ymd."',
-                        '".$time."',
+                VALUES(" . $oid . ",
+                        " . $storecode . ",
+                        '" . $ymd . "',
+                        '" . $time . "',
                         $CCode_Param)";
         //-------------------------------------------------------------------------------------------
         $this->Staff->query($Sql);
         //-------------------------------------------------------------------------------------------
-    }//end function
+    } //end function
     //</editor-fold>
 
     //<editor-fold defaultstate="collpased" desc="wsUpdateOkotowari">
     /**
      * wsUpdateOkotowari
      */
-    function wsUpdateOkotowari($sessionid,
-                               $oid,
-                               $ymd,
-                               $time,
-                               $ccode) {
+    function wsUpdateOkotowari(
+        $sessionid,
+        $oid,
+        $ymd,
+        $time,
+        $ccode
+    ) {
         //-------------------------------------------------------------------------------------------
         $storeinfo = $this->YoyakuSession->Check($this);
         //-------------------------------------------------------------------------------------------
         if ($storeinfo == false) {
             $this->_soap_server->fault(1, '', INVALID_SESSION);
             return;
-        }//end if
+        } //end if
         //-------------------------------------------------------------------------------------------
         //-- 会社データベースを設定する (Set the Company Database)
         $this->Staff->set_company_database($storeinfo['dbname'], $this->Staff);
         //-------------------------------------------------------------------------------------------
         $Sql = "UPDATE okotowari
-                    SET ymd = '".$ymd."',
-                        otime = '".$time."',
-                        ccode = '".$ccode."'
-                    WHERE oid = ".$oid;
+                    SET ymd = '" . $ymd . "',
+                        otime = '" . $time . "',
+                        ccode = '" . $ccode . "'
+                    WHERE oid = " . $oid;
         //-------------------------------------------------------------------------------------------
         $this->Staff->query($Sql);
         //-------------------------------------------------------------------------------------------
-    }//end function
+    } //end function
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="wsCheckCustomer">
@@ -9815,43 +10411,46 @@ class ServersController extends WebServicesController
      * @param String $ccode - customer code
      * @return Object - Soap Object or Null
      */
-    function wsCheckCustomer($sessionid, $cnumber, $ccode) {
+    function wsCheckCustomer($sessionid, $cnumber, $ccode)
+    {
         //-------------------------------------------------------------------------------------------
         $storeinfo = $this->YoyakuSession->Check($this);
         //-------------------------------------------------------------------------------------------
         if ($storeinfo == false) {
             $this->_soap_server->fault(1, '', INVALID_SESSION);
             return;
-        }//end if
+        } //end if
         //-------------------------------------------------------------------------------------------
         //-- 会社データベースを設定する (Set the Company Database)
         $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
         //-------------------------------------------------------------------------------------------
         //Query
         //-------------------------------------------------------------------------------------------
-        $condition_param = " AND cnumber = '".$cnumber."' ";
+        $condition_param = " AND cnumber = '" . $cnumber . "' ";
         //-------------------------------------------------------------------------------------------
-        if ($ccode != "") $condition_param = " AND ccode = '".$ccode."' ";
+        if ($ccode != "") $condition_param = " AND ccode = '" . $ccode . "' ";
         //-------------------------------------------------------------------------------------------
         $Sql = "SELECT ccode, cnumber, cname, cnamekana, sex
                 FROM customer
-                WHERE delflg IS NULL ".$condition_param;
+                WHERE delflg IS NULL " . $condition_param;
         //-------------------------------------------------------------------------------------------
         $GetData = $this->Customer->query($Sql);
         //-------------------------------------------------------------------------------------------
         if (count($GetData) > 0) {
             //---------------------------------------------------------------------------------------
-            return Array($GetData[0]['customer']['ccode'],
-                         $GetData[0]['customer']['cnumber'],
-                         $GetData[0]['customer']['cname'],
-                         $GetData[0]['customer']['cnamekana'],
-                         $GetData[0]['customer']['sex']);
+            return array(
+                $GetData[0]['customer']['ccode'],
+                $GetData[0]['customer']['cnumber'],
+                $GetData[0]['customer']['cname'],
+                $GetData[0]['customer']['cnamekana'],
+                $GetData[0]['customer']['sex']
+            );
             //---------------------------------------------------------------------------------------
         } else {
             return null;
-        }//end if else
+        } //end if else
         //-------------------------------------------------------------------------------------------
-    }//end function
+    } //end function
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="GetOkotowariHistory">
@@ -9871,21 +10470,23 @@ class ServersController extends WebServicesController
      * @param Int $category - category (new, registered)
      * @return Object - Soap Object Array or Null
      */
-    function GetOkotowariHistory($sessionid,
-                                    $storecode,
-                                    $datefrom,
-                                    $dateto,
-                                    $cnumber = "",
-                                    $cname = "",
-                                    $sex = -1,
-                                    $category = -1) {
+    function GetOkotowariHistory(
+        $sessionid,
+        $storecode,
+        $datefrom,
+        $dateto,
+        $cnumber = "",
+        $cname = "",
+        $sex = -1,
+        $category = -1
+    ) {
         //-------------------------------------------------------------------------------------------
         $storeinfo = $this->YoyakuSession->Check($this);
         //-------------------------------------------------------------------------------------------
         if ($storeinfo == false) {
             $this->_soap_server->fault(1, '', INVALID_SESSION);
             return;
-        }//end if
+        } //end if
         //-------------------------------------------------------------------------------------------
         //-- 会社データベースを設定する (Set the Company Database)
         $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
@@ -9897,17 +10498,17 @@ class ServersController extends WebServicesController
         //CNUMBER Condition
         //-----------------------------------------------------------------
         $cnumber_Condition = "";
-        if ($cnumber != "") $cnumber_Condition = " AND cust.cnumber LIKE '".$cnumber."%' ";
+        if ($cnumber != "") $cnumber_Condition = " AND cust.cnumber LIKE '" . $cnumber . "%' ";
         //-----------------------------------------------------------------
         //CNAME Condition
         //-----------------------------------------------------------------
         $cname_Condition = "";
-        if ($cname != "") $cname_Condition = " AND cust.cname LIKE '%".$cname."%' ";
+        if ($cname != "") $cname_Condition = " AND cust.cname LIKE '%" . $cname . "%' ";
         //-----------------------------------------------------------------
         //Gender Condition
         //-----------------------------------------------------------------
         $gender_Condition = "";
-        if ($sex >= 0) $gender_Condition = " AND cust.sex = ".$sex." ";
+        if ($sex >= 0) $gender_Condition = " AND cust.sex = " . $sex . " ";
         //-----------------------------------------------------------------
         //Transaction TO Condition
         //-----------------------------------------------------------------
@@ -9921,7 +10522,7 @@ class ServersController extends WebServicesController
                 $category_Condition = " AND o.ccode IS NOT NULL
                                         AND o.ccode <> '' ";
                 break;
-        }//end switch
+        } //end switch
         //-----------------------------------------------------------------
         $Sql = "SELECT tblresult.*
                 FROM (
@@ -9937,12 +10538,12 @@ class ServersController extends WebServicesController
                             LEFT JOIN customer cust
                                     ON cust.ccode = o.ccode
                     WHERE o.delflg IS NULL
-                            AND o.storecode = ".$storecode."
-                            AND o.ymd BETWEEN '".$datefrom."' AND '".$dateto."'
-                                ".$cnumber_Condition."
-                                ".$cname_Condition."
-                                ".$gender_Condition."
-                                ".$category_Condition."
+                            AND o.storecode = " . $storecode . "
+                            AND o.ymd BETWEEN '" . $datefrom . "' AND '" . $dateto . "'
+                                " . $cnumber_Condition . "
+                                " . $cname_Condition . "
+                                " . $gender_Condition . "
+                                " . $category_Condition . "
                         ORDER BY o.ymd DESC, o.otime DESC
                 ) tblresult";
         //-----------------------------------------------------------------
@@ -9960,7 +10561,7 @@ class ServersController extends WebServicesController
         //-------------------------------------------------------------------------------------------
         return $arr_okotowari;
         //-------------------------------------------------------------------------------------------
-    }//end function
+    } //end function
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="wsDeleteOkotowariRecord">
@@ -9974,25 +10575,26 @@ class ServersController extends WebServicesController
      * @param Int $oid - okotowari id
      * @return Null
      */
-    function wsDeleteOkotowariRecord($sessionid, $oid) {
+    function wsDeleteOkotowariRecord($sessionid, $oid)
+    {
         //-------------------------------------------------------------------------------------------
         $storeinfo = $this->YoyakuSession->Check($this);
         //-------------------------------------------------------------------------------------------
         if ($storeinfo == false) {
             $this->_soap_server->fault(1, '', INVALID_SESSION);
             return;
-        }//end if
+        } //end if
         //-------------------------------------------------------------------------------------------
         //-- 会社データベースを設定する (Set the Company Database)
         $this->Staff->set_company_database($storeinfo['dbname'], $this->Staff);
         //-------------------------------------------------------------------------------------------
         $Sql = "UPDATE okotowari
                     SET delflg = now()
-                    WHERE oid = ".$oid;
+                    WHERE oid = " . $oid;
         //-------------------------------------------------------------------------------------------
         $this->Staff->query($Sql);
         //-------------------------------------------------------------------------------------------
-    }//end function
+    } //end function
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="wsGetShiftSimulationPassword">
@@ -10005,7 +10607,8 @@ class ServersController extends WebServicesController
      * @param String $sessionid - session key
      * @return String - Password
      */
-    function wsGetShiftSimulationPassword($sessionid, $storecode) {
+    function wsGetShiftSimulationPassword($sessionid, $storecode)
+    {
         //-------------------------------------------------------------------------------------------
         $retval = "";
         //-------------------------------------------------------------------------------------------
@@ -10014,7 +10617,7 @@ class ServersController extends WebServicesController
         if ($storeinfo == false) {
             $this->_soap_server->fault(1, '', INVALID_SESSION);
             return;
-        }//end if
+        } //end if
         //-------------------------------------------------------------------------------------------
         $this->Staff->set_company_database($storeinfo['dbname'], $this->Staff);
         //-------------------------------------------------------------------------------------------
@@ -10022,7 +10625,7 @@ class ServersController extends WebServicesController
         //-------------------------------------------------------------------------------------------
         $Sql = "SELECT optionvalues
                 FROM store_settings
-                WHERE STORECODE = ".$storecode."
+                WHERE STORECODE = " . $storecode . "
                         AND OPTIONNAME = 'SHIFT_SIMULATION_PASSWORD' ";
         //-------------------------------------------------------------------------------------------
         $GetData = $this->Staff->query($Sql);
@@ -10031,11 +10634,11 @@ class ServersController extends WebServicesController
             //---------------------------------------------------------------------------------------
             $retval = $GetData[0]['store_settings']['optionvalues'];
             //---------------------------------------------------------------------------------------
-        }//end if
+        } //end if
         //-------------------------------------------------------------------------------------------
         return $retval;
         //-------------------------------------------------------------------------------------------
-    }//end function
+    } //end function
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="wsGetGyoshuKubun">
@@ -10046,14 +10649,15 @@ class ServersController extends WebServicesController
      * @param Int $storecode
      * @return Object
      */
-    function wsGetGyoshuKubun($sessonid,$storecode) {
+    function wsGetGyoshuKubun($sessonid, $storecode)
+    {
         //-------------------------------------------------------------------------------------------
         $storeinfo = $this->YoyakuSession->Check($this);
         //-------------------------------------------------------------------------------------------
         if ($storeinfo == false) {
             $this->_soap_server->fault(1, '', INVALID_SESSION);
             return;
-        }//end if
+        } //end if
         //
         //-- 会社データベースを設定する (Set the Company Database)
         $this->Service->set_company_database($storeinfo['dbname'], $this->Service);
@@ -10068,7 +10672,7 @@ class ServersController extends WebServicesController
                      from storetype
                         left join servicessys
                             on storetype.SYSCODE = servicessys.SYSCODE
-                     WHERE STORECODE = ".$storecode."
+                     WHERE STORECODE = " . $storecode . "
                         and storetype.delflg is null
                         and servicessys.DELFLG is null
                      ) tblresult";
@@ -10085,7 +10689,7 @@ class ServersController extends WebServicesController
         //-------------------------------------------------------------------------------------------
         return $ret;
         //-------------------------------------------------------------------------------------------
-    }//end function
+    } //end function
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="wsGetYoyakuAllowTransToStore">
@@ -10095,28 +10699,29 @@ class ServersController extends WebServicesController
      * @param type $storecode
      * @return Object Array
      */
-    function wsGetYoyakuAllowTransToStore($sessionid,$storecode) {
+    function wsGetYoyakuAllowTransToStore($sessionid, $storecode)
+    {
         //-------------------------------------------------------------------------------------------
-        $storeinfo = $this ->YoyakuSession -> Check ($this);
+        $storeinfo = $this->YoyakuSession->Check($this);
         //-------------------------------------------------------------------------------------------
-        if ($storeinfo==false){
-            $this -> _soap_server -> fault(1,'',INVALID_SESSION);
+        if ($storeinfo == false) {
+            $this->_soap_server->fault(1, '', INVALID_SESSION);
             return;
         }
         //-------------------------------------------------------------------------------------------
         $this->Store->set_company_database($storeinfo['dbname'], $this->Store);
         //-------------------------------------------------------------------------------------------
-        $sql= 'select tblresult.* from (select tblyayaku.STORECODE as storecode,
+        $sql = 'select tblresult.* from (select tblyayaku.STORECODE as storecode,
                                            tblyayaku.TOSTORECODE as tostorecode,
                                            store.STORENAME as tostorename
                                     from yoyaku_allow_trans tblyayaku
                                         left join store
                                             on tostorecode = store.STORECODE
-                                    where tblyayaku.STORECODE = '.$storecode.'
+                                    where tblyayaku.STORECODE = ' . $storecode . '
                                         AND tblyayaku.DELFLG is NULL
                                     ) tblresult';
         //-------------------------------------------------------------------------------------------
-        $GetData = $this -> Store ->query ($sql);
+        $GetData = $this->Store->query($sql);
         //-------------------------------------------------------------------------------------------
         $retdata =  $this->ParseDataToObjectArray($GetData, 'tblresult');
         //-------------------------------------------------------------------------------------------
@@ -10133,7 +10738,8 @@ class ServersController extends WebServicesController
      * @param <Integer> $storecode
      * @return Array - Object Array results
      */
-    function wsGetStoreMenuServiceTime($sessionid,$storecode) {
+    function wsGetStoreMenuServiceTime($sessionid, $storecode)
+    {
         //===================================================================================
         //(Verify Session and Get DB name)
         //-----------------------------------------------------------------------------------
@@ -10182,7 +10788,8 @@ class ServersController extends WebServicesController
      * @param type $sessionid
      * @param type $transcode
      */
-    function wsGetTransactionByTransCode($sessionid,$transcode) {
+    function wsGetTransactionByTransCode($sessionid, $transcode)
+    {
         //===================================================================================
         //(Verify Session and Get DB name)
         //-----------------------------------------------------------------------------------
@@ -10219,7 +10826,7 @@ class ServersController extends WebServicesController
                         trans.STAFFCODE,
                         trans.MAINSTAFFCODE
                 FROM store_transaction AS trans
-                WHERE trans.transcode = '".$transcode."'
+                WHERE trans.transcode = '" . $transcode . "'
                     AND trans.delflg IS NULL";
         //-----------------------------------------------------------------------------------
         $Trans = $this->Store->query($Sql);
@@ -10238,7 +10845,8 @@ class ServersController extends WebServicesController
      * @param integer $uketsukestaff
      * @return boolean
      */
-    function wsAddUpdateTransUketsuke($sessionid,$transcode,$uketsukedate,$uketsukestaff) {
+    function wsAddUpdateTransUketsuke($sessionid, $transcode, $uketsukedate, $uketsukestaff)
+    {
         //===================================================================================
         //(Verify Session and Get DB name)
         //-----------------------------------------------------------------------------------
@@ -10258,9 +10866,9 @@ class ServersController extends WebServicesController
         if (!is_null($transcode) && !is_null($uketsukedate) && $uketsukestaff <> -1) {
             //-------------------------------------------------------------------------------
             $Sql = "INSERT INTO yoyaku_details (TRANSCODE, UKETSUKEDATE, UKETSUKESTAFF)
-                    VALUES ('".$transcode."','".$uketsukedate."','".$uketsukestaff."')
-                    ON DUPLICATE KEY UPDATE UKETSUKEDATE = '".$uketsukedate."',
-                                            UKETSUKESTAFF = '".$uketsukestaff."'";
+                    VALUES ('" . $transcode . "','" . $uketsukedate . "','" . $uketsukestaff . "')
+                    ON DUPLICATE KEY UPDATE UKETSUKEDATE = '" . $uketsukedate . "',
+                                            UKETSUKESTAFF = '" . $uketsukestaff . "'";
             //-------------------------------------------------------------------------------
             $this->Store->query($Sql);
             //-------------------------------------------------------------------------------
@@ -10283,7 +10891,8 @@ class ServersController extends WebServicesController
      * @param type $companyid
      * @param type $storecode
      */
-    function wsGetMailDomain($sessionid,$companyid,$storecode) {
+    function wsGetMailDomain($sessionid, $companyid, $storecode)
+    {
 
         //-------------------------------------------------------------------------------------------
         $storeinfo = $this->YoyakuSession->Check($this);
@@ -10291,17 +10900,17 @@ class ServersController extends WebServicesController
         if ($storeinfo == false) {
             $this->_soap_server->fault(1, '', INVALID_SESSION);
             return;
-        }//end if
+        } //end if
 
         #-------------------------------------------------------------------
         # ADDED BY: MARVINC - 2015-12-05 14:34
         #-------------------------------------------------------------------
         $Sql = "SELECT WSA.storeid
                 FROM sipssbeauty_server.webyan_store_accounts WSA
-                WHERE WSA.companyid = ".$companyid."
-                    AND WSA.storecode = ".$storecode;
+                WHERE WSA.companyid = " . $companyid . "
+                    AND WSA.storecode = " . $storecode;
         $emailadd = $this->Store->query($Sql);
-        $arrReturn = $emailadd[0]["WSA"]["storeid"]. "@". EMAIL_DOMAIN;
+        $arrReturn = $emailadd[0]["WSA"]["storeid"] . "@" . EMAIL_DOMAIN;
         #-------------------------------------------------------------------
         //===================================================================================
         return $arrReturn;
@@ -10316,7 +10925,8 @@ class ServersController extends WebServicesController
      * @uses Get Mail Domain
      * @param mixed $sessionid
      */
-    function wsGetReturningCustomerCountAll($sessionid) {
+    function wsGetReturningCustomerCountAll($sessionid)
+    {
         return $this->MiscFunction->GetReturningCustomerCountAll($this);
     }
     //</editor-fold>
@@ -10331,7 +10941,8 @@ class ServersController extends WebServicesController
      * @param string $password
      * @return mixed
      */
-    function wsVerifyStaffPassword($sessionid, $staffcode, $password) {
+    function wsVerifyStaffPassword($sessionid, $staffcode, $password)
+    {
 
         //-------------------------------------------------------------------------------------------
         $storeinfo = $this->YoyakuSession->Check($this);
@@ -10339,15 +10950,16 @@ class ServersController extends WebServicesController
         if ($storeinfo == false) {
             $this->_soap_server->fault(1, '', INVALID_SESSION);
             return null;
-        }//end if
+        } //end if
 
         $this->Staff->set_company_database($storeinfo['dbname'], $this->Staff);
 
         $Sql = "SELECT staff_password as password FROM staff WHERE staffcode = {$staffcode} limit 1";
         $res = $this->Staff->query($Sql);
 
-        if(isset($res{0})){
-            if($res[0]['staff']['password'] == $password){
+        if (isset($res{
+        0})) {
+            if ($res[0]['staff']['password'] == $password) {
                 return 1;
             }
         }
@@ -10363,7 +10975,8 @@ class ServersController extends WebServicesController
      * @param string $ymd 年月日
      * @return kanzashiCustomersLimit かんざし時間別予約可能数
      */
-    function wsGetDailyKanzashiCustomersLimit($sessionid, $storecode, $ymd) {
+    function wsGetDailyKanzashiCustomersLimit($sessionid, $storecode, $ymd)
+    {
         $storeinfo = $this->YoyakuSession->Check($this);
 
         if ($storeinfo == false) {
@@ -10371,7 +10984,6 @@ class ServersController extends WebServicesController
             return;
         }
         return $this->MiscFunction->GetDailyKanzashiCustomersLimit($this, $storeinfo['dbname'], $storecode, $ymd);
-
     }
 
     /**
@@ -10382,7 +10994,8 @@ class ServersController extends WebServicesController
      * @param string $ymd 年月
      * @return return_monthlyKanzashiSalonHours 月毎かんざしサロン営業時間
      */
-    function wsGetMonthlyKanzashiSalonHours($sessionid, $storecode, $ymd) {
+    function wsGetMonthlyKanzashiSalonHours($sessionid, $storecode, $ymd)
+    {
         $result = array();
         $ymd = new DateTime($ymd);
 
@@ -10432,7 +11045,8 @@ class ServersController extends WebServicesController
      * @param storeHolidayInformation $store_holiday 店舗休日のオブジェクト
      * @param _kanzashiCustomersLimit $customers_limits かんざし時間別予約可能数のオブジェクト配列
      */
-    function wsUpdateKanzashiCustomersLimit($sessionid, $storecode, $store_holiday, $customers_limits) {
+    function wsUpdateKanzashiCustomersLimit($sessionid, $storecode, $store_holiday, $customers_limits)
+    {
         if ($store_holiday['year'] && $store_holiday['month'] && $store_holiday['STORECODE']) {
             $this->wsAddUpdateDeleteStoreHoliday($sessionid, $store_holiday);
         } else {
@@ -10499,8 +11113,9 @@ class ServersController extends WebServicesController
      * @param int $kanzashisalonid かんざしサロンID
      * @return string かんざし側からのレスポンスを表すJSON
      */
-    function wsPushKanzashiStylist($kanzashisalonid) {
-        $url = KANZASHI_PATH."/salons/{$kanzashisalonid}/stylists";
+    function wsPushKanzashiStylist($kanzashisalonid)
+    {
+        $url = KANZASHI_PATH . "/salons/{$kanzashisalonid}/stylists";
         return $this->MiscFunction->CurlPost($url);
     }
 
@@ -10511,8 +11126,9 @@ class ServersController extends WebServicesController
      * @param int $staffid スタッフID
      * @return string かんざし側からのレスポンスを表すJSON
      */
-    function wsPushKanzashiStylistInitialData($kanzashisalonid, $staffid) {
-        $url = KANZASHI_PATH."/salons/{$kanzashisalonid}/stylists/{$staffid}/initial-push";
+    function wsPushKanzashiStylistInitialData($kanzashisalonid, $staffid)
+    {
+        $url = KANZASHI_PATH . "/salons/{$kanzashisalonid}/stylists/{$staffid}/initial-push";
         return $this->MiscFunction->CurlPost($url);
     }
 
@@ -10524,8 +11140,9 @@ class ServersController extends WebServicesController
      * @param int $month 月
      * @return string かんざし側からのレスポンスを表すJSON
      */
-    function wsPushKanzashiSalonDailyHours($kanzashisalonid, $year, $month) {
-        $url = KANZASHI_PATH."/salons/{$kanzashisalonid}/daily-hours";
+    function wsPushKanzashiSalonDailyHours($kanzashisalonid, $year, $month)
+    {
+        $url = KANZASHI_PATH . "/salons/{$kanzashisalonid}/daily-hours";
 
         if ($year && $month) {
             $url .= "/{$year}/{$month}";
@@ -10543,10 +11160,11 @@ class ServersController extends WebServicesController
      * @param int $staffcode スタッフコード
      * @return string かんざし側からのレスポンスを表すJSON
      */
-    function wsPushKanzashiStylistDutyHours($kanzashisalonid, $year, $month, $staffcode) {
+    function wsPushKanzashiStylistDutyHours($kanzashisalonid, $year, $month, $staffcode)
+    {
         $url = $staffcode ?
-            KANZASHI_PATH."/salons/{$kanzashisalonid}/stylists/{$staffcode}/duty-hours" :
-            KANZASHI_PATH."/salons/{$kanzashisalonid}/stylist-duty-hours";
+            KANZASHI_PATH . "/salons/{$kanzashisalonid}/stylists/{$staffcode}/duty-hours" :
+            KANZASHI_PATH . "/salons/{$kanzashisalonid}/stylist-duty-hours";
 
         if ($year && $month) {
             $url .= "/{$year}/{$month}";
@@ -10561,8 +11179,9 @@ class ServersController extends WebServicesController
      * @param int $kanzashisalonid かんざしサロンID
      * @return string かんざし側からのレスポンスを表すJSON
      */
-    function wsPushKanzashiSalonBasicSetting($kanzashisalonid) {
-        $url = KANZASHI_PATH."/salons/{$kanzashisalonid}/basic-settings";
+    function wsPushKanzashiSalonBasicSetting($kanzashisalonid)
+    {
+        $url = KANZASHI_PATH . "/salons/{$kanzashisalonid}/basic-settings";
         return $this->MiscFunction->CurlPost($url);
     }
 
@@ -10571,7 +11190,8 @@ class ServersController extends WebServicesController
      * @param mixed $sessionID
      * @return string Server Date Time
      */
-    function wsGetServerDateTime($sessionid) {
+    function wsGetServerDateTime($sessionid)
+    {
 
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
@@ -10581,5 +11201,4 @@ class ServersController extends WebServicesController
 
         return date('Y-m-d H:i:s');
     }
-
 }//end class ServersController
