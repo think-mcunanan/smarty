@@ -1823,7 +1823,7 @@ class MiscFunctionComponent extends Object
             FROM store_settings
             WHERE 
                 storecode = :storecode AND
-                optionname = 'KireiFacilityEnabled' AND
+                optionname = 'FacilityEnabled' AND
                 optionvaluei = 1
         ";
 
