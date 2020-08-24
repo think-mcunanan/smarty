@@ -551,7 +551,7 @@ class KeitaiSessionComponent extends Object
         $arrReturn['logintype'] = $logintype;
         $arrReturn['storeid'] = $account_data[0]['WebyanAccount']['storeid'];
         $arrReturn['tosflg'] = $account_data[0]['WebyanAccount']['tos_flg'];
-        $result = $this->GetKanzashiFlag($controller, $companyid, $storecode);
+        $result = $this->GetKanzashiSalons($controller, $companyid, $storecode);
         $arrReturn['KanzashiFlag'] = count($result) > 0;
         
         // The below if block was added so that the program can return an error 
@@ -2912,13 +2912,13 @@ class KeitaiSessionComponent extends Object
     }
 
     /**
-     * Summary of GetKanzashiFlag
+     * Summary of GetKanzashiSalons
      * @param mixed $controller
      * @param mixed $company
      * @param mixed $storecode
      * @return boolean
      */
-    function GetKanzashiFlag(&$controller, $company, $storecode)
+    function GetKanzashiSalons(&$controller, $company, $storecode)
     {
         $sql = "
         SELECT 
