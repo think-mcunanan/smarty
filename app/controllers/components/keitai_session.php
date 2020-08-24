@@ -2916,7 +2916,7 @@ class KeitaiSessionComponent extends Object
      * @param mixed $controller
      * @param mixed $company
      * @param mixed $storecode
-     * @return boolean
+     * @return array
      */
     function GetKanzashiSalons(&$controller, $company, $storecode)
     {
