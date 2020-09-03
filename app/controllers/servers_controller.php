@@ -3295,28 +3295,15 @@ class ServersController extends WebServicesController
             //------------------------------------------------------------------
             $arrReturn = array_merge($arrReturn, array("allstoretype" => $arr_storetypes_allstore));
             //------------------------------------------------------------------
-            $sql = "
-                SELECT
-                    kanzashi_type,
-                    kanzashi_id,
-                    status,
-                    sync_kanzashi_enabled_staff_reservation_only,
-                    free_staffcode
-                FROM sipssbeauty_kanzashi.salon
-                WHERE
-                    companyid = ? AND
-                    storecode = ?
-            ";
-            $param = array($arrReturn['companyid'], $arrReturn['storecode']);
-            $rs = $this->StoreSettings->query($sql, $param, false);
-            $salon = $rs ? $rs[0]['salon'] : null;
+            $salon = $this->MiscFunction
+                ->GetKanzashiSalons($this, $arrReturn['companyid'], $arrReturn['storecode']);
 
             if ($salon) {
                 // The below if block was added so that the program can return an error 
                 // because our current program doesn't support KIREI salons or multiple accounts.
                 // Please note that this fix is temporary 
                 // and should be removed after receiving support for KIREI salon and multiple accounts. 
-                if ($salon['kanzashi_type'] == "KIREI" or count($rs) > 1) {
+                if ($salon[0]['KanzashiType'] == "KIREI" or count($salon) > 1) {
                     $arrReturn['sessionid'] = "";
                     return $arrReturn;
                 }
@@ -9568,7 +9555,7 @@ class ServersController extends WebServicesController
         $rs = $this->YoyakuStaffServiceTime->query($Sql);
         //-----------------------------------------------------------------
         if (isset($rs{
-        0})) {
+            0})) {
             $female_time = $rs[0][0]['service_time'];
             $male_time = $rs[0][0]['service_time_male'];
         }
@@ -10964,7 +10951,7 @@ class ServersController extends WebServicesController
         $res = $this->Staff->query($Sql);
 
         if (isset($res{
-        0})) {
+            0})) {
             if ($res[0]['staff']['password'] == $password) {
                 return 1;
             }
