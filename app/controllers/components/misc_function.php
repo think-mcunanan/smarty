@@ -1865,9 +1865,8 @@ class MiscFunctionComponent extends Object
      * @param int $storecode 
      * @return array 
      */
-    public function GetKanzashiSalons(&$controller, $companyid, $storecode = null)
+    public function GetKanzashiSalons(&$controller, $companyid, $storecode)
     {
-        $store_cond = $storecode ? 'AND storecode = :storecode' : '';
         $sql = "
             SELECT
                 kanzashi_id As SalonId,
@@ -1878,14 +1877,11 @@ class MiscFunctionComponent extends Object
                 free_staffcode As FreeStaffcode
             FROM sipssbeauty_kanzashi.salon
             WHERE
-                companyid = :companyid
-                {$store_cond}
+                companyid = :companyid AND
+                storecode = :storecode
         ";
 
-        $param = $storecode ?
-            compact('companyid', 'storecode') :
-            compact('companyid');
-
+        $param = compact('companyid', 'storecode');
         $rs = $controller->StoreSettings->query($sql, $param, false);
         $set = new Set();
         return $set->extract($rs, '{n}.salon');
