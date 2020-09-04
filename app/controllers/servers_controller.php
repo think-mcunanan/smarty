@@ -3325,10 +3325,10 @@ class ServersController extends WebServicesController
                 //In the future, when multiple kanzashi account is supported, 
                 //the property for Salons should be remove from KanzashiInfo object
                 $arrReturn['KanzashiInfo'] = array(
-                    'SalonId'                                 => $salon['kanzashi_id'],
-                    'Status'                                  => $salon['status'],
-                    'SyncKanzashiEnabledStaffReservationOnly' => (bool)$salon['sync_kanzashi_enabled_staff_reservation_only'],
-                    'FreeStaffcode'                           => $salon['free_staffcode'],
+                    'SalonId'                                 => $salon[0]['SalonId'],
+                    'Status'                                  => $salon[0]['Status'],
+                    'SyncKanzashiEnabledStaffReservationOnly' => (bool)$salon[0]['SyncKanzashiEnabledStaffReservationOnly'],
+                    'FreeStaffcode'                           => $salon[0]['FreeStaffcode'],
                     'SigninUrl'                               => KANZASHI_SIGNIN_URL,
                     'SigninHashKey'                           => KANZASHI_SIGNIN_HASH_KEY,
                     'SigninMedia'                             => KANZASHI_SIGNIN_MEDIA,
