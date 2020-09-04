@@ -1121,6 +1121,7 @@ class ServersController extends WebServicesController
             'oemflg'            => 'xsd:int',
             'storetype'         => 'tns:storetypeInformation',
             'allstoretype'      => 'tns:AllStoreTypes',
+            'KanzashiSalons'    => 'tns:KanzashiSalons',
             'KanzashiInfo'      => 'tns:KanzashiInfo',
             'FACILITY_ENABLED'  => 'xsd:boolean'
         )),
@@ -1142,6 +1143,19 @@ class ServersController extends WebServicesController
         )),
         'storetypeInformation' => array(
             'array' => '_storetypeInformation'
+        ),
+
+        'KanzashiSalon' => array('struct' => array(
+            'SalonId'                                   => 'xsd:int',
+            'Name'                                      => 'xsd:string',
+            'StoreCode'                                 => 'xsd:int',
+            'KanzashiType'                              => 'xsd:string',
+            'Status'                                    => 'xsd:int',
+            'SyncKanzashiEnabledStaffReservationOnly'   => 'xsd:boolean',
+            'FreeStaffcode'                             => 'xsd:int'
+        )),
+        'KanzashiSalons' => array(
+            'array' => 'KanzashiSalon'
         ),
 
         'KanzashiInfo' => array(
@@ -3308,6 +3322,8 @@ class ServersController extends WebServicesController
                     return $arrReturn;
                 }
 
+                //In the future, when multiple kanzashi account is supported, 
+                //the property for Salons should be remove from KanzashiInfo object
                 $arrReturn['KanzashiInfo'] = array(
                     'SalonId'                                 => $salon['kanzashi_id'],
                     'Status'                                  => $salon['status'],
@@ -3318,6 +3334,9 @@ class ServersController extends WebServicesController
                     'SigninMedia'                             => KANZASHI_SIGNIN_MEDIA,
                     'SigninVersion'                           => KANZASHI_SIGNIN_VERSION
                 );
+
+                $arrReturn['KanzashiSalons'] = $this->MiscFunction
+                    ->GetKanzashiSalons($this, $arrReturn['companyid']);
             }
             //------------------------------------------------------------------
             return $arrReturn;
