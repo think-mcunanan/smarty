@@ -3335,8 +3335,7 @@ class ServersController extends WebServicesController
                     'SigninVersion'                           => KANZASHI_SIGNIN_VERSION
                 );
 
-                $arrReturn['KanzashiSalons'] = $this->MiscFunction
-                    ->GetKanzashiSalons($this, $arrReturn['companyid']);
+                $arrReturn['KanzashiSalons'] = $salons;
             }
             //------------------------------------------------------------------
             return $arrReturn;
