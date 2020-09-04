@@ -3309,15 +3309,15 @@ class ServersController extends WebServicesController
             //------------------------------------------------------------------
             $arrReturn = array_merge($arrReturn, array("allstoretype" => $arr_storetypes_allstore));
             //------------------------------------------------------------------
-            $salon = $this->MiscFunction
+            $salons = $this->MiscFunction
                 ->GetKanzashiSalons($this, $arrReturn['companyid'], $arrReturn['storecode']);
 
-            if ($salon) {
+            if ($salons) {
                 // The below if block was added so that the program can return an error 
                 // because our current program doesn't support KIREI salons or multiple accounts.
                 // Please note that this fix is temporary 
                 // and should be removed after receiving support for KIREI salon and multiple accounts. 
-                if ($salon[0]['KanzashiType'] == "KIREI" or count($salon) > 1) {
+                if ($salons[0]['KanzashiType'] == "KIREI" or count($salons) > 1) {
                     $arrReturn['sessionid'] = "";
                     return $arrReturn;
                 }
@@ -3325,10 +3325,10 @@ class ServersController extends WebServicesController
                 //In the future, when multiple kanzashi account is supported, 
                 //the property for Salons should be remove from KanzashiInfo object
                 $arrReturn['KanzashiInfo'] = array(
-                    'SalonId'                                 => $salon[0]['SalonId'],
-                    'Status'                                  => $salon[0]['Status'],
-                    'SyncKanzashiEnabledStaffReservationOnly' => (bool)$salon[0]['SyncKanzashiEnabledStaffReservationOnly'],
-                    'FreeStaffcode'                           => $salon[0]['FreeStaffcode'],
+                    'SalonId'                                 => $salons[0]['SalonId'],
+                    'Status'                                  => $salons[0]['Status'],
+                    'SyncKanzashiEnabledStaffReservationOnly' => (bool)$salons[0]['SyncKanzashiEnabledStaffReservationOnly'],
+                    'FreeStaffcode'                           => $salons[0]['FreeStaffcode'],
                     'SigninUrl'                               => KANZASHI_SIGNIN_URL,
                     'SigninHashKey'                           => KANZASHI_SIGNIN_HASH_KEY,
                     'SigninMedia'                             => KANZASHI_SIGNIN_MEDIA,
