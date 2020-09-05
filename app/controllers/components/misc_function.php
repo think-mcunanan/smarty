@@ -1871,7 +1871,6 @@ class MiscFunctionComponent extends Object
             SELECT
                 kanzashi_id As SalonId,
                 kanzashi_type As KanzashiType,
-                storecode As StoreCode,
                 status As Status,
                 sync_kanzashi_enabled_staff_reservation_only As SyncKanzashiEnabledStaffReservationOnly,
                 free_staffcode As FreeStaffcode
