@@ -1856,4 +1856,33 @@ class MiscFunctionComponent extends Object
             ),
         );
     }
+
+    /**
+     * Get the Kanzashi Salons
+     *
+     * @param controller &$controller
+     * @param string $companyid
+     * @param int $storecode 
+     * @return array 
+     */
+    public function GetKanzashiSalons(&$controller, $companyid, $storecode)
+    {
+        $sql = "
+            SELECT
+                kanzashi_id As SalonId,
+                kanzashi_type As KanzashiType,
+                status As Status,
+                sync_kanzashi_enabled_staff_reservation_only As SyncKanzashiEnabledStaffReservationOnly,
+                free_staffcode As FreeStaffcode
+            FROM sipssbeauty_kanzashi.salon
+            WHERE
+                companyid = :companyid AND
+                storecode = :storecode
+        ";
+
+        $param = compact('companyid', 'storecode');
+        $rs = $controller->StoreSettings->query($sql, $param, false);
+        $set = new Set();
+        return $set->extract($rs, '{n}.salon');
+    }
 }

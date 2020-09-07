@@ -1121,6 +1121,7 @@ class ServersController extends WebServicesController
             'oemflg'            => 'xsd:int',
             'storetype'         => 'tns:storetypeInformation',
             'allstoretype'      => 'tns:AllStoreTypes',
+            'KanzashiSalons'    => 'tns:KanzashiSalons',
             'KanzashiInfo'      => 'tns:KanzashiInfo',
             'FACILITY_ENABLED'  => 'xsd:boolean'
         )),
@@ -1142,6 +1143,18 @@ class ServersController extends WebServicesController
         )),
         'storetypeInformation' => array(
             'array' => '_storetypeInformation'
+        ),
+
+        'KanzashiSalon' => array('struct' => array(
+            'SalonId'                                   => 'xsd:int',
+            'Name'                                      => 'xsd:string',
+            'KanzashiType'                              => 'xsd:string',
+            'Status'                                    => 'xsd:int',
+            'SyncKanzashiEnabledStaffReservationOnly'   => 'xsd:boolean',
+            'FreeStaffcode'                             => 'xsd:int'
+        )),
+        'KanzashiSalons' => array(
+            'array' => 'KanzashiSalon'
         ),
 
         'KanzashiInfo' => array(
@@ -3168,7 +3181,8 @@ class ServersController extends WebServicesController
             $tmp .= "OPTIONNAME = 'YoyakuUpperLimitOption' OR ";
             //--------------------------------------------
             $tmp .= "OPTIONNAME  = 'YoyakuStart' OR ";
-            $tmp .= "OPTIONNAME  = 'YoyakuEnd')";
+            $tmp .= "OPTIONNAME  = 'YoyakuEnd' OR ";
+            $tmp .= "OPTIONNAME  = 'KireiEnabled')";
 
             $criteria   = array('STORECODE' => $arrReturn['storecode']);
             $criteria[] = $tmp;
@@ -3211,6 +3225,9 @@ class ServersController extends WebServicesController
                         break;
                     case 'YoyakuUpperLimitOption':
                         $arrReturn['UPPER_LIMIT_OP'] = $itm['StoreSettings']['OPTIONVALUES'];
+                        break;
+                    case 'KireiEnabled':
+                        $arrReturn['KIREI_ENABLED'] = $itm['StoreSettings']['OPTIONVALUEI'];
                         break;
                 }
             }
@@ -3295,42 +3312,33 @@ class ServersController extends WebServicesController
             //------------------------------------------------------------------
             $arrReturn = array_merge($arrReturn, array("allstoretype" => $arr_storetypes_allstore));
             //------------------------------------------------------------------
-            $sql = "
-                SELECT
-                    kanzashi_type,
-                    kanzashi_id,
-                    status,
-                    sync_kanzashi_enabled_staff_reservation_only,
-                    free_staffcode
-                FROM sipssbeauty_kanzashi.salon
-                WHERE
-                    companyid = ? AND
-                    storecode = ?
-            ";
-            $param = array($arrReturn['companyid'], $arrReturn['storecode']);
-            $rs = $this->StoreSettings->query($sql, $param, false);
-            $salon = $rs ? $rs[0]['salon'] : null;
+            $salons = $this->MiscFunction
+                ->GetKanzashiSalons($this, $arrReturn['companyid'], $arrReturn['storecode']);
 
-            if ($salon) {
+            if ($salons) {
                 // The below if block was added so that the program can return an error 
                 // because our current program doesn't support KIREI salons or multiple accounts.
                 // Please note that this fix is temporary 
                 // and should be removed after receiving support for KIREI salon and multiple accounts. 
-                if ($salon['kanzashi_type'] == "KIREI" or count($rs) > 1) {
+                if (!(bool)$arrReturn['KIREI_ENABLED'] && ($salons[0]['KanzashiType'] == "KIREI" || count($salons) > 1)) {
                     $arrReturn['sessionid'] = "";
                     return $arrReturn;
                 }
 
+                //In the future, when multiple kanzashi account is supported, 
+                //the property for Salons should be remove from KanzashiInfo object
                 $arrReturn['KanzashiInfo'] = array(
-                    'SalonId'                                 => $salon['kanzashi_id'],
-                    'Status'                                  => $salon['status'],
-                    'SyncKanzashiEnabledStaffReservationOnly' => (bool)$salon['sync_kanzashi_enabled_staff_reservation_only'],
-                    'FreeStaffcode'                           => $salon['free_staffcode'],
+                    'SalonId'                                 => $salons[0]['SalonId'],
+                    'Status'                                  => $salons[0]['Status'],
+                    'SyncKanzashiEnabledStaffReservationOnly' => (bool)$salons[0]['SyncKanzashiEnabledStaffReservationOnly'],
+                    'FreeStaffcode'                           => $salons[0]['FreeStaffcode'],
                     'SigninUrl'                               => KANZASHI_SIGNIN_URL,
                     'SigninHashKey'                           => KANZASHI_SIGNIN_HASH_KEY,
                     'SigninMedia'                             => KANZASHI_SIGNIN_MEDIA,
                     'SigninVersion'                           => KANZASHI_SIGNIN_VERSION
                 );
+
+                $arrReturn['KanzashiSalons'] = $salons;
             }
             //------------------------------------------------------------------
             return $arrReturn;
@@ -9568,7 +9576,7 @@ class ServersController extends WebServicesController
         $rs = $this->YoyakuStaffServiceTime->query($Sql);
         //-----------------------------------------------------------------
         if (isset($rs{
-        0})) {
+            0})) {
             $female_time = $rs[0][0]['service_time'];
             $male_time = $rs[0][0]['service_time_male'];
         }
@@ -10964,7 +10972,7 @@ class ServersController extends WebServicesController
         $res = $this->Staff->query($Sql);
 
         if (isset($res{
-        0})) {
+            0})) {
             if ($res[0]['staff']['password'] == $password) {
                 return 1;
             }
