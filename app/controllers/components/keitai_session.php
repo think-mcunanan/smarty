@@ -551,8 +551,17 @@ class KeitaiSessionComponent extends Object
         $arrReturn['logintype'] = $logintype;
         $arrReturn['storeid'] = $account_data[0]['WebyanAccount']['storeid'];
         $arrReturn['tosflg'] = $account_data[0]['WebyanAccount']['tos_flg'];
-        $arrReturn['KanzashiFlag'] = $this->GetKanzashiFlag($controller, $companyid, $storecode);
-
+        $result = $this->GetKanzashiSalons($controller, $companyid, $storecode);
+        $arrReturn['KanzashiFlag'] = count($result) > 0;
+        
+        // The below if block was added so that the program can return an error 
+        // because our current program doesn't support KIREI salons or multiple accounts.
+        // Please note that this fix is temporary 
+        // and should be removed after receiving support for KIREI salon and multiple accounts. 
+        if ($result[0]['salon']['kanzashi_type'] == "KIREI" or count($result) > 1) {
+            return false;
+        }
+        
         $controller->StoreSettings->set_company_database($dbname, $controller->StoreSettings);
         $criteria   = array('STORECODE' => $storecode);
         $v = $controller->StoreSettings->find('all', array('conditions' => $criteria));
@@ -2903,24 +2912,25 @@ class KeitaiSessionComponent extends Object
     }
 
     /**
-     * Summary of GetKanzashiFlag
+     * Summary of GetKanzashiSalons
      * @param mixed $controller
      * @param mixed $company
      * @param mixed $storecode
-     * @return boolean
+     * @return array
      */
-    function GetKanzashiFlag(&$controller, $company, $storecode)
+    function GetKanzashiSalons(&$controller, $company, $storecode)
     {
         $sql = "
-        SELECT kanzashi_id
+        SELECT 
+            kanzashi_type,
+            kanzashi_id
         FROM sipssbeauty_kanzashi.salon
         WHERE
 	        companyid = ? AND
 	        storecode = ?
         ";
         $param = array($company, $storecode);
-        $rs = $controller->Store->query($sql, $param, false);
-        return count($rs) > 0;
+        return $controller->Store->query($sql, $param, false);
     }
 
     function SaveCustomerSns(&$controller, $session_info, $snsdata, $ccode){
