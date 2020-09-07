@@ -1870,6 +1870,7 @@ class MiscFunctionComponent extends Object
         $sql = "
             SELECT
                 kanzashi_id As SalonId,
+                pos_name as Name,
                 kanzashi_type As KanzashiType,
                 status As Status,
                 sync_kanzashi_enabled_staff_reservation_only As SyncKanzashiEnabledStaffReservationOnly,
