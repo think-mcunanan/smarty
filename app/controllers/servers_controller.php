@@ -1090,6 +1090,15 @@ class ServersController extends WebServicesController
                 'kanzashisalonid' => 'xsd:int'
             ),
             'output' => array('return' => 'xsd:string')
+        ),
+
+        'wsSaveFacility' => array(
+            'doc'    => '設備を保存する',
+            'input'  => array(
+                'sessionid'             => 'xsd:string',
+                'facility'   => 'tns:facilityInformation'
+            ),
+            'output' => array('return' => 'xsd:boolean')
         )
 
         //- ############################################################
@@ -1326,6 +1335,7 @@ class ServersController extends WebServicesController
         'facilityInformation' => array('struct' => array(
             'FACILITYID'       => 'xsd:int',
             'FACILITYNAME'     => 'xsd:string',
+            'SALONID'          => 'xsd:int',
             'ROWS'             => 'xsd:int'
         )),
 
@@ -11214,5 +11224,39 @@ class ServersController extends WebServicesController
         }
 
         return date('Y-m-d H:i:s');
+    }
+
+    public function wsSaveFacility($sessionid, $facility)
+    {
+        $storeinfo = $this->YoyakuSession->Check($this);
+
+        if ($storeinfo == false) {
+            $this->_soap_server->fault(1, '', INVALID_SESSION);
+            return;
+        }
+
+        $this->Store->set_company_database($storeinfo['dbname'], $this->Store);
+
+        $params = array(
+            'pos_id' => $facility['FACILITYID'] >= 0 ? $facility['FACILITYID'] : null,
+            'name' => $facility['FACILITYNAME'],
+            'salon_pos_id' => $facility['SALONID'],
+            'acceptable_count' => $facility['ROWS'],
+        );
+
+        $query = "
+            INSERT INTO kanzashi_facility 
+                (pos_id, name, salon_pos_id, acceptable_count)
+            VALUES 
+                (:pos_id, :name, :salon_pos_id, :acceptable_count)
+            ON DUPLICATE KEY UPDATE
+                name = :name, 
+                salon_pos_id = :salon_pos_id, 
+                acceptable_count = :acceptable_count,
+                updatedate = CURRENT_TIMESTAMP;
+        ";
+
+        $this->Store->query($query, $params, false);
+        return $this->Store->getAffectedRows() > 0;
     }
 }//end class ServersController
