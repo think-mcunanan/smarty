@@ -192,15 +192,6 @@ class ServersController extends WebServicesController
             'output' => array('return'    => 'xsd:boolean')
         ),
 
-        'wsGetKanzashiSalonPosId' => array(
-            'doc'    => 'Get kanzashi Salon POS_ID',
-            'input'  => array(
-                'sessionid'     => 'xsd:string',
-                'staffcode'     => 'xsd:int'
-            ),
-            'output' => 'xsd:int'
-        ),
-
         'wsUpdateFlagsStaff' => array(
             'doc'    => '表示フラグをアップデート',
             'input'  => array(
@@ -4715,37 +4706,6 @@ class ServersController extends WebServicesController
             'records' => $records,
             'record_count' => count($records)
         );
-    }
-
-    /**
-     * Returns the kanzashi salon pos_id
-     *
-     * @param string $sessionid
-     * @param integer $staffcode
-     * @return POS_ID
-     */
-    function wsGetKanzashiSalonPosId($sessionid, $staffcode)
-    {
-        //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
-        $storeinfo = $this->YoyakuSession->Check($this);
-        if ($storeinfo == false) {
-            $this->_soap_server->fault(1, '', INVALID_SESSION);
-            return false;
-        }
-        $storecode = $storeinfo['storecode'];
-        //-- 会社データベースを設定する (Set the Company Database)
-        $this->StaffAssignToStore->set_company_database($storeinfo['dbname'], $this->StaffAssignToStore);
-        $sql = "
-                SELECT pos_id
-                FROM sipssbeauty_kanzashi.salon
-                LEFT JOIN staff_assign_to_store sats
-                    ON salon.storecode = sats.storecode
-                WHERE salon.storecode = :storecode
-                    AND sats.staffcode = :staffcode";
-
-        $params = compact('storecode', 'staffcode');
-        $result = $this->StaffAssignToStore->query($sql, $params, false);
-        return $result[0]['salon']['pos_id'];
     }
 
     /**
