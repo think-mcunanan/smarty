@@ -4997,9 +4997,9 @@ class ServersController extends WebServicesController
             "storecode" => $storeinfo['storecode'],
             "staffcode" => $param['STAFFCODE'],
             "web_display" => $param['WEB_DISPLAY'],
-            "kanzashi_salon_pos_id" => $param['KANZASHI_SALON_POS_ID'],
+            "kanzashi_salon_pos_id" => $param['KANZASHI_SALON_POS_ID'] == 0 ? null : $param['KANZASHI_SALON_POS_ID'],
             "yoyaku_display" => $param['YOYAKU_DISPLAY'],
-            "display_order" => $param['DISPLAY_ORDER'] === '' ? 'NULL' : $param['DISPLAY_ORDER'],
+            "display_order" => $param['DISPLAY_ORDER'] === '' ? 'NULL' : $param['DISPLAY_ORDER']
         );
 
         $this->StaffAssignToStore->query($sql, $params, false);
