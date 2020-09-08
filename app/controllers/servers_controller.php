@@ -4733,7 +4733,6 @@ class ServersController extends WebServicesController
         }
         $storecode = $storeinfo['storecode'];
         //-- 会社データベースを設定する (Set the Company Database)
-        $this->Staff->set_company_database($storeinfo['dbname'], $this->Staff);
         $this->StaffAssignToStore->set_company_database($storeinfo['dbname'], $this->StaffAssignToStore);
         $sql = "
                 SELECT pos_id
