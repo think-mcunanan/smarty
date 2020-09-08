@@ -1155,6 +1155,7 @@ class ServersController extends WebServicesController
         ),
 
         'KanzashiSalon' => array('struct' => array(
+            'PosId'                                     => 'xsd:int',
             'SalonId'                                   => 'xsd:int',
             'Name'                                      => 'xsd:string',
             'KanzashiType'                              => 'xsd:string',

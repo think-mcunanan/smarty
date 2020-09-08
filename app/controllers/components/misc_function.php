@@ -1869,6 +1869,7 @@ class MiscFunctionComponent extends Object
     {
         $sql = "
             SELECT
+                pos_id as PosId,
                 kanzashi_id As SalonId,
                 kanzashi_type As KanzashiType,
                 status As Status,
