@@ -1155,7 +1155,7 @@ class ServersController extends WebServicesController
         ),
 
         'KanzashiSalon' => array('struct' => array(
-            'SalonId'                                   => 'xsd:int',
+            'KanzashiId'                                => 'xsd:int',
             'Name'                                      => 'xsd:string',
             'KanzashiType'                              => 'xsd:string',
             'Status'                                    => 'xsd:int',
@@ -1168,7 +1168,7 @@ class ServersController extends WebServicesController
 
         'KanzashiInfo' => array(
             'struct' => array(
-                'SalonId'                                 => 'xsd:int',
+                'KanzashiId'                              => 'xsd:int',
                 'Status'                                  => 'xsd:int',
                 'SyncKanzashiEnabledStaffReservationOnly' => 'xsd:boolean',
                 'FreeStaffcode'                           => 'xsd:int',
@@ -3338,7 +3338,7 @@ class ServersController extends WebServicesController
                 //In the future, when multiple kanzashi account is supported, 
                 //the property for Salons should be remove from KanzashiInfo object
                 $arrReturn['KanzashiInfo'] = array(
-                    'SalonId'                                 => $salons[0]['SalonId'],
+                    'KanzashiId'                              => $salons[0]['KanzashiId'],
                     'Status'                                  => $salons[0]['Status'],
                     'SyncKanzashiEnabledStaffReservationOnly' => (bool)$salons[0]['SyncKanzashiEnabledStaffReservationOnly'],
                     'FreeStaffcode'                           => $salons[0]['FreeStaffcode'],
@@ -11226,6 +11226,11 @@ class ServersController extends WebServicesController
         return date('Y-m-d H:i:s');
     }
 
+    /**
+     * Summary of wsSaveFacility
+     * @param string $sessionid
+     * @param facilityInformation
+     */
     public function wsSaveFacility($sessionid, $facility)
     {
         $storeinfo = $this->YoyakuSession->Check($this);
@@ -11257,6 +11262,9 @@ class ServersController extends WebServicesController
         ";
 
         $this->Store->query($query, $params, false);
-        return $this->Store->getAffectedRows() > 0;
+
+        if ($this->Store->getAffectedRows() === 0) {
+            $this->_soap_server->fault(1, '', 'Error Processing Data');
+        }
     }
 }//end class ServersController
