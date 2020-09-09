@@ -11262,6 +11262,9 @@ class ServersController extends WebServicesController
                 acceptable_count = :acceptable_count,
                 updatedate = CURRENT_TIMESTAMP;
         ";
+        //Note that in order to confirm wether record is updated during update, 
+        //the UPDATEDATE is set to CURRENT_TIMESTAMP, because if the new values are the same
+        //from the old values during update the getAffectedRows will return 0
 
         $this->Store->query($query, $params, false);
         return $this->Store->getAffectedRows() > 0;
