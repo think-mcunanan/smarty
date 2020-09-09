@@ -1847,12 +1847,12 @@ class MiscFunctionComponent extends Object
             array(
                 "FACILITYID" => 1,
                 "FACILITYNAME" => "Facility 1",
-                "ROWS" => DEFAULT_FACILITY_ROWS
+                "ACCEPTABLECOUNT" => DEFAULT_FACILITY_ACCEPTABLECOUNT
             ),
             array(
                 "FACILITYID" => 2,
                 "FACILITYNAME" => "Facility 2",
-                "ROWS" => DEFAULT_FACILITY_ROWS
+                "ACCEPTABLECOUNT" => DEFAULT_FACILITY_ACCEPTABLECOUNT
             ),
         );
     }

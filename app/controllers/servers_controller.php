@@ -1337,7 +1337,7 @@ class ServersController extends WebServicesController
             'FACILITYID'       => 'xsd:int',
             'FACILITYNAME'     => 'xsd:string',
             'SALONID'          => 'xsd:int',
-            'ROWS'             => 'xsd:int'
+            'ACCEPTABLECOUNT'  => 'xsd:int'
         )),
 
         '_facilityInformation' => array(
@@ -11248,7 +11248,7 @@ class ServersController extends WebServicesController
             'pos_id' => $facility['FACILITYID'] >= 0 ? $facility['FACILITYID'] : null,
             'name' => $facility['FACILITYNAME'],
             'salon_pos_id' => $facility['SALONID'],
-            'acceptable_count' => $facility['ROWS'],
+            'acceptable_count' => $facility['ACCEPTABLECOUNT'],
         );
 
         $query = "
