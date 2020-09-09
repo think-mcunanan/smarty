@@ -11231,6 +11231,7 @@ class ServersController extends WebServicesController
      * Summary of wsSaveFacility
      * @param string $sessionid
      * @param facilityInformation
+     * @return boolean
      */
     public function wsSaveFacility($sessionid, $facility)
     {
@@ -11263,9 +11264,6 @@ class ServersController extends WebServicesController
         ";
 
         $this->Store->query($query, $params, false);
-
-        if ($this->Store->getAffectedRows() === 0) {
-            $this->_soap_server->fault(1, '', 'Error Processing Data');
-        }
+        return $this->Store->getAffectedRows() > 0;
     }
 }//end class ServersController
