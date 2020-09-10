@@ -1099,6 +1099,17 @@ class ServersController extends WebServicesController
                 'facility'   => 'tns:facilityInformation'
             ),
             'output' => array('return' => 'xsd:boolean')
+        ),
+
+        'wsGetFacilities' => array(
+            'doc'    => '施設一覧を見る',
+            'input'  => array(
+                'sessionid'     => 'xsd:string',
+                'salonid'       => 'xsd:int',
+                'page'          => 'xsd:int',
+                'pagelimit'     => 'xsd:int'
+            ),
+            'output' => array('return' => 'tns:return_facilityInformation')
         )
 
         //- ############################################################
@@ -1345,6 +1356,7 @@ class ServersController extends WebServicesController
         ),
         'return_facilityInformation' => array('struct' => array(
             'records'      => 'tns:_facilityInformation',
+            'recordcount'  => 'xsd:int'
         )),
 
         'staffRowsHistoryInformation' => array('struct' => array(
@@ -11269,4 +11281,27 @@ class ServersController extends WebServicesController
         $this->Store->query($query, $params, false);
         return $this->Store->getAffectedRows() > 0;
     }
+
+    /**
+     * Summary of wsGetFacilities
+     * @param string $sessionid
+     * @param int $salonid
+     * @param int $page
+     * @param int $pagelimit
+     * @return return_facilityInformation
+     */
+    public function wsGetFacilities($sessionid, $salonid, $page, $pagelimit)
+    {
+        $storeinfo = $this->YoyakuSession->Check($this);
+
+        if ($storeinfo == false) {
+            $this->_soap_server->fault(1, '', INVALID_SESSION);
+            return;
+        }
+        
+        return $this->MiscFunction->GetAvailableFacilities(
+            $this, $storeinfo['dbname'], $salonid, $page, $pagelimit
+        );
+    }
+
 }//end class ServersController
