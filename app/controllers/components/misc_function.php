@@ -1838,24 +1838,53 @@ class MiscFunctionComponent extends Object
      *
      * @param controller &$controller
      * @param string $dbname
-     * @param int $storecode 
-     * @return array 
+     * @param int $salonid
+     * @param int $page
+     * @param int $pagelimit
+     * @return array
      */
-    function GetAvailableFacilities(&$controller, $dbname, $storecode)
+    function GetAvailableFacilities(&$controller, $dbname, $salonid = null, $page = null, $pagelimit = null) 
     {
+        $controller->Store->set_company_database($dbname, $controller->Store);
+
+        $params = array();
+        $salonid_cond = '';
+        $pageging_cond = '';
+
+        if($salonid !== null){
+            $salonid_cond = 'AND salon_pos_id = :salonid';
+            $params = compact('salonid');
+        } 
+
+        if($page !== null){
+            $pageging_cond = 'LIMIT :pagestart, :pagelimit';
+            $pagestart = $page * $pagelimit;
+            $params += compact('pagestart', 'pagelimit');
+        }
+        
+        $query = "
+            SELECT
+                SQL_CALC_FOUND_ROWS
+                kf.pos_id AS FACILITYID,
+                kf.name AS FACILITYNAME,
+                kf.acceptable_count AS ACCEPTABLECOUNT 
+            FROM kanzashi_facility kf
+            WHERE 
+                kf.delflg IS NULL
+                {$salonid_cond}
+            {$pageging_cond}
+        ";
+
+        $set = new Set();
+        $facilities = $set->extract($controller->Store->query($query, $params, false), '{n}.kf');
+        $count = $set->extract($controller->Store->query('SELECT FOUND_ROWS() as rc'), '{n}.0.rc');
+        
         return array(
-            array(
-                "FACILITYID" => 1,
-                "FACILITYNAME" => "Facility 1",
-                "ACCEPTABLECOUNT" => DEFAULT_FACILITY_ACCEPTABLECOUNT
-            ),
-            array(
-                "FACILITYID" => 2,
-                "FACILITYNAME" => "Facility 2",
-                "ACCEPTABLECOUNT" => DEFAULT_FACILITY_ACCEPTABLECOUNT
-            ),
+            'records' => $facilities, 
+            'recordcount' => $count[0]
         );
     }
+
 
     /**
      * Get the Kanzashi Salons

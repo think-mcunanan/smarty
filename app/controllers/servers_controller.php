@@ -9143,7 +9143,7 @@ class ServersController extends WebServicesController
         #----------------------------------------------------------------------------------------------------------------
         if ($this->MiscFunction->IsFacilityEnabled($this, $storeinfo['dbname'], $param['STORECODE'])) {
             $facilities = $this->MiscFunction
-                ->GetAvailableFacilities($this, $storeinfo['dbname'], $param['STORECODE']);
+                ->GetAvailableFacilities($this, $storeinfo['dbname']);
         }
 
         //--------------------------------------------------------------------------------------------------------
@@ -9324,7 +9324,7 @@ class ServersController extends WebServicesController
 
         $ret['records']['records'] = $records;
         $ret['staff_records'] = $ret['records'];
-        $ret['facility_records']['records'] = $facilities;
+        $ret['facility_records']['records'] = $facilities['records'];
         unset($ret['records']);
         return $ret;
         //---------------------------------------------------------------------------------------------
