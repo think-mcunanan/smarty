@@ -1302,8 +1302,7 @@ class ServersController extends WebServicesController
             'SEX'              => 'xsd:int',
             'YOYAKU_DISPLAY'   => 'xsd:int',
             'WEB_DISPLAY'      => 'xsd:int',
-            'KANZASHI_ENABLED' => 'xsd:boolean',
-            'KANZASHI_SALON_POS_ID' => 'xsd:int',
+            'KANZASHI_SALON_POS_ID' => 'xsd:string',
             'ROWS'             => 'xsd:int',
             'PHONEROWS'        => 'xsd:int',
             'DISPLAY_ORDER'    => 'xsd:int',
@@ -4998,7 +4997,7 @@ class ServersController extends WebServicesController
             "storecode" => $storeinfo['storecode'],
             "staffcode" => $param['STAFFCODE'],
             "web_display" => $param['WEB_DISPLAY'],
-            "kanzashi_salon_pos_id" => $param['KANZASHI_ENABLED'] === true ? $param['KANZASHI_SALON_POS_ID'] : null,
+            "kanzashi_salon_pos_id" => empty($param['KANZASHI_SALON_POS_ID']) ? null : intval($param['KANZASHI_SALON_POS_ID']),
             "yoyaku_display" => $param['YOYAKU_DISPLAY'],
             "display_order" => $param['DISPLAY_ORDER'] === '' ? 'NULL' : $param['DISPLAY_ORDER']
         );
