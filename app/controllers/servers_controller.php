@@ -4261,7 +4261,7 @@ class ServersController extends WebServicesController
             $v[$i]['Staff']['SUBLEVELNAME'] = $v[$i]['Sublevel']['SUBLEVELNAME'];
             $v[$i]['Staff']['POSITIONNAME'] = $v[$i]['Position']['POSITIONNAME'];
             $v[$i]['Staff']['WEB_DISPLAY'] = $v[$i]['StaffAssignToStore']['WEBYAN_DISPLAY'];
-            $v[$i]['Staff']['KANZASHI_ENABLED'] = is_null($v[$i]['StaffAssignToStore']['KANZASHI_SALON_POS_ID']) ? false : true;
+            $v[$i]['Staff']['KANZASHI_ENABLED'] = !is_null($v[$i]['StaffAssignToStore']['KANZASHI_SALON_POS_ID']);
             $v[$i]['Staff']['KANZASHI_SALON_POS_ID'] = $v[$i]['StaffAssignToStore']['KANZASHI_SALON_POS_ID'];
             $v[$i]['Staff']['YOYAKU_DISPLAY'] = $v[$i]['StaffAssignToStore']['ASSIGN_YOYAKU'];
         }
@@ -4467,7 +4467,7 @@ class ServersController extends WebServicesController
             }
 
             $v[$i]['StaffAssignToStore']['WEB_DISPLAY'] = $v[$i][0]['WEBYAN_DISPLAY'];
-            $v[$i]['StaffAssignToStore']['KANZASHI_ENABLED'] = is_null($v[$i][0]['KANZASHI_SALON_POS_ID']) ? false : true ;
+            $v[$i]['StaffAssignToStore']['KANZASHI_ENABLED'] = !is_null($v[$i][0]['KANZASHI_SALON_POS_ID']);
             $v[$i]['StaffAssignToStore']['KANZASHI_SALON_POS_ID'] = $v[$i][0]['KANZASHI_SALON_POS_ID'];
             $v[$i]['StaffAssignToStore']['STORENAME']  = $v[$i]['Store']['STORENAME'];
             if (
