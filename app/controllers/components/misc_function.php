@@ -1885,7 +1885,6 @@ class MiscFunctionComponent extends Object
         );
     }
 
-
     /**
      * Get the Kanzashi Salons
      *

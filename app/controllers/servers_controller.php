@@ -1331,7 +1331,8 @@ class ServersController extends WebServicesController
             'SEX'              => 'xsd:int',
             'YOYAKU_DISPLAY'   => 'xsd:int',
             'WEB_DISPLAY'      => 'xsd:int',
-            'KANZASHI_ENABLED' => 'xsd:int',
+            'KANZASHI_ENABLED' => 'xsd:boolean',
+            'KANZASHI_SALON_POS_ID' => 'xsd:int',
             'ROWS'             => 'xsd:int',
             'PHONEROWS'        => 'xsd:int',
             'DISPLAY_ORDER'    => 'xsd:int',
@@ -4265,7 +4266,7 @@ class ServersController extends WebServicesController
             "StaffAssignToStore.KEYNO",
             "StaffAssignToStore.ASSIGN_YOYAKU",
             "StaffAssignToStore.WEBYAN_DISPLAY",
-            "StaffAssignToStore.KANZASHI_ENABLED",
+            "StaffAssignToStore.KANZASHI_SALON_POS_ID",
             "StaffAssignToStore.ASSIGN",
             "StaffAssignToStore.DISPLAY_ORDER"
         );
@@ -4291,7 +4292,8 @@ class ServersController extends WebServicesController
             $v[$i]['Staff']['SUBLEVELNAME'] = $v[$i]['Sublevel']['SUBLEVELNAME'];
             $v[$i]['Staff']['POSITIONNAME'] = $v[$i]['Position']['POSITIONNAME'];
             $v[$i]['Staff']['WEB_DISPLAY'] = $v[$i]['StaffAssignToStore']['WEBYAN_DISPLAY'];
-            $v[$i]['Staff']['KANZASHI_ENABLED'] = $v[$i]['StaffAssignToStore']['KANZASHI_ENABLED'];
+            $v[$i]['Staff']['KANZASHI_ENABLED'] = !is_null($v[$i]['StaffAssignToStore']['KANZASHI_SALON_POS_ID']);
+            $v[$i]['Staff']['KANZASHI_SALON_POS_ID'] = $v[$i]['StaffAssignToStore']['KANZASHI_SALON_POS_ID'];
             $v[$i]['Staff']['YOYAKU_DISPLAY'] = $v[$i]['StaffAssignToStore']['ASSIGN_YOYAKU'];
         }
 
@@ -4388,7 +4390,7 @@ class ServersController extends WebServicesController
 		            Staff.STAFFNAME,
 		            Store.STORENAME,
                     IF (Staff.STORECODE = StaffAssignToStore.STORECODE OR Staff.STAFFCODE = 0, StaffAssignToStore.WEBYAN_DISPLAY, 0) AS WEBYAN_DISPLAY,
-                    IF (Staff.STORECODE = StaffAssignToStore.STORECODE OR Staff.STAFFCODE = 0, StaffAssignToStore.KANZASHI_ENABLED, 0) AS KANZASHI_ENABLED,
+                    IF (Staff.STORECODE = StaffAssignToStore.STORECODE OR Staff.STAFFCODE = 0, StaffAssignToStore.KANZASHI_SALON_POS_ID, 0) AS KANZASHI_SALON_POS_ID,
                     IFNULL(StaffRowsHistory.ROWS, " . DEFAULT_ROWS . ") as origrows,
 		            IFNULL(StaffRowsHistory.PHONEROWS, " . DEFAULT_PHONEROWS . ") as origphonerows,
 		            IFNULL(StaffRowsHistory.ROWS, " . DEFAULT_ROWS . ") as ROWS,
@@ -4496,7 +4498,8 @@ class ServersController extends WebServicesController
             }
 
             $v[$i]['StaffAssignToStore']['WEB_DISPLAY'] = $v[$i][0]['WEBYAN_DISPLAY'];
-            $v[$i]['StaffAssignToStore']['KANZASHI_ENABLED'] = $v[$i][0]['KANZASHI_ENABLED'];
+            $v[$i]['StaffAssignToStore']['KANZASHI_ENABLED'] = !is_null($v[$i][0]['KANZASHI_SALON_POS_ID']);
+            $v[$i]['StaffAssignToStore']['KANZASHI_SALON_POS_ID'] = $v[$i][0]['KANZASHI_SALON_POS_ID'];
             $v[$i]['StaffAssignToStore']['STORENAME']  = $v[$i]['Store']['STORENAME'];
             if (
                 $v[$i][0]['ROWS'] == "" ||
@@ -4738,7 +4741,6 @@ class ServersController extends WebServicesController
             'record_count' => count($records)
         );
     }
-
 
     /**
      * スタッフの追加と更新機能
@@ -5016,12 +5018,12 @@ class ServersController extends WebServicesController
         $this->StaffAssignToStore->set_company_database($storeinfo['dbname'], $this->StaffAssignToStore);
 
         $sql = "
-            INSERT INTO staff_assign_to_store (STORECODE, STAFFCODE, WEBYAN_DISPLAY, KANZASHI_ENABLED, ASSIGN_YOYAKU, DISPLAY_ORDER)
-                VALUES(:storecode, :staffcode, :web_display, :kanzashi_enabled, :yoyaku_display, :display_order)
+            INSERT INTO staff_assign_to_store (STORECODE, STAFFCODE, WEBYAN_DISPLAY, KANZASHI_SALON_POS_ID, ASSIGN_YOYAKU, DISPLAY_ORDER)
+                VALUES(:storecode, :staffcode, :web_display, :kanzashi_salon_pos_id, :yoyaku_display, :display_order)
             ON DUPLICATE KEY
             UPDATE
                 WEBYAN_DISPLAY = :web_display,
-                KANZASHI_ENABLED = :kanzashi_enabled,
+                KANZASHI_SALON_POS_ID = :kanzashi_salon_pos_id,
                 ASSIGN_YOYAKU = :yoyaku_display,
                 DISPLAY_ORDER = :display_order";
 
@@ -5029,9 +5031,9 @@ class ServersController extends WebServicesController
             "storecode" => $storeinfo['storecode'],
             "staffcode" => $param['STAFFCODE'],
             "web_display" => $param['WEB_DISPLAY'],
-            "kanzashi_enabled" => $param['KANZASHI_ENABLED'],
+            "kanzashi_salon_pos_id" => $param['KANZASHI_ENABLED'] ? $param['KANZASHI_SALON_POS_ID'] : null,
             "yoyaku_display" => $param['YOYAKU_DISPLAY'],
-            "display_order" => $param['DISPLAY_ORDER'] === '' ? 'NULL' : $param['DISPLAY_ORDER'],
+            "display_order" => $param['DISPLAY_ORDER'] === '' ? 'NULL' : $param['DISPLAY_ORDER']
         );
 
         $this->StaffAssignToStore->query($sql, $params, false);
