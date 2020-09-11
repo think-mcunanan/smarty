@@ -1101,6 +1101,15 @@ class ServersController extends WebServicesController
             'output' => array('return' => 'xsd:boolean')
         ),
 
+        'wsDeleteFacility' => array(
+            'doc'    => '設備を保存する',
+            'input'  => array(
+                'sessionid'  => 'xsd:string',
+                'facilityid'   => 'xsd:int'
+            ),
+            'output' => array('return' => 'xsd:boolean')
+        ),
+
         'wsGetFacilities' => array(
             'doc'    => '施設一覧を見る',
             'input'  => array(
@@ -11279,6 +11288,33 @@ class ServersController extends WebServicesController
         //from the old values during update the getAffectedRows will return 0
 
         $this->Store->query($query, $params, false);
+        return $this->Store->getAffectedRows() > 0;
+    }
+
+    /**
+     * Summary of wsDeleteFacility
+     * @param string $sessionid
+     * @param int $facilityid
+     * @return boolean
+     */
+    public function wsDeleteFacility($sessionid, $facilityid)
+    {
+        $storeinfo = $this->YoyakuSession->Check($this);
+
+        if ($storeinfo == false) {
+            $this->_soap_server->fault(1, '', INVALID_SESSION);
+            return;
+        }
+        
+        $this->Store->set_company_database($storeinfo['dbname'], $this->Store);
+
+        $query = "
+            DELETE FROM kanzashi_facility
+            WHERE pos_id = :facilityid
+        ";
+
+        $param = compact('facilityid');
+        $this->Store->query($query, $param, false);
         return $this->Store->getAffectedRows() > 0;
     }
 
