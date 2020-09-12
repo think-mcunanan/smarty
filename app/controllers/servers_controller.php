@@ -1102,7 +1102,7 @@ class ServersController extends WebServicesController
         ),
 
         'wsDeleteFacility' => array(
-            'doc'    => '設備を保存する',
+            'doc'    => '設備を削除する',
             'input'  => array(
                 'sessionid'  => 'xsd:string',
                 'facilityid'   => 'xsd:int'
@@ -1111,7 +1111,7 @@ class ServersController extends WebServicesController
         ),
 
         'wsGetFacilities' => array(
-            'doc'    => '施設一覧を見る',
+            'doc'    => '設備を取得する',
             'input'  => array(
                 'sessionid'     => 'xsd:string',
                 'salonid'       => 'xsd:int',
