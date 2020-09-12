@@ -1845,14 +1845,14 @@ class MiscFunctionComponent extends Object
     {
         return array(
             array(
-                "FACILITYID" => 1,
-                "FACILITYNAME" => "Facility 1",
-                "ROWS" => DEFAULT_FACILITY_ROWS
+                "Id" => 1,
+                "Name" => "Facility 1",
+                "AcceptableCount" => DEFAULT_FACILITY_ACCEPTABLECOUNT
             ),
             array(
-                "FACILITYID" => 2,
-                "FACILITYNAME" => "Facility 2",
-                "ROWS" => DEFAULT_FACILITY_ROWS
+                "Id" => 1,
+                "Name" => "Facility 1",
+                "AcceptableCount" => DEFAULT_FACILITY_ACCEPTABLECOUNT
             ),
         );
     }
@@ -1869,8 +1869,9 @@ class MiscFunctionComponent extends Object
     {
         $sql = "
             SELECT
-                pos_id as PosId,
-                kanzashi_id As SalonId,
+                pos_id As SalonId,
+                kanzashi_id As KanzashiId,
+                pos_name as Name,
                 kanzashi_type As KanzashiType,
                 status As Status,
                 sync_kanzashi_enabled_staff_reservation_only As SyncKanzashiEnabledStaffReservationOnly,

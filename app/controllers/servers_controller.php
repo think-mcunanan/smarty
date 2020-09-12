@@ -1090,6 +1090,15 @@ class ServersController extends WebServicesController
                 'kanzashisalonid' => 'xsd:int'
             ),
             'output' => array('return' => 'xsd:string')
+        ),
+
+        'wsSaveFacility' => array(
+            'doc'    => '設備を保存する',
+            'input'  => array(
+                'sessionid'             => 'xsd:string',
+                'facility'   => 'tns:facilityInformation'
+            ),
+            'output' => array('return' => 'xsd:boolean')
         )
 
         //- ############################################################
@@ -1146,8 +1155,8 @@ class ServersController extends WebServicesController
         ),
 
         'KanzashiSalon' => array('struct' => array(
-            'PosId'                                     => 'xsd:int',
             'SalonId'                                   => 'xsd:int',
+            'KanzashiId'                                => 'xsd:int',
             'Name'                                      => 'xsd:string',
             'KanzashiType'                              => 'xsd:string',
             'Status'                                    => 'xsd:int',
@@ -1160,7 +1169,7 @@ class ServersController extends WebServicesController
 
         'KanzashiInfo' => array(
             'struct' => array(
-                'SalonId'                                 => 'xsd:int',
+                'KanzashiId'                              => 'xsd:int',
                 'Status'                                  => 'xsd:int',
                 'SyncKanzashiEnabledStaffReservationOnly' => 'xsd:boolean',
                 'FreeStaffcode'                           => 'xsd:int',
@@ -1326,9 +1335,10 @@ class ServersController extends WebServicesController
         )),
 
         'facilityInformation' => array('struct' => array(
-            'FACILITYID'       => 'xsd:int',
-            'FACILITYNAME'     => 'xsd:string',
-            'ROWS'             => 'xsd:int'
+            'Id'               => 'xsd:int',
+            'Name'             => 'xsd:string',
+            'SalonId'          => 'xsd:int',
+            'AcceptableCount'  => 'xsd:int'
         )),
 
         '_facilityInformation' => array(
@@ -3330,7 +3340,7 @@ class ServersController extends WebServicesController
                 //In the future, when multiple kanzashi account is supported, 
                 //the property for Salons should be remove from KanzashiInfo object
                 $arrReturn['KanzashiInfo'] = array(
-                    'SalonId'                                 => $salons[0]['SalonId'],
+                    'KanzashiId'                              => $salons[0]['KanzashiId'],
                     'Status'                                  => $salons[0]['Status'],
                     'SyncKanzashiEnabledStaffReservationOnly' => (bool)$salons[0]['SyncKanzashiEnabledStaffReservationOnly'],
                     'FreeStaffcode'                           => $salons[0]['FreeStaffcode'],
@@ -11217,5 +11227,48 @@ class ServersController extends WebServicesController
         }
 
         return date('Y-m-d H:i:s');
+    }
+
+    /**
+     * Summary of wsSaveFacility
+     * @param string $sessionid
+     * @param facilityInformation
+     * @return boolean
+     */
+    public function wsSaveFacility($sessionid, $facility)
+    {
+        $storeinfo = $this->YoyakuSession->Check($this);
+
+        if ($storeinfo == false) {
+            $this->_soap_server->fault(1, '', INVALID_SESSION);
+            return;
+        }
+
+        $this->Store->set_company_database($storeinfo['dbname'], $this->Store);
+
+        $params = array(
+            'pos_id' => $facility['FACILITYID'] >= 0 ? $facility['FACILITYID'] : null,
+            'name' => $facility['FACILITYNAME'],
+            'salon_pos_id' => $facility['SALONID'],
+            'acceptable_count' => $facility['ACCEPTABLECOUNT'],
+        );
+
+        $query = "
+            INSERT INTO kanzashi_facility 
+                (pos_id, name, salon_pos_id, acceptable_count)
+            VALUES 
+                (:pos_id, :name, :salon_pos_id, :acceptable_count)
+            ON DUPLICATE KEY UPDATE
+                name = :name, 
+                salon_pos_id = :salon_pos_id, 
+                acceptable_count = :acceptable_count,
+                updatedate = CURRENT_TIMESTAMP;
+        ";
+        //Note that in order to confirm wether record is updated during update, 
+        //the UPDATEDATE is set to CURRENT_TIMESTAMP, because if the new values are the same
+        //from the old values during update the getAffectedRows will return 0
+
+        $this->Store->query($query, $params, false);
+        return $this->Store->getAffectedRows() > 0;
     }
 }//end class ServersController
