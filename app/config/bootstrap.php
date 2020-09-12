@@ -50,7 +50,6 @@ define('DEFAULT_LIMIT',     10);
 define('DEFAULT_STARTPAGE', 1);
 define('DEFAULT_ROWS',      2);     //予約　Column
 define('DEFAULT_PHONEROWS', 1);     //来店　Column
-define('DEFAULT_FACILITY_ACCEPTABLECOUNT', 1); //予約　Column
 define('MIN_SERVICE_TIME',  15);
 define('OVER_MAXTIME',      '03:00');
 define('MAXTIME',           '23:59');
