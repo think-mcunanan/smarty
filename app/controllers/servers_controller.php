@@ -1335,10 +1335,10 @@ class ServersController extends WebServicesController
         )),
 
         'facilityInformation' => array('struct' => array(
-            'FACILITYID'       => 'xsd:int',
-            'FACILITYNAME'     => 'xsd:string',
-            'SALONID'          => 'xsd:int',
-            'ACCEPTABLECOUNT'  => 'xsd:int'
+            'Id'               => 'xsd:int',
+            'Name'             => 'xsd:string',
+            'SalonId'          => 'xsd:int',
+            'AcceptableCount'  => 'xsd:int'
         )),
 
         '_facilityInformation' => array(

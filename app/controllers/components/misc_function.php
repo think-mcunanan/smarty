@@ -1845,14 +1845,14 @@ class MiscFunctionComponent extends Object
     {
         return array(
             array(
-                "FACILITYID" => 1,
-                "FACILITYNAME" => "Facility 1",
-                "ACCEPTABLECOUNT" => DEFAULT_FACILITY_ACCEPTABLECOUNT
+                "Id" => 1,
+                "Name" => "Facility 1",
+                "AcceptableCount" => DEFAULT_FACILITY_ACCEPTABLECOUNT
             ),
             array(
-                "FACILITYID" => 2,
-                "FACILITYNAME" => "Facility 2",
-                "ACCEPTABLECOUNT" => DEFAULT_FACILITY_ACCEPTABLECOUNT
+                "Id" => 1,
+                "Name" => "Facility 1",
+                "AcceptableCount" => DEFAULT_FACILITY_ACCEPTABLECOUNT
             ),
         );
     }
