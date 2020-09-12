@@ -11268,10 +11268,10 @@ class ServersController extends WebServicesController
         $this->Store->set_company_database($storeinfo['dbname'], $this->Store);
 
         $params = array(
-            'pos_id' => $facility['FACILITYID'] >= 0 ? $facility['FACILITYID'] : null,
-            'name' => $facility['FACILITYNAME'],
-            'salon_pos_id' => $facility['SALONID'],
-            'acceptable_count' => $facility['ACCEPTABLECOUNT'],
+            'pos_id' => $facility['Id'] >= 0 ? $facility['Id'] : null,
+            'name' => $facility['Name'],
+            'salon_pos_id' => $facility['SalonId'],
+            'acceptable_count' => $facility['AcceptableCount'],
         );
 
         $query = "
