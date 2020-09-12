@@ -1865,9 +1865,9 @@ class MiscFunctionComponent extends Object
         $query = "
             SELECT
                 SQL_CALC_FOUND_ROWS
-                kf.pos_id AS FACILITYID,
-                kf.name AS FACILITYNAME,
-                kf.acceptable_count AS ACCEPTABLECOUNT 
+                kf.pos_id AS Id,
+                kf.name AS Name,
+                kf.acceptable_count AS AcceptableCount 
             FROM kanzashi_facility kf
             WHERE 
                 kf.delflg IS NULL
