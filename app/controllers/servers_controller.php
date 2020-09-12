@@ -11311,7 +11311,8 @@ class ServersController extends WebServicesController
         $this->Store->set_company_database($storeinfo['dbname'], $this->Store);
 
         $query = "
-            DELETE FROM kanzashi_facility
+            UPDATE kanzashi_facility
+                SET delflg = CURRENT_TIMESTAMP
             WHERE pos_id = :facilityid
         ";
 
