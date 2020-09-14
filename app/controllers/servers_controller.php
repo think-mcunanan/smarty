@@ -1099,6 +1099,26 @@ class ServersController extends WebServicesController
                 'facility'   => 'tns:facilityInformation'
             ),
             'output' => array('return' => 'xsd:boolean')
+        ),
+
+        'wsDeleteFacility' => array(
+            'doc'    => '設備を削除する',
+            'input'  => array(
+                'sessionid'  => 'xsd:string',
+                'facilityid'   => 'xsd:int'
+            ),
+            'output' => array('return' => 'xsd:boolean')
+        ),
+
+        'wsGetFacilities' => array(
+            'doc'    => '設備を取得する',
+            'input'  => array(
+                'sessionid'     => 'xsd:string',
+                'salonid'       => 'xsd:int',
+                'page'          => 'xsd:int',
+                'pagelimit'     => 'xsd:int'
+            ),
+            'output' => array('return' => 'tns:return_facilityInformation')
         )
 
         //- ############################################################
@@ -1346,6 +1366,7 @@ class ServersController extends WebServicesController
         ),
         'return_facilityInformation' => array('struct' => array(
             'records'      => 'tns:_facilityInformation',
+            'recordcount'  => 'xsd:int'
         )),
 
         'staffRowsHistoryInformation' => array('struct' => array(
@@ -9145,7 +9166,7 @@ class ServersController extends WebServicesController
         #----------------------------------------------------------------------------------------------------------------
         if ($this->MiscFunction->IsFacilityEnabled($this, $storeinfo['dbname'], $param['STORECODE'])) {
             $facilities = $this->MiscFunction
-                ->GetAvailableFacilities($this, $storeinfo['dbname'], $param['STORECODE']);
+                ->GetAvailableFacilities($this, $storeinfo['dbname']);
         }
 
         //--------------------------------------------------------------------------------------------------------
@@ -9326,7 +9347,7 @@ class ServersController extends WebServicesController
 
         $ret['records']['records'] = $records;
         $ret['staff_records'] = $ret['records'];
-        $ret['facility_records']['records'] = $facilities;
+        $ret['facility_records']['records'] = $facilities['records'];
         unset($ret['records']);
         return $ret;
         //---------------------------------------------------------------------------------------------
@@ -11247,10 +11268,10 @@ class ServersController extends WebServicesController
         $this->Store->set_company_database($storeinfo['dbname'], $this->Store);
 
         $params = array(
-            'pos_id' => $facility['FACILITYID'] >= 0 ? $facility['FACILITYID'] : null,
-            'name' => $facility['FACILITYNAME'],
-            'salon_pos_id' => $facility['SALONID'],
-            'acceptable_count' => $facility['ACCEPTABLECOUNT'],
+            'pos_id' => $facility['Id'] >= 0 ? $facility['Id'] : null,
+            'name' => $facility['Name'],
+            'salon_pos_id' => $facility['SalonId'],
+            'acceptable_count' => $facility['AcceptableCount'],
         );
 
         $query = "
@@ -11271,4 +11292,55 @@ class ServersController extends WebServicesController
         $this->Store->query($query, $params, false);
         return $this->Store->getAffectedRows() > 0;
     }
+
+    /**
+     * Summary of wsDeleteFacility
+     * @param string $sessionid
+     * @param int $facilityid
+     * @return boolean
+     */
+    public function wsDeleteFacility($sessionid, $facilityid)
+    {
+        $storeinfo = $this->YoyakuSession->Check($this);
+
+        if ($storeinfo == false) {
+            $this->_soap_server->fault(1, '', INVALID_SESSION);
+            return;
+        }
+        
+        $this->Store->set_company_database($storeinfo['dbname'], $this->Store);
+
+        $query = "
+            UPDATE kanzashi_facility
+                SET delflg = CURRENT_TIMESTAMP
+            WHERE pos_id = :facilityid
+        ";
+
+        $param = compact('facilityid');
+        $this->Store->query($query, $param, false);
+        return $this->Store->getAffectedRows() > 0;
+    }
+
+    /**
+     * Summary of wsGetFacilities
+     * @param string $sessionid
+     * @param int $salonid
+     * @param int $page
+     * @param int $pagelimit
+     * @return return_facilityInformation
+     */
+    public function wsGetFacilities($sessionid, $salonid, $page, $pagelimit)
+    {
+        $storeinfo = $this->YoyakuSession->Check($this);
+
+        if ($storeinfo == false) {
+            $this->_soap_server->fault(1, '', INVALID_SESSION);
+            return;
+        }
+        
+        return $this->MiscFunction->GetAvailableFacilities(
+            $this, $storeinfo['dbname'], $salonid, $page, $pagelimit
+        );
+    }
+
 }//end class ServersController
