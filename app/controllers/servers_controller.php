@@ -1119,6 +1119,15 @@ class ServersController extends WebServicesController
                 'pagelimit'     => 'xsd:int'
             ),
             'output' => array('return' => 'tns:return_facilityInformation')
+        ),
+
+        'wsSaveFacilityPrograms' => array(
+            'doc'    => '設備をプログラムの保存',
+            'input'  => array(
+                'sessionid'         => 'xsd:string',
+                'facilityProgram'   => 'tns:_facilityProgramInformation',
+            ),
+            'output' => array('return' => 'tns:_facilityProgramInformation')
         )
 
         //- ############################################################
@@ -1367,6 +1376,22 @@ class ServersController extends WebServicesController
         'return_facilityInformation' => array('struct' => array(
             'records'      => 'tns:_facilityInformation',
             'recordcount'  => 'xsd:int'
+        )),
+
+        'facilityProgramInformation' => array('struct' => array(
+            'Id'               => 'xsd:int',
+            'Name'             => 'xsd:string',
+            'FacilityId'       => 'xsd:int',
+            'Date'             => 'xsd:string',
+            'StartTime'        => 'xsd:string',
+            'EndTime'          => 'xsd:string'
+        )),
+
+        '_facilityProgramInformation' => array(
+            'array' => 'facilityProgramInformation'
+        ),
+        'return_facilityProgramInformation' => array('struct' => array(
+            'records'      => 'tns:_facilityProgramInformation'
         )),
 
         'staffRowsHistoryInformation' => array('struct' => array(
@@ -11341,6 +11366,57 @@ class ServersController extends WebServicesController
         return $this->MiscFunction->GetAvailableFacilities(
             $this, $storeinfo['dbname'], $salonid, $page, $pagelimit
         );
+    }
+
+    /**
+     * Summary of wsSaveFacilityPrograms
+     * @param string $sessionid
+     * @param array $facility_programs
+     * @return _facilityProgramInformation
+     */
+    public function wsSaveFacilityPrograms($sessionid, $facility_programs)
+    {
+        $storeinfo = $this->YoyakuSession->Check($this);
+
+        if ($storeinfo == false) {
+            $this->_soap_server->fault(1, '', INVALID_SESSION);
+            return;
+        }
+        
+        $this->BreakTime->set_company_database($storeinfo['dbname'], $this->BreakTime);
+        $source = $this->BreakTime->getDataSource();
+        
+        $query = '
+            INSERT INTO kanzashi_facility_program
+                (facility_pos_id, name, date, start_time, end_time)
+            VALUES
+                (:facility_pos_id, :name, :date, :start_time, :end_time)
+        ';
+        
+        try {
+            $source->begin();
+            foreach ($facility_programs as &$program) {
+                $params = array(
+                    'facility_pos_id' => $program['FacilityId'],
+                    'name' => $program['Name'],
+                    'date' => $program['Date'],
+                    'start_time' => $program['StartTime'],
+                    'end_time' => $program['EndTime'],
+                );
+
+                if ($this->BreakTime->query($query, $params, false) === false) {
+                    throw new Exception();
+                }
+                
+                $program['Id'] = $source->lastInsertId();
+            }
+                
+            $source->commit();
+            return $facility_programs;
+        } catch (Exception $ex) {
+            $source->rollback();
+            return;
+        }
     }
 
 }//end class ServersController
