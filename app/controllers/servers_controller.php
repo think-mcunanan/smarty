@@ -1122,7 +1122,7 @@ class ServersController extends WebServicesController
         ),
 
         'wsSaveFacilityPrograms' => array(
-            'doc'    => '設備をプログラムの保存',
+            'doc'    => '設備予定を保存する',
             'input'  => array(
                 'sessionid'         => 'xsd:string',
                 'facilityProgram'   => 'tns:_facilityProgramInformation',
