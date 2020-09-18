@@ -1915,4 +1915,49 @@ class MiscFunctionComponent extends Object
         $set = new Set();
         return $set->extract($rs, '{n}.salon');
     }
+
+    /**
+     * Get the Facility Programs
+     *
+     * @param controller &$controller
+     * @param string $companyid
+     * @param int $storecode 
+     * @return array 
+     */
+    public function GetFacilityPrograms(&$controller, $dbname, $companyid, $storecode, $date)
+    {
+        $query = "
+            SELECT
+                kfp.pos_id AS Id,
+                kfp.facility_pos_id AS FacilityId,
+                kfp.name AS Name,
+                kfp.date AS Date,
+                kfp.start_time AS StartTime,
+                kfp.end_time AS EndTime
+            FROM kanzashi_facility_program kfp
+            JOIN kanzashi_facility kf
+                ON kf.pos_id = kfp.facility_pos_id
+            JOIN sipssbeauty_kanzashi.salon s
+                ON s.pos_id = kf.salon_pos_id
+            WHERE
+                kfp.delflg IS NULL AND 
+                kfp.date = :date AND
+                s.companyid = :companyid AND
+                s.storecode = :storecode
+            ORDER BY
+                kfp.facility_pos_id AND
+                kfp.start_time
+        ";
+
+        $params = compact(
+            'companyid',
+            'storecode',
+            'date'
+        );
+
+        $controller->BreakTime->set_company_database($dbname, $controller->BreakTime);
+        $rs = $controller->BreakTime->query($query, $params, false);
+        $set = new Set();
+        return $set->extract($rs, '{n}.kfp');
+    }
 }

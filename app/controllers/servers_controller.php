@@ -1367,7 +1367,8 @@ class ServersController extends WebServicesController
             'Id'               => 'xsd:int',
             'Name'             => 'xsd:string',
             'SalonId'          => 'xsd:int',
-            'AcceptableCount'  => 'xsd:int'
+            'AcceptableCount'  => 'xsd:int',
+            'Programs'          => 'tns:_facilityProgramInformation'
         )),
 
         '_facilityInformation' => array(
@@ -9192,7 +9193,22 @@ class ServersController extends WebServicesController
         if ($this->MiscFunction->IsFacilityEnabled($this, $storeinfo['dbname'], $param['STORECODE'])) {
             $facilities = $this->MiscFunction
                 ->GetAvailableFacilities($this, $storeinfo['dbname']);
+
+            $programs = $this->MiscFunction->
+                GetFacilityPrograms($this, $storeinfo['dbname'], $storeinfo['companyid'], $param['STORECODE'], $param['date']);
+
+            foreach($facilities['records'] as &$facility) {
+                foreach($programs as &$program){
+                    if($facility['Id'] != $program['FacilityId'])
+                        continue;
+
+                    $facility['Programs'][] = $program;
+                    unset($program);
+                }
+            }
         }
+
+        //print_r($facilities); exit;
 
         //--------------------------------------------------------------------------------------------------------
         $staff          = $this->wsSearchAvailableStaff($sessionid, $param);
