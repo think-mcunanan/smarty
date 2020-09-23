@@ -1385,7 +1385,8 @@ class ServersController extends WebServicesController
             'FacilityId'       => 'xsd:int',
             'Date'             => 'xsd:string',
             'StartTime'        => 'xsd:string',
-            'EndTime'          => 'xsd:string'
+            'EndTime'          => 'xsd:string',
+            'Deleted'          => 'xsd:boolean'
         )),
 
         '_facilityProgramInformation' => array(
@@ -11398,35 +11399,50 @@ class ServersController extends WebServicesController
             $this->_soap_server->fault(1, '', INVALID_SESSION);
             return;
         }
-        
+
         $this->BreakTime->set_company_database($storeinfo['dbname'], $this->BreakTime);
         $source = $this->BreakTime->getDataSource();
-        
-        $query = '
+
+        $insert_query = '
             INSERT INTO kanzashi_facility_program
                 (facility_pos_id, name, date, start_time, end_time)
             VALUES
                 (:facility_pos_id, :name, :date, :start_time, :end_time)
         ';
-        
+
+        $delete_query = "
+            UPDATE kanzashi_facility_program
+                SET delflg = CURRENT_TIMESTAMP
+            WHERE 
+               pos_id = :id
+        ";
+
         try {
-            $source->begin();
             foreach ($facility_programs as &$program) {
-                $params = array(
-                    'facility_pos_id' => $program['FacilityId'],
-                    'name' => $program['Name'],
-                    'date' => $program['Date'],
-                    'start_time' => $program['StartTime'],
-                    'end_time' => $program['EndTime'],
-                );
+
+                if ($program['Deleted']) {
+                    $query = $delete_query;
+                    $params = array('id' => $program['Id']);
+                } else {
+                    $query = $insert_query;
+                    $params = array(
+                        'facility_pos_id' => $program['FacilityId'],
+                        'name' => $program['Name'],
+                        'date' => $program['Date'],
+                        'start_time' => $program['StartTime'],
+                        'end_time' => $program['EndTime'],
+                    );
+                }
 
                 if ($this->BreakTime->query($query, $params, false) === false) {
                     throw new Exception();
                 }
-                
-                $program['Id'] = $source->lastInsertId();
+
+                if (!$program['Deleted']) {
+                    $program['Id'] = $source->lastInsertId();
+                }
             }
-                
+
             $source->commit();
             return $facility_programs;
         } catch (Exception $ex) {
