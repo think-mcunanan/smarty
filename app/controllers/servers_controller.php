@@ -1435,6 +1435,8 @@ class ServersController extends WebServicesController
             'SALARYTYPE'        => 'xsd:int',
             'SALARYAMOUNT'      => 'xsd:int',
             'TRAVEL_ALLOWANCE'  => 'xsd:int',
+            'KANZASHI_ENABLED'  => 'xsd:boolean',
+            'KANZASHI_SALON_POS_ID' => 'xsd:int',
             'day1'              => 'xsd:string',
             'day2'              => 'xsd:string',
             'day3'              => 'xsd:string',
@@ -5212,6 +5214,9 @@ class ServersController extends WebServicesController
             $arrStaffShift[$i]['SALARYTYPE'] = $arrStaff[$i]['StaffAssignToStore']['SALARYTYPE'];
             $arrStaffShift[$i]['SALARYAMOUNT'] = $arrStaff[$i]['StaffAssignToStore']['SALARYAMOUNT'];
             $arrStaffShift[$i]['TRAVEL_ALLOWANCE'] = $arrStaff[$i]['StaffAssignToStore']['TRAVEL_ALLOWANCE'];
+            //-----------------------------------------------------------------------------------
+            $arrStaffShift[$i]['KANZASHI_ENABLED'] = $arrStaff[$i]['StaffAssignToStore']['KANZASHI_ENABLED'];
+            $arrStaffShift[$i]['KANZASHI_SALON_POS_ID'] = $arrStaff[$i]['StaffAssignToStore']['KANZASHI_SALON_POS_ID'];
             //-----------------------------------------------------------------------------------
             $stafftypes = "";
             if (count($arr_stafftypes) > 0) {

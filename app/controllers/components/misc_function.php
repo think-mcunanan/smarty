@@ -149,6 +149,7 @@ class MiscFunctionComponent extends Object
                        StaffAssignToStore.ASSIGN,
                        StaffAssignToStore.ASSIGN_YOYAKU,
                        StaffAssignToStore.WEBYAN_DISPLAY,
+                       StaffAssignToStore.KANZASHI_SALON_POS_ID,
                        Staff.STAFFNAME,
                        Staff.HIREDATE,
                        Staff.RETIREDATE,
@@ -183,6 +184,9 @@ class MiscFunctionComponent extends Object
             $arrStaff[$i]['StaffAssignToStore']['SALARYTYPE'] = $arrStaff[$i]['Staff']['SALARYTYPE'];
             $arrStaff[$i]['StaffAssignToStore']['SALARYAMOUNT'] = $arrStaff[$i]['Staff']['SALARYAMOUNT'];
             $arrStaff[$i]['StaffAssignToStore']['TRAVEL_ALLOWANCE'] = $arrStaff[$i]['Staff']['TRAVEL_ALLOWANCE'];
+            //---------------------------------------------------------------------------------------
+            $arrStaff[$i]['StaffAssignToStore']['KANZASHI_ENABLED'] = !is_null($arrStaff[$i]['StaffAssignToStore']['KANZASHI_SALON_POS_ID']);
+            $arrStaff[$i]['StaffAssignToStore']['KANZASHI_SALON_POS_ID'] = $arrStaff[$i]['StaffAssignToStore']['KANZASHI_SALON_POS_ID'];
             //---------------------------------------------------------------------------------------
         } //end for
 
