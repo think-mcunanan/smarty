@@ -3399,8 +3399,8 @@ class ServersController extends WebServicesController
                     'SigninVersion'                           => KANZASHI_SIGNIN_VERSION
                 );
 
-                $arrReturn['KanzashiSalons'] = $salons;
             }
+            $arrReturn['KanzashiSalons'] = $salons;
             //------------------------------------------------------------------
             return $arrReturn;
             //------------------------------------------------------------------
