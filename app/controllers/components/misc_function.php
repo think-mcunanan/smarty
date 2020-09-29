@@ -186,7 +186,6 @@ class MiscFunctionComponent extends Object
             $arrStaff[$i]['StaffAssignToStore']['TRAVEL_ALLOWANCE'] = $arrStaff[$i]['Staff']['TRAVEL_ALLOWANCE'];
             //---------------------------------------------------------------------------------------
             $arrStaff[$i]['StaffAssignToStore']['KANZASHI_ENABLED'] = !is_null($arrStaff[$i]['StaffAssignToStore']['KANZASHI_SALON_POS_ID']);
-            $arrStaff[$i]['StaffAssignToStore']['KANZASHI_SALON_POS_ID'] = $arrStaff[$i]['StaffAssignToStore']['KANZASHI_SALON_POS_ID'];
             //---------------------------------------------------------------------------------------
         } //end for
 
