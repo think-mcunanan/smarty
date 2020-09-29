@@ -9189,7 +9189,7 @@ class ServersController extends WebServicesController
 
         $transaction["records"] = $finaldata;
 
-        $facilities = array();
+        $facilities['records'] = array();
         #----------------------------------------------------------------------------------------------------------------
         if ($this->MiscFunction->IsFacilityEnabled($this, $storeinfo['dbname'], $param['STORECODE'])) {
             $facilities = $this->MiscFunction
