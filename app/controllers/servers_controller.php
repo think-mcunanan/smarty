@@ -3372,7 +3372,6 @@ class ServersController extends WebServicesController
             //------------------------------------------------------------------
             $arrReturn = array_merge($arrReturn, array("allstoretype" => $arr_storetypes_allstore));
             //------------------------------------------------------------------
-            $salons = array();
             $salons = $this->MiscFunction
                 ->GetKanzashiSalons($this, $arrReturn['companyid'], $arrReturn['storecode']);
 
