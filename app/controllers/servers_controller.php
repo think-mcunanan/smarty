@@ -8250,16 +8250,6 @@ class ServersController extends WebServicesController
         $destination_kanzashi_salon_pos_id = $param['PUSH_TO_KANZASHI'] != 'PUSH' ? 'NULL' : $param['DESTINATION_KANZASHI_SALON_POS_ID'];
 
         if ((int)$param['TEMPSTATUS'] == 1) {
-            //            //-------------------------------------------------------------------------
-            //            $tmpField = "";
-            //            //-------------------------------------------------------------------------
-            //            if ((int)$param['YOYAKU'] === 1) {
-            //                $tmpField = "YOYAKUTIME";
-            //            }else {
-            //                $tmpField = "STARTTIME";
-            //            }
-            //-------------------------------------------------------------------------
-            //".$tmpField." = ".$s.$param['YOYAKUTIME'].$s.",
             $sql = "UPDATE store_transaction
                     SET IDNO = " . $param['IDNO'] . ",
                         TRANSDATE = " . $s . $param['TRANSDATE'] . $s . ",
@@ -8288,12 +8278,6 @@ class ServersController extends WebServicesController
                             AND KEYNO = " . $param['KEYNO'];
             //-------------------------------------------------------------------------
         } else {
-
-            //===============================================================================================
-            //Add by Albert 2016-01-20                                           ----------------------------
-            //redmine 1037                                                       ----------------------------
-            //-----------------------------------------------------------------------------------------------
-
             $fields = "TRANSCODE, KEYNO, STORECODE, IDNO, TRANSDATE, YOYAKUTIME,
                    ENDTIME, CCODE, REGULARCUSTOMER, KYAKUKUBUN, RATETAX, ZEIOPTION,
                    SOGOKEIOPTION, CNAME, APT_COLOR, NOTES, PRIORITY, STAFFCODE,
