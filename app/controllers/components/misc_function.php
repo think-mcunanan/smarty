@@ -149,6 +149,7 @@ class MiscFunctionComponent extends Object
                        StaffAssignToStore.ASSIGN,
                        StaffAssignToStore.ASSIGN_YOYAKU,
                        StaffAssignToStore.WEBYAN_DISPLAY,
+                       StaffAssignToStore.KANZASHI_SALON_POS_ID,
                        Staff.STAFFNAME,
                        Staff.HIREDATE,
                        Staff.RETIREDATE,
@@ -183,6 +184,8 @@ class MiscFunctionComponent extends Object
             $arrStaff[$i]['StaffAssignToStore']['SALARYTYPE'] = $arrStaff[$i]['Staff']['SALARYTYPE'];
             $arrStaff[$i]['StaffAssignToStore']['SALARYAMOUNT'] = $arrStaff[$i]['Staff']['SALARYAMOUNT'];
             $arrStaff[$i]['StaffAssignToStore']['TRAVEL_ALLOWANCE'] = $arrStaff[$i]['Staff']['TRAVEL_ALLOWANCE'];
+            //---------------------------------------------------------------------------------------
+            $arrStaff[$i]['StaffAssignToStore']['KANZASHI_ENABLED'] = !is_null($arrStaff[$i]['StaffAssignToStore']['KANZASHI_SALON_POS_ID']);
             //---------------------------------------------------------------------------------------
         } //end for
 
@@ -1838,22 +1841,126 @@ class MiscFunctionComponent extends Object
      *
      * @param controller &$controller
      * @param string $dbname
+     * @param int $salonid
+     * @param int $page
+     * @param int $pagelimit
+     * @return array
+     */
+    function GetAvailableFacilities(&$controller, $dbname, $salonid = null, $page = null, $pagelimit = null) 
+    {
+        $controller->Store->set_company_database($dbname, $controller->Store);
+
+        $params = array();
+        $salonid_cond = '';
+        $pageging_cond = '';
+
+        if($salonid !== null){
+            $salonid_cond = 'AND salon_pos_id = :salonid';
+            $params = compact('salonid');
+        } 
+
+        if($page !== null){
+            $pageging_cond = 'LIMIT :pagestart, :pagelimit';
+            $pagestart = $page * $pagelimit;
+            $params += compact('pagestart', 'pagelimit');
+        }
+        
+        $query = "
+            SELECT
+                SQL_CALC_FOUND_ROWS
+                kf.pos_id AS Id,
+                kf.name AS Name,
+                kf.acceptable_count AS AcceptableCount 
+            FROM kanzashi_facility kf
+            WHERE 
+                kf.delflg IS NULL
+                {$salonid_cond}
+            {$pageging_cond}
+        ";
+
+        $set = new Set();
+        $facilities = $set->extract($controller->Store->query($query, $params, false), '{n}.kf');
+        $count = $set->extract($controller->Store->query('SELECT FOUND_ROWS() as rc'), '{n}.0.rc');
+        
+        return array(
+            'records' => $facilities, 
+            'recordcount' => $count[0]
+        );
+    }
+
+    /**
+     * Get the Kanzashi Salons
+     *
+     * @param controller &$controller
+     * @param string $companyid
      * @param int $storecode 
      * @return array 
      */
-    function GetAvailableFacilities(&$controller, $dbname, $storecode)
+    public function GetKanzashiSalons(&$controller, $companyid, $storecode)
     {
-        return array(
-            array(
-                "FACILITYID" => 1,
-                "FACILITYNAME" => "Facility 1",
-                "ROWS" => DEFAULT_FACILITY_ROWS
-            ),
-            array(
-                "FACILITYID" => 2,
-                "FACILITYNAME" => "Facility 2",
-                "ROWS" => DEFAULT_FACILITY_ROWS
-            ),
+        $sql = "
+            SELECT
+                pos_id As SalonId,
+                kanzashi_id As KanzashiId,
+                pos_name as Name,
+                kanzashi_type As KanzashiType,
+                status As Status,
+                sync_kanzashi_enabled_staff_reservation_only As SyncKanzashiEnabledStaffReservationOnly,
+                free_staffcode As FreeStaffcode
+            FROM sipssbeauty_kanzashi.salon
+            WHERE
+                companyid = :companyid AND
+                storecode = :storecode
+        ";
+
+        $param = compact('companyid', 'storecode');
+        $rs = $controller->StoreSettings->query($sql, $param, false);
+        $set = new Set();
+        return $set->extract($rs, '{n}.salon');
+    }
+
+    /**
+     * Get the Facility Programs
+     *
+     * @param controller &$controller
+     * @param string $companyid
+     * @param int $storecode 
+     * @return array 
+     */
+    public function GetFacilityPrograms(&$controller, $dbname, $companyid, $storecode, $date)
+    {
+        $query = "
+            SELECT
+                kfp.pos_id AS Id,
+                kfp.facility_pos_id AS FacilityId,
+                kfp.name AS Name,
+                kfp.date AS Date,
+                kfp.start_time AS StartTime,
+                kfp.end_time AS EndTime
+            FROM kanzashi_facility_program kfp
+            JOIN kanzashi_facility kf
+                ON kf.pos_id = kfp.facility_pos_id
+            JOIN sipssbeauty_kanzashi.salon s
+                ON s.pos_id = kf.salon_pos_id
+            WHERE
+                kfp.delflg IS NULL AND 
+                kfp.date = :date AND
+                s.companyid = :companyid AND
+                s.storecode = :storecode
+            ORDER BY
+                kfp.facility_pos_id AND
+                kfp.start_time
+        ";
+
+        $params = compact(
+            'companyid',
+            'storecode',
+            'date'
         );
+
+        $controller->BreakTime->set_company_database($dbname, $controller->BreakTime);
+        $rs = $controller->BreakTime->query($query, $params, false);
+        $set = new Set();
+        return $set->extract($rs, '{n}.kfp');
     }
 }

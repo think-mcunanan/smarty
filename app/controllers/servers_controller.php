@@ -1090,6 +1090,44 @@ class ServersController extends WebServicesController
                 'kanzashisalonid' => 'xsd:int'
             ),
             'output' => array('return' => 'xsd:string')
+        ),
+
+        'wsSaveFacility' => array(
+            'doc'    => '設備を保存する',
+            'input'  => array(
+                'sessionid'             => 'xsd:string',
+                'facility'   => 'tns:facilityInformation'
+            ),
+            'output' => array('return' => 'xsd:boolean')
+        ),
+
+        'wsDeleteFacility' => array(
+            'doc'    => '設備を削除する',
+            'input'  => array(
+                'sessionid'  => 'xsd:string',
+                'facilityid'   => 'xsd:int'
+            ),
+            'output' => array('return' => 'xsd:boolean')
+        ),
+
+        'wsGetFacilities' => array(
+            'doc'    => '設備を取得する',
+            'input'  => array(
+                'sessionid'     => 'xsd:string',
+                'salonid'       => 'xsd:int',
+                'page'          => 'xsd:int',
+                'pagelimit'     => 'xsd:int'
+            ),
+            'output' => array('return' => 'tns:return_facilityInformation')
+        ),
+
+        'wsSaveFacilityPrograms' => array(
+            'doc'    => '設備予定を保存する',
+            'input'  => array(
+                'sessionid'         => 'xsd:string',
+                'facilityProgram'   => 'tns:_facilityProgramInformation',
+            ),
+            'output' => array('return' => 'tns:_facilityProgramInformation')
         )
 
         //- ############################################################
@@ -1121,6 +1159,7 @@ class ServersController extends WebServicesController
             'oemflg'            => 'xsd:int',
             'storetype'         => 'tns:storetypeInformation',
             'allstoretype'      => 'tns:AllStoreTypes',
+            'KanzashiSalons'    => 'tns:KanzashiSalons',
             'KanzashiInfo'      => 'tns:KanzashiInfo',
             'FACILITY_ENABLED'  => 'xsd:boolean'
         )),
@@ -1144,9 +1183,22 @@ class ServersController extends WebServicesController
             'array' => '_storetypeInformation'
         ),
 
+        'KanzashiSalon' => array('struct' => array(
+            'SalonId'                                   => 'xsd:int',
+            'KanzashiId'                                => 'xsd:int',
+            'Name'                                      => 'xsd:string',
+            'KanzashiType'                              => 'xsd:string',
+            'Status'                                    => 'xsd:int',
+            'SyncKanzashiEnabledStaffReservationOnly'   => 'xsd:boolean',
+            'FreeStaffcode'                             => 'xsd:int'
+        )),
+        'KanzashiSalons' => array(
+            'array' => 'KanzashiSalon'
+        ),
+
         'KanzashiInfo' => array(
             'struct' => array(
-                'SalonId'                                 => 'xsd:int',
+                'KanzashiId'                              => 'xsd:int',
                 'Status'                                  => 'xsd:int',
                 'SyncKanzashiEnabledStaffReservationOnly' => 'xsd:boolean',
                 'FreeStaffcode'                           => 'xsd:int',
@@ -1288,7 +1340,8 @@ class ServersController extends WebServicesController
             'SEX'              => 'xsd:int',
             'YOYAKU_DISPLAY'   => 'xsd:int',
             'WEB_DISPLAY'      => 'xsd:int',
-            'KANZASHI_ENABLED' => 'xsd:int',
+            'KANZASHI_ENABLED' => 'xsd:boolean',
+            'KANZASHI_SALON_POS_ID' => 'xsd:int',
             'ROWS'             => 'xsd:int',
             'PHONEROWS'        => 'xsd:int',
             'DISPLAY_ORDER'    => 'xsd:int',
@@ -1311,9 +1364,11 @@ class ServersController extends WebServicesController
         )),
 
         'facilityInformation' => array('struct' => array(
-            'FACILITYID'       => 'xsd:int',
-            'FACILITYNAME'     => 'xsd:string',
-            'ROWS'             => 'xsd:int'
+            'Id'               => 'xsd:int',
+            'Name'             => 'xsd:string',
+            'SalonId'          => 'xsd:int',
+            'AcceptableCount'  => 'xsd:int',
+            'Programs'          => 'tns:_facilityProgramInformation'
         )),
 
         '_facilityInformation' => array(
@@ -1321,6 +1376,24 @@ class ServersController extends WebServicesController
         ),
         'return_facilityInformation' => array('struct' => array(
             'records'      => 'tns:_facilityInformation',
+            'recordcount'  => 'xsd:int'
+        )),
+
+        'facilityProgramInformation' => array('struct' => array(
+            'Id'               => 'xsd:int',
+            'Name'             => 'xsd:string',
+            'FacilityId'       => 'xsd:int',
+            'Date'             => 'xsd:string',
+            'StartTime'        => 'xsd:string',
+            'EndTime'          => 'xsd:string',
+            'Deleted'          => 'xsd:boolean'
+        )),
+
+        '_facilityProgramInformation' => array(
+            'array' => 'facilityProgramInformation'
+        ),
+        'return_facilityProgramInformation' => array('struct' => array(
+            'records'      => 'tns:_facilityProgramInformation'
         )),
 
         'staffRowsHistoryInformation' => array('struct' => array(
@@ -1362,6 +1435,7 @@ class ServersController extends WebServicesController
             'SALARYTYPE'        => 'xsd:int',
             'SALARYAMOUNT'      => 'xsd:int',
             'TRAVEL_ALLOWANCE'  => 'xsd:int',
+            'KANZASHI_ENABLED'  => 'xsd:boolean',
             'day1'              => 'xsd:string',
             'day2'              => 'xsd:string',
             'day3'              => 'xsd:string',
@@ -3168,7 +3242,8 @@ class ServersController extends WebServicesController
             $tmp .= "OPTIONNAME = 'YoyakuUpperLimitOption' OR ";
             //--------------------------------------------
             $tmp .= "OPTIONNAME  = 'YoyakuStart' OR ";
-            $tmp .= "OPTIONNAME  = 'YoyakuEnd')";
+            $tmp .= "OPTIONNAME  = 'YoyakuEnd' OR ";
+            $tmp .= "OPTIONNAME  = 'KireiEnabled')";
 
             $criteria   = array('STORECODE' => $arrReturn['storecode']);
             $criteria[] = $tmp;
@@ -3211,6 +3286,9 @@ class ServersController extends WebServicesController
                         break;
                     case 'YoyakuUpperLimitOption':
                         $arrReturn['UPPER_LIMIT_OP'] = $itm['StoreSettings']['OPTIONVALUES'];
+                        break;
+                    case 'KireiEnabled':
+                        $arrReturn['KIREI_ENABLED'] = $itm['StoreSettings']['OPTIONVALUEI'];
                         break;
                 }
             }
@@ -3295,43 +3373,34 @@ class ServersController extends WebServicesController
             //------------------------------------------------------------------
             $arrReturn = array_merge($arrReturn, array("allstoretype" => $arr_storetypes_allstore));
             //------------------------------------------------------------------
-            $sql = "
-                SELECT
-                    kanzashi_type,
-                    kanzashi_id,
-                    status,
-                    sync_kanzashi_enabled_staff_reservation_only,
-                    free_staffcode
-                FROM sipssbeauty_kanzashi.salon
-                WHERE
-                    companyid = ? AND
-                    storecode = ?
-            ";
-            $param = array($arrReturn['companyid'], $arrReturn['storecode']);
-            $rs = $this->StoreSettings->query($sql, $param, false);
-            $salon = $rs ? $rs[0]['salon'] : null;
+            $salons = $this->MiscFunction
+                ->GetKanzashiSalons($this, $arrReturn['companyid'], $arrReturn['storecode']);
 
-            if ($salon) {
+            if ($salons) {
                 // The below if block was added so that the program can return an error 
                 // because our current program doesn't support KIREI salons or multiple accounts.
                 // Please note that this fix is temporary 
                 // and should be removed after receiving support for KIREI salon and multiple accounts. 
-                if ($salon['kanzashi_type'] == "KIREI" or count($rs) > 1) {
+                if (!(bool)$arrReturn['KIREI_ENABLED'] && ($salons[0]['KanzashiType'] == "KIREI" || count($salons) > 1)) {
                     $arrReturn['sessionid'] = "";
                     return $arrReturn;
                 }
 
+                //In the future, when multiple kanzashi account is supported, 
+                //the property for Salons should be remove from KanzashiInfo object
                 $arrReturn['KanzashiInfo'] = array(
-                    'SalonId'                                 => $salon['kanzashi_id'],
-                    'Status'                                  => $salon['status'],
-                    'SyncKanzashiEnabledStaffReservationOnly' => (bool)$salon['sync_kanzashi_enabled_staff_reservation_only'],
-                    'FreeStaffcode'                           => $salon['free_staffcode'],
+                    'KanzashiId'                              => $salons[0]['KanzashiId'],
+                    'Status'                                  => $salons[0]['Status'],
+                    'SyncKanzashiEnabledStaffReservationOnly' => (bool)$salons[0]['SyncKanzashiEnabledStaffReservationOnly'],
+                    'FreeStaffcode'                           => $salons[0]['FreeStaffcode'],
                     'SigninUrl'                               => KANZASHI_SIGNIN_URL,
                     'SigninHashKey'                           => KANZASHI_SIGNIN_HASH_KEY,
                     'SigninMedia'                             => KANZASHI_SIGNIN_MEDIA,
                     'SigninVersion'                           => KANZASHI_SIGNIN_VERSION
                 );
+
             }
+            $arrReturn['KanzashiSalons'] = $salons;
             //------------------------------------------------------------------
             return $arrReturn;
             //------------------------------------------------------------------
@@ -4225,7 +4294,7 @@ class ServersController extends WebServicesController
             "StaffAssignToStore.KEYNO",
             "StaffAssignToStore.ASSIGN_YOYAKU",
             "StaffAssignToStore.WEBYAN_DISPLAY",
-            "StaffAssignToStore.KANZASHI_ENABLED",
+            "StaffAssignToStore.KANZASHI_SALON_POS_ID",
             "StaffAssignToStore.ASSIGN",
             "StaffAssignToStore.DISPLAY_ORDER"
         );
@@ -4251,7 +4320,8 @@ class ServersController extends WebServicesController
             $v[$i]['Staff']['SUBLEVELNAME'] = $v[$i]['Sublevel']['SUBLEVELNAME'];
             $v[$i]['Staff']['POSITIONNAME'] = $v[$i]['Position']['POSITIONNAME'];
             $v[$i]['Staff']['WEB_DISPLAY'] = $v[$i]['StaffAssignToStore']['WEBYAN_DISPLAY'];
-            $v[$i]['Staff']['KANZASHI_ENABLED'] = $v[$i]['StaffAssignToStore']['KANZASHI_ENABLED'];
+            $v[$i]['Staff']['KANZASHI_ENABLED'] = !is_null($v[$i]['StaffAssignToStore']['KANZASHI_SALON_POS_ID']);
+            $v[$i]['Staff']['KANZASHI_SALON_POS_ID'] = $v[$i]['StaffAssignToStore']['KANZASHI_SALON_POS_ID'];
             $v[$i]['Staff']['YOYAKU_DISPLAY'] = $v[$i]['StaffAssignToStore']['ASSIGN_YOYAKU'];
         }
 
@@ -4348,7 +4418,7 @@ class ServersController extends WebServicesController
 		            Staff.STAFFNAME,
 		            Store.STORENAME,
                     IF (Staff.STORECODE = StaffAssignToStore.STORECODE OR Staff.STAFFCODE = 0, StaffAssignToStore.WEBYAN_DISPLAY, 0) AS WEBYAN_DISPLAY,
-                    IF (Staff.STORECODE = StaffAssignToStore.STORECODE OR Staff.STAFFCODE = 0, StaffAssignToStore.KANZASHI_ENABLED, 0) AS KANZASHI_ENABLED,
+                    IF (Staff.STORECODE = StaffAssignToStore.STORECODE OR Staff.STAFFCODE = 0, StaffAssignToStore.KANZASHI_SALON_POS_ID, 0) AS KANZASHI_SALON_POS_ID,
                     IFNULL(StaffRowsHistory.ROWS, " . DEFAULT_ROWS . ") as origrows,
 		            IFNULL(StaffRowsHistory.PHONEROWS, " . DEFAULT_PHONEROWS . ") as origphonerows,
 		            IFNULL(StaffRowsHistory.ROWS, " . DEFAULT_ROWS . ") as ROWS,
@@ -4456,7 +4526,8 @@ class ServersController extends WebServicesController
             }
 
             $v[$i]['StaffAssignToStore']['WEB_DISPLAY'] = $v[$i][0]['WEBYAN_DISPLAY'];
-            $v[$i]['StaffAssignToStore']['KANZASHI_ENABLED'] = $v[$i][0]['KANZASHI_ENABLED'];
+            $v[$i]['StaffAssignToStore']['KANZASHI_ENABLED'] = !is_null($v[$i][0]['KANZASHI_SALON_POS_ID']);
+            $v[$i]['StaffAssignToStore']['KANZASHI_SALON_POS_ID'] = $v[$i][0]['KANZASHI_SALON_POS_ID'];
             $v[$i]['StaffAssignToStore']['STORENAME']  = $v[$i]['Store']['STORENAME'];
             if (
                 $v[$i][0]['ROWS'] == "" ||
@@ -4698,7 +4769,6 @@ class ServersController extends WebServicesController
             'record_count' => count($records)
         );
     }
-
 
     /**
      * スタッフの追加と更新機能
@@ -4976,12 +5046,12 @@ class ServersController extends WebServicesController
         $this->StaffAssignToStore->set_company_database($storeinfo['dbname'], $this->StaffAssignToStore);
 
         $sql = "
-            INSERT INTO staff_assign_to_store (STORECODE, STAFFCODE, WEBYAN_DISPLAY, KANZASHI_ENABLED, ASSIGN_YOYAKU, DISPLAY_ORDER)
-                VALUES(:storecode, :staffcode, :web_display, :kanzashi_enabled, :yoyaku_display, :display_order)
+            INSERT INTO staff_assign_to_store (STORECODE, STAFFCODE, WEBYAN_DISPLAY, KANZASHI_SALON_POS_ID, ASSIGN_YOYAKU, DISPLAY_ORDER)
+                VALUES(:storecode, :staffcode, :web_display, :kanzashi_salon_pos_id, :yoyaku_display, :display_order)
             ON DUPLICATE KEY
             UPDATE
                 WEBYAN_DISPLAY = :web_display,
-                KANZASHI_ENABLED = :kanzashi_enabled,
+                KANZASHI_SALON_POS_ID = :kanzashi_salon_pos_id,
                 ASSIGN_YOYAKU = :yoyaku_display,
                 DISPLAY_ORDER = :display_order";
 
@@ -4989,9 +5059,9 @@ class ServersController extends WebServicesController
             "storecode" => $storeinfo['storecode'],
             "staffcode" => $param['STAFFCODE'],
             "web_display" => $param['WEB_DISPLAY'],
-            "kanzashi_enabled" => $param['KANZASHI_ENABLED'],
+            "kanzashi_salon_pos_id" => $param['KANZASHI_ENABLED'] ? $param['KANZASHI_SALON_POS_ID'] : null,
             "yoyaku_display" => $param['YOYAKU_DISPLAY'],
-            "display_order" => $param['DISPLAY_ORDER'] === '' ? 'NULL' : $param['DISPLAY_ORDER'],
+            "display_order" => $param['DISPLAY_ORDER'] === '' ? 'NULL' : $param['DISPLAY_ORDER']
         );
 
         $this->StaffAssignToStore->query($sql, $params, false);
@@ -5143,6 +5213,8 @@ class ServersController extends WebServicesController
             $arrStaffShift[$i]['SALARYTYPE'] = $arrStaff[$i]['StaffAssignToStore']['SALARYTYPE'];
             $arrStaffShift[$i]['SALARYAMOUNT'] = $arrStaff[$i]['StaffAssignToStore']['SALARYAMOUNT'];
             $arrStaffShift[$i]['TRAVEL_ALLOWANCE'] = $arrStaff[$i]['StaffAssignToStore']['TRAVEL_ALLOWANCE'];
+            //-----------------------------------------------------------------------------------
+            $arrStaffShift[$i]['KANZASHI_ENABLED'] = $arrStaff[$i]['StaffAssignToStore']['KANZASHI_ENABLED'];
             //-----------------------------------------------------------------------------------
             $stafftypes = "";
             if (count($arr_stafftypes) > 0) {
@@ -9120,12 +9192,27 @@ class ServersController extends WebServicesController
 
         $transaction["records"] = $finaldata;
 
-        $facilities = array();
+        $facilities['records'] = array();
         #----------------------------------------------------------------------------------------------------------------
         if ($this->MiscFunction->IsFacilityEnabled($this, $storeinfo['dbname'], $param['STORECODE'])) {
             $facilities = $this->MiscFunction
-                ->GetAvailableFacilities($this, $storeinfo['dbname'], $param['STORECODE']);
+                ->GetAvailableFacilities($this, $storeinfo['dbname']);
+
+            $programs = $this->MiscFunction->
+                GetFacilityPrograms($this, $storeinfo['dbname'], $storeinfo['companyid'], $param['STORECODE'], $param['date']);
+
+            foreach($facilities['records'] as &$facility) {
+                foreach($programs as &$program){
+                    if($facility['Id'] != $program['FacilityId'])
+                        continue;
+
+                    $facility['Programs'][] = $program;
+                    unset($program);
+                }
+            }
         }
+
+        //print_r($facilities); exit;
 
         //--------------------------------------------------------------------------------------------------------
         $staff          = $this->wsSearchAvailableStaff($sessionid, $param);
@@ -9305,7 +9392,7 @@ class ServersController extends WebServicesController
 
         $ret['records']['records'] = $records;
         $ret['staff_records'] = $ret['records'];
-        $ret['facility_records']['records'] = $facilities;
+        $ret['facility_records']['records'] = $facilities['records'];
         unset($ret['records']);
         return $ret;
         //---------------------------------------------------------------------------------------------
@@ -9568,7 +9655,7 @@ class ServersController extends WebServicesController
         $rs = $this->YoyakuStaffServiceTime->query($Sql);
         //-----------------------------------------------------------------
         if (isset($rs{
-        0})) {
+            0})) {
             $female_time = $rs[0][0]['service_time'];
             $male_time = $rs[0][0]['service_time_male'];
         }
@@ -10964,7 +11051,7 @@ class ServersController extends WebServicesController
         $res = $this->Staff->query($Sql);
 
         if (isset($res{
-        0})) {
+            0})) {
             if ($res[0]['staff']['password'] == $password) {
                 return 1;
             }
@@ -11207,4 +11294,164 @@ class ServersController extends WebServicesController
 
         return date('Y-m-d H:i:s');
     }
+
+    /**
+     * Summary of wsSaveFacility
+     * @param string $sessionid
+     * @param facilityInformation
+     * @return boolean
+     */
+    public function wsSaveFacility($sessionid, $facility)
+    {
+        $storeinfo = $this->YoyakuSession->Check($this);
+
+        if ($storeinfo == false) {
+            $this->_soap_server->fault(1, '', INVALID_SESSION);
+            return;
+        }
+
+        $this->Store->set_company_database($storeinfo['dbname'], $this->Store);
+
+        $params = array(
+            'pos_id' => $facility['Id'] >= 0 ? $facility['Id'] : null,
+            'name' => $facility['Name'],
+            'salon_pos_id' => $facility['SalonId'],
+            'acceptable_count' => $facility['AcceptableCount'],
+        );
+
+        $query = "
+            INSERT INTO kanzashi_facility 
+                (pos_id, name, salon_pos_id, acceptable_count)
+            VALUES 
+                (:pos_id, :name, :salon_pos_id, :acceptable_count)
+            ON DUPLICATE KEY UPDATE
+                name = :name, 
+                salon_pos_id = :salon_pos_id, 
+                acceptable_count = :acceptable_count,
+                updatedate = CURRENT_TIMESTAMP;
+        ";
+        //Note that in order to confirm wether record is updated during update, 
+        //the UPDATEDATE is set to CURRENT_TIMESTAMP, because if the new values are the same
+        //from the old values during update the getAffectedRows will return 0
+
+        $this->Store->query($query, $params, false);
+        return $this->Store->getAffectedRows() > 0;
+    }
+
+    /**
+     * Summary of wsDeleteFacility
+     * @param string $sessionid
+     * @param int $facilityid
+     * @return boolean
+     */
+    public function wsDeleteFacility($sessionid, $facilityid)
+    {
+        $storeinfo = $this->YoyakuSession->Check($this);
+
+        if ($storeinfo == false) {
+            $this->_soap_server->fault(1, '', INVALID_SESSION);
+            return;
+        }
+        
+        $this->Store->set_company_database($storeinfo['dbname'], $this->Store);
+
+        $query = "
+            UPDATE kanzashi_facility
+                SET delflg = CURRENT_TIMESTAMP
+            WHERE pos_id = :facilityid
+        ";
+
+        $param = compact('facilityid');
+        $this->Store->query($query, $param, false);
+        return $this->Store->getAffectedRows() > 0;
+    }
+
+    /**
+     * Summary of wsGetFacilities
+     * @param string $sessionid
+     * @param int $salonid
+     * @param int $page
+     * @param int $pagelimit
+     * @return return_facilityInformation
+     */
+    public function wsGetFacilities($sessionid, $salonid, $page, $pagelimit)
+    {
+        $storeinfo = $this->YoyakuSession->Check($this);
+
+        if ($storeinfo == false) {
+            $this->_soap_server->fault(1, '', INVALID_SESSION);
+            return;
+        }
+        
+        return $this->MiscFunction->GetAvailableFacilities(
+            $this, $storeinfo['dbname'], $salonid, $page, $pagelimit
+        );
+    }
+
+    /**
+     * Summary of wsSaveFacilityPrograms
+     * @param string $sessionid
+     * @param array $facility_programs
+     * @return _facilityProgramInformation
+     */
+    public function wsSaveFacilityPrograms($sessionid, $facility_programs)
+    {
+        $storeinfo = $this->YoyakuSession->Check($this);
+
+        if ($storeinfo == false) {
+            $this->_soap_server->fault(1, '', INVALID_SESSION);
+            return;
+        }
+
+        $this->BreakTime->set_company_database($storeinfo['dbname'], $this->BreakTime);
+        $source = $this->BreakTime->getDataSource();
+
+        $insert_query = '
+            INSERT INTO kanzashi_facility_program
+                (facility_pos_id, name, date, start_time, end_time)
+            VALUES
+                (:facility_pos_id, :name, :date, :start_time, :end_time)
+        ';
+
+        $delete_query = "
+            UPDATE kanzashi_facility_program
+                SET delflg = CURRENT_TIMESTAMP
+            WHERE 
+               pos_id = :id
+        ";
+
+        try {
+            foreach ($facility_programs as &$program) {
+
+                if ($program['Deleted']) {
+                    $query = $delete_query;
+                    $params = array('id' => $program['Id']);
+                } else {
+                    $query = $insert_query;
+                    $params = array(
+                        'facility_pos_id' => $program['FacilityId'],
+                        'name' => $program['Name'],
+                        'date' => $program['Date'],
+                        'start_time' => $program['StartTime'],
+                        'end_time' => $program['EndTime'],
+                    );
+                }
+
+                if ($this->BreakTime->query($query, $params, false) === false) {
+                    throw new Exception();
+                }
+
+                if (!$program['Deleted']) {
+                    $program['Id'] = $source->lastInsertId();
+                }
+            }
+
+            $source->commit();
+            return $facility_programs;
+        } catch (Exception $ex) {
+            $source->rollback();
+            return;
+        }
+    }
+
 }//end class ServersController
