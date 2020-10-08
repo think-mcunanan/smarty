@@ -1994,6 +1994,8 @@ class ServersController extends WebServicesController
             'bmstaff'           => 'xsd:string',
             'secondnote'        => 'xsd:string',
             'MAINSTAFFCODE'     => 'xsd:int',
+            'PUSH_TO_KANZASHI'  => 'xsd:string',
+            'DESTINATION_KANZASHI_SALON_POS_ID' => 'xsd:int',
             'details'           => 'tns:_storeTransactionDetailInformation',
             'rejimarketing'     => 'tns:_rejiMarketingInformation'
         )),
@@ -7631,7 +7633,9 @@ class ServersController extends WebServicesController
                         bmtble.sex as bmsex, bmtble.name_kn_sei as knfirstname, bmtble.name_kn_mei as knlastname, bmtble.tel as bmtel,
 			            bmtble.zipcode as bmzip, bmtble.address as bmaddress, bmtble.mail as bmmail, bmtble.menu_info, bmtble.memo,
                         transaction.origination, bmtble.staffname as bmstaff, str_bm_notes.secondnote as secondnote,
-                        transaction.MAINSTAFFCODE
+                        transaction.MAINSTAFFCODE,
+                        transaction.PUSH_TO_KANZASHI,
+                        transaction.DESTINATION_KANZASHI_SALON_POS_ID
                 FROM store_transaction as transaction
                     LEFT JOIN store_transaction_details as details ON
                         transaction.TRANSCODE = details.TRANSCODE AND
@@ -8243,6 +8247,8 @@ class ServersController extends WebServicesController
         //-----------------------------------------------------------------------------
         // if tempstatus == 1 or reception then update else replace
         //-----------------------------------------------------------------------------
+        $destination_kanzashi_salon_pos_id = $param['PUSH_TO_KANZASHI'] != 'PUSH' ? 'NULL' : $param['DESTINATION_KANZASHI_SALON_POS_ID'];
+
         if ((int)$param['TEMPSTATUS'] == 1) {
             //            //-------------------------------------------------------------------------
             //            $tmpField = "";
@@ -8276,6 +8282,8 @@ class ServersController extends WebServicesController
                         PRIORITYTYPE = " . $param['PRIORITYTYPE'] . ",
                         SEX = " . $param['SEX'] . ",
                         MAINSTAFFCODE = " . $param['MAINSTAFFCODE'] . "
+                        PUSH_TO_KANZASHI = " . $s . $param['PUSH_TO_KANZASHI'] . $s . "'
+                        DESTINATION_KANZASHI_SALON_POS_ID= " . $destination_kanzashi_salon_pos_id. "
                      WHERE TRANSCODE = " . $s . $param['TRANSCODE'] . $s . "
                             AND KEYNO = " . $param['KEYNO'];
             //-------------------------------------------------------------------------
@@ -8290,7 +8298,7 @@ class ServersController extends WebServicesController
                    ENDTIME, CCODE, REGULARCUSTOMER, KYAKUKUBUN, RATETAX, ZEIOPTION,
                    SOGOKEIOPTION, CNAME, APT_COLOR, NOTES, PRIORITY, STAFFCODE,
                    YOYAKU, CUST_TELNO, HASSERVICES, TEMPSTATUS, PRIORITYTYPE, SEX,
-                   ORIGINATION, MAINSTAFFCODE ";
+                   ORIGINATION, MAINSTAFFCODE, PUSH_TO_KANZASHI, DESTINATION_KANZASHI_SALON_POS_ID";
             $values = "'" . $param['TRANSCODE']      . "', " . $param['KEYNO']      . " ,
                         " . $param['STORECODE']      . " , " . $param['IDNO']       . " ,
                        '" . $param['TRANSDATE']      . "','" . $param['YOYAKUTIME'] . "',
@@ -8303,7 +8311,9 @@ class ServersController extends WebServicesController
                         " . $param['YOYAKU']         . " ,'" . $param['CUST_TELNO'] . "',
                         " . $param['HASSERVICES']    . " , " . $param['TEMPSTATUS'] . " ,
                         " . $param['PRIORITYTYPE']   . " , " . $param['SEX'] . " ,
-                        " . $param['origination']    . " , " . $param['MAINSTAFFCODE'];
+                        " . $param['origination']    . " , " . $param['MAINSTAFFCODE']. " ,
+                        '" . $param['PUSH_TO_KANZASHI']      . "' , " . $destination_kanzashi_salon_pos_id;
+                        
             $sql = "REPLACE INTO store_transaction (" . $fields . ") VALUES(" . $values . ")";
 
             //===============================================================================================
