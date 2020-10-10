@@ -1906,7 +1906,8 @@ class MiscFunctionComponent extends Object
                 kanzashi_type As KanzashiType,
                 status As Status,
                 sync_kanzashi_enabled_staff_reservation_only As SyncKanzashiEnabledStaffReservationOnly,
-                free_staffcode As FreeStaffcode
+                free_staffcode As FreeStaffcode,
+                is_main_salon as IsMainSalon
             FROM sipssbeauty_kanzashi.salon
             WHERE
                 companyid = :companyid AND

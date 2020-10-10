@@ -1190,7 +1190,8 @@ class ServersController extends WebServicesController
             'KanzashiType'                              => 'xsd:string',
             'Status'                                    => 'xsd:int',
             'SyncKanzashiEnabledStaffReservationOnly'   => 'xsd:boolean',
-            'FreeStaffcode'                             => 'xsd:int'
+            'FreeStaffcode'                             => 'xsd:int',
+            'IsMainSalon'                               => 'xsd:int'
         )),
         'KanzashiSalons' => array(
             'array' => 'KanzashiSalon'
