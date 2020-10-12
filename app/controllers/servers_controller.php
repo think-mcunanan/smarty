@@ -1035,6 +1035,8 @@ class ServersController extends WebServicesController
             'doc'    => '月毎かんざしサロン営業時間取得',
             'input'  => array(
                 'sessionid' => 'xsd:string',
+                'ismainsalon' => 'xsd:boolean',
+                'salonposid' => 'xsd:int',
                 'storecode' => 'xsd:int',
                 'ymd'       => 'xsd:date'
             ),
@@ -5579,9 +5581,10 @@ class ServersController extends WebServicesController
      *
      * @param string $sessionid
      * @param array $param
+     * @param boolean $ismainsalon
      * @return return_storeHolidayInformation
      */
-    function wsSearchStoreHoliday($sessionid, $param)
+    function wsSearchStoreHoliday($sessionid, $param, $ismainsalon = true)
     {
         if ($param['ignoreSessionCheck'] <> 1) {
             //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
@@ -5596,18 +5599,36 @@ class ServersController extends WebServicesController
 
         $this->StoreHoliday->set_company_database($storeinfo['dbname'], $this->StoreHoliday);
 
-        $criteria = array(
-            'StoreHoliday.STORECODE'  => $param['storecode'],
-            'YEAR(StoreHoliday.YMD)'  => $param['year'],
-            'MONTH(StoreHoliday.YMD)' => $param['month'],
-            'StoreHoliday.DELFLG IS NULL'
-        );
-
-        if ($param['day'] <> 0) {
-            $criteria['DAY(StoreHoliday.YMD)'] = $param['day'];
+        if ($ismainsalon){
+            $tablename = "store_holiday";
+            $wherecond = " storecode = :storecode ";
+        }
+        else {
+            $tablename = "store_holiday_per_salon";
+            $wherecond = " salon_pos_id = :salonposid ";
         }
 
-        $v = $this->StoreHoliday->find('all', array('conditions' => $criteria));
+        if ($param['day'] <> 0) {
+            $wherecond = $wherecond . " and DAY(ymd) = :day ";
+        }
+
+        $query = "
+                SELECT *
+                FROM {$tablename}
+                WHERE {$wherecond}
+                    AND MONTH(ymd) = :month
+                    AND YEAR(ymd) = :year
+                    AND delflg IS NULL ";
+
+        $parameters = array(
+            'salonposid' => $param['salonposid'],
+            'storecode' => $param['storecode'],
+            'year'  => $param['year'],
+            'month' => $param['month'],
+            'day' => $param['day']
+        );
+
+        $records = $this->StoreHoliday->query($query, $parameters, false);
 
         $arrHoliday['STORECODE'] = $param['storecode'];
         $arrHoliday['year']      = $param['year'];
@@ -5633,10 +5654,9 @@ class ServersController extends WebServicesController
 
             if (checkdate($param['month'], $day, $param['year'])) {
                 //- スタッフシフトの配列をループ処理　(Loops through the array of StoreHolidays)
-                for ($k = 0; $k < count($v); $k++) {
-
-                    if ($date == $v[$k]['StoreHoliday']['YMD']) {
-                        $val = $v[$k]['StoreHoliday']['REMARKS'];
+                for ($k = 0; $k < count($records); $k++) {
+                    if ($date == $records[$k][$tablename]['YMD']) {
+                        $val = ($ismainsalon) ? $records[$k][$tablename]['REMARKS'] : "";
                         if ($val == "") {
                             $val = 'whitespace';
                         }
@@ -5649,7 +5669,7 @@ class ServersController extends WebServicesController
 
         $ret = array();
         $ret['records']      = $arrHoliday;
-        $ret['record_count'] = count($v);
+        $ret['record_count'] = count($records);
 
         return $ret;
     }
@@ -11084,11 +11104,13 @@ class ServersController extends WebServicesController
      * 月毎かんざしサロン営業時間取得
      *
      * @param string $sessionid セッションID
+     * @param boolean $isMainSalon 
+     * @param int $salonposid
      * @param int $storecode 店舗コード
      * @param string $ymd 年月
      * @return return_monthlyKanzashiSalonHours 月毎かんざしサロン営業時間
      */
-    function wsGetMonthlyKanzashiSalonHours($sessionid, $storecode, $ymd)
+    function wsGetMonthlyKanzashiSalonHours($sessionid, $ismainsalon, $salonposid, $storecode, $ymd)
     {
         $result = array();
         $ymd = new DateTime($ymd);
@@ -11099,8 +11121,18 @@ class ServersController extends WebServicesController
             'month' => $ymd->format('m'),
             'day' => 0
         );
-
-        $store_holiday = $this->wsSearchStoreHoliday($sessionid, $param);
+        
+        if ($ismainsalon) {
+            $tablename = "kanzashi_customers_limit";
+            $wherecond = " storecode = :storecode ";
+        }
+        else {
+            $tablename = "kanzashi_customers_limit_per_salon";
+            $wherecond = " salon_pos_id = :salonposid ";
+            $param['salonposid'] = $salonposid;
+        }
+        
+        $store_holiday = $this->wsSearchStoreHoliday($sessionid, $param, $ismainsalon);
         $result['store_holiday'] = $store_holiday['records'];
 
         $query = "
@@ -11109,10 +11141,10 @@ class ServersController extends WebServicesController
                 begin_time,
                 end_time,
                 limit_count
-            FROM kanzashi_customers_limit
+            FROM {$tablename}
             WHERE
-                storecode = ? AND
-                ymd BETWEEN ? AND ?
+                {$wherecond} AND
+                ymd BETWEEN :begin_ymd AND :end_ymd
             ORDER BY
                 ymd,
                 begin_time
@@ -11120,12 +11152,12 @@ class ServersController extends WebServicesController
 
         $begin_ymd = $ymd->format('Y-m-01');
         $end_ymd = $ymd->format('Y-m-t');
-        $param = array($storecode, $begin_ymd, $end_ymd);
+        $param = compact('salonposid', 'storecode', 'begin_ymd', 'end_ymd');
         $records = $this->StoreHoliday->query($query, $param, false);
-        $result['customers_limits'] = array();
 
+        $result['customers_limits'] = array();
         foreach ($records as $record) {
-            $result['customers_limits'][] = $record['kanzashi_customers_limit'];
+            $result['customers_limits'][] = $record[$tablename];
         }
 
         return $result;
