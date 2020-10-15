@@ -1035,7 +1035,7 @@ class ServersController extends WebServicesController
             'doc'    => '月毎かんざしサロン営業時間取得',
             'input'  => array(
                 'sessionid' => 'xsd:string',
-                'ismainsalon' => 'xsd:boolean',
+                'kanzashienabled' => 'xsd:boolean',
                 'salonposid' => 'xsd:int',
                 'storecode' => 'xsd:int',
                 'ymd'       => 'xsd:date'
@@ -5585,10 +5585,10 @@ class ServersController extends WebServicesController
      *
      * @param string $sessionid
      * @param array $param
-     * @param boolean $ismainsalon
+     * @param boolean $kanzashiEnabled
      * @return return_storeHolidayInformation
      */
-    function wsSearchStoreHoliday($sessionid, $param, $ismainsalon = true)
+    function wsSearchStoreHoliday($sessionid, $param, $kanzashiEnabled = false)
     {
         if ($param['ignoreSessionCheck'] <> 1) {
             //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
@@ -5603,13 +5603,13 @@ class ServersController extends WebServicesController
 
         $this->StoreHoliday->set_company_database($storeinfo['dbname'], $this->StoreHoliday);
 
-        if ($ismainsalon){
-            $tablename = "store_holiday";
-            $wherecond = " storecode = :storecode ";
-        }
-        else {
+        if ($kanzashiEnabled){
             $tablename = "store_holiday_per_salon";
             $wherecond = " salon_pos_id = :salonposid ";
+        }
+        else {
+            $tablename = "store_holiday";
+            $wherecond = " storecode = :storecode ";
         }
 
         if ($param['day'] <> 0) {
@@ -5624,15 +5624,16 @@ class ServersController extends WebServicesController
                     AND YEAR(ymd) = :year
                     AND delflg IS NULL ";
 
-        $parameters = array(
-            'salonposid' => $param['salonposid'],
+        $params = array(
             'storecode' => $param['storecode'],
             'year'  => $param['year'],
             'month' => $param['month'],
             'day' => $param['day']
         );
-
-        $records = $this->StoreHoliday->query($query, $parameters, false);
+        if ($kanzashiEnabled){
+            $params['salonposid'] = $param['salonposid'];
+        }
+        $records = $this->StoreHoliday->query($query, $params, false);
 
         $arrHoliday['STORECODE'] = $param['storecode'];
         $arrHoliday['year']      = $param['year'];
@@ -5660,7 +5661,7 @@ class ServersController extends WebServicesController
                 //- スタッフシフトの配列をループ処理　(Loops through the array of StoreHolidays)
                 for ($k = 0; $k < count($records); $k++) {
                     if ($date == $records[$k][$tablename]['YMD']) {
-                        $val = ($ismainsalon) ? $records[$k][$tablename]['REMARKS'] : "";
+                        $val = (!$kanzashiEnabled) ? $records[$k][$tablename]['REMARKS'] : "";
                         if ($val == "") {
                             $val = 'whitespace';
                         }
@@ -5732,7 +5733,7 @@ class ServersController extends WebServicesController
             $this->date = $param['year'] . "-" . $param['month'] . "-" . $day;
 
             if (checkdate($param['month'], $day, $param['year']) && $param[$arrDays[$i]] <> "" ) {
-                
+
                 //'whitespace'削除　(Removed 'whitespace' string)
                 $param[$arrDays[$i]] = ereg_replace('whitespace', '', $param[$arrDays[$i]]);
                 $param[$arrDays[$i]] = addslashes($param[$arrDays[$i]]);
@@ -11128,13 +11129,13 @@ class ServersController extends WebServicesController
      * 月毎かんざしサロン営業時間取得
      *
      * @param string $sessionid セッションID
-     * @param boolean $isMainSalon 
+     * @param boolean $kanzashiEnabled
      * @param int $salonposid
      * @param int $storecode 店舗コード
      * @param string $ymd 年月
      * @return return_monthlyKanzashiSalonHours 月毎かんざしサロン営業時間
      */
-    function wsGetMonthlyKanzashiSalonHours($sessionid, $ismainsalon, $salonposid, $storecode, $ymd)
+    function wsGetMonthlyKanzashiSalonHours($sessionid, $kanzashiEnabled, $salonposid, $storecode, $ymd)
     {
         $result = array();
         $ymd = new DateTime($ymd);
@@ -11146,17 +11147,17 @@ class ServersController extends WebServicesController
             'day' => 0
         );
         
-        if ($ismainsalon) {
-            $tablename = "kanzashi_customers_limit";
-            $wherecond = " storecode = :storecode ";
-        }
-        else {
+        if ($kanzashiEnabled) {
             $tablename = "kanzashi_customers_limit_per_salon";
             $wherecond = " salon_pos_id = :salonposid ";
             $param['salonposid'] = $salonposid;
         }
+        else {
+            $tablename = "kanzashi_customers_limit";
+            $wherecond = " storecode = :storecode ";
+        }
         
-        $store_holiday = $this->wsSearchStoreHoliday($sessionid, $param, $ismainsalon);
+        $store_holiday = $this->wsSearchStoreHoliday($sessionid, $param, $kanzashiEnabled);
         $result['store_holiday'] = $store_holiday['records'];
 
         $query = "
