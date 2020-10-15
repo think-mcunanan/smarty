@@ -11198,7 +11198,7 @@ class ServersController extends WebServicesController
      * @param storeHolidayInformation $store_holiday 店舗休日のオブジェクト
      * @param _kanzashiCustomersLimit $customers_limits かんざし時間別予約可能数のオブジェクト配列
      */
-    function wsUpdateKanzashiCustomersLimit($sessionid, $ismainsalon = true, $salonposid, $storecode, $store_holiday, $customers_limits)
+    function wsUpdateKanzashiCustomersLimit($sessionid, $ismainsalon, $salonposid, $storecode, $store_holiday, $customers_limits)
     {
         if ($salonposid) {
             $store_holiday['salonposid'] = $salonposid;
