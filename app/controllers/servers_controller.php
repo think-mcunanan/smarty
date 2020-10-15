@@ -5700,14 +5700,20 @@ class ServersController extends WebServicesController
 
         $this->StoreHoliday->set_company_database($storeinfo['dbname'], $this->StoreHoliday);
         $sqlstatements = array();
+        $params = array();
 
         if ($ismainsalon){
             //-- Delete old Store Holidays
             $sqlstatements[] = "
                     DELETE FROM store_holiday
-                    WHERE storecode  = {$param['STORECODE']}
-                        AND YEAR(ymd)  = {$param['year']}
-                        AND MONTH(ymd) = {$param['month']}";
+                    WHERE storecode  = :storecode
+                        AND YEAR(ymd)  = :year
+                        AND MONTH(ymd) = :month";
+            $params[] = array(
+                'storecode' => $param['STORECODE'],
+                'year' => $param['year'],
+                'month' => $param['month']
+            );
         }
         if ($param['salonposid']) {
             $days = array();
@@ -5721,10 +5727,15 @@ class ServersController extends WebServicesController
                     UPDATE store_holiday_per_salon
                     SET delflg = now(),
                     updatedate = now()
-                    WHERE salon_pos_id  = {$param['salonposid']}
-                        AND YEAR(ymd)  = {$param['year']}
-                        AND MONTH(ymd) = {$param['month']}
+                    WHERE salon_pos_id  = :salonposid
+                        AND YEAR(ymd)  = :year
+                        AND MONTH(ymd) = :month
                         AND day(ymd) IN ({$days})";
+            $params[] = array(
+                'salonposid' => $param['salonposid'],
+                'year' => $param['year'],
+                'month' => $param['month']
+            );
         }
 
         $arrDays = $this->arrDays;
@@ -5743,22 +5754,31 @@ class ServersController extends WebServicesController
                 if ($ismainsalon){
                     $sqlstatements[] = "
                             INSERT INTO store_holiday (STORECODE, YMD, REMARKS)
-                            VALUES({$param['STORECODE']}, '{$this->date}', '{$param[$arrDays[$i]]}')";
+                            VALUES(:storecode, :ymd, :remarks)";
+                    $params[] = array(
+                        'storecode' => $param['STORECODE'],
+                        'ymd' => $this->date,
+                        'remarks' => $param[$arrDays[$i]]
+                    );
                 }
                 if ($param['salonposid']) {
                     $sqlstatements[] = "
                             INSERT INTO store_holiday_per_salon (SALON_POS_ID, YMD)
-                            VALUES({$param['salonposid']}, '{$this->date}')
+                            VALUES(:salonposid, :ymd)
                             ON DUPLICATE KEY 
                                 UPDATE delflg = NULL";
+                    $params[] = array(
+                        'salonposid' => $param['salonposid'],
+                        'ymd' => $this->date
+                    );
                 }
             }
         }
         $source = $this->StoreHoliday->getDataSource();
         try {
             $source->begin();
-            foreach ($sqlstatements as $sqlstatement) {
-                if ($this->StoreHoliday->query($sqlstatement) === false) {
+            for ($ctr = 0; $ctr < count($sqlstatements); $ctr++) {
+                if ($this->StoreHoliday->query($sqlstatements[$ctr], $params[$ctr], false) === false) {
                     throw new Exception();
                 }
             }
@@ -5771,10 +5791,6 @@ class ServersController extends WebServicesController
             return false;
         }
     }
-    //- #############################################################################
-
-
-
 
     // SERVICE FUNCTIONS ------------------------------------------------------------
     /**
