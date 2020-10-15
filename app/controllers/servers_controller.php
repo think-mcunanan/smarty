@@ -5697,21 +5697,15 @@ class ServersController extends WebServicesController
         }
 
         $this->StoreHoliday->set_company_database($storeinfo['dbname'], $this->StoreHoliday);
+        $sqlstatements = array();
 
         if ($ismainsalon){
             //-- Delete old Store Holidays
-            $params = array();
-            $query = "
+            $sqlstatements[] = "
                     DELETE FROM store_holiday
-                    WHERE storecode  = :storecode
-                        AND YEAR(ymd)  = :year
-                        AND MONTH(ymd) = :month";
-            $params = array (
-                'storecode' => $param['STORECODE'],
-                'year' => $param['year'],
-                'month' => $param['month']
-            );
-            $this->StoreHoliday->query($query, $params, false);
+                    WHERE storecode  = {$param['STORECODE']}
+                        AND YEAR(ymd)  = {$param['year']}
+                        AND MONTH(ymd) = {$param['month']}";
         }
         if ($param['salonposid']) {
             $days = array();
@@ -5721,21 +5715,14 @@ class ServersController extends WebServicesController
                 }
             }
             $days = implode(', ', $days);
-            $params = array();
-            $query = "
+            $sqlstatements[] = "
                     UPDATE store_holiday_per_salon
                     SET delflg = now(),
                     updatedate = now()
-                    WHERE salon_pos_id  = :salonposid
-                        AND YEAR(ymd)  = :year
-                        AND MONTH(ymd) = :month
+                    WHERE salon_pos_id  = {$param['salonposid']}
+                        AND YEAR(ymd)  = {$param['year']}
+                        AND MONTH(ymd) = {$param['month']}
                         AND day(ymd) IN ({$days})";
-            $params = array (
-                'salonposid' => $param['salonposid'],
-                'year' => $param['year'],
-                'month' => $param['month']
-            );
-            $this->StoreHoliday->query($query, $params, false);
         }
 
         $arrDays = $this->arrDays;
@@ -5752,34 +5739,36 @@ class ServersController extends WebServicesController
 
                 //準備INSERT SQLステートメント (Prepare INSERT Sql Statement)
                 if ($ismainsalon){
-                    $params = array();
-                    $sql = "
+                    $sqlstatements[] = "
                             INSERT INTO store_holiday (STORECODE, YMD, REMARKS)
-                            VALUES(:storecode, :ymd, :remarks)";
-                    $params = array (
-                        'storecode' => $param['STORECODE'],
-                        'ymd' => $this->date,
-                        'remarks' => $param[$arrDays[$i]]
-                    );
-                    $this->StoreHoliday->query($sql, $params, false);
+                            VALUES({$param['STORECODE']}, '{$this->date}', '{$param[$arrDays[$i]]}')";
                 }
                 if ($param['salonposid']) {
-                    $params = array();
-                    $query = "
+                    $sqlstatements[] = "
                             INSERT INTO store_holiday_per_salon (SALON_POS_ID, YMD, CREATEDATE, UPDATEDATE)
-                            VALUES(:salonposid, :ymd, now(), now())
+                            VALUES({$param['salonposid']}, '{$this->date}', now(), now())
                             ON DUPLICATE KEY 
-                            UPDATE delflg = NULL, 
-                                updatedate = now()";
-                    $params = array (
-                        'salonposid' => $param['salonposid'],
-                        'ymd' => $this->date
-                    );
-                    $this->StoreHoliday->query($query, $params, false);
+                                UPDATE delflg = NULL, 
+                                    updatedate = now()";
                 }
             }
         }
-        return true;
+        $source = $this->StoreHoliday->getDataSource();
+        try {
+            $source->begin();
+            foreach ($sqlstatements as $sqlstatement) {
+                if ($this->StoreHoliday->query($sqlstatement) === false) {
+                    throw new Exception();
+                }
+            }
+            $source->commit();
+            unset($source, $sqlstatements);
+            return true;
+        } catch (Exception $ex) {
+            $source->rollback();
+            unset($source, $sqlstatements);
+            return false;
+        }
     }
     //- #############################################################################
 
