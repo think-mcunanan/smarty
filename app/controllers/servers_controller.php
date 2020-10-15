@@ -5661,7 +5661,7 @@ class ServersController extends WebServicesController
                 //- スタッフシフトの配列をループ処理　(Loops through the array of StoreHolidays)
                 for ($k = 0; $k < count($records); $k++) {
                     if ($date == $records[$k][$tablename]['YMD']) {
-                        $val = (!$kanzashiEnabled) ? $records[$k][$tablename]['REMARKS'] : "";
+                        $val = !$kanzashiEnabled ? $records[$k][$tablename]['REMARKS'] : "";
                         if ($val == "") {
                             $val = 'whitespace';
                         }
@@ -5686,6 +5686,7 @@ class ServersController extends WebServicesController
      *
      * @param string $sessionid
      * @param array $param
+     * @param boolean $ismainsalon
      * @return boolean
      */
     function wsAddUpdateDeleteStoreHoliday($sessionid, $param, $ismainsalon = true)
