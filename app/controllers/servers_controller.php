@@ -5746,11 +5746,10 @@ class ServersController extends WebServicesController
                 }
                 if ($param['salonposid']) {
                     $sqlstatements[] = "
-                            INSERT INTO store_holiday_per_salon (SALON_POS_ID, YMD, CREATEDATE, UPDATEDATE)
-                            VALUES({$param['salonposid']}, '{$this->date}', now(), now())
+                            INSERT INTO store_holiday_per_salon (SALON_POS_ID, YMD)
+                            VALUES({$param['salonposid']}, '{$this->date}')
                             ON DUPLICATE KEY 
-                                UPDATE delflg = NULL, 
-                                    updatedate = now()";
+                                UPDATE delflg = NULL";
                 }
             }
         }
