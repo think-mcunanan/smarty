@@ -11218,6 +11218,7 @@ class ServersController extends WebServicesController
         $delete_query = array();
         $main_salon_insert_values = array();
         $insert_values = array();
+        $sqlstatements = array();
 
         foreach ($customers_limits as $customers_limit) {
             $ymd = $customers_limit['ymd'];
@@ -11236,37 +11237,48 @@ class ServersController extends WebServicesController
         if ($delete_query) {
             $delete_query = implode(',', array_keys($delete_query));
             if ($ismainsalon) {
-                $query = "
+                $sqlstatements[] = "
                     DELETE FROM kanzashi_customers_limit
                     WHERE storecode = {$storecode} AND
                         ymd IN ({$delete_query}); ";
-                $this->StoreHoliday->query($query);
             }
             if ($salonposid) {
-                $query = "
+                $sqlstatements[] = "
                     DELETE FROM kanzashi_customers_limit_per_salon
                     WHERE salon_pos_id = {$salonposid} AND
                         ymd IN ({$delete_query}); ";
-                $this->StoreHoliday->query($query);
             }
         }
 
         if ($ismainsalon && $main_salon_insert_values) {
             $main_salon_insert_values = implode(',', $main_salon_insert_values);
-            $query = "
+            $sqlstatements[] = "
                 INSERT INTO kanzashi_customers_limit
                 VALUES {$main_salon_insert_values};";
-            $this->StoreHoliday->query($query);
         }
         if ($insert_values) {
             $insert_values = implode(',', $insert_values);
-            $query = "
+            $sqlstatements[] = "
                 INSERT INTO kanzashi_customers_limit_per_salon
                 VALUES {$insert_values};";
-            $this->StoreHoliday->query($query);
         }
 
-        return true;
+        $source = $this->StoreHoliday->getDataSource();
+        try {
+            $source->begin();
+            foreach ($sqlstatements as $sqlstatement) {
+                if ($this->StoreHoliday->query($sqlstatement) === false) {
+                    throw new Exception();
+                }
+            }
+            $source->commit();
+            unset($source, $sqlstatements);
+            return true;
+        } catch (Exception $ex) {
+            $source->rollback();
+            unset($source, $sqlstatements);
+            return false;
+        }
     }
 
     /**
