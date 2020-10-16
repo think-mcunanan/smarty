@@ -5605,11 +5605,11 @@ class ServersController extends WebServicesController
 
         if ($kanzashiEnabled){
             $tablename = "store_holiday_per_salon";
-            $wherecond = " kanzashi_salon_pos_id = :kanzashisalonposid ";
+            $wherecond = "kanzashi_salon_pos_id = :kanzashisalonposid";
         }
         else {
             $tablename = "store_holiday";
-            $wherecond = " storecode = :storecode ";
+            $wherecond = "storecode = :storecode";
         }
 
         if ($param['day'] <> 0) {
@@ -11165,7 +11165,7 @@ class ServersController extends WebServicesController
         
         if ($kanzashiEnabled) {
             $tablename = "kanzashi_customers_limit_per_salon";
-            $wherecond = " kanzashi_salon_pos_id = :kanzashisalonposid ";
+            $wherecond = "salon_pos_id = :kanzashisalonposid";
             $param['kanzashisalonposid'] = $kanzashisalonposid;
         }
         else {
@@ -11262,7 +11262,7 @@ class ServersController extends WebServicesController
             if ($kanzashisalonposid) {
                 $sqlstatements[] = "
                     DELETE FROM kanzashi_customers_limit_per_salon
-                    WHERE kanzashi_salon_pos_id = {$kanzashisalonposid} AND
+                    WHERE salon_pos_id = {$kanzashisalonposid} AND
                         ymd IN ({$delete_query}); ";
             }
         }
