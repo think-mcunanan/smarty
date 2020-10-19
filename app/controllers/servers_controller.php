@@ -5724,8 +5724,7 @@ class ServersController extends WebServicesController
             $days = implode(', ', $days);
             $sqlstatements[] = "
                     UPDATE store_holiday_per_salon
-                    SET delflg = now(),
-                    updatedate = now()
+                    SET delflg = CURRENT_TIMESTAMP()
                     WHERE kanzashi_salon_pos_id  = :kanzashisalonposid
                         AND YEAR(ymd)  = :year
                         AND MONTH(ymd) = :month
