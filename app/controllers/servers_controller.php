@@ -5715,20 +5715,20 @@ class ServersController extends WebServicesController
             );
         }
         if ($param['kanzashisalonposid']) {
-            $days = array();
+            $non_holidays = array();
             foreach ($param as $key => $value) {
                 if (empty($value)) {
-                    $days[] = substr($key, 3, 2);
+                    $non_holidays[] = substr($key, 3, 2);
                 }
             }
-            $days = implode(', ', $days);
+            $non_holidays = implode(', ', $non_holidays);
             $sqlstatements[] = "
                     UPDATE store_holiday_per_salon
                     SET delflg = CURRENT_TIMESTAMP()
                     WHERE kanzashi_salon_pos_id  = :kanzashisalonposid
                         AND YEAR(ymd)  = :year
                         AND MONTH(ymd) = :month
-                        AND day(ymd) IN ({$days})";
+                        AND day(ymd) IN ({$non_holidays})";
             $params[] = array(
                 'kanzashisalonposid' => $param['kanzashisalonposid'],
                 'year' => $param['year'],
