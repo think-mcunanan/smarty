@@ -1035,7 +1035,6 @@ class ServersController extends WebServicesController
             'doc'    => '月毎かんざしサロン営業時間取得',
             'input'  => array(
                 'sessionid' => 'xsd:string',
-                'kanzashienabled' => 'xsd:boolean',
                 'kanzashisalonposid' => 'xsd:int',
                 'storecode' => 'xsd:int',
                 'ymd'       => 'xsd:date'
@@ -11145,29 +11144,25 @@ class ServersController extends WebServicesController
      * 月毎かんざしサロン営業時間取得
      *
      * @param string $sessionid セッションID
-     * @param boolean $kanzashiEnabled
      * @param int $kanzashisalonposid
      * @param int $storecode 店舗コード
      * @param string $ymd 年月
      * @return return_monthlyKanzashiSalonHours 月毎かんざしサロン営業時間
      */
-    function wsGetMonthlyKanzashiSalonHours($sessionid, $kanzashiEnabled, $kanzashisalonposid, $storecode, $ymd)
+    function wsGetMonthlyKanzashiSalonHours($sessionid, $kanzashisalonposid, $storecode, $ymd)
     {
         $result = array();
         $ymd = new DateTime($ymd);
 
         $param = array(
+            'kanzashisalonposid' => $kanzashisalonposid,
             'storecode' => $storecode,
             'year' => $ymd->format('Y'),
             'month' => $ymd->format('m'),
             'day' => 0
         );
         
-        if ($kanzashiEnabled) {
-            $param['kanzashisalonposid'] = $kanzashisalonposid;
-        }
-        
-        $store_holiday = $this->wsSearchStoreHoliday($sessionid, $param, $kanzashiEnabled);
+        $store_holiday = $this->wsSearchStoreHoliday($sessionid, $param, true);
         $result['store_holiday'] = $store_holiday['records'];
 
         $query = "
