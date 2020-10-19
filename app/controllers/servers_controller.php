@@ -11164,13 +11164,7 @@ class ServersController extends WebServicesController
         );
         
         if ($kanzashiEnabled) {
-            $tablename = "kanzashi_customers_limit_per_salon";
-            $wherecond = "salon_pos_id = :kanzashisalonposid";
             $param['kanzashisalonposid'] = $kanzashisalonposid;
-        }
-        else {
-            $tablename = "kanzashi_customers_limit";
-            $wherecond = " storecode = :storecode ";
         }
         
         $store_holiday = $this->wsSearchStoreHoliday($sessionid, $param, $kanzashiEnabled);
@@ -11182,10 +11176,10 @@ class ServersController extends WebServicesController
                 begin_time,
                 end_time,
                 limit_count
-            FROM {$tablename}
+            FROM kanzashi_customers_limit_per_salon
             WHERE
-                {$wherecond} AND
-                ymd BETWEEN :begin_ymd AND :end_ymd
+                salon_pos_id = :kanzashisalonposid
+                AND ymd BETWEEN :begin_ymd AND :end_ymd
             ORDER BY
                 ymd,
                 begin_time
@@ -11193,12 +11187,12 @@ class ServersController extends WebServicesController
 
         $begin_ymd = $ymd->format('Y-m-01');
         $end_ymd = $ymd->format('Y-m-t');
-        $param = compact('kanzashisalonposid', 'storecode', 'begin_ymd', 'end_ymd');
+        $param = compact('kanzashisalonposid', 'begin_ymd', 'end_ymd');
         $records = $this->StoreHoliday->query($query, $param, false);
 
         $result['customers_limits'] = array();
         foreach ($records as $record) {
-            $result['customers_limits'][] = $record[$tablename];
+            $result['customers_limits'][] = $record['kanzashi_customers_limit_per_salon'];
         }
 
         return $result;
