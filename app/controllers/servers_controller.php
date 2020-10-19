@@ -11220,14 +11220,14 @@ class ServersController extends WebServicesController
             $this->StoreHoliday->set_company_database($store_info['dbname'], $this->StoreHoliday);
         }
 
-        $delete_query = array();
+        $delete_values = array();
         $main_salon_insert_values = array();
         $insert_values = array();
         $sqlstatements = array();
 
         foreach ($customers_limits as $customers_limit) {
             $ymd = $customers_limit['ymd'];
-            $delete_query["'{$ymd}'"] = null;
+            $delete_values[] = "'{$ymd}'";
             $limit_count = $customers_limit['limit_count'];
 
             if ($limit_count >= 0) {
@@ -11239,19 +11239,19 @@ class ServersController extends WebServicesController
                 }
             }
         }
-        if ($delete_query) {
-            $delete_query = implode(',', array_keys($delete_query));
+        if ($delete_values) {
+            $delete_values = implode(', ', $delete_values);
             if ($ismainsalon) {
                 $sqlstatements[] = "
                     DELETE FROM kanzashi_customers_limit
                     WHERE storecode = {$storecode} AND
-                        ymd IN ({$delete_query}); ";
+                        ymd IN ({$delete_values}); ";
             }
             if ($kanzashisalonposid) {
                 $sqlstatements[] = "
                     DELETE FROM kanzashi_customers_limit_per_salon
                     WHERE salon_pos_id = {$kanzashisalonposid} AND
-                        ymd IN ({$delete_query}); ";
+                        ymd IN ({$delete_values}); ";
             }
         }
 
