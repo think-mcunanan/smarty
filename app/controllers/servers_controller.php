@@ -1035,6 +1035,7 @@ class ServersController extends WebServicesController
             'doc'    => '月毎かんざしサロン営業時間取得',
             'input'  => array(
                 'sessionid' => 'xsd:string',
+                'kanzashisalonposid' => 'xsd:int',
                 'storecode' => 'xsd:int',
                 'ymd'       => 'xsd:date'
             ),
@@ -1044,6 +1045,8 @@ class ServersController extends WebServicesController
             'doc'    => 'かんざし時間別予約可能数更新',
             'input'  => array(
                 'sessionid'        => 'xsd:string',
+                'ismainsalon' => 'xsd:boolean',
+                'kanzashisalonposid' => 'xsd:int',
                 'storecode'        => 'xsd:int',
                 'store_holiday'    => 'tns:storeHolidayInformation',
                 'customers_limits' => 'tns:_kanzashiCustomersLimit'
@@ -1190,7 +1193,8 @@ class ServersController extends WebServicesController
             'KanzashiType'                              => 'xsd:string',
             'Status'                                    => 'xsd:int',
             'SyncKanzashiEnabledStaffReservationOnly'   => 'xsd:boolean',
-            'FreeStaffcode'                             => 'xsd:int'
+            'FreeStaffcode'                             => 'xsd:int',
+            'IsMainSalon'                               => 'xsd:boolean'
         )),
         'KanzashiSalons' => array(
             'array' => 'KanzashiSalon'
@@ -5580,9 +5584,10 @@ class ServersController extends WebServicesController
      *
      * @param string $sessionid
      * @param array $param
+     * @param boolean $kanzashiEnabled
      * @return return_storeHolidayInformation
      */
-    function wsSearchStoreHoliday($sessionid, $param)
+    function wsSearchStoreHoliday($sessionid, $param, $kanzashiEnabled = false)
     {
         if ($param['ignoreSessionCheck'] <> 1) {
             //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
@@ -5597,18 +5602,37 @@ class ServersController extends WebServicesController
 
         $this->StoreHoliday->set_company_database($storeinfo['dbname'], $this->StoreHoliday);
 
-        $criteria = array(
-            'StoreHoliday.STORECODE'  => $param['storecode'],
-            'YEAR(StoreHoliday.YMD)'  => $param['year'],
-            'MONTH(StoreHoliday.YMD)' => $param['month'],
-            'StoreHoliday.DELFLG IS NULL'
-        );
-
-        if ($param['day'] <> 0) {
-            $criteria['DAY(StoreHoliday.YMD)'] = $param['day'];
+        if ($kanzashiEnabled){
+            $tablename = "store_holiday_per_salon";
+            $wherecond = "kanzashi_salon_pos_id = :kanzashisalonposid";
+        }
+        else {
+            $tablename = "store_holiday";
+            $wherecond = "storecode = :storecode";
         }
 
-        $v = $this->StoreHoliday->find('all', array('conditions' => $criteria));
+        if ($param['day'] <> 0) {
+            $wherecond = $wherecond . " and DAY(ymd) = :day ";
+        }
+
+        $query = "
+                SELECT *
+                FROM {$tablename}
+                WHERE {$wherecond}
+                    AND MONTH(ymd) = :month
+                    AND YEAR(ymd) = :year
+                    AND delflg IS NULL ";
+
+        $params = array(
+            'storecode' => $param['storecode'],
+            'year'  => $param['year'],
+            'month' => $param['month'],
+            'day' => $param['day']
+        );
+        if ($kanzashiEnabled){
+            $params['kanzashisalonposid'] = $param['kanzashisalonposid'];
+        }
+        $records = $this->StoreHoliday->query($query, $params, false);
 
         $arrHoliday['STORECODE'] = $param['storecode'];
         $arrHoliday['year']      = $param['year'];
@@ -5634,10 +5658,9 @@ class ServersController extends WebServicesController
 
             if (checkdate($param['month'], $day, $param['year'])) {
                 //- スタッフシフトの配列をループ処理　(Loops through the array of StoreHolidays)
-                for ($k = 0; $k < count($v); $k++) {
-
-                    if ($date == $v[$k]['StoreHoliday']['YMD']) {
-                        $val = $v[$k]['StoreHoliday']['REMARKS'];
+                for ($k = 0; $k < count($records); $k++) {
+                    if ($date == $records[$k][$tablename]['YMD']) {
+                        $val = !$kanzashiEnabled ? $records[$k][$tablename]['REMARKS'] : "";
                         if ($val == "") {
                             $val = 'whitespace';
                         }
@@ -5650,7 +5673,7 @@ class ServersController extends WebServicesController
 
         $ret = array();
         $ret['records']      = $arrHoliday;
-        $ret['record_count'] = count($v);
+        $ret['record_count'] = count($records);
 
         return $ret;
     }
@@ -5662,9 +5685,10 @@ class ServersController extends WebServicesController
      *
      * @param string $sessionid
      * @param array $param
+     * @param boolean $ismainsalon
      * @return boolean
      */
-    function wsAddUpdateDeleteStoreHoliday($sessionid, $param)
+    function wsAddUpdateDeleteStoreHoliday($sessionid, $param, $ismainsalon = true)
     {
         //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
         $storeinfo = $this->YoyakuSession->Check($this);
@@ -5674,55 +5698,97 @@ class ServersController extends WebServicesController
         }
 
         $this->StoreHoliday->set_company_database($storeinfo['dbname'], $this->StoreHoliday);
+        $sqlstatements = array();
+        $params = array();
 
-        /*$condition = array('YEAR(StoreHoliday.YMD)'  => $param['year'],
-        'MONTH(StoreHoliday.YMD)' => $param['month'],
-        'StoreHoliday.STORECODE'  => $param['STORECODE']);
-        $this->StoreHoliday->primaryKey = "STORECODE";
-        $this->StoreHoliday->deleteAll($condition);*/
-
-        //-- Delete old Store Holidays
-        $del_sql = "DELETE FROM store_holiday
-                    WHERE STORECODE  = " . $param['STORECODE'] . "
-                          AND YEAR(YMD)  = " . $param['year'] . "
-                          AND MONTH(YMD) = " . $param['month'];
-
-        $this->StoreHoliday->query($del_sql);
+        if ($ismainsalon){
+            //-- Delete old Store Holidays
+            $sqlstatements[] = "
+                    DELETE FROM store_holiday
+                    WHERE storecode  = :storecode
+                        AND YEAR(ymd)  = :year
+                        AND MONTH(ymd) = :month";
+            $params[] = array(
+                'storecode' => $param['STORECODE'],
+                'year' => $param['year'],
+                'month' => $param['month']
+            );
+        }
+        if ($param['kanzashisalonposid']) {
+            $non_holidays = array();
+            foreach ($param as $key => $value) {
+                if (empty($value)) {
+                    $non_holidays[] = substr($key, 3, 2);
+                }
+            }
+            $non_holidays = implode(', ', $non_holidays);
+            $sqlstatements[] = "
+                    UPDATE store_holiday_per_salon
+                    SET delflg = CURRENT_TIMESTAMP()
+                    WHERE kanzashi_salon_pos_id  = :kanzashisalonposid
+                        AND YEAR(ymd)  = :year
+                        AND MONTH(ymd) = :month
+                        AND day(ymd) IN ({$non_holidays})";
+            $params[] = array(
+                'kanzashisalonposid' => $param['kanzashisalonposid'],
+                'year' => $param['year'],
+                'month' => $param['month']
+            );
+        }
 
         $arrDays = $this->arrDays;
-
         //- 日間の配列をループ処理　(Loops through the array of Days)
         for ($i = 0; $i < count($arrDays); $i++) {
             $day = $i + 1;
             $this->date = $param['year'] . "-" . $param['month'] . "-" . $day;
 
-            if (
-                checkdate($param['month'], $day, $param['year']) &&
-                $param[$arrDays[$i]] <> ""
-            ) {
+            if (checkdate($param['month'], $day, $param['year']) && $param[$arrDays[$i]] <> "" ) {
 
                 //'whitespace'削除　(Removed 'whitespace' string)
                 $param[$arrDays[$i]] = ereg_replace('whitespace', '', $param[$arrDays[$i]]);
                 $param[$arrDays[$i]] = addslashes($param[$arrDays[$i]]);
 
                 //準備INSERT SQLステートメント (Prepare INSERT Sql Statement)
-                $fields = "STORECODE, YMD, REMARKS";
-                $values = $param['STORECODE'] . ", " .
-                    "'" . $this->date . "', " .
-                    "'" . $param[$arrDays[$i]] . "'";
-
-                $sql = "INSERT INTO store_holiday (" . $fields . ")
-                        VALUES(" . $values . ")";
-                $this->StoreHoliday->query($sql);
+                if ($ismainsalon){
+                    $sqlstatements[] = "
+                            INSERT INTO store_holiday (STORECODE, YMD, REMARKS)
+                            VALUES(:storecode, :ymd, :remarks)";
+                    $params[] = array(
+                        'storecode' => $param['STORECODE'],
+                        'ymd' => $this->date,
+                        'remarks' => $param[$arrDays[$i]]
+                    );
+                }
+                if ($param['kanzashisalonposid']) {
+                    $sqlstatements[] = "
+                            INSERT INTO store_holiday_per_salon (KANZASHI_SALON_POS_ID, YMD)
+                            VALUES(:kanzashisalonposid, :ymd)
+                            ON DUPLICATE KEY 
+                                UPDATE delflg = NULL";
+                    $params[] = array(
+                        'kanzashisalonposid' => $param['kanzashisalonposid'],
+                        'ymd' => $this->date
+                    );
+                }
             }
         }
-
-        return true;
+        $source = $this->StoreHoliday->getDataSource();
+        try {
+            $source->begin();
+            for ($ctr = 0; $ctr < count($sqlstatements); $ctr++) {
+                if ($this->StoreHoliday->query($sqlstatements[$ctr], $params[$ctr], false) === false) {
+                    throw new Exception();
+                }
+            }
+            $source->commit();
+            unset($source, $sqlstatements);
+            return true;
+        } catch (Exception $ex) {
+            $source->rollback();
+            unset($source, $sqlstatements);
+            return false;
+        }
     }
-    //- #############################################################################
-
-
-
 
     // SERVICE FUNCTIONS ------------------------------------------------------------
     /**
@@ -11077,23 +11143,25 @@ class ServersController extends WebServicesController
      * 月毎かんざしサロン営業時間取得
      *
      * @param string $sessionid セッションID
+     * @param int $kanzashisalonposid
      * @param int $storecode 店舗コード
      * @param string $ymd 年月
      * @return return_monthlyKanzashiSalonHours 月毎かんざしサロン営業時間
      */
-    function wsGetMonthlyKanzashiSalonHours($sessionid, $storecode, $ymd)
+    function wsGetMonthlyKanzashiSalonHours($sessionid, $kanzashisalonposid, $storecode, $ymd)
     {
         $result = array();
         $ymd = new DateTime($ymd);
 
         $param = array(
+            'kanzashisalonposid' => $kanzashisalonposid,
             'storecode' => $storecode,
             'year' => $ymd->format('Y'),
             'month' => $ymd->format('m'),
             'day' => 0
         );
-
-        $store_holiday = $this->wsSearchStoreHoliday($sessionid, $param);
+        
+        $store_holiday = $this->wsSearchStoreHoliday($sessionid, $param, true);
         $result['store_holiday'] = $store_holiday['records'];
 
         $query = "
@@ -11102,10 +11170,10 @@ class ServersController extends WebServicesController
                 begin_time,
                 end_time,
                 limit_count
-            FROM kanzashi_customers_limit
+            FROM kanzashi_customers_limit_per_salon
             WHERE
-                storecode = ? AND
-                ymd BETWEEN ? AND ?
+                salon_pos_id = :kanzashisalonposid
+                AND ymd BETWEEN :begin_ymd AND :end_ymd
             ORDER BY
                 ymd,
                 begin_time
@@ -11113,12 +11181,12 @@ class ServersController extends WebServicesController
 
         $begin_ymd = $ymd->format('Y-m-01');
         $end_ymd = $ymd->format('Y-m-t');
-        $param = array($storecode, $begin_ymd, $end_ymd);
+        $param = compact('kanzashisalonposid', 'begin_ymd', 'end_ymd');
         $records = $this->StoreHoliday->query($query, $param, false);
-        $result['customers_limits'] = array();
 
+        $result['customers_limits'] = array();
         foreach ($records as $record) {
-            $result['customers_limits'][] = $record['kanzashi_customers_limit'];
+            $result['customers_limits'][] = $record['kanzashi_customers_limit_per_salon'];
         }
 
         return $result;
@@ -11128,14 +11196,19 @@ class ServersController extends WebServicesController
      * かんざし時間別予約可能数更新
      *
      * @param string $sessionid セッションID
+     * @param boolean $ismainsalon
+     * @param int $kanzashisalonposid
      * @param int $storecode 店舗コード
      * @param storeHolidayInformation $store_holiday 店舗休日のオブジェクト
      * @param _kanzashiCustomersLimit $customers_limits かんざし時間別予約可能数のオブジェクト配列
      */
-    function wsUpdateKanzashiCustomersLimit($sessionid, $storecode, $store_holiday, $customers_limits)
+    function wsUpdateKanzashiCustomersLimit($sessionid, $ismainsalon, $kanzashisalonposid, $storecode, $store_holiday, $customers_limits)
     {
+        if ($kanzashisalonposid) {
+            $store_holiday['kanzashisalonposid'] = $kanzashisalonposid;
+        } 
         if ($store_holiday['year'] && $store_holiday['month'] && $store_holiday['STORECODE']) {
-            $this->wsAddUpdateDeleteStoreHoliday($sessionid, $store_holiday);
+            $this->wsAddUpdateDeleteStoreHoliday($sessionid, $store_holiday, $ismainsalon);
         } else {
             $store_info = $this->YoyakuSession->Check($this);
 
@@ -11147,51 +11220,70 @@ class ServersController extends WebServicesController
             $this->StoreHoliday->set_company_database($store_info['dbname'], $this->StoreHoliday);
         }
 
-        $delete_query = array();
-        $insert_query = array();
+        $delete_values = array();
+        $main_salon_insert_values = array();
+        $insert_values = array();
+        $sqlstatements = array();
 
         foreach ($customers_limits as $customers_limit) {
             $ymd = $customers_limit['ymd'];
-            $delete_query["'{$ymd}'"] = null;
+            $delete_values[] = "'{$ymd}'";
             $limit_count = $customers_limit['limit_count'];
 
             if ($limit_count >= 0) {
                 $begin_time = substr($customers_limit['begin_time'], 0, 8);
                 $end_time = substr($customers_limit['end_time'], 0, 8);
-                $insert_query[] = "({$storecode}, '{$ymd}', '{$begin_time}', '{$end_time}', {$limit_count})";
+                $main_salon_insert_values[] = "({$storecode}, '{$ymd}', '{$begin_time}', '{$end_time}', {$limit_count})";
+                if ($kanzashisalonposid) {
+                    $insert_values[] = "({$kanzashisalonposid}, '{$ymd}', '{$begin_time}', '{$end_time}', {$limit_count})";
+                }
+            }
+        }
+        if ($delete_values) {
+            $delete_values = implode(', ', $delete_values);
+            if ($ismainsalon) {
+                $sqlstatements[] = "
+                    DELETE FROM kanzashi_customers_limit
+                    WHERE storecode = {$storecode} AND
+                        ymd IN ({$delete_values}); ";
+            }
+            if ($kanzashisalonposid) {
+                $sqlstatements[] = "
+                    DELETE FROM kanzashi_customers_limit_per_salon
+                    WHERE salon_pos_id = {$kanzashisalonposid} AND
+                        ymd IN ({$delete_values}); ";
             }
         }
 
-        if ($delete_query) {
-            $delete_query = implode(',', array_keys($delete_query));
-
-            $query = "
-                DELETE FROM kanzashi_customers_limit
-                WHERE
-                    storecode = {$storecode} AND
-                    ymd IN ({$delete_query});
-            ";
-
-            $this->StoreHoliday->query($query);
+        if ($ismainsalon && $main_salon_insert_values) {
+            $main_salon_insert_values = implode(',', $main_salon_insert_values);
+            $sqlstatements[] = "
+                INSERT INTO kanzashi_customers_limit
+                VALUES {$main_salon_insert_values};";
+        }
+        if ($insert_values) {
+            $insert_values = implode(',', $insert_values);
+            $sqlstatements[] = "
+                INSERT INTO kanzashi_customers_limit_per_salon
+                VALUES {$insert_values};";
         }
 
-        if ($insert_query) {
-            $insert_query = implode(',', $insert_query);
-
-            $query = "
-                INSERT INTO kanzashi_customers_limit (
-                    storecode,
-                    ymd,
-                    begin_time,
-                    end_time,
-                    limit_count
-                ) VALUES {$insert_query};
-            ";
-
-            $this->StoreHoliday->query($query);
+        $source = $this->StoreHoliday->getDataSource();
+        try {
+            $source->begin();
+            foreach ($sqlstatements as $sqlstatement) {
+                if ($this->StoreHoliday->query($sqlstatement) === false) {
+                    throw new Exception();
+                }
+            }
+            $source->commit();
+            unset($source, $sqlstatements);
+            return true;
+        } catch (Exception $ex) {
+            $source->rollback();
+            unset($source, $sqlstatements);
+            return false;
         }
-
-        return true;
     }
 
     /**
