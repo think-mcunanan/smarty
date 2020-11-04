@@ -2332,7 +2332,8 @@ class ServersController extends WebServicesController
 
         'storeReservationCounter'   => array('struct' => array(
             'wrkr'          => 'xsd:int',
-            'bmr'           => 'xsd:int'
+            'bmr'           => 'xsd:int',
+            'undecided'     => 'xsd:int'
         )),
         '_storeReservationCounter'  => array(
             'array' => 'storeReservationCounter'
@@ -2939,16 +2940,21 @@ class ServersController extends WebServicesController
 
         $storecodecond = $strcode > 0 ? " and str_hdr.storecode = {$strcode} " : '';
 
-        $sql = "select bmr, wrkr
+        $sql = "select 
+                    bmr, 
+                    wrkr, 
+                    undecided
                 from (
                       select
                            count(if(origination in (7,8,9,11,12), transcode, null)) as bmr,
-                           count(if(origination in (1,2,13), transcode, null)) as wrkr
+                           count(if(origination in (1,2,13), transcode, null)) as wrkr,
+                           sum(push_to_kanzashi = 'UNDECIDED') as undecided
                       from (
                             select
                                 str_hdr.transcode,
                                 str_hdr.origination,
-                                ifnull(str_trans2_hdr.read, 0) as yread
+                                ifnull(str_trans2_hdr.read, 0) as yread,
+                                str_hdr.push_to_kanzashi
                             from store_transaction as str_hdr
                             join store_transaction_details as str_dtl on str_hdr.transcode = str_dtl.transcode and str_hdr.keyno = str_dtl.keyno
                             left join store_services as str_svr on str_dtl.gcode = str_svr.gcode
