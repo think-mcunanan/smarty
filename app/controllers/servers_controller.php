@@ -938,15 +938,16 @@ class ServersController extends WebServicesController
         'wsGetReservation' => array(
             'doc'    => 'GetReservation',
             'input'  => array(
-                'sessionid'   => 'xsd:string',
-                'storecode'   => 'xsd:int',
-                'origination' => 'xsd:int',
-                'datefr'      => 'xsd:string',
-                'dateto'      => 'xsd:string',
-                'pageno'      => 'xsd:int',
-                'ascsort'     => 'xsd:int',
-                'colsort'     => 'xsd:int',
-                'syscode'     => 'xsd:int'
+                'sessionid'         => 'xsd:string',
+                'storecode'         => 'xsd:int',
+                'origination'       => 'xsd:int',
+                'datefr'            => 'xsd:string',
+                'dateto'            => 'xsd:string',
+                'pageno'            => 'xsd:int',
+                'ascsort'           => 'xsd:int',
+                'colsort'           => 'xsd:int',
+                'syscode'           => 'xsd:int',
+                'showundecidedonly' => 'xsd:boolean',
             ),
             'output' => array('return'      => 'tns:return_storeReservationListing')
         ),
@@ -2996,7 +2997,7 @@ class ServersController extends WebServicesController
      * @param mixed $syscode
      * @return array[]
      */
-    function wsGetReservation($sessionid, $strcode, $origination, $datefr, $dateto, $pageno, $ascsort, $colsort, $syscode)
+    function wsGetReservation($sessionid, $strcode, $origination, $datefr, $dateto, $pageno, $ascsort, $colsort, $syscode, $showUndecidedOnly)
     {
 
         //===================================================================================
@@ -3062,6 +3063,9 @@ class ServersController extends WebServicesController
             $wherecond .= " and svr.syscode in ({$syscode})";
         }
 
+        if ($showUndecidedOnly) {
+            $wherecond .= " and str_hdr.push_to_kanzashi = 'UNDECIDED'";
+        }
 
         switch ($colsort) {
             case 0:
@@ -3093,6 +3097,9 @@ class ServersController extends WebServicesController
         if (!empty($orderby)) {
             $orderby .= $ascsort == 0 ? ' desc ' : ' asc ';
         }
+
+
+        
 
 
         $curRec = $pageno * 50;
