@@ -3085,6 +3085,9 @@ class ServersController extends WebServicesController
             case 6:
                 $orderby = ' route ';
                 break;
+            case 7:
+                $orderby = ' push_to_kanzashi ';
+                break;
         }
 
         if (!empty($orderby)) {
