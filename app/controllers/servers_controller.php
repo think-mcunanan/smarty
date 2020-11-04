@@ -2308,19 +2308,20 @@ class ServersController extends WebServicesController
         )),
 
         'storeReservationListing'   => array('struct' => array(
-            'transdate'     => 'xsd:string',
-            'starttime'     => 'xsd:string',
-            'cname'         => 'xsd:string',
-            'staffname'     => 'xsd:string',
-            'reservationdt' => 'xsd:string',
-            'reservationtm' => 'xsd:string',
-            'transstat'     => 'xsd:string',
-            'alreadyread'   => 'xsd:int',
-            'keyno'         => 'xsd:int',
-            'transcode'     => 'xsd:string',
-            'route'         => 'xsd:string',
-            'syscode'       => 'xsd:string',
-            'recctr'         => 'xsd:string'
+            'transdate'         => 'xsd:string',
+            'starttime'         => 'xsd:string',
+            'cname'             => 'xsd:string',
+            'staffname'         => 'xsd:string',
+            'reservationdt'     => 'xsd:string',
+            'reservationtm'     => 'xsd:string',
+            'transstat'         => 'xsd:string',
+            'alreadyread'       => 'xsd:int',
+            'push_to_kanzashi'  => 'xsd:string',
+            'keyno'             => 'xsd:int',
+            'transcode'         => 'xsd:string',
+            'route'             => 'xsd:string',
+            'syscode'           => 'xsd:string',
+            'recctr'            => 'xsd:string'
         )),
         '_storeReservationListing'  => array(
             'array' => 'storeReservationListing'
@@ -3116,7 +3117,8 @@ class ServersController extends WebServicesController
                             end as route,
                             ifnull(str_trans2_hdr.read, 0) as alreadyread,
                             group_concat(distinct svr.syscode) as syscode, str_hdr.origination,
-                            STR_TO_DATE(concat(str_hdr.transdate, ' ', ifnull(str_hdr.YOYAKUTIME,'')),'%Y-%m-%d %H:%i:%s') as reservation_datetime
+                            STR_TO_DATE(concat(str_hdr.transdate, ' ', ifnull(str_hdr.YOYAKUTIME,'')),'%Y-%m-%d %H:%i:%s') as reservation_datetime,
+                            str_hdr.push_to_kanzashi
                         from store_transaction as str_hdr
                         left join store_transaction_details as str_dtl on str_hdr.transcode = str_dtl.transcode and str_hdr.keyno = str_dtl.keyno
                         left join store_services as str_svr on str_dtl.gcode = str_svr.gcode
