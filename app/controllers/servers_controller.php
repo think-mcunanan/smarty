@@ -3128,7 +3128,10 @@ class ServersController extends WebServicesController
                             ifnull(str_trans2_hdr.read, 0) as alreadyread,
                             group_concat(distinct svr.syscode) as syscode, str_hdr.origination,
                             STR_TO_DATE(concat(str_hdr.transdate, ' ', ifnull(str_hdr.YOYAKUTIME,'')),'%Y-%m-%d %H:%i:%s') as reservation_datetime,
-                            str_hdr.push_to_kanzashi
+                            case when str_hdr.push_to_kanzashi = 'UNDECIDED' then '未決定'
+                                 when str_hdr.push_to_kanzashi = 'NOPUSH' then 'かんざし連携なし'
+                                 else ks.pos_name
+                            end as push_to_kanzashi
                         from store_transaction as str_hdr
                         left join store_transaction_details as str_dtl on str_hdr.transcode = str_dtl.transcode and str_hdr.keyno = str_dtl.keyno
                         left join store_services as str_svr on str_dtl.gcode = str_svr.gcode
@@ -3138,6 +3141,7 @@ class ServersController extends WebServicesController
                         join stafftype on stafftype.staffcode = stff.staffcode and stafftype.delflg is null or str_dtl.staffcode = 0
                         join storetype on storetype.delflg is null and storetype.storecode = str_hdr.storecode
                         left join store_transaction2 as str_trans2_hdr on str_hdr.transcode = str_trans2_hdr.transcode and str_hdr.keyno = str_trans2_hdr.keyno
+                        left join sipssbeauty_kanzashi.salon ks on ks.pos_id = str_hdr.destination_kanzashi_salon_pos_id
                         where {$wherecond}
                         group by transcode
                         ) as tmptbl
