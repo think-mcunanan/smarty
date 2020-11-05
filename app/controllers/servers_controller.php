@@ -1822,8 +1822,7 @@ class ServersController extends WebServicesController
             'USE_SIPSS_MENU' => 'xsd:int',
             'USE_MENU_AVAILABILITY_LIMIT' => 'xsd:int',
             'JIKAIUPDATEOPTION_FLG' => 'xsd:int',
-            'KANZASHI_RESERVATION_PAY_ENABLED' => 'xsd:int',
-            'KANZASHI_RESERVATION_PAY_DEFAULT_PRICE_TYPE' => 'xsd:int'
+            'KANZASHI_SALON_RECORDS'                        => 'tns:KanzashiSalons'
         )),
         //- ####################################################
 
@@ -7149,25 +7148,6 @@ class ServersController extends WebServicesController
         } //end if
         //---------------------------------------------------------------------------
 
-        $query = '
-            SELECT
-                reservation_pay_enabled,
-                reservation_pay_default_price_type
-            FROM sipssbeauty_kanzashi.salon
-            WHERE
-                companyid = ? AND
-                storecode = ?
-        ';
-
-        $param = array($storeinfo['companyid'], $storeinfo['storecode']);
-        $records = $this->StoreSettings->query($query, $param, false);
-
-        if ($records) {
-            $salon = $records[0]['salon'];
-            $settings_two['KANZASHI_RESERVATION_PAY_ENABLED'] = $salon['reservation_pay_enabled'];
-            $settings_two['KANZASHI_RESERVATION_PAY_DEFAULT_PRICE_TYPE'] = $salon['reservation_pay_default_price_type'];
-        }
-
         $arrReturn = array_merge($settings_one[0], $settings_two);
         return $arrReturn;
     }
@@ -7291,19 +7271,41 @@ class ServersController extends WebServicesController
                 $this->StoreSettings->query($SqlSTime);
                 //-----------------------------------------------------------------------------------
             } //end if
+            
+            foreach ($param['KANZASHI_SALON_RECORDS'] as $record) {
+                $query = '
+                    UPDATE sipssbeauty_kanzashi.salon
+                    SET
+                        reservation_pay_enabled = ?,
+                        reservation_pay_default_price_type = ?,
+                        yoyaku_start = ?,
+                        yoyaku_start_sat_sun = ?,
+                        yoyaku_end = ?,
+                        yoyaku_end_sat_sun = ?,
+                        yoyaku_customers_limit = ?,
+                        use_menu_availability_limit = ?
+                    WHERE
+                        companyid = ? AND
+                        storecode = ? AND
+                        pos_id = ?
+                ';
 
-            $query = '
-                UPDATE sipssbeauty_kanzashi.salon
-                SET
-                    reservation_pay_enabled = ?,
-                    reservation_pay_default_price_type = ?
-                WHERE
-                    companyid = ? AND
-                    storecode = ?
-            ';
+                $param = array(
+                    $record['ReservationPayEnabled'],
+                    $record['ReservationPayDefaultPriceType'],
+                    $record['YoyakuStart'],
+                    $record['YoyakuStartSatSun'],
+                    $record['YoyakuEnd'],
+                    $record['YoyakuEndSatSun'],
+                    $record['YoyakuCustomersLimit'],
+                    $record['UseMenuAvailabilityLimit'],
+                    $storeinfo['companyid'], 
+                    $storeinfo['storecode'],
+                    $record['SalonId']
+                );
+                $this->StoreSettings->query($query, $param, false);
+            }
 
-            $param = array($param['KANZASHI_RESERVATION_PAY_ENABLED'], $param['KANZASHI_RESERVATION_PAY_DEFAULT_PRICE_TYPE'], $storeinfo['companyid'], $storeinfo['storecode']);
-            $this->StoreSettings->query($query, $param, false);
 
             return true;
         } else {
