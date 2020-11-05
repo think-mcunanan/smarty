@@ -1195,7 +1195,15 @@ class ServersController extends WebServicesController
             'Status'                                    => 'xsd:int',
             'SyncKanzashiEnabledStaffReservationOnly'   => 'xsd:boolean',
             'FreeStaffcode'                             => 'xsd:int',
-            'IsMainSalon'                               => 'xsd:boolean'
+            'IsMainSalon'                               => 'xsd:boolean',
+            'ReservationPayEnabled'                     => 'xsd:boolean',
+            'ReservationPayDefaultPriceType'            => 'xsd:int',
+            'YoyakuStart'                               => 'xsd:time',
+            'YoyakuStartSatSun'                         => 'xsd:time',
+            'YoyakuEnd'                                 => 'xsd:time',
+            'YoyakuEndSatSun'                           => 'xsd:time',
+            'YoyakuCustomersLimit'                      => 'xsd:int',
+            'UseMenuAvailabilityLimit'                  => 'xsd:boolean'
         )),
         'KanzashiSalons' => array(
             'array' => 'KanzashiSalon'
