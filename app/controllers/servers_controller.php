@@ -938,15 +938,16 @@ class ServersController extends WebServicesController
         'wsGetReservation' => array(
             'doc'    => 'GetReservation',
             'input'  => array(
-                'sessionid'   => 'xsd:string',
-                'storecode'   => 'xsd:int',
-                'origination' => 'xsd:int',
-                'datefr'      => 'xsd:string',
-                'dateto'      => 'xsd:string',
-                'pageno'      => 'xsd:int',
-                'ascsort'     => 'xsd:int',
-                'colsort'     => 'xsd:int',
-                'syscode'     => 'xsd:int'
+                'sessionid'         => 'xsd:string',
+                'storecode'         => 'xsd:int',
+                'origination'       => 'xsd:int',
+                'datefr'            => 'xsd:string',
+                'dateto'            => 'xsd:string',
+                'pageno'            => 'xsd:int',
+                'ascsort'           => 'xsd:int',
+                'colsort'           => 'xsd:int',
+                'syscode'           => 'xsd:int',
+                'kanzashi_undecided_only' => 'xsd:boolean',
             ),
             'output' => array('return'      => 'tns:return_storeReservationListing')
         ),
@@ -2308,19 +2309,20 @@ class ServersController extends WebServicesController
         )),
 
         'storeReservationListing'   => array('struct' => array(
-            'transdate'     => 'xsd:string',
-            'starttime'     => 'xsd:string',
-            'cname'         => 'xsd:string',
-            'staffname'     => 'xsd:string',
-            'reservationdt' => 'xsd:string',
-            'reservationtm' => 'xsd:string',
-            'transstat'     => 'xsd:string',
-            'alreadyread'   => 'xsd:int',
-            'keyno'         => 'xsd:int',
-            'transcode'     => 'xsd:string',
-            'route'         => 'xsd:string',
-            'syscode'       => 'xsd:string',
-            'recctr'         => 'xsd:string'
+            'transdate'         => 'xsd:string',
+            'starttime'         => 'xsd:string',
+            'cname'             => 'xsd:string',
+            'staffname'         => 'xsd:string',
+            'reservationdt'     => 'xsd:string',
+            'reservationtm'     => 'xsd:string',
+            'transstat'         => 'xsd:string',
+            'alreadyread'       => 'xsd:int',
+            'push_to_kanzashi'  => 'xsd:string',
+            'keyno'             => 'xsd:int',
+            'transcode'         => 'xsd:string',
+            'route'             => 'xsd:string',
+            'syscode'           => 'xsd:string',
+            'recctr'            => 'xsd:string'
         )),
         '_storeReservationListing'  => array(
             'array' => 'storeReservationListing'
@@ -2331,8 +2333,9 @@ class ServersController extends WebServicesController
 
 
         'storeReservationCounter'   => array('struct' => array(
-            'wrkr'          => 'xsd:int',
-            'bmr'           => 'xsd:int'
+            'wrkr' => 'xsd:int',
+            'bmr' => 'xsd:int',
+            'kanzashi_undecided' => 'xsd:int'
         )),
         '_storeReservationCounter'  => array(
             'array' => 'storeReservationCounter'
@@ -2939,16 +2942,21 @@ class ServersController extends WebServicesController
 
         $storecodecond = $strcode > 0 ? " and str_hdr.storecode = {$strcode} " : '';
 
-        $sql = "select bmr, wrkr
+        $sql = "select 
+                    bmr, 
+                    wrkr, 
+                    kanzashi_undecided
                 from (
                       select
                            count(if(origination in (7,8,9,11,12), transcode, null)) as bmr,
-                           count(if(origination in (1,2,13), transcode, null)) as wrkr
+                           count(if(origination in (1,2,13), transcode, null)) as wrkr,
+                           sum(push_to_kanzashi = 'UNDECIDED') as kanzashi_undecided
                       from (
                             select
                                 str_hdr.transcode,
                                 str_hdr.origination,
-                                ifnull(str_trans2_hdr.read, 0) as yread
+                                ifnull(str_trans2_hdr.read, 0) as yread,
+                                str_hdr.push_to_kanzashi
                             from store_transaction as str_hdr
                             join store_transaction_details as str_dtl on str_hdr.transcode = str_dtl.transcode and str_hdr.keyno = str_dtl.keyno
                             left join store_services as str_svr on str_dtl.gcode = str_svr.gcode
@@ -2987,9 +2995,10 @@ class ServersController extends WebServicesController
      * @param mixed $ascsort
      * @param mixed $colsort
      * @param mixed $syscode
+     * @param boolean $kanzashi_undecided_only
      * @return array[]
      */
-    function wsGetReservation($sessionid, $strcode, $origination, $datefr, $dateto, $pageno, $ascsort, $colsort, $syscode)
+    function wsGetReservation($sessionid, $strcode, $origination, $datefr, $dateto, $pageno, $ascsort, $colsort, $syscode, $kanzashi_undecided_only)
     {
 
         //===================================================================================
@@ -3055,6 +3064,9 @@ class ServersController extends WebServicesController
             $wherecond .= " and svr.syscode in ({$syscode})";
         }
 
+        if ($kanzashi_undecided_only) {
+            $wherecond .= " and str_hdr.push_to_kanzashi = 'UNDECIDED'";
+        }
 
         switch ($colsort) {
             case 0:
@@ -3078,11 +3090,17 @@ class ServersController extends WebServicesController
             case 6:
                 $orderby = ' route ';
                 break;
+            case 7:
+                $orderby = ' push_to_kanzashi ';
+                break;
         }
 
         if (!empty($orderby)) {
             $orderby .= $ascsort == 0 ? ' desc ' : ' asc ';
         }
+
+
+        
 
 
         $curRec = $pageno * 50;
@@ -3110,7 +3128,11 @@ class ServersController extends WebServicesController
                             end as route,
                             ifnull(str_trans2_hdr.read, 0) as alreadyread,
                             group_concat(distinct svr.syscode) as syscode, str_hdr.origination,
-                            STR_TO_DATE(concat(str_hdr.transdate, ' ', ifnull(str_hdr.YOYAKUTIME,'')),'%Y-%m-%d %H:%i:%s') as reservation_datetime
+                            STR_TO_DATE(concat(str_hdr.transdate, ' ', ifnull(str_hdr.YOYAKUTIME,'')),'%Y-%m-%d %H:%i:%s') as reservation_datetime,
+                            case when str_hdr.push_to_kanzashi = 'UNDECIDED' then '未決定'
+                                 when str_hdr.push_to_kanzashi = 'NOPUSH' then 'かんざし連携なし'
+                                 else ks.pos_name
+                            end as push_to_kanzashi
                         from store_transaction as str_hdr
                         left join store_transaction_details as str_dtl on str_hdr.transcode = str_dtl.transcode and str_hdr.keyno = str_dtl.keyno
                         left join store_services as str_svr on str_dtl.gcode = str_svr.gcode
@@ -3120,6 +3142,7 @@ class ServersController extends WebServicesController
                         join stafftype on stafftype.staffcode = stff.staffcode and stafftype.delflg is null or str_dtl.staffcode = 0
                         join storetype on storetype.delflg is null and storetype.storecode = str_hdr.storecode
                         left join store_transaction2 as str_trans2_hdr on str_hdr.transcode = str_trans2_hdr.transcode and str_hdr.keyno = str_trans2_hdr.keyno
+                        left join sipssbeauty_kanzashi.salon ks on ks.pos_id = str_hdr.destination_kanzashi_salon_pos_id
                         where {$wherecond}
                         group by transcode
                         ) as tmptbl
