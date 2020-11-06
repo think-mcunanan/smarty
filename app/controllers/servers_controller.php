@@ -2333,9 +2333,9 @@ class ServersController extends WebServicesController
 
 
         'storeReservationCounter'   => array('struct' => array(
-            'wrkr'          => 'xsd:int',
-            'bmr'           => 'xsd:int',
-            'undecided'     => 'xsd:int'
+            'wrkr' => 'xsd:int',
+            'bmr' => 'xsd:int',
+            'kanzashi_undecided' => 'xsd:int'
         )),
         '_storeReservationCounter'  => array(
             'array' => 'storeReservationCounter'
@@ -2945,12 +2945,12 @@ class ServersController extends WebServicesController
         $sql = "select 
                     bmr, 
                     wrkr, 
-                    undecided
+                    kanzashi_undecided
                 from (
                       select
                            count(if(origination in (7,8,9,11,12), transcode, null)) as bmr,
                            count(if(origination in (1,2,13), transcode, null)) as wrkr,
-                           sum(push_to_kanzashi = 'UNDECIDED') as undecided
+                           sum(push_to_kanzashi = 'UNDECIDED') as kanzashi_undecided
                       from (
                             select
                                 str_hdr.transcode,
