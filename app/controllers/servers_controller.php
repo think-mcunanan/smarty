@@ -947,7 +947,7 @@ class ServersController extends WebServicesController
                 'ascsort'           => 'xsd:int',
                 'colsort'           => 'xsd:int',
                 'syscode'           => 'xsd:int',
-                'showundecidedonly' => 'xsd:boolean',
+                'filter_kanzashi_undecided' => 'xsd:boolean',
             ),
             'output' => array('return'      => 'tns:return_storeReservationListing')
         ),
@@ -2995,9 +2995,10 @@ class ServersController extends WebServicesController
      * @param mixed $ascsort
      * @param mixed $colsort
      * @param mixed $syscode
+     * @param boolean $filter_kanzashi_undecided
      * @return array[]
      */
-    function wsGetReservation($sessionid, $strcode, $origination, $datefr, $dateto, $pageno, $ascsort, $colsort, $syscode, $showUndecidedOnly)
+    function wsGetReservation($sessionid, $strcode, $origination, $datefr, $dateto, $pageno, $ascsort, $colsort, $syscode, $filter_kanzashi_undecided)
     {
 
         //===================================================================================
@@ -3063,7 +3064,7 @@ class ServersController extends WebServicesController
             $wherecond .= " and svr.syscode in ({$syscode})";
         }
 
-        if ($showUndecidedOnly) {
+        if ($filter_kanzashi_undecided) {
             $wherecond .= " and str_hdr.push_to_kanzashi = 'UNDECIDED'";
         }
 
