@@ -1203,7 +1203,7 @@ class ServersController extends WebServicesController
             'YoyakuEnd'                                 => 'xsd:time',
             'YoyakuEndSatSun'                           => 'xsd:time',
             'YoyakuCustomersLimit'                      => 'xsd:int',
-            'UseMenuAvailabilityLimit'                  => 'xsd:boolean'
+            'SlideReservation'                          => 'xsd:boolean'
         )),
         'KanzashiSalons' => array(
             'array' => 'KanzashiSalon'
@@ -1822,7 +1822,7 @@ class ServersController extends WebServicesController
             'USE_SIPSS_MENU' => 'xsd:int',
             'USE_MENU_AVAILABILITY_LIMIT' => 'xsd:int',
             'JIKAIUPDATEOPTION_FLG' => 'xsd:int',
-            'KANZASHI_SALON_RECORDS'                        => 'tns:KanzashiSalons'
+            'KANZASHI_SALONS' => 'tns:KanzashiSalons'
         )),
         //- ####################################################
 
@@ -7272,7 +7272,7 @@ class ServersController extends WebServicesController
                 //-----------------------------------------------------------------------------------
             } //end if
             
-            foreach ($param['KANZASHI_SALON_RECORDS'] as $record) {
+            foreach ($param['KANZASHI_SALONS'] as $record) {
                 $query = '
                     UPDATE sipssbeauty_kanzashi.salon
                     SET
@@ -7283,7 +7283,7 @@ class ServersController extends WebServicesController
                         yoyaku_end = ?,
                         yoyaku_end_sat_sun = ?,
                         yoyaku_customers_limit = ?,
-                        use_menu_availability_limit = ?
+                        slide_reservation = ?
                     WHERE
                         companyid = ? AND
                         storecode = ? AND
@@ -7298,7 +7298,7 @@ class ServersController extends WebServicesController
                     $record['YoyakuEnd'],
                     $record['YoyakuEndSatSun'],
                     $record['YoyakuCustomersLimit'],
-                    $record['UseMenuAvailabilityLimit'],
+                    $record['SlideReservation'],
                     $storeinfo['companyid'], 
                     $storeinfo['storecode'],
                     $record['SalonId']
