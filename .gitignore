@@ -10,9 +10,7 @@
 !/app/tmp/smarty/
 !/app/tmp/tests/
 
-/app/tmp/cache/*.*
-/app/tmp/cache/**/
-
+/app/tmp/cache/*
 !/app/tmp/cache/views/
 /app/tmp/cache/views/*
 !/app/tmp/cache/views/.gitkeep
@@ -27,9 +25,7 @@
 /app/tmp/sessions/*
 !/app/tmp/sessions/.gitkeep
 
-/app/tmp/smarty/*.*
-/app/tmp/smarty/**/
-
+/app/tmp/smarty/*
 !/app/tmp/smarty/cache/
 /app/tmp/smarty/cache/*
 !/app/tmp/smarty/cache/.gitkeep
