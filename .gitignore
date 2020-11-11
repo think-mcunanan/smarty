@@ -4,20 +4,20 @@
 .vs
 
 /app/tmp/*
-!/app/tmp/cache
-!/app/tmp/logs
-!/app/tmp/sessions
-!/app/tmp/smarty
-!/app/tmp/tests
+!/app/tmp/cache/
+!/app/tmp/logs/
+!/app/tmp/sessions/
+!/app/tmp/smarty/
+!/app/tmp/tests/
 
 /app/tmp/cache/*.*
 /app/tmp/cache/**/
 
-!/app/tmp/cache/views
+!/app/tmp/cache/views/
 /app/tmp/cache/views/*
 !/app/tmp/cache/views/.gitkeep
 
-!/app/tmp/cache/persistent
+!/app/tmp/cache/persistent/
 /app/tmp/cache/persistent/*
 !/app/tmp/cache/persistent/.gitkeep
 
@@ -30,11 +30,11 @@
 /app/tmp/smarty/*.*
 /app/tmp/smarty/**/
 
-!/app/tmp/smarty/cache
+!/app/tmp/smarty/cache/
 /app/tmp/smarty/cache/*
 !/app/tmp/smarty/cache/.gitkeep
 
-!/app/tmp/smarty/compile
+!/app/tmp/smarty/compile/
 /app/tmp/smarty/compile/*
 !/app/tmp/smarty/compile/.gitkeep
 
