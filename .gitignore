@@ -14,14 +14,12 @@
 /app/tmp/cache/**/
 
 !/app/tmp/cache/views
-/app/tmp/cache/views/*.*
-/app/tmp/cache/views/**
-!/app/tmp/cache/views/**/.gitkeep
+/app/tmp/cache/views/*
+!/app/tmp/cache/views/.gitkeep
 
 !/app/tmp/cache/persistent
-/app/tmp/cache/persistent/*.*
-/app/tmp/cache/persistent/**
-!/app/tmp/cache/persistent/**/.gitkeep
+/app/tmp/cache/persistent/*
+!/app/tmp/cache/persistent/.gitkeep
 
 /app/tmp/logs/*
 !/app/tmp/logs/.gitkeep
@@ -33,14 +31,12 @@
 /app/tmp/smarty/**/
 
 !/app/tmp/smarty/cache
-/app/tmp/smarty/cache/*.*
-/app/tmp/smarty/cache/**
-!/app/tmp/smarty/cache/**/.gitkeep
+/app/tmp/smarty/cache/*
+!/app/tmp/smarty/cache/.gitkeep
 
 !/app/tmp/smarty/compile
-/app/tmp/smarty/compile/*.*
-/app/tmp/smarty/compile/**
-!/app/tmp/smarty/compile/**/.gitkeep
+/app/tmp/smarty/compile/*
+!/app/tmp/smarty/compile/.gitkeep
 
 /app/tmp/tests/*
 !/app/tmp/tests/.gitkeep
