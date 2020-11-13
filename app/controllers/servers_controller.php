@@ -8004,6 +8004,7 @@ class ServersController extends WebServicesController
                             AND st.origination = 12
                             AND st.delflg IS NULL
                             " . $transconde . "
+                            AND kr.deletedate IS NULL
                             ) as bmtble on bmtble.transcode = transaction.TRANSCODE and bmtble.origination = transaction.origination
                 LEFT JOIN drejimarketing
 					ON drejimarketing.TRANSCODE = `transaction`.TRANSCODE
