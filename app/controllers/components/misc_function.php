@@ -1901,19 +1901,23 @@ class MiscFunctionComponent extends Object
     public function GetKanzashiSalons(&$controller, $companyid, $storecode)
     {
         $sql = "
-            SELECT
-                pos_id As SalonId,
-                kanzashi_id As KanzashiId,
-                pos_name as Name,
-                kanzashi_type As KanzashiType,
-                status As Status,
-                sync_kanzashi_enabled_staff_reservation_only As SyncKanzashiEnabledStaffReservationOnly,
-                free_staffcode As FreeStaffcode,
-                is_main_salon as IsMainSalon
-            FROM sipssbeauty_kanzashi.salon
-            WHERE
-                companyid = :companyid AND
-                storecode = :storecode
+        SELECT
+            salon.*
+        FROM (SELECT pos_id AS SalonId,
+                    sl.kanzashi_id AS KanzashiId,
+                    sl.pos_name AS Name,
+                    sl.kanzashi_type AS KanzashiType,
+                    sl.status AS Status,
+                    CONVERT(st.sync_kanzashi_enabled_staff_reservation_only, UNSIGNED) AS SyncKanzashiEnabledStaffReservationOnly,
+                    sl.free_staffcode AS FreeStaffcode,
+                    sl.is_main_salon AS IsMainSalon
+                FROM sipssbeauty_kanzashi.salon AS sl
+                JOIN sipssbeauty_kanzashi.store AS st
+                    USING(companyid, storecode)
+                WHERE
+                    sl.companyid = :companyid AND
+                    sl.storecode = :storecode
+        )AS salon
         ";
 
         $param = compact('companyid', 'storecode');
