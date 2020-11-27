@@ -551,17 +551,9 @@ class KeitaiSessionComponent extends Object
         $arrReturn['logintype'] = $logintype;
         $arrReturn['storeid'] = $account_data[0]['WebyanAccount']['storeid'];
         $arrReturn['tosflg'] = $account_data[0]['WebyanAccount']['tos_flg'];
-        $result = $this->GetKanzashiSalons($controller, $companyid, $storecode);
-        $arrReturn['KanzashiFlag'] = count($result) > 0;
-        
-        // The below if block was added so that the program can return an error 
-        // because our current program doesn't support KIREI salons or multiple accounts.
-        // Please note that this fix is temporary 
-        // and should be removed after receiving support for KIREI salon and multiple accounts. 
-        if ($result[0]['salon']['kanzashi_type'] == "KIREI" or count($result) > 1) {
-            return false;
-        }
-        
+        $kanzashiSalons = $this->GetKanzashiSalons($controller, $companyid, $storecode);
+        $arrReturn['KanzashiFlag'] = count($kanzashiSalons) > 0;
+
         $controller->StoreSettings->set_company_database($dbname, $controller->StoreSettings);
         $criteria   = array('STORECODE' => $storecode);
         $v = $controller->StoreSettings->find('all', array('conditions' => $criteria));
@@ -2921,13 +2913,14 @@ class KeitaiSessionComponent extends Object
     function GetKanzashiSalons(&$controller, $company, $storecode)
     {
         $sql = "
-        SELECT 
-            kanzashi_type,
-            kanzashi_id
-        FROM sipssbeauty_kanzashi.salon
-        WHERE
-	        companyid = ? AND
-	        storecode = ?
+            SELECT 
+                kanzashi_type,
+                kanzashi_id
+            FROM sipssbeauty_kanzashi.salon
+            WHERE
+                status IN (5, 6, 7, 8, 9, 10, 11, 101, 102) AND
+                companyid = ? AND
+                storecode = ?
         ";
         $param = array($company, $storecode);
         return $controller->Store->query($sql, $param, false);
