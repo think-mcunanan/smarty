@@ -1970,4 +1970,46 @@ class MiscFunctionComponent extends Object
         $set = new Set();
         return $set->extract($rs, '{n}.kfp');
     }
+
+    /**
+     * Get the Facility Transaction
+     *
+     * @param controller &$controller
+     * @param string $dbname
+     * @param int $storecode 
+     * @param string $transdate
+     * @return array 
+     */
+    public function GetFacilityTrans(&$controller, $dbname, $storecode, $transdate)
+    {
+        $query = "
+            SELECT *
+            FROM (
+                SELECT
+                    sf.transcode AS TRANSCODE,
+                    sf.facility_pos_id AS POSID,
+                    kf.name AS NAME,
+                    sf.start_time AS STARTTIME,
+                    sf.end_time AS ENDTIME
+                FROM store_transaction st
+                JOIN store_transaction_facilities sf
+                    USING(transcode)
+                JOIN kanzashi_facility kf
+                    ON kf.pos_id = sf.facility_pos_id
+                WHERE 
+                    st.delflg IS NULL AND
+                    st.storecode = :storecode AND
+                    st.transdate = :transdate
+                ORDER BY
+                    sf.transcode,
+                    sf.rowno
+            ) as facilities
+        ";
+
+        $params = compact('storecode', 'transdate');
+        $controller->StoreTransaction->set_company_database($dbname, $controller->StoreTransaction);
+        $rs = $controller->StoreTransaction->query($query, $params, false);
+        $set = new Set();
+        return $set->extract($rs, '{n}.facilities');
+    }
 }

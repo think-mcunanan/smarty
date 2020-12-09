@@ -1905,6 +1905,7 @@ class ServersController extends WebServicesController
 
         'storeTransactionFacility' => array('struct' => array(
             'POSID'            => 'xsd:int',
+            'NAME'             => 'xsd:string',
             'STARTTIME'        => 'xsd:string',
             'ENDTIME'          => 'xsd:string'
         )),
@@ -8083,6 +8084,20 @@ class ServersController extends WebServicesController
                 }
                 //-----------------------------------------------------------------------------------------------------------------
                 unset($GetDataMarketing, $mkgrouped);
+
+                $facility_trans = $this->MiscFunction->GetFacilityTrans($this, $storeinfo['dbname'], $param['STORECODE'], $param['date']);
+                if ($facility_trans) {
+                    foreach ($data as &$trans) {
+                        foreach ($facility_trans as $fkey => $facility) {
+                            if ($trans['TRANSCODE'] !== $facility['TRANSCODE']) {
+                                continue;
+                            }
+
+                            $trans['facilities'][] = $facility;
+                            unset($facility_trans[$fkey]);
+                        }
+                    }
+                }
             } //end if
             //---------------------------------------------------------------------------------------------------------------------
             /*$arr_reji_marketing = array();
