@@ -8020,7 +8020,7 @@ class ServersController extends WebServicesController
                 LEFT JOIN drejimarketing
 					ON drejimarketing.TRANSCODE = `transaction`.TRANSCODE
 					AND drejimarketing.KEYNO = `transaction`.KEYNO
-					AND drejimarketing.DELFLG IS NULL
+                    AND drejimarketing.DELFLG IS NULL
                 WHERE transaction.DELFLG IS NULL
                     AND details.DELFLG IS NULL
                     " . $trantype1 . $condition . $storecond . "
@@ -8100,22 +8100,8 @@ class ServersController extends WebServicesController
                 }
             } //end if
             //---------------------------------------------------------------------------------------------------------------------
-            /*$arr_reji_marketing = array();
-            $ctr = 0;
-            $trans_ctr = 0;
-            foreach ($data as $arr_reji) {
-            $arr_reji_marketing = array();
-            foreach ($arr_reji['rejimarketing'] as $arr_marketing) {
-            $arr_reji_marketing[$ctr] = $arr_marketing['tblresult'];
-            $ctr++;
-            }//end foreach
-            $data[$trans_ctr]['rejimarketing'] = $arr_reji_marketing;
-            $trans_ctr++;
-            }//end foreach*/
         }
         //---------------------------------------------------------------------------------------------------------------------
-
-
 
         $ret = array();
         $ret['records']      = $data;
