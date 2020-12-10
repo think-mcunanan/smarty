@@ -300,6 +300,8 @@ class MiscFunctionComponent extends Object
                 $arrList[$ctr]['YOYAKU']    = $arrData[$i]['transaction']['YOYAKU'];
                 $arrList[$ctr]['HOWKNOWSCODE']    = $arrData[$i]['howknows_thestore']['HOWKNOWSCODE'];
                 $arrList[$ctr]['HOWKNOWS']    = $arrData[$i]['howknows_thestore']['HOWKNOWS'];
+                $arrList[$ctr]['PUSH_TO_KANZASHI'] = $arrData[$i]['transaction']['PUSH_TO_KANZASHI'];
+                $arrList[$ctr]['DESTINATION_KANZASHI_SALON_POS_ID'] = $arrData[$i]['transaction']['DESTINATION_KANZASHI_SALON_POS_ID'];
 
                 /////////////////////////////////////////////////////////////////////
                 $arrList[$ctr]['YOYAKUTIME'] = substr($arrData[$i]['details']['STARTTIME'], 0, 5); //substr($arrData[$i]['transaction']['STARTTIME'], 0, 5);

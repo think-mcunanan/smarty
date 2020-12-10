@@ -10016,6 +10016,8 @@ class ServersController extends WebServicesController
                     `transaction`.UPDATEDATE,
                     `transaction`.YOYAKU,
                     `transaction`.ZEIOPTION,
+                    `transaction`.PUSH_TO_KANZASHI,
+                    `transaction`.DESTINATION_KANZASHI_SALON_POS_ID,
                     details.TRANSCODE,
                     details.ROWNO,
                     details.GCODE,
