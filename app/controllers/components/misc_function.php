@@ -1910,7 +1910,15 @@ class MiscFunctionComponent extends Object
                     sl.status AS Status,
                     CONVERT(st.sync_kanzashi_enabled_staff_reservation_only, UNSIGNED) AS SyncKanzashiEnabledStaffReservationOnly,
                     sl.free_staffcode AS FreeStaffcode,
-                    sl.is_main_salon AS IsMainSalon
+                    sl.is_main_salon AS IsMainSalon,
+                    sl.reservation_pay_enabled AS ReservationPayEnabled,
+                    sl.reservation_pay_default_price_type AS ReservationPayDefaultPriceType,
+                    sl.yoyaku_start AS YoyakuStart,
+                    sl.yoyaku_start_sat_sun AS YoyakuStartSatSun,
+                    sl.yoyaku_end AS YoyakuEnd,
+                    sl.yoyaku_end_sat_sun AS YoyakuEndSatSun,
+                    sl.yoyaku_customers_limit AS YoyakuCustomersLimit,
+                    sl.slide_reservation AS SlideReservation
                 FROM sipssbeauty_kanzashi.salon AS sl
                 JOIN sipssbeauty_kanzashi.store AS st
                     USING(companyid, storecode)
