@@ -1369,11 +1369,13 @@ class ServersController extends WebServicesController
         )),
 
         'facilityInformation' => array('struct' => array(
-            'Id'               => 'xsd:int',
-            'Name'             => 'xsd:string',
-            'SalonId'          => 'xsd:int',
-            'AcceptableCount'  => 'xsd:int',
-            'Programs'          => 'tns:_facilityProgramInformation'
+            'Id' => 'xsd:int',
+            'Name' => 'xsd:string',
+            'SalonId' => 'xsd:int',
+            'AcceptableCount' => 'xsd:int',
+            'OriginalAcceptableCount' => 'xsd:int',
+            'Programs' => 'tns:_facilityProgramInformation',
+            'Transaction' => 'tns:return_storeTransactionInformation',
         )),
 
         '_facilityInformation' => array(
@@ -9320,6 +9322,7 @@ class ServersController extends WebServicesController
 
         $facilities['records'] = array();
         #----------------------------------------------------------------------------------------------------------------
+
         if ($this->MiscFunction->IsFacilityEnabled($this, $storeinfo['dbname'], $param['STORECODE'])) {
             $facilities = $this->MiscFunction
                 ->GetAvailableFacilities($this, $storeinfo['dbname']);
@@ -9328,6 +9331,7 @@ class ServersController extends WebServicesController
                 GetFacilityPrograms($this, $storeinfo['dbname'], $storeinfo['companyid'], $param['STORECODE'], $param['date']);
 
             foreach($facilities['records'] as &$facility) {
+                //Assign facility programs
                 foreach($programs as &$program){
                     if($facility['Id'] != $program['FacilityId'])
                         continue;
@@ -9335,10 +9339,12 @@ class ServersController extends WebServicesController
                     $facility['Programs'][] = $program;
                     unset($program);
                 }
+                
+                //Assign Facility Transaction
+                $facility = $this->MiscFunction->ParseFacilityTrans($facility, $transaction['records']);
+                
             }
         }
-
-        //print_r($facilities); exit;
 
         //--------------------------------------------------------------------------------------------------------
         $staff          = $this->wsSearchAvailableStaff($sessionid, $param);

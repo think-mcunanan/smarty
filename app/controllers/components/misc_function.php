@@ -1874,7 +1874,7 @@ class MiscFunctionComponent extends Object
                 SQL_CALC_FOUND_ROWS
                 kf.pos_id AS Id,
                 kf.name AS Name,
-                kf.acceptable_count AS AcceptableCount 
+                kf.acceptable_count AS AcceptableCount
             FROM kanzashi_facility kf
             WHERE 
                 kf.delflg IS NULL
@@ -2013,5 +2013,117 @@ class MiscFunctionComponent extends Object
         $rs = $controller->StoreTransaction->query($query, $params, false);
         $set = new Set();
         return $set->extract($rs, '{n}.facilities');
+    }
+
+    /**
+     * Parse Facility Transactions
+     *
+     * @param int $facility
+     * @param array $transactions
+     * @return array 
+     */
+    public function ParseFacilityTrans($facility, $transactions)
+    {
+        $facility_trans = array();
+        $transcodes = array();
+        foreach ($transactions as $trans) {
+            if (empty($trans['facilities']) || in_array($trans['TRANSCODE'], $transcodes, true)) {
+                continue;
+            }
+
+            $transcodes[] = $trans['TRANSCODE'];
+            $facility_trans = array_merge(
+                $facility_trans,
+                $this->AdjustFacilityTransTime($facility['Id'], $trans)
+            );
+        }
+
+        $facility_trans = $this->sortBy($facility_trans, 'YOYAKUTIME');
+        $acceptable_count = $facility['AcceptableCount'];
+
+        foreach ($facility_trans as $key => &$trans) {
+            $trans['PRIORITY'] = 1;
+            $trans['PRIORITYTYPE'] = '1-1';
+
+            for ($i = 0; $i < $key; $i++) {
+                //SET THE TRANSACTION POSITION
+                if (
+                    $trans['YOYAKUTIME'] < $facility_trans[$i]['ADJUSTED_ENDTIME'] &&
+                    $trans['PRIORITY'] === $facility_trans[$i]['PRIORITY']
+                ) {
+                    $trans['PRIORITY']++;
+                    $trans['PRIORITYTYPE'] = "1-{$trans['PRIORITY']}";
+                    $acceptable_count = $trans['PRIORITY'] > $acceptable_count ? $trans['PRIORITY'] : $acceptable_count;
+                }
+            }
+        }
+
+        $facility['Transaction']['records'] = $facility_trans;
+        $facility['OriginalAcceptableCount'] = $facility['AcceptableCount'];
+        $facility['AcceptableCount'] = $acceptable_count;
+
+        return $facility;
+    }
+
+    /**
+     * Adjust Facility Transaction Time
+     *
+     * @param int $facilityId
+     * @param array $trans
+     * @return array 
+     */
+    private function AdjustFacilityTransTime($facilityId, $trans)
+    {
+        $facility_trans = array();
+        foreach ($trans['facilities'] as $facility) {
+            if ((int)$facilityId === (int)$facility['POSID']) {
+                $facility_trans[] = $facility;
+            }
+        }
+
+        if (!$facility_trans) {
+            return $facility_trans;
+        }
+
+        $facility_trans = $this->sortBy($facility_trans, 'STARTTIME');
+
+        $trans['YOYAKUTIME'] = null;
+        $trans['ADJUSTED_ENDTIME'] = null;
+
+        $i = 0;
+        $adjusted_trans[$i] = $trans;
+
+        while ($facility_trans) {
+            foreach ($facility_trans as $key => $facility) {
+                // Check if facilities are overlaping and no time gap.
+                if (
+                    !$adjusted_trans[$i]['YOYAKUTIME'] ||
+                    ($facility['STARTTIME'] <= $adjusted_trans[$i]['ADJUSTED_ENDTIME'] &&
+                    $adjusted_trans[$i]['ADJUSTED_ENDTIME'] >= $facility['STARTTIME'])
+                ) {
+                    // Adjust the YOYAKU time
+                    if (
+                        !$adjusted_trans[$i]['YOYAKUTIME'] ||
+                        ($facility['STARTTIME'] < $adjusted_trans[$i]['YOYAKUTIME'])
+                    ) {
+                        $adjusted_trans[$i]['YOYAKUTIME'] = $facility['STARTTIME'];
+                    }
+
+                    // Adjust the ADJUSTED_ENDTIME time
+                    if (
+                        $adjusted_trans[$i]['ADJUSTED_ENDTIME'] ||
+                        ($facility['ENDTIME'] > $adjusted_trans[$i]['ADJUSTED_ENDTIME'])
+                    ) {
+                        $adjusted_trans[$i]['ADJUSTED_ENDTIME'] = $facility['ENDTIME'];
+                    }
+
+                    unset($facility_trans[$key]);
+                } else {
+                    $adjusted_trans[++$i] = $trans;
+                }
+            }
+        }
+
+        return $adjusted_trans;
     }
 }
