@@ -1921,7 +1921,7 @@ class MiscFunctionComponent extends Object
                     sl.yoyaku_end AS YoyakuEnd,
                     sl.yoyaku_end_sat_sun AS YoyakuEndSatSun,
                     sl.yoyaku_customers_limit AS YoyakuCustomersLimit,
-                    sl.slide_reservation AS SlideReservation
+                    CONVERT(sl.slide_reservation, UNSIGNED) AS SlideReservation
                 FROM sipssbeauty_kanzashi.salon AS sl
                 JOIN sipssbeauty_kanzashi.store AS st
                     USING(companyid, storecode)
