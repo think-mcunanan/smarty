@@ -1874,6 +1874,9 @@ class MiscFunctionComponent extends Object
                 kf.name AS Name,
                 kf.acceptable_count AS AcceptableCount 
             FROM kanzashi_facility kf
+            JOIN sipssbeauty_kanzashi.salon s 
+                ON s.POS_ID = kf.SALON_POS_ID 
+                AND s.status IN (5, 6, 7, 8, 9, 10, 11, 101, 102)
             WHERE 
                 kf.delflg IS NULL
                 {$salonid_cond}
@@ -1924,7 +1927,8 @@ class MiscFunctionComponent extends Object
                     USING(companyid, storecode)
                 WHERE
                     sl.companyid = :companyid AND
-                    sl.storecode = :storecode
+                    sl.storecode = :storecode AND
+                    sl.status IN (5, 6, 7, 8, 9, 10, 11, 101, 102)
         )AS salon
         ";
 
