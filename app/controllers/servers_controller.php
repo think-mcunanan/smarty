@@ -1955,6 +1955,7 @@ class ServersController extends WebServicesController
             'UPDATEDATE'       => 'xsd:string',
             'newcustomer'      => 'xsd:int',
             'ignoreConflict'   => 'xsd:int',
+            'IgnoreFacilityConflict' => 'xsd:boolean',
             'newRowValue'      => 'xsd:int',
             'newPhoneRowValue' => 'xsd:int',
             'UKETSUKEDATE'     => 'xsd:string',
@@ -2031,7 +2032,11 @@ class ServersController extends WebServicesController
             'IDNO'          => 'xsd:int',
             'CCODE'         => 'xsd:string',
             'CNUMBER'       => 'xsd:string',
-            'UPDATEDATE'    => 'xsd:string'
+            'UPDATEDATE'    => 'xsd:string',
+            'ROW'           => 'xsd:int',
+            'PHONEROW'      => 'xsd:int',
+            'TRANSCONFLICTED' => 'xsd:boolean',
+            'FACILITYTRANSCONFLICTED' => 'xsd:boolean'
         )),
         //- ####################################################
 
@@ -8174,9 +8179,9 @@ class ServersController extends WebServicesController
             $reply = $this->MiscFunction->CheckTransactionConflict($this, $subparam);
 
             if ($reply['response'] == 'CONFLICT') {
-                $ret['TRANSCODE'] = "0";
-                $ret['KEYNO']     = $reply['Row'];
-                $ret['IDNO']      = $reply['PhoneRow'];
+                $ret['TRANSCONFLICTED'] = true;
+                $ret['ROW']     = $reply['Row'];
+                $ret['PHONEROW']      = $reply['PhoneRow'];
 
                 return $ret;
             }
@@ -8188,6 +8193,13 @@ class ServersController extends WebServicesController
             $subparam['PHONEROWS'] = $param['newPhoneRowValue'];
 
             $this->wsAddUpdateStaffRowsHistory($sessionid, $subparam);
+        }
+
+        if($param['facilities'] && !$param['IgnoreFacilityConflict']) {
+            if($this->MiscFunction->FacilityTransConflict($this, $storeinfo['dbname'], $param)){
+                $ret['FACILITYTRANSCONFLICTED'] = true;
+                return $ret;
+            }
         }
 
         //---------------------------------------------------------------------------

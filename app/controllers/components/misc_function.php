@@ -1293,7 +1293,180 @@ class MiscFunctionComponent extends Object
         return $ret;
     }
 
+    /**
+     * Facility Transaction Conflict
+     * 
+     * @param controller &$controller
+     * @param string $dbname
+     * @param array $transaction
+     * @return boolean
+     */
+    public function FacilityTransConflict(&$controller, $dbname, $transaction)
+    {
+        $pos_ids = array();
+        foreach ($transaction['facilities'] as $facility) {
+            $pos_ids[] = $facility['POSID'];
+        }
 
+        function sort_facility_trans($prev, $next)
+        {
+            if ($prev['POSID'] === $next['POSID']) {
+                if ($prev['STARTTIME'] === $next['STARTTIME']) {
+                    return 0;
+                } else {
+                    return $prev['STARTTIME'] < $next['STARTTIME'] ? -1 : 1;
+                }
+            } else {
+                return $prev['POSID'] - $next['POSID'];
+            }
+        }
+
+        usort($transaction['facilities'], 'sort_facility_trans');
+
+        if ($this->ConflictWithExistingReservation($controller, $dbname, $transaction, $pos_ids)) {
+            return true;
+        }
+        
+        if ($this->ConflictWithFacilityProgram($controller, $dbname, $transaction, $pos_ids)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check Conflict With Exisiting Reservation
+     * 
+     * @param controller &$controller
+     * @param string $dbname
+     * @param array $transaction
+     * @param array $pos_ids
+     * @return boolean
+     */
+    private function ConflictWithExistingReservation(&$controller, $dbname, $transaction, $pos_ids)
+    {
+        $existing_facility_trans = $this->GetFacilityTrans(
+            $controller,
+            $dbname,
+            $transaction['STORECODE'],
+            $transaction['TRANSDATE'],
+            $transaction['TRANSCODE'],
+            array_unique($pos_ids)
+        );
+
+        if (!$existing_facility_trans) {
+            return false;
+        }
+
+        function sort_exisitng_facility_trans($prev, $next)
+        {
+            if ($prev['POSID'] === $next['POSID']) {
+                if($prev['TRANSCODE'] === $next['TRANSCODE']){
+                    if ($prev['STARTTIME'] === $next['STARTTIME']) {
+                        return 0;
+                    } else {
+                        return $prev['STARTTIME'] < $next['STARTTIME'] ? -1 : 1;
+                    }
+                } else {
+                    return $prev['TRANSCODE'] - $next['TRANSCODE'];
+                }
+            } else {
+                return $prev['POSID'] - $next['POSID'];
+            }
+        }
+
+        usort($existing_facility_trans, 'sort_exisitng_facility_trans');
+        $facility_trans = $transaction['facilities'];
+
+        $i = 0;
+        $updated_trans[$i] = $existing_facility_trans[0];
+        foreach ($existing_facility_trans as $key => $trans) {
+            if (
+                $updated_trans[$i]['POSID'] != $trans['POSID'] ||
+                $updated_trans[$i]['TRANSCODE'] !== $trans['TRANSCODE']
+            ) {
+                $updated_trans[++$i] = $trans;
+                continue;
+            }
+
+            if (
+                $updated_trans[$i]['STARTTIME'] <= $trans['ENDTIME'] &&
+                $updated_trans[$i]['ENDTIME'] >= $trans['STARTTIME']
+            ) {
+                if ($trans['ENDTIME'] > $updated_trans[$i]['ENDTIME']) {
+                    $updated_trans[$i]['ENDTIME'] = $trans['ENDTIME'];
+                }
+            } else {
+                $updated_trans[++$i] = $trans;
+            }
+        }
+
+        foreach ($facility_trans as $trans) {
+            $conflict_count = 0;
+            foreach ($updated_trans as $key => $etrans) {
+                if ((int)$trans['POSID'] !== (int)$etrans['POSID']) {
+                    continue;
+                }
+
+                if (
+                    $trans['STARTTIME'] < $etrans['ENDTIME'] &&
+                    $trans['ENDTIME'] > $etrans['STARTTIME']
+                ) {
+                    $conflict_count++;
+                    if ($conflict_count >= $etrans['ACCEPTABLECOUNT']) {
+                        return true;
+                    }
+                }
+
+                unset($updated_trans[$key]);
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check Conflict With Facility Program
+     * 
+     * @param controller &$controller
+     * @param string $dbname
+     * @param array $transaction
+     * @param array $pos_ids
+     * @return boolean
+     */
+    private function ConflictWithFacilityProgram($controller, $dbname, $transaction, $pos_ids) {
+        $facility_programs = $this->GetFacilityProgramsByFacilityId(
+            $controller, 
+            $dbname, 
+            $transaction['TRANSDATE'],
+            array_unique($pos_ids)
+        );
+
+        if(!$facility_programs) {
+            return false;
+        }
+
+        $facility_trans = $transaction['facilities'];
+
+        foreach ($facility_trans as $trans) {
+            foreach ($facility_programs as $key => $program) {
+                if ((int)$trans['POSID'] !== (int)$program['POSID']) {
+                    continue;
+                }
+
+                if (
+                    $trans['STARTTIME'] < $program['ENDTIME'] &&
+                    $program['ENDTIME'] > $trans['STARTTIME']
+                ) {
+                    return true;
+                }
+
+                unset($facility_programs[$key]);
+            }
+        }
+
+        return false;
+    }
     /**
      * 満期のケータイセッションを削除します
      * Deletes expired keitai sessions
@@ -1974,16 +2147,62 @@ class MiscFunctionComponent extends Object
     }
 
     /**
+     * Get Facility Programs By FacilityId
+     *
+     * @param controller &$controller
+     * @param string $dbname
+     * @param string $date
+     * @param array $pos_ids 
+     * @return array 
+     */
+    public function GetFacilityProgramsByFacilityId(&$controller, $dbname, $date, $pos_ids)
+    {
+        $query = "
+            SELECT
+                kfp.facility_pos_id AS POSID,
+                kfp.start_time AS STARTTIME,
+                kfp.end_time AS ENDTIME
+            FROM kanzashi_facility_program kfp
+            WHERE
+                kfp.delflg IS NULL AND 
+                kfp.date = :date AND
+                kfp.facility_pos_id IN (".implode(',', $pos_ids).")
+            ORDER BY
+                kfp.facility_pos_id AND
+                kfp.start_time
+        ";
+
+        $params = compact('date');
+
+        $controller->BreakTime->set_company_database($dbname, $controller->BreakTime);
+        $rs = $controller->BreakTime->query($query, $params, false);
+        $set = new Set();
+        return $set->extract($rs, '{n}.kfp');
+    }
+
+    /**
      * Get the Facility Transaction
      *
      * @param controller &$controller
      * @param string $dbname
      * @param int $storecode 
      * @param string $transdate
+     * @param string $transcode
+     * @param array $facility_pos_ids
      * @return array 
      */
-    public function GetFacilityTrans(&$controller, $dbname, $storecode, $transdate)
-    {
+    public function GetFacilityTrans(
+        &$controller,
+        $dbname,
+        $storecode,
+        $transdate,
+        $transcode = null,
+        $facility_pos_ids = array()
+    ) {
+        $transcode_cond = $transcode ? 'AND st.transcode <> :transcode' : '';
+        $facility_pos_id_cond = $facility_pos_ids ?
+            'AND kf.pos_id IN (' . implode(',', $facility_pos_ids) . ')' : '';
+
         $query = "
             SELECT *
             FROM (
@@ -1992,7 +2211,8 @@ class MiscFunctionComponent extends Object
                     sf.facility_pos_id AS POSID,
                     kf.name AS NAME,
                     sf.start_time AS STARTTIME,
-                    sf.end_time AS ENDTIME
+                    sf.end_time AS ENDTIME,
+                    kf.acceptable_count as ACCEPTABLECOUNT
                 FROM store_transaction st
                 JOIN store_transaction_facilities sf
                     USING(transcode)
@@ -2002,13 +2222,15 @@ class MiscFunctionComponent extends Object
                     st.delflg IS NULL AND
                     st.storecode = :storecode AND
                     st.transdate = :transdate
+                    {$transcode_cond}
+                    {$facility_pos_id_cond}
                 ORDER BY
                     sf.transcode,
                     sf.rowno
             ) as facilities
         ";
 
-        $params = compact('storecode', 'transdate');
+        $params = compact('storecode', 'transdate', 'transcode');
         $controller->StoreTransaction->set_company_database($dbname, $controller->StoreTransaction);
         $rs = $controller->StoreTransaction->query($query, $params, false);
         $set = new Set();
