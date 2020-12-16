@@ -3278,8 +3278,7 @@ class ServersController extends WebServicesController
             $tmp .= "OPTIONNAME = 'YoyakuUpperLimitOption' OR ";
             //--------------------------------------------
             $tmp .= "OPTIONNAME  = 'YoyakuStart' OR ";
-            $tmp .= "OPTIONNAME  = 'YoyakuEnd' OR ";
-            $tmp .= "OPTIONNAME  = 'KireiEnabled')";
+            $tmp .= "OPTIONNAME  = 'YoyakuEnd')";
 
             $criteria   = array('STORECODE' => $arrReturn['storecode']);
             $criteria[] = $tmp;
@@ -3322,9 +3321,6 @@ class ServersController extends WebServicesController
                         break;
                     case 'YoyakuUpperLimitOption':
                         $arrReturn['UPPER_LIMIT_OP'] = $itm['StoreSettings']['OPTIONVALUES'];
-                        break;
-                    case 'KireiEnabled':
-                        $arrReturn['KIREI_ENABLED'] = $itm['StoreSettings']['OPTIONVALUEI'];
                         break;
                 }
             }
@@ -3413,14 +3409,6 @@ class ServersController extends WebServicesController
                 ->GetKanzashiSalons($this, $arrReturn['companyid'], $arrReturn['storecode']);
 
             if ($salons) {
-                // The below if block was added so that the program can return an error 
-                // because our current program doesn't support KIREI salons or multiple accounts.
-                // Please note that this fix is temporary 
-                // and should be removed after receiving support for KIREI salon and multiple accounts. 
-                if (!(bool)$arrReturn['KIREI_ENABLED'] && ($salons[0]['KanzashiType'] == "KIREI" || count($salons) > 1)) {
-                    $arrReturn['sessionid'] = "";
-                    return $arrReturn;
-                }
 
                 //In the future, when multiple kanzashi account is supported, 
                 //the property for Salons should be remove from KanzashiInfo object
