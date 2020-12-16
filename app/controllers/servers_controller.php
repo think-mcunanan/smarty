@@ -1164,6 +1164,7 @@ class ServersController extends WebServicesController
             'storetype'         => 'tns:storetypeInformation',
             'allstoretype'      => 'tns:AllStoreTypes',
             'KanzashiSalons'    => 'tns:KanzashiSalons',
+            'KanzashiConfig'    => 'tns:KanzashiConfig',
             'KanzashiInfo'      => 'tns:KanzashiInfo',
             'FACILITY_ENABLED'  => 'xsd:boolean'
         )),
@@ -1207,6 +1208,19 @@ class ServersController extends WebServicesController
         )),
         'KanzashiSalons' => array(
             'array' => 'KanzashiSalon'
+        ),
+
+        'KanzashiConfig' => array(
+            'struct' => array(
+                'HairSigninHashKey'   => 'xsd:string',
+                'HairSigninMedia'     => 'xsd:string',
+                'HairSigninUrl'       => 'xsd:string',
+                'HairSigninVersion'   => 'xsd:string',
+                'KireiSigninHashKey'  => 'xsd:string',
+                'KireiSigninMedia'    => 'xsd:string',
+                'KireiSigninUrl'      => 'xsd:string',
+                'KireiSigninVersion'  => 'xsd:string'
+            )
         ),
 
         'KanzashiInfo' => array(
@@ -3422,6 +3436,34 @@ class ServersController extends WebServicesController
                     'SigninMedia'                             => KANZASHI_SIGNIN_MEDIA,
                     'SigninVersion'                           => KANZASHI_SIGNIN_VERSION
                 );
+
+                $Sql = "
+                SELECT
+                    hair_signin_hash_key AS HairSigninHashKey,
+                    hair_signin_media AS HairSigninMedia,
+                    hair_signin_url AS HairSigninUrl,
+                    hair_signin_version AS HairSigninVersion,
+                    kirei_signin_hash_key AS KireiSigninHashKey,
+                    kirei_signin_media AS KireiSigninMedia,
+                    kirei_signin_url AS KireiSigninUrl,
+                    kirei_signin_version AS KireiSigninVersion
+                FROM
+                    sipssbeauty_kanzashi.configuration";
+                $result = $this->StoreSettings->query($Sql);
+                $kanzashiConfig = $result[0]['configuration'];
+
+                if ($kanzashiConfig) {
+                    $arrReturn['KanzashiConfig'] = array(
+                        'HairSigninHashKey'     => $kanzashiConfig['HairSigninHashKey'],
+                        'HairSigninMedia'       => $kanzashiConfig['HairSigninMedia'],
+                        'HairSigninUrl'         => $kanzashiConfig['HairSigninUrl'],
+                        'HairSigninVersion'     => $kanzashiConfig['HairSigninVersion'],
+                        'KireiSigninHashKey'    => $kanzashiConfig['KireiSigninHashKey'],
+                        'KireiSigninMedia'      => $kanzashiConfig['KireiSigninMedia'],
+                        'KireiSigninUrl'        => $kanzashiConfig['KireiSigninUrl'],
+                        'KireiSigninVersion'    => $kanzashiConfig['KireiSigninVersion']
+                    );
+                }
 
             }
             $arrReturn['KanzashiSalons'] = $salons;
