@@ -1228,11 +1228,7 @@ class ServersController extends WebServicesController
                 'KanzashiId'                              => 'xsd:int',
                 'Status'                                  => 'xsd:int',
                 'SyncKanzashiEnabledStaffReservationOnly' => 'xsd:boolean',
-                'FreeStaffcode'                           => 'xsd:int',
-                'SigninUrl'                               => 'xsd:string',
-                'SigninHashKey'                           => 'xsd:string',
-                'SigninMedia'                             => 'xsd:string',
-                'SigninVersion'                           => 'xsd:string'
+                'FreeStaffcode'                           => 'xsd:int'
             )
         ),
 
@@ -3430,11 +3426,7 @@ class ServersController extends WebServicesController
                     'KanzashiId'                              => $salons[0]['KanzashiId'],
                     'Status'                                  => $salons[0]['Status'],
                     'SyncKanzashiEnabledStaffReservationOnly' => (bool)$salons[0]['SyncKanzashiEnabledStaffReservationOnly'],
-                    'FreeStaffcode'                           => $salons[0]['FreeStaffcode'],
-                    'SigninUrl'                               => KANZASHI_SIGNIN_URL,
-                    'SigninHashKey'                           => KANZASHI_SIGNIN_HASH_KEY,
-                    'SigninMedia'                             => KANZASHI_SIGNIN_MEDIA,
-                    'SigninVersion'                           => KANZASHI_SIGNIN_VERSION
+                    'FreeStaffcode'                           => $salons[0]['FreeStaffcode']
                 );
 
                 $Sql = "
