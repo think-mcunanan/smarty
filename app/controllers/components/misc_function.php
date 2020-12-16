@@ -2266,16 +2266,21 @@ class MiscFunctionComponent extends Object
         foreach ($facility_trans as $key => &$trans) {
             $trans['PRIORITY'] = 1;
             $trans['PRIORITYTYPE'] = '1-1';
-
-            for ($i = 0; $i < $key; $i++) {
-                //SET THE TRANSACTION POSITION
-                if (
-                    $trans['YOYAKUTIME'] < $facility_trans[$i]['ADJUSTED_ENDTIME'] &&
-                    $trans['PRIORITY'] === $facility_trans[$i]['PRIORITY']
-                ) {
-                    $trans['PRIORITY']++;
-                    $trans['PRIORITYTYPE'] = "1-{$trans['PRIORITY']}";
-                    $acceptable_count = $trans['PRIORITY'] > $acceptable_count ? $trans['PRIORITY'] : $acceptable_count;
+            $conflict = true;
+            while ($conflict) {
+                $conflict = false;
+                for ($i = 0; $i < $key; $i++) {
+                    //SET THE TRANSACTION POSITION
+                    if (
+                        $trans['YOYAKUTIME'] < $facility_trans[$i]['ADJUSTED_ENDTIME'] &&
+                        $trans['ADJUSTED_ENDTIME'] > $facility_trans[$i]['YOYAKUTIME'] &&
+                        $trans['PRIORITY'] === $facility_trans[$i]['PRIORITY']
+                    ) {
+                        $trans['PRIORITY']++;
+                        $trans['PRIORITYTYPE'] = "1-{$trans['PRIORITY']}";
+                        $acceptable_count = $trans['PRIORITY'] > $acceptable_count ? $trans['PRIORITY'] : $acceptable_count;
+                        $conflict = true;
+                    }
                 }
             }
         }
@@ -2321,7 +2326,7 @@ class MiscFunctionComponent extends Object
                 if (
                     !$adjusted_trans[$i]['YOYAKUTIME'] ||
                     ($facility['STARTTIME'] <= $adjusted_trans[$i]['ADJUSTED_ENDTIME'] &&
-                    $adjusted_trans[$i]['ADJUSTED_ENDTIME'] >= $facility['STARTTIME'])
+                    $facility['ADJUSTED_ENDTIME'] >= $adjusted_trans[$i]['STARTTIME'])
                 ) {
                     // Adjust the YOYAKU time
                     if (
