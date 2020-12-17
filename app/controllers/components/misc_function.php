@@ -2241,56 +2241,81 @@ class MiscFunctionComponent extends Object
     /**
      * Parse Facility Transactions
      *
-     * @param int $facility
+     * @param array $facilities
      * @param array $transactions
      * @return array 
      */
-    public function ParseFacilityTrans($facility, $transactions)
+    public function ParseFacilityTrans($facilities, $transactions)
     {
-        $facility_trans = array();
-        $transcodes = array();
-        foreach ($transactions as $trans) {
-            if (empty($trans['facilities']) || in_array($trans['TRANSCODE'], $transcodes, true)) {
+        function facility_trans_sort($prev, $next)
+        {
+            if ($prev['YOYAKUTIME'] === $next['YOYAKUTIME']) {
+                if ($prev['ADJUSTED_ENDTIME'] === $next['ADJUSTED_ENDTIME']) {
+                    if ($prev['TRANSCODE'] === $next['TRANSCODE']) {
+                        return 0;
+                    } else {
+                        return $prev['TRANSCODE'] < $next['TRANSCODE'] ? -1 : 1;
+                    }
+                } else {
+                    return $prev['ADJUSTED_ENDTIME'] > $next['ADJUSTED_ENDTIME'] ? -1 : 1;
+                }
+            } else {
+                return $prev['YOYAKUTIME'] < $next['YOYAKUTIME'] ? -1 : 1;
+            }
+        }
+
+        foreach($facilities['records'] as &$facility) {
+            $facility['OriginalAcceptableCount'] = $facility['AcceptableCount'];
+
+            $facility_trans = array();
+            $transcodes = array();
+            foreach ($transactions as $trans) {
+                if (empty($trans['facilities']) || in_array($trans['TRANSCODE'], $transcodes, true)) {
+                    continue;
+                }
+
+                $transcodes[] = $trans['TRANSCODE'];
+                $facility_trans = array_merge(
+                    $facility_trans,
+                    $this->AdjustFacilityTransTime($facility['Id'], $trans)
+                );
+            }
+
+            if(!$facility_trans) {
+                $facility['Transaction']['records'] = $facility_trans;
                 continue;
             }
 
-            $transcodes[] = $trans['TRANSCODE'];
-            $facility_trans = array_merge(
-                $facility_trans,
-                $this->AdjustFacilityTransTime($facility['Id'], $trans)
-            );
-        }
-
-        usort($facility_trans, 'sort_facility_trans');
-        $acceptable_count = $facility['AcceptableCount'];
-
-        foreach ($facility_trans as $key => &$trans) {
-            $trans['PRIORITY'] = 1;
-            $trans['PRIORITYTYPE'] = '1-1';
-            $conflict = true;
-            while ($conflict) {
-                $conflict = false;
-                for ($i = 0; $i < $key; $i++) {
-                    //SET THE TRANSACTION POSITION
-                    if (
-                        $trans['YOYAKUTIME'] < $facility_trans[$i]['ADJUSTED_ENDTIME'] &&
-                        $trans['ADJUSTED_ENDTIME'] > $facility_trans[$i]['YOYAKUTIME'] &&
-                        $trans['PRIORITY'] === $facility_trans[$i]['PRIORITY']
-                    ) {
-                        $trans['PRIORITY']++;
-                        $trans['PRIORITYTYPE'] = "1-{$trans['PRIORITY']}";
-                        $acceptable_count = $trans['PRIORITY'] > $acceptable_count ? $trans['PRIORITY'] : $acceptable_count;
-                        $conflict = true;
+            usort($facility_trans, 'facility_trans_sort');
+            
+            $acceptable_count = $facility['AcceptableCount'];
+            foreach ($facility_trans as $key => &$f_trans) {
+                $f_trans['PRIORITY'] = 1;
+                $f_trans['PRIORITYTYPE'] = '1-1';
+                $conflict = true;
+                while ($conflict) {
+                    $conflict = false;
+                    for ($i = 0; $i < $key; $i++) {
+                        //SET THE TRANSACTION POSITION
+                        if (
+                            $f_trans['YOYAKUTIME'] < $facility_trans[$i]['ADJUSTED_ENDTIME'] &&
+                            $f_trans['ADJUSTED_ENDTIME'] > $facility_trans[$i]['YOYAKUTIME'] &&
+                            $f_trans['PRIORITY'] === $facility_trans[$i]['PRIORITY']
+                        ) {
+                            $f_trans['PRIORITY']++;
+                            $f_trans['PRIORITYTYPE'] = "1-{$f_trans['PRIORITY']}";
+                            $acceptable_count = $f_trans['PRIORITY'] > $acceptable_count ? $f_trans['PRIORITY'] : $acceptable_count;
+                            $conflict = true;
+                        }
                     }
                 }
             }
+
+            $facility['Transaction']['records'] = $facility_trans;
+            $facility['AcceptableCount'] = $acceptable_count;
         }
 
-        $facility['Transaction']['records'] = $facility_trans;
-        $facility['OriginalAcceptableCount'] = $facility['AcceptableCount'];
-        $facility['AcceptableCount'] = $acceptable_count;
-
-        return $facility;
+        return $facilities;
     }
 
     /**
