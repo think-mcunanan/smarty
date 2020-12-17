@@ -2047,7 +2047,8 @@ class MiscFunctionComponent extends Object
                 SQL_CALC_FOUND_ROWS
                 kf.pos_id AS Id,
                 kf.name AS Name,
-                kf.acceptable_count AS AcceptableCount
+                kf.acceptable_count AS AcceptableCount,
+                kf.salon_pos_id as SalonId
             FROM kanzashi_facility kf
             WHERE 
                 kf.delflg IS NULL
@@ -2260,7 +2261,7 @@ class MiscFunctionComponent extends Object
             );
         }
 
-        $facility_trans = $this->sortBy($facility_trans, 'YOYAKUTIME');
+        usort($facility_trans, 'sort_facility_trans');
         $acceptable_count = $facility['AcceptableCount'];
 
         foreach ($facility_trans as $key => &$trans) {

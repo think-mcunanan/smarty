@@ -9342,6 +9342,23 @@ class ServersController extends WebServicesController
             $programs = $this->MiscFunction->
                 GetFacilityPrograms($this, $storeinfo['dbname'], $storeinfo['companyid'], $param['STORECODE'], $param['date']);
 
+            function sort_facility_trans($prev, $next)
+            {
+                if ($prev['YOYAKUTIME'] === $next['YOYAKUTIME']) {
+                    if ($prev['ADJUSTED_ENDTIME'] === $next['ADJUSTED_ENDTIME']) {
+                        if ($prev['TRANSCODE'] === $next['TRANSCODE']) {
+                            return 0;
+                        } else {
+                            return $prev['TRANSCODE'] < $next['TRANSCODE'] ? -1 : 1;
+                        }
+                    } else {
+                        return $prev['ADJUSTED_ENDTIME'] > $next['ADJUSTED_ENDTIME'] ? -1 : 1;
+                    }
+                } else {
+                    return $prev['YOYAKUTIME'] < $next['YOYAKUTIME'] ? -1 : 1;
+                }
+            }
+
             foreach($facilities['records'] as &$facility) {
                 //Assign facility programs
                 foreach($programs as &$program){
