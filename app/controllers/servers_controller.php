@@ -1195,7 +1195,15 @@ class ServersController extends WebServicesController
             'Status'                                    => 'xsd:int',
             'SyncKanzashiEnabledStaffReservationOnly'   => 'xsd:boolean',
             'FreeStaffcode'                             => 'xsd:int',
-            'IsMainSalon'                               => 'xsd:boolean'
+            'IsMainSalon'                               => 'xsd:boolean',
+            'ReservationPayEnabled'                     => 'xsd:boolean',
+            'ReservationPayDefaultPriceType'            => 'xsd:int',
+            'YoyakuStart'                               => 'xsd:time',
+            'YoyakuStartSatSun'                         => 'xsd:time',
+            'YoyakuEnd'                                 => 'xsd:time',
+            'YoyakuEndSatSun'                           => 'xsd:time',
+            'YoyakuCustomersLimit'                      => 'xsd:int',
+            'SlideReservation'                          => 'xsd:boolean'
         )),
         'KanzashiSalons' => array(
             'array' => 'KanzashiSalon'
@@ -1814,8 +1822,7 @@ class ServersController extends WebServicesController
             'USE_SIPSS_MENU' => 'xsd:int',
             'USE_MENU_AVAILABILITY_LIMIT' => 'xsd:int',
             'JIKAIUPDATEOPTION_FLG' => 'xsd:int',
-            'KANZASHI_RESERVATION_PAY_ENABLED' => 'xsd:int',
-            'KANZASHI_RESERVATION_PAY_DEFAULT_PRICE_TYPE' => 'xsd:int'
+            'KANZASHI_SALONS' => 'tns:KanzashiSalons'
         )),
         //- ####################################################
 
@@ -3281,8 +3288,7 @@ class ServersController extends WebServicesController
             $tmp .= "OPTIONNAME = 'YoyakuUpperLimitOption' OR ";
             //--------------------------------------------
             $tmp .= "OPTIONNAME  = 'YoyakuStart' OR ";
-            $tmp .= "OPTIONNAME  = 'YoyakuEnd' OR ";
-            $tmp .= "OPTIONNAME  = 'KireiEnabled')";
+            $tmp .= "OPTIONNAME  = 'YoyakuEnd')";
 
             $criteria   = array('STORECODE' => $arrReturn['storecode']);
             $criteria[] = $tmp;
@@ -3325,9 +3331,6 @@ class ServersController extends WebServicesController
                         break;
                     case 'YoyakuUpperLimitOption':
                         $arrReturn['UPPER_LIMIT_OP'] = $itm['StoreSettings']['OPTIONVALUES'];
-                        break;
-                    case 'KireiEnabled':
-                        $arrReturn['KIREI_ENABLED'] = $itm['StoreSettings']['OPTIONVALUEI'];
                         break;
                 }
             }
@@ -3416,14 +3419,6 @@ class ServersController extends WebServicesController
                 ->GetKanzashiSalons($this, $arrReturn['companyid'], $arrReturn['storecode']);
 
             if ($salons) {
-                // The below if block was added so that the program can return an error 
-                // because our current program doesn't support KIREI salons or multiple accounts.
-                // Please note that this fix is temporary 
-                // and should be removed after receiving support for KIREI salon and multiple accounts. 
-                if (!(bool)$arrReturn['KIREI_ENABLED'] && ($salons[0]['KanzashiType'] == "KIREI" || count($salons) > 1)) {
-                    $arrReturn['sessionid'] = "";
-                    return $arrReturn;
-                }
 
                 //In the future, when multiple kanzashi account is supported, 
                 //the property for Salons should be remove from KanzashiInfo object
@@ -7151,25 +7146,6 @@ class ServersController extends WebServicesController
         } //end if
         //---------------------------------------------------------------------------
 
-        $query = '
-            SELECT
-                reservation_pay_enabled,
-                reservation_pay_default_price_type
-            FROM sipssbeauty_kanzashi.salon
-            WHERE
-                companyid = ? AND
-                storecode = ?
-        ';
-
-        $param = array($storeinfo['companyid'], $storeinfo['storecode']);
-        $records = $this->StoreSettings->query($query, $param, false);
-
-        if ($records) {
-            $salon = $records[0]['salon'];
-            $settings_two['KANZASHI_RESERVATION_PAY_ENABLED'] = $salon['reservation_pay_enabled'];
-            $settings_two['KANZASHI_RESERVATION_PAY_DEFAULT_PRICE_TYPE'] = $salon['reservation_pay_default_price_type'];
-        }
-
         $arrReturn = array_merge($settings_one[0], $settings_two);
         return $arrReturn;
     }
@@ -7293,19 +7269,41 @@ class ServersController extends WebServicesController
                 $this->StoreSettings->query($SqlSTime);
                 //-----------------------------------------------------------------------------------
             } //end if
+            
+            foreach ($param['KANZASHI_SALONS'] as $record) {
+                $query = '
+                    UPDATE sipssbeauty_kanzashi.salon
+                    SET
+                        reservation_pay_enabled = ?,
+                        reservation_pay_default_price_type = ?,
+                        yoyaku_start = ?,
+                        yoyaku_start_sat_sun = ?,
+                        yoyaku_end = ?,
+                        yoyaku_end_sat_sun = ?,
+                        yoyaku_customers_limit = ?,
+                        slide_reservation = ?
+                    WHERE
+                        companyid = ? AND
+                        storecode = ? AND
+                        pos_id = ?
+                ';
 
-            $query = '
-                UPDATE sipssbeauty_kanzashi.salon
-                SET
-                    reservation_pay_enabled = ?,
-                    reservation_pay_default_price_type = ?
-                WHERE
-                    companyid = ? AND
-                    storecode = ?
-            ';
+                $param = array(
+                    $record['ReservationPayEnabled'],
+                    $record['ReservationPayDefaultPriceType'],
+                    $record['YoyakuStart'],
+                    $record['YoyakuStartSatSun'],
+                    $record['YoyakuEnd'],
+                    $record['YoyakuEndSatSun'],
+                    $record['YoyakuCustomersLimit'],
+                    $record['SlideReservation'],
+                    $storeinfo['companyid'], 
+                    $storeinfo['storecode'],
+                    $record['SalonId']
+                );
+                $this->StoreSettings->query($query, $param, false);
+            }
 
-            $param = array($param['KANZASHI_RESERVATION_PAY_ENABLED'], $param['KANZASHI_RESERVATION_PAY_DEFAULT_PRICE_TYPE'], $storeinfo['companyid'], $storeinfo['storecode']);
-            $this->StoreSettings->query($query, $param, false);
 
             return true;
         } else {
