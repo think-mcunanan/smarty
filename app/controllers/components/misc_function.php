@@ -2048,8 +2048,11 @@ class MiscFunctionComponent extends Object
                 kf.pos_id AS Id,
                 kf.name AS Name,
                 kf.acceptable_count AS AcceptableCount,
-                kf.salon_pos_id as SalonId
+                kf.salon_pos_id As SalonId 
             FROM kanzashi_facility kf
+            JOIN sipssbeauty_kanzashi.salon s 
+                ON s.POS_ID = kf.SALON_POS_ID 
+                AND s.status IN (5, 6, 7, 8, 9, 10, 11, 101, 102)
             WHERE 
                 kf.delflg IS NULL
                 {$salonid_cond}
@@ -2086,13 +2089,22 @@ class MiscFunctionComponent extends Object
                     sl.status AS Status,
                     CONVERT(st.sync_kanzashi_enabled_staff_reservation_only, UNSIGNED) AS SyncKanzashiEnabledStaffReservationOnly,
                     sl.free_staffcode AS FreeStaffcode,
-                    sl.is_main_salon AS IsMainSalon
+                    sl.is_main_salon AS IsMainSalon,
+                    sl.reservation_pay_enabled AS ReservationPayEnabled,
+                    sl.reservation_pay_default_price_type AS ReservationPayDefaultPriceType,
+                    sl.yoyaku_start AS YoyakuStart,
+                    sl.yoyaku_start_sat_sun AS YoyakuStartSatSun,
+                    sl.yoyaku_end AS YoyakuEnd,
+                    sl.yoyaku_end_sat_sun AS YoyakuEndSatSun,
+                    sl.yoyaku_customers_limit AS YoyakuCustomersLimit,
+                    CONVERT(sl.slide_reservation, UNSIGNED) AS SlideReservation
                 FROM sipssbeauty_kanzashi.salon AS sl
                 JOIN sipssbeauty_kanzashi.store AS st
                     USING(companyid, storecode)
                 WHERE
                     sl.companyid = :companyid AND
-                    sl.storecode = :storecode
+                    sl.storecode = :storecode AND
+                    sl.status IN (5, 6, 7, 8, 9, 10, 11, 101, 102)
         )AS salon
         ";
 
