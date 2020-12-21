@@ -1164,8 +1164,7 @@ class ServersController extends WebServicesController
             'storetype'         => 'tns:storetypeInformation',
             'allstoretype'      => 'tns:AllStoreTypes',
             'KanzashiSalons'    => 'tns:KanzashiSalons',
-            'KanzashiInfo'      => 'tns:KanzashiInfo',
-            'FACILITY_ENABLED'  => 'xsd:boolean'
+            'KanzashiInfo'      => 'tns:KanzashiInfo'
         )),
 
         '_AllStoreTypes' => array('struct' => array(
@@ -3334,9 +3333,6 @@ class ServersController extends WebServicesController
                         break;
                 }
             }
-
-            $arrReturn['FACILITY_ENABLED'] = $this->MiscFunction
-                ->IsFacilityEnabled($this, $arrReturn['dbname'], $arrReturn['storecode']);
 
             if ($arrReturn['YOYAKU_HYOU_OPEN_TIME'] == "") {
                 $arrReturn['YOYAKU_HYOU_OPEN_TIME'] = $arrReturn['OPEN_TIME'];
@@ -9317,18 +9313,18 @@ class ServersController extends WebServicesController
 
         $facilities['records'] = array();
         #----------------------------------------------------------------------------------------------------------------
-        if ($this->MiscFunction->IsFacilityEnabled($this, $storeinfo['dbname'], $param['STORECODE'])) {
-            $facilities = $this->MiscFunction
-                ->GetAvailableFacilities($this, $storeinfo['dbname']);
+        $facilities = $this->MiscFunction
+            ->GetAvailableFacilities($this, $storeinfo['dbname']);
 
+        if($facilities) {
             $programs = $this->MiscFunction->
                 GetFacilityPrograms($this, $storeinfo['dbname'], $storeinfo['companyid'], $param['STORECODE'], $param['date']);
-
+    
             foreach($facilities['records'] as &$facility) {
                 foreach($programs as &$program){
                     if($facility['Id'] != $program['FacilityId'])
                         continue;
-
+    
                     $facility['Programs'][] = $program;
                     unset($program);
                 }
