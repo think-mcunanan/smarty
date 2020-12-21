@@ -1872,7 +1872,8 @@ class MiscFunctionComponent extends Object
                 SQL_CALC_FOUND_ROWS
                 kf.pos_id AS Id,
                 kf.name AS Name,
-                kf.acceptable_count AS AcceptableCount 
+                kf.acceptable_count AS AcceptableCount,
+                kf.salon_pos_id As SalonId 
             FROM kanzashi_facility kf
             JOIN sipssbeauty_kanzashi.salon s 
                 ON s.POS_ID = kf.SALON_POS_ID 

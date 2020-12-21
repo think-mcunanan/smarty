@@ -1910,6 +1910,15 @@ class ServersController extends WebServicesController
             'array' => 'storeTransactionDetailInformation'
         ),
 
+        'storeTransactionFacility' => array('struct' => array(
+            'POSID'            => 'xsd:int',
+            'STARTTIME'        => 'xsd:string',
+            'ENDTIME'          => 'xsd:string'
+        )),
+        '_storeTransactionFacility' => array(
+            'array' => 'storeTransactionFacility'
+        ),
+
         'storeTransactionInformation' => array('struct' => array(
             'TRANSCODE'        => 'xsd:string',
             'KEYNO'            => 'xsd:int',
@@ -2009,6 +2018,7 @@ class ServersController extends WebServicesController
             'PUSH_TO_KANZASHI'  => 'xsd:string',
             'DESTINATION_KANZASHI_SALON_POS_ID' => 'xsd:int',
             'details'           => 'tns:_storeTransactionDetailInformation',
+            'facilities'        => 'tns:_storeTransactionFacility',
             'rejimarketing'     => 'tns:_rejiMarketingInformation'
         )),
         '_storeTransactionInformation' => array(
@@ -8738,6 +8748,37 @@ class ServersController extends WebServicesController
                         AND delflg is null";
 
                 $retQuery[$sqlctr] = $this->StoreTransaction->query($sql);
+                $sqlctr++;
+            }
+        }
+        #------------------------------------------------------------------------------------------------------------------------
+        # SAVE / UPDATE FACILITY TRANSACTION
+        #------------------------------------------------------------------------------------------------------------------------
+        $sql = "
+            DELETE FROM store_transaction_facilities
+            WHERE transcode = :transcode
+        ";
+        $retQuery[$sqlctr] = $this->StoreTransaction->query($sql, array('transcode' => $param['TRANSCODE']), false);
+        $sqlctr++;
+
+        if($param['facilities']) {
+            $sql = "
+                INSERT INTO store_transaction_facilities
+                    (transcode, rowno, facility_pos_id, start_time, end_time)
+                    VALUES(:transcode, :rowno, :facility_pos_id, :start_time, :end_time)
+            ";
+
+            for($row = 0; $row < count($param['facilities']); $row++) {
+
+                $params = array(
+                    'transcode' => $param['TRANSCODE'],
+                    'rowno' => $row + 1,
+                    'facility_pos_id' => $param['facilities'][$row]['POSID'],
+                    'start_time' => $param['facilities'][$row]['STARTTIME'],
+                    'end_time' => $param['facilities'][$row]['ENDTIME']
+                );
+
+                $retQuery[$sqlctr] = $this->StoreTransaction->query($sql, $params, false);
                 $sqlctr++;
             }
         }
