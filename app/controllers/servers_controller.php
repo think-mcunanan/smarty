@@ -8772,7 +8772,7 @@ class ServersController extends WebServicesController
 
                 $params = array(
                     'transcode' => $param['TRANSCODE'],
-                    'rowno' => $row,
+                    'rowno' => $row + 1,
                     'facility_pos_id' => $param['facilities'][$row]['POSID'],
                     'start_time' => $param['facilities'][$row]['STARTTIME'],
                     'end_time' => $param['facilities'][$row]['ENDTIME']
