@@ -1164,8 +1164,8 @@ class ServersController extends WebServicesController
             'storetype'         => 'tns:storetypeInformation',
             'allstoretype'      => 'tns:AllStoreTypes',
             'KanzashiSalons'    => 'tns:KanzashiSalons',
-            'KanzashiInfo'      => 'tns:KanzashiInfo',
-            'FACILITY_ENABLED'  => 'xsd:boolean'
+            'KanzashiConfig'    => 'tns:KanzashiConfig',
+            'KanzashiInfo'      => 'tns:KanzashiInfo'
         )),
 
         '_AllStoreTypes' => array('struct' => array(
@@ -1209,16 +1209,25 @@ class ServersController extends WebServicesController
             'array' => 'KanzashiSalon'
         ),
 
+        'KanzashiConfig' => array(
+            'struct' => array(
+                'HairSigninHashKey'   => 'xsd:string',
+                'HairSigninMedia'     => 'xsd:string',
+                'HairSigninUrl'       => 'xsd:string',
+                'HairSigninVersion'   => 'xsd:string',
+                'KireiSigninHashKey'  => 'xsd:string',
+                'KireiSigninMedia'    => 'xsd:string',
+                'KireiSigninUrl'      => 'xsd:string',
+                'KireiSigninVersion'  => 'xsd:string'
+            )
+        ),
+
         'KanzashiInfo' => array(
             'struct' => array(
                 'KanzashiId'                              => 'xsd:int',
                 'Status'                                  => 'xsd:int',
                 'SyncKanzashiEnabledStaffReservationOnly' => 'xsd:boolean',
-                'FreeStaffcode'                           => 'xsd:int',
-                'SigninUrl'                               => 'xsd:string',
-                'SigninHashKey'                           => 'xsd:string',
-                'SigninMedia'                             => 'xsd:string',
-                'SigninVersion'                           => 'xsd:string'
+                'FreeStaffcode'                           => 'xsd:int'
             )
         ),
 
@@ -3343,9 +3352,6 @@ class ServersController extends WebServicesController
                 }
             }
 
-            $arrReturn['FACILITY_ENABLED'] = $this->MiscFunction
-                ->IsFacilityEnabled($this, $arrReturn['dbname'], $arrReturn['storecode']);
-
             if ($arrReturn['YOYAKU_HYOU_OPEN_TIME'] == "") {
                 $arrReturn['YOYAKU_HYOU_OPEN_TIME'] = $arrReturn['OPEN_TIME'];
                 $arrReturn['YOYAKU_HYOU_CLOSE_TIME'] = $arrReturn['CLOSE_TIME'];
@@ -3434,12 +3440,36 @@ class ServersController extends WebServicesController
                     'KanzashiId'                              => $salons[0]['KanzashiId'],
                     'Status'                                  => $salons[0]['Status'],
                     'SyncKanzashiEnabledStaffReservationOnly' => (bool)$salons[0]['SyncKanzashiEnabledStaffReservationOnly'],
-                    'FreeStaffcode'                           => $salons[0]['FreeStaffcode'],
-                    'SigninUrl'                               => KANZASHI_SIGNIN_URL,
-                    'SigninHashKey'                           => KANZASHI_SIGNIN_HASH_KEY,
-                    'SigninMedia'                             => KANZASHI_SIGNIN_MEDIA,
-                    'SigninVersion'                           => KANZASHI_SIGNIN_VERSION
+                    'FreeStaffcode'                           => $salons[0]['FreeStaffcode']
                 );
+
+                $Sql = "
+                SELECT
+                    hair_signin_hash_key AS HairSigninHashKey,
+                    hair_signin_media AS HairSigninMedia,
+                    hair_signin_url AS HairSigninUrl,
+                    hair_signin_version AS HairSigninVersion,
+                    kirei_signin_hash_key AS KireiSigninHashKey,
+                    kirei_signin_media AS KireiSigninMedia,
+                    kirei_signin_url AS KireiSigninUrl,
+                    kirei_signin_version AS KireiSigninVersion
+                FROM
+                    sipssbeauty_kanzashi.configuration";
+                $result = $this->StoreSettings->query($Sql);
+                $kanzashiConfig = $result[0]['configuration'];
+
+                if ($kanzashiConfig) {
+                    $arrReturn['KanzashiConfig'] = array(
+                        'HairSigninHashKey'     => $kanzashiConfig['HairSigninHashKey'],
+                        'HairSigninMedia'       => $kanzashiConfig['HairSigninMedia'],
+                        'HairSigninUrl'         => $kanzashiConfig['HairSigninUrl'],
+                        'HairSigninVersion'     => $kanzashiConfig['HairSigninVersion'],
+                        'KireiSigninHashKey'    => $kanzashiConfig['KireiSigninHashKey'],
+                        'KireiSigninMedia'      => $kanzashiConfig['KireiSigninMedia'],
+                        'KireiSigninUrl'        => $kanzashiConfig['KireiSigninUrl'],
+                        'KireiSigninVersion'    => $kanzashiConfig['KireiSigninVersion']
+                    );
+                }
 
             }
             $arrReturn['KanzashiSalons'] = $salons;
@@ -8025,7 +8055,7 @@ class ServersController extends WebServicesController
                 LEFT JOIN drejimarketing
 					ON drejimarketing.TRANSCODE = `transaction`.TRANSCODE
 					AND drejimarketing.KEYNO = `transaction`.KEYNO
-                    AND drejimarketing.DELFLG IS NULL
+					AND drejimarketing.DELFLG IS NULL
                 WHERE transaction.DELFLG IS NULL
                     AND details.DELFLG IS NULL
                     " . $trantype1 . $condition . $storecond . "
@@ -9332,11 +9362,10 @@ class ServersController extends WebServicesController
 
         $facilities['records'] = array();
         #----------------------------------------------------------------------------------------------------------------
+        $facilities = $this->MiscFunction
+            ->GetAvailableFacilities($this, $storeinfo['dbname']);
 
-        if ($this->MiscFunction->IsFacilityEnabled($this, $storeinfo['dbname'], $param['STORECODE'])) {
-            $facilities = $this->MiscFunction
-                ->GetAvailableFacilities($this, $storeinfo['dbname']);
-
+        if($facilities) {
             $programs = $this->MiscFunction->
                 GetFacilityPrograms($this, $storeinfo['dbname'], $storeinfo['companyid'], $param['STORECODE'], $param['date']);
 

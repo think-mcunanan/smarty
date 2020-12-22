@@ -1988,32 +1988,6 @@ class MiscFunctionComponent extends Object
     }
 
     /**
-     * Determine whether Facility is Enabled
-     *
-     * @param controller &$controller
-     * @param string $dbname
-     * @param int $storecode 
-     * @return boolean 
-     */
-    function IsFacilityEnabled(&$controller, $dbname, $storecode)
-    {
-        $controller->Store->set_company_database($dbname, $controller->Store);
-        $query = "
-            SELECT *
-            FROM store_settings
-            WHERE 
-                storecode = :storecode AND
-                optionname = 'FacilityEnabled' AND
-                optionvaluei = 1
-        ";
-
-        $param = compact('storecode');
-        $result = $controller->Store->query($query, $param, false);
-
-        return (bool)$result;
-    }
-
-    /**
      * Get the available Facilities
      *
      * @param controller &$controller
