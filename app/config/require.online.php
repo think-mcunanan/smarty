@@ -46,10 +46,6 @@ define('MOBASUTE_PATH', 'http://www.bmy.jp/');
 define('EMAIL_DOMAIN', 'bmy.jp');
 
 //-- かんざし設定 --//
-define('KANZASHI_SIGNIN_URL', 'https://kanzashi.com/signin');
-define('KANZASHI_SIGNIN_HASH_KEY', 'vasahGa8Aephix9Goon9cheiMoh9Ahshish7lae1quei9eapi9paighiivieph2porahnei4ao6pha6phaephieFae');
-define('KANZASHI_SIGNIN_MEDIA', 'THK');
-define('KANZASHI_SIGNIN_VERSION', 'v1');
 define('KANZASHI_PATH', 'https://kanzashiapi.sipss.jp');
 
 //-- Webプロキシ --//
