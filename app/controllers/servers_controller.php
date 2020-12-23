@@ -8123,13 +8123,12 @@ class ServersController extends WebServicesController
                 $facility_trans = $this->MiscFunction->GetFacilityTrans($this, $storeinfo['dbname'], $param['STORECODE'], $param['date']);
                 if ($facility_trans) {
                     foreach ($data as &$trans) {
-                        foreach ($facility_trans as $fkey => $facility) {
+                        foreach ($facility_trans as $facility) {
                             if ($trans['TRANSCODE'] !== $facility['TRANSCODE']) {
                                 continue;
                             }
 
                             $trans['facilities'][] = $facility;
-                            unset($facility_trans[$fkey]);
                         }
                     }
                 }
