@@ -1027,6 +1027,7 @@ class ServersController extends WebServicesController
             'doc'    => '日毎かんざし時間別予約可能数取得',
             'input'  => array(
                 'sessionid' => 'xsd:string',
+                'salonid'   => 'xsd:int',
                 'storecode' => 'xsd:int',
                 'ymd'       => 'xsd:date'
             ),
@@ -11207,10 +11208,11 @@ class ServersController extends WebServicesController
      *
      * @param string $sessionid セッションID
      * @param int $storecode 店舗コード
+     * @param int $salonid サロンID
      * @param string $ymd 年月日
      * @return kanzashiCustomersLimit かんざし時間別予約可能数
      */
-    function wsGetDailyKanzashiCustomersLimit($sessionid, $storecode, $ymd)
+    function wsGetDailyKanzashiCustomersLimit($sessionid, $salonid, $storecode, $ymd)
     {
         $storeinfo = $this->YoyakuSession->Check($this);
 
@@ -11218,7 +11220,7 @@ class ServersController extends WebServicesController
             $this->_soap_server->fault(1, '', INVALID_SESSION);
             return;
         }
-        return $this->MiscFunction->GetDailyKanzashiCustomersLimit($this, $storeinfo['dbname'], $storecode, $ymd);
+        return $this->MiscFunction->GetDailyKanzashiCustomersLimit($this, $storeinfo['dbname'], $salonid, $storecode, $ymd);
     }
 
     /**

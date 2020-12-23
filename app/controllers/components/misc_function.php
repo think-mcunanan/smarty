@@ -1953,35 +1953,47 @@ class MiscFunctionComponent extends Object
      *
      * @param controller &$controller
      * @param string $dbname
+     * @param int $salonid サロンID
      * @param int $storecode 店舗コード
      * @param string $ymd 年月日
      * @return kanzashiCustomersLimit かんざし時間別予約可能数
      */
-    function GetDailyKanzashiCustomersLimit(&$controller, $dbname, $storecode, $ymd)
+    function GetDailyKanzashiCustomersLimit(&$controller, $dbname, $salonid, $storecode, $ymd)
     {
-
         $controller->StoreHoliday->set_company_database($dbname, $controller->StoreHoliday);
 
+        $salonid_cond = $salonid > 0 ? 'kcl.salon_pos_id = :salonid AND' :  '';
+
         $query = "
-            SELECT
-                ymd,
-                begin_time,
-                end_time,
-                limit_count
-            FROM kanzashi_customers_limit
-            WHERE
-                storecode = ? AND
-                ymd = ?
-            ORDER BY
-                begin_time
+            SELECT *
+            FROM (
+                SELECT
+                    kcl.ymd,
+                    kcl.begin_time,
+                    kcl.end_time,
+                    kcl.limit_count
+                FROM kanzashi_customers_limit_per_salon kcl
+                JOIN sipssbeauty_kanzashi.salon s
+                    ON s.pos_id = kcl.salon_pos_id
+                WHERE
+                    {$salonid_cond}
+                    s.storecode = :storecode AND
+                    kcl.ymd = :ymd
+                ORDER BY
+                    begin_time
+            ) as kcl
         ";
 
-        $param = array($storecode, $ymd);
-        $records = $controller->StoreHoliday->query($query, $param, false);
+        $params = compact(
+            'salonid', 
+            'storecode',
+            'ymd'
+        );
+        $records = $controller->StoreHoliday->query($query, $params, false);
         $result = array();
 
         foreach ($records as $record) {
-            $result[] = $record['kanzashi_customers_limit'];
+            $result[] = $record['kcl'];
         }
 
         return $result;
