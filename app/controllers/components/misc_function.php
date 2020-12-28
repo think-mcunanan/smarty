@@ -2120,7 +2120,7 @@ class MiscFunctionComponent extends Object
                 s.companyid = :companyid AND
                 s.storecode = :storecode
             ORDER BY
-                kfp.facility_pos_id AND
+                kfp.facility_pos_id, 
                 kfp.start_time
         ";
 
