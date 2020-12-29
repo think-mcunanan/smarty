@@ -1459,7 +1459,7 @@ class MiscFunctionComponent extends Object
 
                 if (
                     $trans['STARTTIME'] < $program['ENDTIME'] &&
-                    $program['ENDTIME'] > $trans['STARTTIME']
+                    $trans['ENDTIME'] > $program['STARTTIME']
                 ) {
                     return true;
                 }
