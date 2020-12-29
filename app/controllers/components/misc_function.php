@@ -2177,7 +2177,7 @@ class MiscFunctionComponent extends Object
      * @param string $dbname
      * @param int $storecode 
      * @param string $transdate
-     * @param string $transcode
+     * @param string $exclude_transcode
      * @param array $facility_pos_ids
      * @return array 
      */
@@ -2186,10 +2186,10 @@ class MiscFunctionComponent extends Object
         $dbname,
         $storecode,
         $transdate,
-        $transcode = null,
+        $exclude_transcode = null,
         $facility_pos_ids = array()
     ) {
-        $transcode_cond = $transcode ? 'AND st.transcode <> :transcode' : '';
+        $transcode_cond = $exclude_transcode ? 'AND st.transcode <> :exclude_transcode' : '';
         $facility_pos_id_cond = $facility_pos_ids ?
             'AND kf.pos_id IN (' . implode(',', $facility_pos_ids) . ')' : '';
 
@@ -2220,7 +2220,7 @@ class MiscFunctionComponent extends Object
             ) as facilities
         ";
 
-        $params = compact('storecode', 'transdate', 'transcode');
+        $params = compact('storecode', 'transdate', 'exclude_transcode');
         $controller->StoreTransaction->set_company_database($dbname, $controller->StoreTransaction);
         $rs = $controller->StoreTransaction->query($query, $params, false);
         $set = new Set();
