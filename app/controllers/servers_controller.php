@@ -1386,11 +1386,13 @@ class ServersController extends WebServicesController
         )),
 
         'facilityInformation' => array('struct' => array(
-            'Id'               => 'xsd:int',
-            'Name'             => 'xsd:string',
-            'SalonId'          => 'xsd:int',
-            'AcceptableCount'  => 'xsd:int',
-            'Programs'          => 'tns:_facilityProgramInformation'
+            'Id' => 'xsd:int',
+            'Name' => 'xsd:string',
+            'SalonId' => 'xsd:int',
+            'AcceptableCount' => 'xsd:int',
+            'OriginalAcceptableCount' => 'xsd:int',
+            'Programs' => 'tns:_facilityProgramInformation',
+            'Transaction' => 'tns:return_storeTransactionInformation',
         )),
 
         '_facilityInformation' => array(
@@ -1922,6 +1924,7 @@ class ServersController extends WebServicesController
 
         'storeTransactionFacility' => array('struct' => array(
             'POSID'            => 'xsd:int',
+            'NAME'             => 'xsd:string',
             'STARTTIME'        => 'xsd:string',
             'ENDTIME'          => 'xsd:string'
         )),
@@ -1969,6 +1972,7 @@ class ServersController extends WebServicesController
             'UPDATEDATE'       => 'xsd:string',
             'newcustomer'      => 'xsd:int',
             'ignoreConflict'   => 'xsd:int',
+            'IgnoreFacilityConflict' => 'xsd:boolean',
             'newRowValue'      => 'xsd:int',
             'newPhoneRowValue' => 'xsd:int',
             'UKETSUKEDATE'     => 'xsd:string',
@@ -2045,7 +2049,11 @@ class ServersController extends WebServicesController
             'IDNO'          => 'xsd:int',
             'CCODE'         => 'xsd:string',
             'CNUMBER'       => 'xsd:string',
-            'UPDATEDATE'    => 'xsd:string'
+            'UPDATEDATE'    => 'xsd:string',
+            'ROW'           => 'xsd:int',
+            'PHONEROW'      => 'xsd:int',
+            'TRANSCONFLICTED' => 'xsd:boolean',
+            'FACILITYTRANSCONFLICTED' => 'xsd:boolean'
         )),
         //- ####################################################
 
@@ -8115,24 +8123,23 @@ class ServersController extends WebServicesController
                 }
                 //-----------------------------------------------------------------------------------------------------------------
                 unset($GetDataMarketing, $mkgrouped);
+
+                $facility_trans = $this->MiscFunction->GetFacilityTrans($this, $storeinfo['dbname'], $param['STORECODE'], $param['date']);
+                if ($facility_trans) {
+                    foreach ($data as &$trans) {
+                        foreach ($facility_trans as $facility) {
+                            if ($trans['TRANSCODE'] !== $facility['TRANSCODE']) {
+                                continue;
+                            }
+
+                            $trans['facilities'][] = $facility;
+                        }
+                    }
+                }
             } //end if
             //---------------------------------------------------------------------------------------------------------------------
-            /*$arr_reji_marketing = array();
-            $ctr = 0;
-            $trans_ctr = 0;
-            foreach ($data as $arr_reji) {
-            $arr_reji_marketing = array();
-            foreach ($arr_reji['rejimarketing'] as $arr_marketing) {
-            $arr_reji_marketing[$ctr] = $arr_marketing['tblresult'];
-            $ctr++;
-            }//end foreach
-            $data[$trans_ctr]['rejimarketing'] = $arr_reji_marketing;
-            $trans_ctr++;
-            }//end foreach*/
         }
         //---------------------------------------------------------------------------------------------------------------------
-
-
 
         $ret = array();
         $ret['records']      = $data;
@@ -8203,9 +8210,9 @@ class ServersController extends WebServicesController
             $reply = $this->MiscFunction->CheckTransactionConflict($this, $subparam);
 
             if ($reply['response'] == 'CONFLICT') {
-                $ret['TRANSCODE'] = "0";
-                $ret['KEYNO']     = $reply['Row'];
-                $ret['IDNO']      = $reply['PhoneRow'];
+                $ret['TRANSCONFLICTED'] = true;
+                $ret['ROW']     = $reply['Row'];
+                $ret['PHONEROW']      = $reply['PhoneRow'];
 
                 return $ret;
             }
@@ -8217,6 +8224,13 @@ class ServersController extends WebServicesController
             $subparam['PHONEROWS'] = $param['newPhoneRowValue'];
 
             $this->wsAddUpdateStaffRowsHistory($sessionid, $subparam);
+        }
+
+        if($param['facilities'] && !$param['IgnoreFacilityConflict']) {
+            if($this->MiscFunction->FacilityTransConflict($this, $storeinfo['dbname'], $param)){
+                $ret['FACILITYTRANSCONFLICTED'] = true;
+                return $ret;
+            }
         }
 
         //---------------------------------------------------------------------------
@@ -9357,19 +9371,20 @@ class ServersController extends WebServicesController
         if($facilities) {
             $programs = $this->MiscFunction->
                 GetFacilityPrograms($this, $storeinfo['dbname'], $storeinfo['companyid'], $param['STORECODE'], $param['date']);
-    
-            foreach($facilities['records'] as &$facility) {
-                foreach($programs as &$program){
-                    if($facility['Id'] != $program['FacilityId'])
-                        continue;
-    
-                    $facility['Programs'][] = $program;
-                    unset($program);
-                }
-            }
-        }
 
-        //print_r($facilities); exit;
+                foreach($facilities['records'] as &$facility) {
+                    //Assign facility programs
+                    foreach($programs as &$program){
+                        if($facility['Id'] != $program['FacilityId'])
+                            continue;
+        
+                        $facility['Programs'][] = $program;
+                        unset($program);
+                    }
+                }
+
+            $facilities = $this->MiscFunction->ParseFacilityTrans($facilities, $transaction['records']);
+        }
 
         //--------------------------------------------------------------------------------------------------------
         $staff          = $this->wsSearchAvailableStaff($sessionid, $param);
@@ -10047,6 +10062,8 @@ class ServersController extends WebServicesController
                     `transaction`.UPDATEDATE,
                     `transaction`.YOYAKU,
                     `transaction`.ZEIOPTION,
+                    `transaction`.PUSH_TO_KANZASHI,
+                    `transaction`.DESTINATION_KANZASHI_SALON_POS_ID,
                     details.TRANSCODE,
                     details.ROWNO,
                     details.GCODE,
