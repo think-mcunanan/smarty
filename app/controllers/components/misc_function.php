@@ -186,6 +186,9 @@ class MiscFunctionComponent extends Object
             $arrStaff[$i]['StaffAssignToStore']['TRAVEL_ALLOWANCE'] = $arrStaff[$i]['Staff']['TRAVEL_ALLOWANCE'];
             //---------------------------------------------------------------------------------------
             $arrStaff[$i]['StaffAssignToStore']['KANZASHI_ENABLED'] = !is_null($arrStaff[$i]['StaffAssignToStore']['KANZASHI_SALON_POS_ID']);
+            if ($arrStaff[$i]['StaffAssignToStore']['KANZASHI_ENABLED']){
+                $arrStaff[$i]['StaffAssignToStore']['KANZASHI_SALON_POS_ID'] = (int)$arrStaff[$i]['StaffAssignToStore']['KANZASHI_SALON_POS_ID'];
+            }
             //---------------------------------------------------------------------------------------
         } //end for
 
@@ -1456,7 +1459,7 @@ class MiscFunctionComponent extends Object
 
                 if (
                     $trans['STARTTIME'] < $program['ENDTIME'] &&
-                    $program['ENDTIME'] > $trans['STARTTIME']
+                    $trans['ENDTIME'] > $program['STARTTIME']
                 ) {
                     return true;
                 }
@@ -2129,7 +2132,7 @@ class MiscFunctionComponent extends Object
                 s.companyid = :companyid AND
                 s.storecode = :storecode
             ORDER BY
-                kfp.facility_pos_id AND
+                kfp.facility_pos_id, 
                 kfp.start_time
         ";
 
@@ -2186,7 +2189,7 @@ class MiscFunctionComponent extends Object
      * @param string $dbname
      * @param int $storecode 
      * @param string $transdate
-     * @param string $transcode
+     * @param string $exclude_transcode
      * @param array $facility_pos_ids
      * @return array 
      */
@@ -2195,10 +2198,10 @@ class MiscFunctionComponent extends Object
         $dbname,
         $storecode,
         $transdate,
-        $transcode = null,
+        $exclude_transcode = null,
         $facility_pos_ids = array()
     ) {
-        $transcode_cond = $transcode ? 'AND st.transcode <> :transcode' : '';
+        $transcode_cond = $exclude_transcode ? 'AND st.transcode <> :exclude_transcode' : '';
         $facility_pos_id_cond = $facility_pos_ids ?
             'AND kf.pos_id IN (' . implode(',', $facility_pos_ids) . ')' : '';
 
@@ -2229,7 +2232,7 @@ class MiscFunctionComponent extends Object
             ) as facilities
         ";
 
-        $params = compact('storecode', 'transdate', 'transcode');
+        $params = compact('storecode', 'transdate', 'exclude_transcode');
         $controller->StoreTransaction->set_company_database($dbname, $controller->StoreTransaction);
         $rs = $controller->StoreTransaction->query($query, $params, false);
         $set = new Set();
