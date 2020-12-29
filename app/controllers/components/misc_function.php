@@ -1959,13 +1959,14 @@ class MiscFunctionComponent extends Object
      * @param int $salonid サロンID
      * @param int $storecode 店舗コード
      * @param string $ymd 年月日
+     * @param boolean $filter_with_salonid 
      * @return kanzashiCustomersLimit かんざし時間別予約可能数
      */
-    function GetDailyKanzashiCustomersLimit(&$controller, $dbname, $salonid, $storecode, $ymd)
+    function GetDailyKanzashiCustomersLimit(&$controller, $dbname, $salonid, $storecode, $ymd, $filter_with_salonid)
     {
         $controller->StoreHoliday->set_company_database($dbname, $controller->StoreHoliday);
 
-        $salonid_cond = $salonid > 0 ? 'kcl.salon_pos_id = :salonid AND' :  '';
+        $salonid_cond = $filter_with_salonid ? 'kcl.salon_pos_id = :salonid AND' :  '';
 
         $query = "
             SELECT *
