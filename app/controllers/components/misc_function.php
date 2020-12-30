@@ -2004,6 +2004,49 @@ class MiscFunctionComponent extends Object
     }
 
     /**
+     * Note: Since Web Yoyaku does not yet support multiple
+     * Kanzashi Account, so it will get data from the old table.
+     * This should be replace when Web Yoyaku support mulitple Kanzashi Account.
+     * 
+     * 日毎かんざし時間別予約可能数取得
+     *
+     * @param controller &$controller
+     * @param string $dbname
+     * @param int $storecode 店舗コード
+     * @param string $ymd 年月日
+     * @return kanzashiCustomersLimit かんざし時間別予約可能数
+     */
+    function GetDailyKanzashiCustomersLimitFromOldTable(&$controller, $dbname, $storecode, $ymd)
+    {
+
+        $controller->StoreHoliday->set_company_database($dbname, $controller->StoreHoliday);
+
+        $query = "
+            SELECT
+                ymd,
+                begin_time,
+                end_time,
+                limit_count
+            FROM kanzashi_customers_limit
+            WHERE
+                storecode = ? AND
+                ymd = ?
+            ORDER BY
+                begin_time
+        ";
+
+        $param = array($storecode, $ymd);
+        $records = $controller->StoreHoliday->query($query, $param, false);
+        $result = array();
+
+        foreach ($records as $record) {
+            $result[] = $record['kanzashi_customers_limit'];
+        }
+
+        return $result;
+    }
+
+    /**
      * Get the available Facilities
      *
      * @param controller &$controller

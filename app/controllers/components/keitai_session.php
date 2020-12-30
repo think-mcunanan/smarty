@@ -1815,7 +1815,9 @@ class KeitaiSessionComponent extends Object
         }
         //-----------------------------------------------------------------------------------
         if ($kanzashiFlag){
-            $kanzashiDetails = $controller->MiscFunction->GetDailyKanzashiCustomersLimit($controller, $session_info['dbname'], $storecode, $sel_date);
+            //Note that since Web yoyaku does not have support for Multiple Kanzashi Account, it will still get the data from the old table.
+            //this should be change when Web Yoyaku can support multiple Kanzashi Account.
+            $kanzashiDetails = $controller->MiscFunction->GetDailyKanzashiCustomersLimitFromOldTable($controller, $session_info['dbname'], $storecode, $sel_date);
             if ($kanzashiDetails) {
 
                 $StoreOpenTime = new DateTime($kanzashiDetails[0]['begin_time']);
