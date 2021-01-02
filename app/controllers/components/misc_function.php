@@ -2052,21 +2052,22 @@ class MiscFunctionComponent extends Object
      * @param controller &$controller
      * @param string $dbname
      * @param int $salonid
+     * @param int $storecode
      * @param int $page
      * @param int $pagelimit
      * @return array
      */
-    function GetAvailableFacilities(&$controller, $dbname, $salonid = null, $page = null, $pagelimit = null) 
+    function GetAvailableFacilities(&$controller, $dbname, $storecode, $salonid = null, $page = null, $pagelimit = null) 
     {
         $controller->Store->set_company_database($dbname, $controller->Store);
 
-        $params = array();
+        $params = compact('storecode');
         $salonid_cond = '';
         $pageging_cond = '';
 
         if($salonid !== null){
             $salonid_cond = 'AND salon_pos_id = :salonid';
-            $params = compact('salonid');
+            $params += compact('salonid');
         } 
 
         if($page !== null){
@@ -2087,7 +2088,8 @@ class MiscFunctionComponent extends Object
                 ON s.POS_ID = kf.SALON_POS_ID 
                 AND s.status IN (5, 6, 7, 8, 9, 10, 11, 101, 102)
             WHERE 
-                kf.delflg IS NULL
+                kf.delflg IS NULL AND
+                s.storecode = :storecode
                 {$salonid_cond}
             {$pageging_cond}
         ";
