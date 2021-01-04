@@ -1027,8 +1027,10 @@ class ServersController extends WebServicesController
             'doc'    => '日毎かんざし時間別予約可能数取得',
             'input'  => array(
                 'sessionid' => 'xsd:string',
+                'salonid'   => 'xsd:int',
                 'storecode' => 'xsd:int',
-                'ymd'       => 'xsd:date'
+                'ymd'       => 'xsd:date',
+                'filter_with_salonid' => 'xsd:boolean'
             ),
             'output' => array('return' => 'tns:_kanzashiCustomersLimit')
         ),
@@ -9366,7 +9368,7 @@ class ServersController extends WebServicesController
         $facilities['records'] = array();
         #----------------------------------------------------------------------------------------------------------------
         $facilities = $this->MiscFunction
-            ->GetAvailableFacilities($this, $storeinfo['dbname']);
+            ->GetAvailableFacilities($this, $storeinfo['dbname'], $param['STORECODE']);
 
         if($facilities) {
             $programs = $this->MiscFunction->
@@ -11239,10 +11241,12 @@ class ServersController extends WebServicesController
      *
      * @param string $sessionid セッションID
      * @param int $storecode 店舗コード
+     * @param int $salonid サロンID
      * @param string $ymd 年月日
+     * @param boolean $filter_with_salonid 
      * @return kanzashiCustomersLimit かんざし時間別予約可能数
      */
-    function wsGetDailyKanzashiCustomersLimit($sessionid, $storecode, $ymd)
+    function wsGetDailyKanzashiCustomersLimit($sessionid, $salonid, $storecode, $ymd, $filter_with_salonid)
     {
         $storeinfo = $this->YoyakuSession->Check($this);
 
@@ -11250,7 +11254,7 @@ class ServersController extends WebServicesController
             $this->_soap_server->fault(1, '', INVALID_SESSION);
             return;
         }
-        return $this->MiscFunction->GetDailyKanzashiCustomersLimit($this, $storeinfo['dbname'], $storecode, $ymd);
+        return $this->MiscFunction->GetDailyKanzashiCustomersLimit($this, $storeinfo['dbname'], $salonid, $storecode, $ymd, $filter_with_salonid);
     }
 
     /**
@@ -11584,7 +11588,7 @@ class ServersController extends WebServicesController
         }
         
         return $this->MiscFunction->GetAvailableFacilities(
-            $this, $storeinfo['dbname'], $salonid, $page, $pagelimit
+            $this, $storeinfo['dbname'], null, $salonid, $page, $pagelimit
         );
     }
 

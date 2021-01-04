@@ -1956,11 +1956,67 @@ class MiscFunctionComponent extends Object
      *
      * @param controller &$controller
      * @param string $dbname
+     * @param int $salonid サロンID
+     * @param int $storecode 店舗コード
+     * @param string $ymd 年月日
+     * @param boolean $filter_with_salonid 
+     * @return kanzashiCustomersLimit かんざし時間別予約可能数
+     */
+    function GetDailyKanzashiCustomersLimit(&$controller, $dbname, $salonid, $storecode, $ymd, $filter_with_salonid)
+    {
+        $controller->StoreHoliday->set_company_database($dbname, $controller->StoreHoliday);
+
+        $salonid_cond = $filter_with_salonid ? 'kcl.salon_pos_id = :salonid AND' :  '';
+
+        $query = "
+            SELECT *
+            FROM (
+                SELECT
+                    kcl.ymd,
+                    kcl.begin_time,
+                    kcl.end_time,
+                    kcl.limit_count
+                FROM kanzashi_customers_limit_per_salon kcl
+                JOIN sipssbeauty_kanzashi.salon s
+                    ON s.pos_id = kcl.salon_pos_id
+                WHERE
+                    {$salonid_cond}
+                    s.storecode = :storecode AND
+                    kcl.ymd = :ymd
+                ORDER BY
+                    begin_time
+            ) as kcl
+        ";
+
+        $params = compact(
+            'salonid', 
+            'storecode',
+            'ymd'
+        );
+        $records = $controller->StoreHoliday->query($query, $params, false);
+        $result = array();
+
+        foreach ($records as $record) {
+            $result[] = $record['kcl'];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Note: Since Web Yoyaku does not yet support multiple
+     * Kanzashi Account, so it will get data from the old table.
+     * This should be replace when Web Yoyaku support mulitple Kanzashi Account.
+     * 
+     * 日毎かんざし時間別予約可能数取得
+     *
+     * @param controller &$controller
+     * @param string $dbname
      * @param int $storecode 店舗コード
      * @param string $ymd 年月日
      * @return kanzashiCustomersLimit かんざし時間別予約可能数
      */
-    function GetDailyKanzashiCustomersLimit(&$controller, $dbname, $storecode, $ymd)
+    function GetDailyKanzashiCustomersLimitFromOldTable(&$controller, $dbname, $storecode, $ymd)
     {
 
         $controller->StoreHoliday->set_company_database($dbname, $controller->StoreHoliday);
@@ -1996,21 +2052,28 @@ class MiscFunctionComponent extends Object
      * @param controller &$controller
      * @param string $dbname
      * @param int $salonid
+     * @param int $storecode
      * @param int $page
      * @param int $pagelimit
      * @return array
      */
-    function GetAvailableFacilities(&$controller, $dbname, $salonid = null, $page = null, $pagelimit = null) 
+    function GetAvailableFacilities(&$controller, $dbname, $storecode = null, $salonid = null, $page = null, $pagelimit = null) 
     {
         $controller->Store->set_company_database($dbname, $controller->Store);
 
-        $params = array();
+        $params = array(); 
+        $storecode_cond = '';
         $salonid_cond = '';
         $pageging_cond = '';
 
+        if($storecode !== null){
+            $storecode_cond = 'AND s.storecode = :storecode';
+            $params += compact('storecode');
+        } 
+
         if($salonid !== null){
             $salonid_cond = 'AND salon_pos_id = :salonid';
-            $params = compact('salonid');
+            $params += compact('salonid');
         } 
 
         if($page !== null){
@@ -2031,7 +2094,8 @@ class MiscFunctionComponent extends Object
                 ON s.POS_ID = kf.SALON_POS_ID 
                 AND s.status IN (5, 6, 7, 8, 9, 10, 11, 101, 102)
             WHERE 
-                kf.delflg IS NULL
+                kf.delflg IS NULL 
+                {$storecode_cond}
                 {$salonid_cond}
             {$pageging_cond}
         ";
