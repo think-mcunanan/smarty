@@ -1120,7 +1120,6 @@ class ServersController extends WebServicesController
             'doc'    => '設備を取得する',
             'input'  => array(
                 'sessionid'     => 'xsd:string',
-                'storecode'     => 'xsd:int',
                 'salonid'       => 'xsd:int',
                 'page'          => 'xsd:int',
                 'pagelimit'     => 'xsd:int'
@@ -11574,13 +11573,12 @@ class ServersController extends WebServicesController
     /**
      * Summary of wsGetFacilities
      * @param string $sessionid
-     * @param int $storecode
      * @param int $salonid
      * @param int $page
      * @param int $pagelimit
      * @return return_facilityInformation
      */
-    public function wsGetFacilities($sessionid, $storecode, $salonid, $page, $pagelimit)
+    public function wsGetFacilities($sessionid, $salonid, $page, $pagelimit)
     {
         $storeinfo = $this->YoyakuSession->Check($this);
 
@@ -11590,7 +11588,7 @@ class ServersController extends WebServicesController
         }
         
         return $this->MiscFunction->GetAvailableFacilities(
-            $this, $storeinfo['dbname'], $storecode, $salonid, $page, $pagelimit
+            $this, $storeinfo['dbname'], null, $salonid, $page, $pagelimit
         );
     }
 
