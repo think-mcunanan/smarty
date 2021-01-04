@@ -1918,7 +1918,8 @@ class ServersController extends WebServicesController
             'QUANTITY'         => 'xsd:int',
             'TOTALTAX'         => 'xsd:int',
             'PRICETAXINC'      => 'xsd:int',
-            'ISMENUDELETED'    => 'xsd:int'
+            'ISMENUDELETED'    => 'xsd:int',
+            'STYLIST_SALON_POS_ID' => 'xsd:int'
         )),
         '_storeTransactionDetailInformation' => array(
             'array' => 'storeTransactionDetailInformation'
@@ -7776,7 +7777,8 @@ class ServersController extends WebServicesController
                         transaction.origination, bmtble.staffname as bmstaff, str_bm_notes.secondnote as secondnote,
                         transaction.MAINSTAFFCODE,
                         transaction.PUSH_TO_KANZASHI,
-                        transaction.DESTINATION_KANZASHI_SALON_POS_ID
+                        transaction.DESTINATION_KANZASHI_SALON_POS_ID,
+                        kanzashi_stylist.SALON_POS_ID STYLIST_SALON_POS_ID
                 FROM store_transaction as transaction
                     LEFT JOIN store_transaction_details as details ON
                         transaction.TRANSCODE = details.TRANSCODE AND
@@ -8062,6 +8064,8 @@ class ServersController extends WebServicesController
 					ON drejimarketing.TRANSCODE = `transaction`.TRANSCODE
 					AND drejimarketing.KEYNO = `transaction`.KEYNO
 					AND drejimarketing.DELFLG IS NULL
+                LEFT JOIN kanzashi_stylist ON
+                    kanzashi_stylist.STAFFCODE = details.STAFFCODE AND kanzashi_stylist.IS_DISABLED = 0
                 WHERE transaction.DELFLG IS NULL
                     AND details.DELFLG IS NULL
                     " . $trantype1 . $condition . $storecond . "
