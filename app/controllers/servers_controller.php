@@ -2128,12 +2128,12 @@ class ServersController extends WebServicesController
 
         // DATA OF THE DAY -------------------------------------
         'dataOfTheDaySearchCriteria' => array('struct' => array(
-            'STORECODE'   => 'xsd:int',
-            'STAFFCODE'   => 'xsd:int',
-            'useYoyakuMessage'   => 'xsd:int',
-            'date'        => 'xsd:string',
-            'PRIORITYTYPE'        => 'xsd:int',
-            'kanzashiSalonId' => 'xsd:int'
+            'STORECODE'         => 'xsd:int',
+            'STAFFCODE'         => 'xsd:int',
+            'useYoyakuMessage'  => 'xsd:int',
+            'date'              => 'xsd:string',
+            'PRIORITYTYPE'      => 'xsd:int',
+            'kanzashiEnabled'   => 'xsd:boolean'
         )),
 
         'return_dataOfTheDayInformation' => array('struct' => array(
@@ -4482,7 +4482,7 @@ class ServersController extends WebServicesController
             $extra = " AND StaffAssignToStore.STAFFCODE = " . $param['STAFFCODE'];
         }
 
-        if ($param['kanzashiSalonId'] <= 0) {
+        if (!$param['kanzashiEnabled']) {
             $staff_rows_history_extra = " AND StaffRowsHistory.DATECHANGE <= '{$param['date']}'";
         }
         //----------------------------------------------------------------------------------------------------------------------------
