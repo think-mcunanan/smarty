@@ -1002,6 +1002,7 @@ class MiscFunctionComponent extends Object
                     //--------------------------------------------------------------------------------------------
                     $arrList[$ctr]['details'][$dtl]['SYSCODE']        = $transd_data['services']['SYSCODE'];
                     $arrList[$ctr]['details'][$dtl]['ISMENUDELETED']  = ($transd_data['service']['DELFLG'] <> '' ? 1 : 0);
+                    $arrList[$ctr]['details'][$dtl]['STYLIST_SALON_POS_ID'] = $transd_data['kanzashi_stylist']['STYLIST_SALON_POS_ID'];
                     //--------------------------------------------------------------------------------------------
                     $dtl++;
                     //--------------------------------------------------------------------------------------------
