@@ -1166,8 +1166,7 @@ class ServersController extends WebServicesController
             'storetype'         => 'tns:storetypeInformation',
             'allstoretype'      => 'tns:AllStoreTypes',
             'KanzashiSalons'    => 'tns:KanzashiSalons',
-            'KanzashiConfig'    => 'tns:KanzashiConfig',
-            'KanzashiInfo'      => 'tns:KanzashiInfo'
+            'KanzashiConfig'    => 'tns:KanzashiConfig'
         )),
 
         '_AllStoreTypes' => array('struct' => array(
@@ -1221,15 +1220,6 @@ class ServersController extends WebServicesController
                 'KireiSigninMedia'    => 'xsd:string',
                 'KireiSigninUrl'      => 'xsd:string',
                 'KireiSigninVersion'  => 'xsd:string'
-            )
-        ),
-
-        'KanzashiInfo' => array(
-            'struct' => array(
-                'KanzashiId'                              => 'xsd:int',
-                'Status'                                  => 'xsd:int',
-                'SyncKanzashiEnabledStaffReservationOnly' => 'xsd:boolean',
-                'FreeStaffcode'                           => 'xsd:int'
             )
         ),
 
@@ -3436,15 +3426,6 @@ class ServersController extends WebServicesController
                 ->GetKanzashiSalons($this, $arrReturn['companyid'], $arrReturn['storecode']);
 
             if ($salons) {
-
-                //In the future, when multiple kanzashi account is supported, 
-                //the property for Salons should be remove from KanzashiInfo object
-                $arrReturn['KanzashiInfo'] = array(
-                    'KanzashiId'                              => $salons[0]['KanzashiId'],
-                    'Status'                                  => $salons[0]['Status'],
-                    'SyncKanzashiEnabledStaffReservationOnly' => (bool)$salons[0]['SyncKanzashiEnabledStaffReservationOnly'],
-                    'FreeStaffcode'                           => $salons[0]['FreeStaffcode']
-                );
 
                 $Sql = "
                 SELECT
