@@ -1166,8 +1166,7 @@ class ServersController extends WebServicesController
             'storetype'         => 'tns:storetypeInformation',
             'allstoretype'      => 'tns:AllStoreTypes',
             'KanzashiSalons'    => 'tns:KanzashiSalons',
-            'KanzashiConfig'    => 'tns:KanzashiConfig',
-            'KanzashiInfo'      => 'tns:KanzashiInfo'
+            'KanzashiConfig'    => 'tns:KanzashiConfig'
         )),
 
         '_AllStoreTypes' => array('struct' => array(
@@ -1221,15 +1220,6 @@ class ServersController extends WebServicesController
                 'KireiSigninMedia'    => 'xsd:string',
                 'KireiSigninUrl'      => 'xsd:string',
                 'KireiSigninVersion'  => 'xsd:string'
-            )
-        ),
-
-        'KanzashiInfo' => array(
-            'struct' => array(
-                'KanzashiId'                              => 'xsd:int',
-                'Status'                                  => 'xsd:int',
-                'SyncKanzashiEnabledStaffReservationOnly' => 'xsd:boolean',
-                'FreeStaffcode'                           => 'xsd:int'
             )
         ),
 
@@ -2129,12 +2119,12 @@ class ServersController extends WebServicesController
 
         // DATA OF THE DAY -------------------------------------
         'dataOfTheDaySearchCriteria' => array('struct' => array(
-            'STORECODE'   => 'xsd:int',
-            'STAFFCODE'   => 'xsd:int',
-            'useYoyakuMessage'   => 'xsd:int',
-            'date'        => 'xsd:string',
-            'PRIORITYTYPE'        => 'xsd:int',
-            'kanzashiSalonId' => 'xsd:int'
+            'STORECODE'         => 'xsd:int',
+            'STAFFCODE'         => 'xsd:int',
+            'useYoyakuMessage'  => 'xsd:int',
+            'date'              => 'xsd:string',
+            'PRIORITYTYPE'      => 'xsd:int',
+            'kanzashiEnabled'   => 'xsd:boolean'
         )),
 
         'return_dataOfTheDayInformation' => array('struct' => array(
@@ -3438,15 +3428,6 @@ class ServersController extends WebServicesController
 
             if ($salons) {
 
-                //In the future, when multiple kanzashi account is supported, 
-                //the property for Salons should be remove from KanzashiInfo object
-                $arrReturn['KanzashiInfo'] = array(
-                    'KanzashiId'                              => $salons[0]['KanzashiId'],
-                    'Status'                                  => $salons[0]['Status'],
-                    'SyncKanzashiEnabledStaffReservationOnly' => (bool)$salons[0]['SyncKanzashiEnabledStaffReservationOnly'],
-                    'FreeStaffcode'                           => $salons[0]['FreeStaffcode']
-                );
-
                 $Sql = "
                 SELECT
                     hair_signin_hash_key AS HairSigninHashKey,
@@ -4483,7 +4464,7 @@ class ServersController extends WebServicesController
             $extra = " AND StaffAssignToStore.STAFFCODE = " . $param['STAFFCODE'];
         }
 
-        if ($param['kanzashiSalonId'] <= 0) {
+        if (!$param['kanzashiEnabled']) {
             $staff_rows_history_extra = " AND StaffRowsHistory.DATECHANGE <= '{$param['date']}'";
         }
         //----------------------------------------------------------------------------------------------------------------------------
