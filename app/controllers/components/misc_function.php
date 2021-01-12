@@ -186,6 +186,9 @@ class MiscFunctionComponent extends Object
             $arrStaff[$i]['StaffAssignToStore']['TRAVEL_ALLOWANCE'] = $arrStaff[$i]['Staff']['TRAVEL_ALLOWANCE'];
             //---------------------------------------------------------------------------------------
             $arrStaff[$i]['StaffAssignToStore']['KANZASHI_ENABLED'] = !is_null($arrStaff[$i]['StaffAssignToStore']['KANZASHI_SALON_POS_ID']);
+            if ($arrStaff[$i]['StaffAssignToStore']['KANZASHI_ENABLED']){
+                $arrStaff[$i]['StaffAssignToStore']['KANZASHI_SALON_POS_ID'] = (int)$arrStaff[$i]['StaffAssignToStore']['KANZASHI_SALON_POS_ID'];
+            }
             //---------------------------------------------------------------------------------------
         } //end for
 
@@ -300,6 +303,8 @@ class MiscFunctionComponent extends Object
                 $arrList[$ctr]['YOYAKU']    = $arrData[$i]['transaction']['YOYAKU'];
                 $arrList[$ctr]['HOWKNOWSCODE']    = $arrData[$i]['howknows_thestore']['HOWKNOWSCODE'];
                 $arrList[$ctr]['HOWKNOWS']    = $arrData[$i]['howknows_thestore']['HOWKNOWS'];
+                $arrList[$ctr]['PUSH_TO_KANZASHI'] = $arrData[$i]['transaction']['PUSH_TO_KANZASHI'];
+                $arrList[$ctr]['DESTINATION_KANZASHI_SALON_POS_ID'] = $arrData[$i]['transaction']['DESTINATION_KANZASHI_SALON_POS_ID'];
 
                 /////////////////////////////////////////////////////////////////////
                 $arrList[$ctr]['YOYAKUTIME'] = substr($arrData[$i]['details']['STARTTIME'], 0, 5); //substr($arrData[$i]['transaction']['STARTTIME'], 0, 5);
@@ -997,6 +1002,7 @@ class MiscFunctionComponent extends Object
                     //--------------------------------------------------------------------------------------------
                     $arrList[$ctr]['details'][$dtl]['SYSCODE']        = $transd_data['services']['SYSCODE'];
                     $arrList[$ctr]['details'][$dtl]['ISMENUDELETED']  = ($transd_data['service']['DELFLG'] <> '' ? 1 : 0);
+                    $arrList[$ctr]['details'][$dtl]['STYLIST_SALON_POS_ID'] = $transd_data['kanzashi_stylist']['STYLIST_SALON_POS_ID'];
                     //--------------------------------------------------------------------------------------------
                     $dtl++;
                     //--------------------------------------------------------------------------------------------
@@ -1291,7 +1297,180 @@ class MiscFunctionComponent extends Object
         return $ret;
     }
 
+    /**
+     * Facility Transaction Conflict
+     * 
+     * @param controller &$controller
+     * @param string $dbname
+     * @param array $transaction
+     * @return boolean
+     */
+    public function FacilityTransConflict(&$controller, $dbname, $transaction)
+    {
+        $pos_ids = array();
+        foreach ($transaction['facilities'] as $facility) {
+            $pos_ids[] = $facility['POSID'];
+        }
 
+        function sort_facility_trans($prev, $next)
+        {
+            if ($prev['POSID'] === $next['POSID']) {
+                if ($prev['STARTTIME'] === $next['STARTTIME']) {
+                    return 0;
+                } else {
+                    return $prev['STARTTIME'] < $next['STARTTIME'] ? -1 : 1;
+                }
+            } else {
+                return $prev['POSID'] - $next['POSID'];
+            }
+        }
+
+        usort($transaction['facilities'], 'sort_facility_trans');
+
+        if ($this->ConflictWithExistingReservation($controller, $dbname, $transaction, $pos_ids)) {
+            return true;
+        }
+        
+        if ($this->ConflictWithFacilityProgram($controller, $dbname, $transaction, $pos_ids)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check Conflict With Exisiting Reservation
+     * 
+     * @param controller &$controller
+     * @param string $dbname
+     * @param array $transaction
+     * @param array $pos_ids
+     * @return boolean
+     */
+    private function ConflictWithExistingReservation(&$controller, $dbname, $transaction, $pos_ids)
+    {
+        $existing_facility_trans = $this->GetFacilityTrans(
+            $controller,
+            $dbname,
+            $transaction['STORECODE'],
+            $transaction['TRANSDATE'],
+            $transaction['TRANSCODE'],
+            array_unique($pos_ids)
+        );
+
+        if (!$existing_facility_trans) {
+            return false;
+        }
+
+        function sort_exisitng_facility_trans($prev, $next)
+        {
+            if ($prev['POSID'] === $next['POSID']) {
+                if($prev['TRANSCODE'] === $next['TRANSCODE']){
+                    if ($prev['STARTTIME'] === $next['STARTTIME']) {
+                        return 0;
+                    } else {
+                        return $prev['STARTTIME'] < $next['STARTTIME'] ? -1 : 1;
+                    }
+                } else {
+                    return $prev['TRANSCODE'] - $next['TRANSCODE'];
+                }
+            } else {
+                return $prev['POSID'] - $next['POSID'];
+            }
+        }
+
+        usort($existing_facility_trans, 'sort_exisitng_facility_trans');
+        $facility_trans = $transaction['facilities'];
+
+        $i = 0;
+        $updated_trans[$i] = $existing_facility_trans[0];
+        foreach ($existing_facility_trans as $key => $trans) {
+            if (
+                $updated_trans[$i]['POSID'] != $trans['POSID'] ||
+                $updated_trans[$i]['TRANSCODE'] !== $trans['TRANSCODE']
+            ) {
+                $updated_trans[++$i] = $trans;
+                continue;
+            }
+
+            if (
+                $updated_trans[$i]['STARTTIME'] <= $trans['ENDTIME'] &&
+                $updated_trans[$i]['ENDTIME'] >= $trans['STARTTIME']
+            ) {
+                if ($trans['ENDTIME'] > $updated_trans[$i]['ENDTIME']) {
+                    $updated_trans[$i]['ENDTIME'] = $trans['ENDTIME'];
+                }
+            } else {
+                $updated_trans[++$i] = $trans;
+            }
+        }
+
+        foreach ($facility_trans as $trans) {
+            $conflict_count = 0;
+            foreach ($updated_trans as $key => $etrans) {
+                if ((int)$trans['POSID'] !== (int)$etrans['POSID']) {
+                    continue;
+                }
+
+                if (
+                    $trans['STARTTIME'] < $etrans['ENDTIME'] &&
+                    $trans['ENDTIME'] > $etrans['STARTTIME']
+                ) {
+                    $conflict_count++;
+                    if ($conflict_count >= $etrans['ACCEPTABLECOUNT']) {
+                        return true;
+                    }
+                }
+
+                unset($updated_trans[$key]);
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check Conflict With Facility Program
+     * 
+     * @param controller &$controller
+     * @param string $dbname
+     * @param array $transaction
+     * @param array $pos_ids
+     * @return boolean
+     */
+    private function ConflictWithFacilityProgram($controller, $dbname, $transaction, $pos_ids) {
+        $facility_programs = $this->GetFacilityProgramsByFacilityId(
+            $controller, 
+            $dbname, 
+            $transaction['TRANSDATE'],
+            array_unique($pos_ids)
+        );
+
+        if(!$facility_programs) {
+            return false;
+        }
+
+        $facility_trans = $transaction['facilities'];
+
+        foreach ($facility_trans as $trans) {
+            foreach ($facility_programs as $key => $program) {
+                if ((int)$trans['POSID'] !== (int)$program['POSID']) {
+                    continue;
+                }
+
+                if (
+                    $trans['STARTTIME'] < $program['ENDTIME'] &&
+                    $trans['ENDTIME'] > $program['STARTTIME']
+                ) {
+                    return true;
+                }
+
+                unset($facility_programs[$key]);
+            }
+        }
+
+        return false;
+    }
     /**
      * 満期のケータイセッションを削除します
      * Deletes expired keitai sessions
@@ -1778,11 +1957,67 @@ class MiscFunctionComponent extends Object
      *
      * @param controller &$controller
      * @param string $dbname
+     * @param int $salonid サロンID
+     * @param int $storecode 店舗コード
+     * @param string $ymd 年月日
+     * @param boolean $filter_with_salonid 
+     * @return kanzashiCustomersLimit かんざし時間別予約可能数
+     */
+    function GetDailyKanzashiCustomersLimit(&$controller, $dbname, $salonid, $storecode, $ymd, $filter_with_salonid)
+    {
+        $controller->StoreHoliday->set_company_database($dbname, $controller->StoreHoliday);
+
+        $salonid_cond = $filter_with_salonid ? 'kcl.salon_pos_id = :salonid AND' :  '';
+
+        $query = "
+            SELECT *
+            FROM (
+                SELECT
+                    kcl.ymd,
+                    kcl.begin_time,
+                    kcl.end_time,
+                    kcl.limit_count
+                FROM kanzashi_customers_limit_per_salon kcl
+                JOIN sipssbeauty_kanzashi.salon s
+                    ON s.pos_id = kcl.salon_pos_id
+                WHERE
+                    {$salonid_cond}
+                    s.storecode = :storecode AND
+                    kcl.ymd = :ymd
+                ORDER BY
+                    begin_time
+            ) as kcl
+        ";
+
+        $params = compact(
+            'salonid', 
+            'storecode',
+            'ymd'
+        );
+        $records = $controller->StoreHoliday->query($query, $params, false);
+        $result = array();
+
+        foreach ($records as $record) {
+            $result[] = $record['kcl'];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Note: Since Web Yoyaku does not yet support multiple
+     * Kanzashi Account, so it will get data from the old table.
+     * This should be replace when Web Yoyaku support mulitple Kanzashi Account.
+     * 
+     * 日毎かんざし時間別予約可能数取得
+     *
+     * @param controller &$controller
+     * @param string $dbname
      * @param int $storecode 店舗コード
      * @param string $ymd 年月日
      * @return kanzashiCustomersLimit かんざし時間別予約可能数
      */
-    function GetDailyKanzashiCustomersLimit(&$controller, $dbname, $storecode, $ymd)
+    function GetDailyKanzashiCustomersLimitFromOldTable(&$controller, $dbname, $storecode, $ymd)
     {
 
         $controller->StoreHoliday->set_company_database($dbname, $controller->StoreHoliday);
@@ -1813,52 +2048,33 @@ class MiscFunctionComponent extends Object
     }
 
     /**
-     * Determine whether Facility is Enabled
-     *
-     * @param controller &$controller
-     * @param string $dbname
-     * @param int $storecode 
-     * @return boolean 
-     */
-    function IsFacilityEnabled(&$controller, $dbname, $storecode)
-    {
-        $controller->Store->set_company_database($dbname, $controller->Store);
-        $query = "
-            SELECT *
-            FROM store_settings
-            WHERE 
-                storecode = :storecode AND
-                optionname = 'FacilityEnabled' AND
-                optionvaluei = 1
-        ";
-
-        $param = compact('storecode');
-        $result = $controller->Store->query($query, $param, false);
-
-        return (bool)$result;
-    }
-
-    /**
      * Get the available Facilities
      *
      * @param controller &$controller
      * @param string $dbname
      * @param int $salonid
+     * @param int $storecode
      * @param int $page
      * @param int $pagelimit
      * @return array
      */
-    function GetAvailableFacilities(&$controller, $dbname, $salonid = null, $page = null, $pagelimit = null) 
+    function GetAvailableFacilities(&$controller, $dbname, $storecode = null, $salonid = null, $page = null, $pagelimit = null) 
     {
         $controller->Store->set_company_database($dbname, $controller->Store);
 
-        $params = array();
+        $params = array(); 
+        $storecode_cond = '';
         $salonid_cond = '';
         $pageging_cond = '';
 
+        if($storecode !== null){
+            $storecode_cond = 'AND s.storecode = :storecode';
+            $params += compact('storecode');
+        } 
+
         if($salonid !== null){
             $salonid_cond = 'AND salon_pos_id = :salonid';
-            $params = compact('salonid');
+            $params += compact('salonid');
         } 
 
         if($page !== null){
@@ -1872,10 +2088,15 @@ class MiscFunctionComponent extends Object
                 SQL_CALC_FOUND_ROWS
                 kf.pos_id AS Id,
                 kf.name AS Name,
-                kf.acceptable_count AS AcceptableCount 
+                kf.acceptable_count AS AcceptableCount,
+                kf.salon_pos_id As SalonId 
             FROM kanzashi_facility kf
+            JOIN sipssbeauty_kanzashi.salon s 
+                ON s.POS_ID = kf.SALON_POS_ID 
+                AND s.status IN (5, 6, 7, 8, 9, 10, 11, 101, 102)
             WHERE 
-                kf.delflg IS NULL
+                kf.delflg IS NULL 
+                {$storecode_cond}
                 {$salonid_cond}
             {$pageging_cond}
         ";
@@ -1910,13 +2131,22 @@ class MiscFunctionComponent extends Object
                     sl.status AS Status,
                     CONVERT(st.sync_kanzashi_enabled_staff_reservation_only, UNSIGNED) AS SyncKanzashiEnabledStaffReservationOnly,
                     sl.free_staffcode AS FreeStaffcode,
-                    sl.is_main_salon AS IsMainSalon
+                    sl.is_main_salon AS IsMainSalon,
+                    sl.reservation_pay_enabled AS ReservationPayEnabled,
+                    sl.reservation_pay_default_price_type AS ReservationPayDefaultPriceType,
+                    sl.yoyaku_start AS YoyakuStart,
+                    sl.yoyaku_start_sat_sun AS YoyakuStartSatSun,
+                    sl.yoyaku_end AS YoyakuEnd,
+                    sl.yoyaku_end_sat_sun AS YoyakuEndSatSun,
+                    sl.yoyaku_customers_limit AS YoyakuCustomersLimit,
+                    CONVERT(sl.slide_reservation, UNSIGNED) AS SlideReservation
                 FROM sipssbeauty_kanzashi.salon AS sl
                 JOIN sipssbeauty_kanzashi.store AS st
                     USING(companyid, storecode)
                 WHERE
                     sl.companyid = :companyid AND
-                    sl.storecode = :storecode
+                    sl.storecode = :storecode AND
+                    sl.status IN (5, 6, 7, 8, 9, 10, 11, 101, 102)
         )AS salon
         ";
 
@@ -1955,7 +2185,7 @@ class MiscFunctionComponent extends Object
                 s.companyid = :companyid AND
                 s.storecode = :storecode
             ORDER BY
-                kfp.facility_pos_id AND
+                kfp.facility_pos_id, 
                 kfp.start_time
         ";
 
@@ -1969,5 +2199,238 @@ class MiscFunctionComponent extends Object
         $rs = $controller->BreakTime->query($query, $params, false);
         $set = new Set();
         return $set->extract($rs, '{n}.kfp');
+    }
+
+    /**
+     * Get Facility Programs By FacilityId
+     *
+     * @param controller &$controller
+     * @param string $dbname
+     * @param string $date
+     * @param array $pos_ids 
+     * @return array 
+     */
+    public function GetFacilityProgramsByFacilityId(&$controller, $dbname, $date, $pos_ids)
+    {
+        $query = "
+            SELECT
+                kfp.facility_pos_id AS POSID,
+                kfp.start_time AS STARTTIME,
+                kfp.end_time AS ENDTIME
+            FROM kanzashi_facility_program kfp
+            WHERE
+                kfp.delflg IS NULL AND 
+                kfp.date = :date AND
+                kfp.facility_pos_id IN (".implode(',', $pos_ids).")
+            ORDER BY
+                kfp.facility_pos_id AND
+                kfp.start_time
+        ";
+
+        $params = compact('date');
+
+        $controller->BreakTime->set_company_database($dbname, $controller->BreakTime);
+        $rs = $controller->BreakTime->query($query, $params, false);
+        $set = new Set();
+        return $set->extract($rs, '{n}.kfp');
+    }
+
+    /**
+     * Get the Facility Transaction
+     *
+     * @param controller &$controller
+     * @param string $dbname
+     * @param int $storecode 
+     * @param string $transdate
+     * @param string $exclude_transcode
+     * @param array $facility_pos_ids
+     * @return array 
+     */
+    public function GetFacilityTrans(
+        &$controller,
+        $dbname,
+        $storecode,
+        $transdate,
+        $exclude_transcode = null,
+        $facility_pos_ids = array()
+    ) {
+        $transcode_cond = $exclude_transcode ? 'AND st.transcode <> :exclude_transcode' : '';
+        $facility_pos_id_cond = $facility_pos_ids ?
+            'AND kf.pos_id IN (' . implode(',', $facility_pos_ids) . ')' : '';
+
+        $query = "
+            SELECT *
+            FROM (
+                SELECT
+                    sf.transcode AS TRANSCODE,
+                    sf.facility_pos_id AS POSID,
+                    kf.name AS NAME,
+                    sf.start_time AS STARTTIME,
+                    sf.end_time AS ENDTIME,
+                    kf.acceptable_count as ACCEPTABLECOUNT
+                FROM store_transaction st
+                JOIN store_transaction_facilities sf
+                    USING(transcode)
+                JOIN kanzashi_facility kf
+                    ON kf.pos_id = sf.facility_pos_id
+                WHERE 
+                    st.delflg IS NULL AND
+                    st.storecode = :storecode AND
+                    st.transdate = :transdate
+                    {$transcode_cond}
+                    {$facility_pos_id_cond}
+                ORDER BY
+                    sf.transcode,
+                    sf.rowno
+            ) as facilities
+        ";
+
+        $params = compact('storecode', 'transdate', 'exclude_transcode');
+        $controller->StoreTransaction->set_company_database($dbname, $controller->StoreTransaction);
+        $rs = $controller->StoreTransaction->query($query, $params, false);
+        $set = new Set();
+        return $set->extract($rs, '{n}.facilities');
+    }
+
+    /**
+     * Parse Facility Transactions
+     *
+     * @param array $facilities
+     * @param array $transactions
+     * @return array 
+     */
+    public function ParseFacilityTrans($facilities, $transactions)
+    {
+        function facility_trans_sort($prev, $next)
+        {
+            if ($prev['YOYAKUTIME'] === $next['YOYAKUTIME']) {
+                if ($prev['ADJUSTED_ENDTIME'] === $next['ADJUSTED_ENDTIME']) {
+                    if ($prev['TRANSCODE'] === $next['TRANSCODE']) {
+                        return 0;
+                    } else {
+                        return $prev['TRANSCODE'] < $next['TRANSCODE'] ? -1 : 1;
+                    }
+                } else {
+                    return $prev['ADJUSTED_ENDTIME'] > $next['ADJUSTED_ENDTIME'] ? -1 : 1;
+                }
+            } else {
+                return $prev['YOYAKUTIME'] < $next['YOYAKUTIME'] ? -1 : 1;
+            }
+        }
+
+        foreach($facilities['records'] as &$facility) {
+            $facility['OriginalAcceptableCount'] = $facility['AcceptableCount'];
+
+            $facility_trans = array();
+            $transcodes = array();
+            foreach ($transactions as $trans) {
+                if (empty($trans['facilities']) || in_array($trans['TRANSCODE'], $transcodes, true)) {
+                    continue;
+                }
+
+                $transcodes[] = $trans['TRANSCODE'];
+                $facility_trans = array_merge(
+                    $facility_trans,
+                    $this->AdjustFacilityTransTime($facility['Id'], $trans)
+                );
+            }
+
+            if(!$facility_trans) {
+                $facility['Transaction']['records'] = $facility_trans;
+                continue;
+            }
+
+            usort($facility_trans, 'facility_trans_sort');
+            
+            $acceptable_count = $facility['AcceptableCount'];
+            foreach ($facility_trans as $key => &$f_trans) {
+                $f_trans['PRIORITY'] = 1;
+                $f_trans['PRIORITYTYPE'] = '1-1';
+                $conflict = true;
+                while ($conflict) {
+                    $conflict = false;
+                    for ($i = 0; $i < $key; $i++) {
+                        //SET THE TRANSACTION POSITION
+                        if (
+                            $f_trans['YOYAKUTIME'] < $facility_trans[$i]['ADJUSTED_ENDTIME'] &&
+                            $f_trans['ADJUSTED_ENDTIME'] > $facility_trans[$i]['YOYAKUTIME'] &&
+                            $f_trans['PRIORITY'] === $facility_trans[$i]['PRIORITY']
+                        ) {
+                            $f_trans['PRIORITY']++;
+                            $f_trans['PRIORITYTYPE'] = "1-{$f_trans['PRIORITY']}";
+                            $acceptable_count = $f_trans['PRIORITY'] > $acceptable_count ? $f_trans['PRIORITY'] : $acceptable_count;
+                            $conflict = true;
+                        }
+                    }
+                }
+            }
+
+            $facility['Transaction']['records'] = $facility_trans;
+            $facility['AcceptableCount'] = $acceptable_count;
+        }
+
+        return $facilities;
+    }
+
+    /**
+     * Adjust Facility Transaction Time
+     *
+     * @param int $facilityId
+     * @param array $trans
+     * @return array 
+     */
+    private function AdjustFacilityTransTime($facilityId, $trans)
+    {
+        $facility_trans = array();
+        foreach ($trans['facilities'] as $facility) {
+            if ((int)$facilityId === (int)$facility['POSID']) {
+                $facility_trans[] = $facility;
+            }
+        }
+
+        if (!$facility_trans) {
+            return $facility_trans;
+        }
+
+        $facility_trans = $this->sortBy($facility_trans, 'STARTTIME');
+
+        $trans['YOYAKUTIME'] = null;
+        $trans['ADJUSTED_ENDTIME'] = null;
+
+        $i = 0;
+        $adjusted_trans[$i] = $trans;
+
+        while ($facility_trans) {
+            foreach ($facility_trans as $key => $facility) {
+                // Check if facilities are overlaping and no time gap.
+                if (
+                    !$adjusted_trans[$i]['YOYAKUTIME'] ||
+                    ($facility['STARTTIME'] <= $adjusted_trans[$i]['ADJUSTED_ENDTIME'] &&
+                    $facility['ADJUSTED_ENDTIME'] >= $adjusted_trans[$i]['STARTTIME'])
+                ) {
+                    // Adjust the YOYAKU time
+                    if (
+                        !$adjusted_trans[$i]['YOYAKUTIME'] ||
+                        ($facility['STARTTIME'] < $adjusted_trans[$i]['YOYAKUTIME'])
+                    ) {
+                        $adjusted_trans[$i]['YOYAKUTIME'] = $facility['STARTTIME'];
+                    }
+
+                    // Adjust the ADJUSTED_ENDTIME time
+                    if (
+                        $adjusted_trans[$i]['ADJUSTED_ENDTIME'] ||
+                        ($facility['ENDTIME'] > $adjusted_trans[$i]['ADJUSTED_ENDTIME'])
+                    ) {
+                        $adjusted_trans[$i]['ADJUSTED_ENDTIME'] = $facility['ENDTIME'];
+                    }
+
+                    unset($facility_trans[$key]);
+                } else {
+                    $adjusted_trans[++$i] = $trans;
+                }
+            }
+        }
+
+        return $adjusted_trans;
     }
 }
