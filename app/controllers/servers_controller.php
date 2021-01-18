@@ -9581,21 +9581,9 @@ class ServersController extends WebServicesController
         }
 
         //-- 会社データベースを設定する (Set the Company Database)
-        //$this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction);
         $this->StoreHoliday->set_company_database($storeinfo['dbname'], $this->StoreHoliday);
 
         $date = $param['year'] . "-" . $param['month'] . "-1";
-
-        /*$criteria['STORECODE'] = $param['STORECODE'];
-        $criteria['DELFLG']    = null;
-        $criteria['YOYAKU']    = 1;
-        $criteria['TRANSDATE BETWEEN ? AND
-        LAST_DAY(DATE_ADD(?, INTERVAL 1 MONTH))'] = array($date, $date);
-
-        $v = $this->StoreTransaction->find('all', array('conditions' => $criteria,
-        'fields'     => array('TRANSDATE'),
-        'group'      => 'TRANSDATE',
-        'order'      => 'TRANSDATE'));*/
 
         $hcriteria = array(
             'StoreHoliday.STORECODE'  => $param['STORECODE'],
@@ -9636,13 +9624,6 @@ class ServersController extends WebServicesController
                 }
                 $date = $param['year'] . "-" . $month . "-" . $zday;
                 if (checkdate($param['month'], $day, $param['year'])) {
-                    //- トランザクションの配列をループ処理　(Loops through the array of Transaction)
-                    /*for ($i = 0; $i < count($v); $i++) {
-                    if ($date == $v[$i]['StoreTransaction']['TRANSDATE']) {
-                    $arrData[$m][$arrDays[$j]] = "1";
-                    break;
-                    }
-                    }*/
 
                     //- 休日の配列をループ処理　(Loops through the array of Holidays)
                     for ($i = 0; $i < count($h); $i++) {
@@ -9652,7 +9633,6 @@ class ServersController extends WebServicesController
                         }
                     }
 
-                    // 1 => transaction; h => holiday;
                 }
             }
         }
