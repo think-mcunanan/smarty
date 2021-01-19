@@ -2124,7 +2124,8 @@ class ServersController extends WebServicesController
             'useYoyakuMessage'  => 'xsd:int',
             'date'              => 'xsd:string',
             'PRIORITYTYPE'      => 'xsd:int',
-            'kanzashiEnabled'   => 'xsd:boolean'
+            'kanzashisalonposid' => 'xsd:int',
+            'kanzashienabled'   => 'xsd:boolean'
         )),
 
         'return_dataOfTheDayInformation' => array('struct' => array(
@@ -9486,7 +9487,7 @@ class ServersController extends WebServicesController
             $ret['store'] = $arrReturn;
         }
 
-        $holiday = $this->wsSearchStoreHoliday($sessionid, $param);
+        $holiday = $this->wsSearchStoreHoliday($sessionid, $param, $param['kanzashienabled']);
         if ($holiday['record_count'] > 0) {
             $ret['holiday'] = $holiday['records']['day' . $param['day']];
         } else {
