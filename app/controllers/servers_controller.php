@@ -9604,7 +9604,8 @@ class ServersController extends WebServicesController
                 FROM store_holiday_per_salon StoreHoliday
                 WHERE 
                     kanzashi_salon_pos_id = :kanzashi_salon_pos_id AND
-                    ymd BETWEEN :date AND LAST_DAY(DATE_ADD(:date, INTERVAL 1 MONTH))
+                    ymd BETWEEN :date AND LAST_DAY(DATE_ADD(:date, INTERVAL 1 MONTH)) AND
+                    delflg IS NULL
             ";
 
             $sql_params = array(
