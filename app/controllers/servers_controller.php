@@ -1134,6 +1134,15 @@ class ServersController extends WebServicesController
                 'facilityProgram'   => 'tns:_facilityProgramInformation',
             ),
             'output' => array('return' => 'tns:_facilityProgramInformation')
+        ),
+
+        'wsGetKanzashiSalons' => array(
+            'doc'    => 'かんざしサロンをゲット',
+            'input'  => array(
+                'sessionid'     => 'xsd:string',
+                'storecode'     => 'xsd:int',
+            ),
+            'output' => array('return' => 'tns:KanzashiSalons')
         )
 
         //- ############################################################
@@ -11642,6 +11651,25 @@ class ServersController extends WebServicesController
             $source->rollback();
             return;
         }
+    }
+
+    /**
+     * Summary of wsGetKanzashiSalons
+     * @param string $sessionid
+     * @param integer $storecode
+     * @return KanzashiSalons
+     */
+    public function wsGetKanzashiSalons($sessionid, $storecode)
+    {
+        $storeinfo = $this->YoyakuSession->Check($this);
+
+        if ($storeinfo == false) {
+            $this->_soap_server->fault(1, '', INVALID_SESSION);
+            return;
+        }
+
+        return $this->MiscFunction
+            ->GetKanzashiSalons($this, $storeinfo['companyid'], $storecode);
     }
 
 }//end class ServersController
