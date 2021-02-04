@@ -1134,6 +1134,15 @@ class ServersController extends WebServicesController
                 'facilityProgram'   => 'tns:_facilityProgramInformation',
             ),
             'output' => array('return' => 'tns:_facilityProgramInformation')
+        ),
+
+        'wsGetKanzashiSalons' => array(
+            'doc'    => 'かんざしサロンをゲット',
+            'input'  => array(
+                'sessionid'     => 'xsd:string',
+                'storecode'     => 'xsd:int',
+            ),
+            'output' => array('return' => 'tns:KanzashiSalons')
         )
 
         //- ############################################################
@@ -2124,7 +2133,8 @@ class ServersController extends WebServicesController
             'useYoyakuMessage'  => 'xsd:int',
             'date'              => 'xsd:string',
             'PRIORITYTYPE'      => 'xsd:int',
-            'kanzashiEnabled'   => 'xsd:boolean'
+            'kanzashisalonposid' => 'xsd:int',
+            'kanzashienabled'   => 'xsd:boolean'
         )),
 
         'return_dataOfTheDayInformation' => array('struct' => array(
@@ -2142,6 +2152,8 @@ class ServersController extends WebServicesController
         // TRANSACTION CALENDAR VIEW ---------------------------
         'transactionCalendarViewSearchCriteria' => array('struct' => array(
             'STORECODE'    => 'xsd:int',
+            'kanzashisalonposid' => 'xsd:int',
+            'kanzashienabled'   => 'xsd:boolean',
             'year'         => 'xsd:int',
             'month'        => 'xsd:int'
         )),
@@ -4464,7 +4476,7 @@ class ServersController extends WebServicesController
             $extra = " AND StaffAssignToStore.STAFFCODE = " . $param['STAFFCODE'];
         }
 
-        if (!$param['kanzashiEnabled']) {
+        if (!$param['kanzashienabled']) {
             $staff_rows_history_extra = " AND StaffRowsHistory.DATECHANGE <= '{$param['date']}'";
         }
         //----------------------------------------------------------------------------------------------------------------------------
@@ -9486,7 +9498,7 @@ class ServersController extends WebServicesController
             $ret['store'] = $arrReturn;
         }
 
-        $holiday = $this->wsSearchStoreHoliday($sessionid, $param);
+        $holiday = $this->wsSearchStoreHoliday($sessionid, $param, $param['kanzashienabled']);
         if ($holiday['record_count'] > 0) {
             $ret['holiday'] = $holiday['records']['day' . $param['day']];
         } else {
@@ -9581,30 +9593,37 @@ class ServersController extends WebServicesController
         }
 
         //-- 会社データベースを設定する (Set the Company Database)
-        //$this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction);
         $this->StoreHoliday->set_company_database($storeinfo['dbname'], $this->StoreHoliday);
 
-        $date = $param['year'] . "-" . $param['month'] . "-1";
+        $date = "{$param['year']}-{$param['month']}-01";
+        $holidays = array();
 
-        /*$criteria['STORECODE'] = $param['STORECODE'];
-        $criteria['DELFLG']    = null;
-        $criteria['YOYAKU']    = 1;
-        $criteria['TRANSDATE BETWEEN ? AND
-        LAST_DAY(DATE_ADD(?, INTERVAL 1 MONTH))'] = array($date, $date);
+        if($param['kanzashienabled']) {
+            $sql = "
+                SELECT *
+                FROM store_holiday_per_salon StoreHoliday
+                WHERE 
+                    kanzashi_salon_pos_id = :kanzashi_salon_pos_id AND
+                    ymd BETWEEN :date AND LAST_DAY(DATE_ADD(:date, INTERVAL 1 MONTH)) AND
+                    delflg IS NULL
+            ";
 
-        $v = $this->StoreTransaction->find('all', array('conditions' => $criteria,
-        'fields'     => array('TRANSDATE'),
-        'group'      => 'TRANSDATE',
-        'order'      => 'TRANSDATE'));*/
+            $sql_params = array(
+                'date' => $date,
+                'kanzashi_salon_pos_id' => $param['kanzashisalonposid']
+            );
 
-        $hcriteria = array(
-            'StoreHoliday.STORECODE'  => $param['STORECODE'],
-            'StoreHoliday.YMD BETWEEN ? AND
-                            LAST_DAY(DATE_ADD(?, INTERVAL 1 MONTH))'  => array($date, $date)
-        );
-
-        $h = $this->StoreHoliday->find('all', array('conditions' => $hcriteria));
-
+            $holidays = $this->StoreHoliday->query($sql, $sql_params, false);
+        
+        } else {
+            $criteria = array(
+                'StoreHoliday.STORECODE'  => $param['STORECODE'],
+                'StoreHoliday.YMD BETWEEN ? AND LAST_DAY(DATE_ADD(?, INTERVAL 1 MONTH))'  => array($date, $date)
+            );
+    
+            $holidays = $this->StoreHoliday->find('all', array('conditions' => $criteria));
+        } 
+        
         $arrDays = $this->arrDays;
 
         for ($m = 0; $m < 2; $m++) {
@@ -9636,23 +9655,15 @@ class ServersController extends WebServicesController
                 }
                 $date = $param['year'] . "-" . $month . "-" . $zday;
                 if (checkdate($param['month'], $day, $param['year'])) {
-                    //- トランザクションの配列をループ処理　(Loops through the array of Transaction)
-                    /*for ($i = 0; $i < count($v); $i++) {
-                    if ($date == $v[$i]['StoreTransaction']['TRANSDATE']) {
-                    $arrData[$m][$arrDays[$j]] = "1";
-                    break;
-                    }
-                    }*/
 
                     //- 休日の配列をループ処理　(Loops through the array of Holidays)
-                    for ($i = 0; $i < count($h); $i++) {
-                        if ($date == $h[$i]['StoreHoliday']['YMD']) {
+                    for ($i = 0; $i < count($holidays); $i++) {
+                        if ($date == $holidays[$i]['StoreHoliday']['YMD']) {
                             $arrData[$m][$arrDays[$j]] .= "h";
                             break;
                         }
                     }
 
-                    // 1 => transaction; h => holiday;
                 }
             }
         }
@@ -11641,6 +11652,25 @@ class ServersController extends WebServicesController
             $source->rollback();
             return;
         }
+    }
+
+    /**
+     * Summary of wsGetKanzashiSalons
+     * @param string $sessionid
+     * @param integer $storecode
+     * @return KanzashiSalons
+     */
+    public function wsGetKanzashiSalons($sessionid, $storecode)
+    {
+        $storeinfo = $this->YoyakuSession->Check($this);
+
+        if ($storeinfo == false) {
+            $this->_soap_server->fault(1, '', INVALID_SESSION);
+            return;
+        }
+
+        return $this->MiscFunction
+            ->GetKanzashiSalons($this, $storeinfo['companyid'], $storecode);
     }
 
 }//end class ServersController
