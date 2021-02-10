@@ -2154,7 +2154,7 @@ class ServersController extends WebServicesController
         // TRANSACTION CALENDAR VIEW ---------------------------
         'transactionCalendarViewSearchCriteria' => array('struct' => array(
             'STORECODE'    => 'xsd:int',
-            'kanzashisalonposid' => 'xsd:int',
+            'KANZASHI_SALON_POS_ID' => 'xsd:int',
             'kanzashienabled'   => 'xsd:boolean',
             'year'         => 'xsd:int',
             'month'        => 'xsd:int'
@@ -9613,7 +9613,7 @@ class ServersController extends WebServicesController
 
             $sql_params = array(
                 'date' => $date,
-                'kanzashi_salon_pos_id' => $param['kanzashisalonposid']
+                'kanzashi_salon_pos_id' => $param['KANZASHI_SALON_POS_ID']
             );
 
             $holidays = $this->StoreHoliday->query($sql, $sql_params, false);
