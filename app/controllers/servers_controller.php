@@ -1050,8 +1050,6 @@ class ServersController extends WebServicesController
             'input'  => array(
                 'sessionid'        => 'xsd:string',
                 'ismainsalon' => 'xsd:boolean',
-                'kanzashisalonposid' => 'xsd:int',
-                'storecode'        => 'xsd:int',
                 'store_holiday'    => 'tns:storeHolidayInformation',
                 'customers_limits' => 'tns:_kanzashiCustomersLimit'
             ),
@@ -5785,7 +5783,7 @@ class ServersController extends WebServicesController
                 'month' => $param['month']
             );
         }
-        if ($param['kanzashisalonposid']) {
+        if ($param['KANZASHI_ENABLED']) {
             $non_holidays = array();
             foreach ($param as $key => $value) {
                 if (empty($value)) {
@@ -5801,7 +5799,7 @@ class ServersController extends WebServicesController
                         AND MONTH(ymd) = :month
                         AND day(ymd) IN ({$non_holidays})";
             $params[] = array(
-                'kanzashisalonposid' => $param['kanzashisalonposid'],
+                'kanzashisalonposid' => $param['KANZASHI_SALON_POS_ID'],
                 'year' => $param['year'],
                 'month' => $param['month']
             );
@@ -5830,14 +5828,14 @@ class ServersController extends WebServicesController
                         'remarks' => $param[$arrDays[$i]]
                     );
                 }
-                if ($param['kanzashisalonposid']) {
+                if ($param['KANZASHI_ENABLED']) {
                     $sqlstatements[] = "
                             INSERT INTO store_holiday_per_salon (KANZASHI_SALON_POS_ID, YMD)
                             VALUES(:kanzashisalonposid, :ymd)
                             ON DUPLICATE KEY 
                                 UPDATE delflg = NULL";
                     $params[] = array(
-                        'kanzashisalonposid' => $param['kanzashisalonposid'],
+                        'kanzashisalonposid' => $param['KANZASHI_SALON_POS_ID'],
                         'ymd' => $this->date
                     );
                 }
@@ -11273,7 +11271,7 @@ class ServersController extends WebServicesController
         $ymd = new DateTime($ymd);
 
         $param = array(
-            'kanzashisalonposid' => $kanzashisalonposid,
+            'KANZASHI_SALON_POS_ID' => $kanzashisalonposid,
             'storecode' => $storecode,
             'year' => $ymd->format('Y'),
             'month' => $ymd->format('m'),
@@ -11316,17 +11314,16 @@ class ServersController extends WebServicesController
      *
      * @param string $sessionid セッションID
      * @param boolean $ismainsalon
-     * @param int $kanzashisalonposid
-     * @param int $storecode 店舗コード
      * @param storeHolidayInformation $store_holiday 店舗休日のオブジェクト
      * @param _kanzashiCustomersLimit $customers_limits かんざし時間別予約可能数のオブジェクト配列
      */
-    function wsUpdateKanzashiCustomersLimit($sessionid, $ismainsalon, $kanzashisalonposid, $storecode, $store_holiday, $customers_limits)
+    function wsUpdateKanzashiCustomersLimit($sessionid, $ismainsalon, $store_holiday, $customers_limits)
     {
-        if ($kanzashisalonposid) {
-            $store_holiday['kanzashisalonposid'] = $kanzashisalonposid;
+        $storecode = $store_holiday['STORECODE'];
+        if ($store_holiday['KANZASHI_ENABLED']) {
+             $kanzashisalonposid = $store_holiday['KANZASHI_SALON_POS_ID'];
         } 
-        if ($store_holiday['year'] && $store_holiday['month'] && $store_holiday['STORECODE']) {
+        if ($store_holiday['year'] && $store_holiday['month'] && $storecode) {
             $this->wsAddUpdateDeleteStoreHoliday($sessionid, $store_holiday, $ismainsalon);
         } else {
             $store_info = $this->YoyakuSession->Check($this);
@@ -11353,7 +11350,7 @@ class ServersController extends WebServicesController
                 $begin_time = substr($customers_limit['begin_time'], 0, 8);
                 $end_time = substr($customers_limit['end_time'], 0, 8);
                 $main_salon_insert_values[] = "({$storecode}, '{$ymd}', '{$begin_time}', '{$end_time}', {$limit_count})";
-                if ($kanzashisalonposid) {
+                if ($store_holiday['KANZASHI_ENABLED']) {
                     $insert_values[] = "({$kanzashisalonposid}, '{$ymd}', '{$begin_time}', '{$end_time}', {$limit_count})";
                 }
             }
@@ -11366,7 +11363,7 @@ class ServersController extends WebServicesController
                     WHERE storecode = {$storecode} AND
                         ymd IN ({$delete_values}); ";
             }
-            if ($kanzashisalonposid) {
+            if ($store_holiday['KANZASHI_ENABLED']) {
                 $sqlstatements[] = "
                     DELETE FROM kanzashi_customers_limit_per_salon
                     WHERE salon_pos_id = {$kanzashisalonposid} AND
