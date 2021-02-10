@@ -2135,7 +2135,7 @@ class ServersController extends WebServicesController
             'useYoyakuMessage'  => 'xsd:int',
             'date'              => 'xsd:string',
             'PRIORITYTYPE'      => 'xsd:int',
-            'kanzashisalonposid' => 'xsd:int',
+            'KANZASHI_SALON_POS_ID' => 'xsd:int',
             'kanzashienabled'   => 'xsd:boolean'
         )),
 
