@@ -284,7 +284,8 @@ class ServersController extends WebServicesController
             'doc'    => '店舗休日検索',
             'input'  => array(
                 'sessionid' => 'xsd:string',
-                'param'     => 'storeHolidaySearchCriteria'
+                'param'     => 'storeHolidaySearchCriteria',
+                'KANZASHI_ENABLED' => 'xsd:boolean'
             ),
             'output' => array('return'    => 'return_storeHolidayInformation')
         ),
@@ -1559,13 +1560,16 @@ class ServersController extends WebServicesController
             'storecode' => 'xsd:int',
             'year'      => 'xsd:int',
             'month'     => 'xsd:int',
-            'day'       => 'xsd:int'
+            'day'       => 'xsd:int',
+            'KANZASHI_SALON_POS_ID' => 'xsd:int'
         )),
 
         'storeHolidayInformation' => array('struct' => array(
             'year'        => 'xsd:int',
             'month'       => 'xsd:int',
             'STORECODE'   => 'xsd:int',
+            'KANZASHI_ENABLED' => 'xsd:boolean',
+            'KANZASHI_SALON_POS_ID' => 'xsd:int',
             'day1'        => 'xsd:string',
             'day2'        => 'xsd:string',
             'day3'        => 'xsd:string',
@@ -5653,7 +5657,7 @@ class ServersController extends WebServicesController
      * @param boolean $kanzashiEnabled
      * @return return_storeHolidayInformation
      */
-    function wsSearchStoreHoliday($sessionid, $param, $kanzashiEnabled = false)
+    function wsSearchStoreHoliday($sessionid, $param, $kanzashiEnabled)
     {
         if ($param['ignoreSessionCheck'] <> 1) {
             //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
@@ -5696,14 +5700,15 @@ class ServersController extends WebServicesController
             'day' => $param['day']
         );
         if ($kanzashiEnabled){
-            $params['kanzashisalonposid'] = $param['kanzashisalonposid'];
+            $params['kanzashisalonposid'] = $param['KANZASHI_SALON_POS_ID'];
         }
         $records = $this->StoreHoliday->query($query, $params, false);
 
-        $arrHoliday['STORECODE'] = $param['storecode'];
-        $arrHoliday['year']      = $param['year'];
-        $arrHoliday['month']     = $param['month'];
-
+        $arrHoliday['STORECODE']            = $param['storecode'];
+        $arrHoliday['year']                 = $param['year'];
+        $arrHoliday['month']                = $param['month'];
+        $arrHoliday['KANZASHI_ENABLED']      = $kanzashiEnabled;
+        $arrHoliday['KANZASHI_SALON_POS_ID']   = $param['KANZASHI_SALON_POS_ID'];
         $arrDays = $this->arrDays;
 
         if (strlen($param['month']) == 1) {
