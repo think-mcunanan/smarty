@@ -284,8 +284,7 @@ class ServersController extends WebServicesController
             'doc'    => '店舗休日検索',
             'input'  => array(
                 'sessionid' => 'xsd:string',
-                'param'     => 'storeHolidaySearchCriteria',
-                'KANZASHI_ENABLED' => 'xsd:boolean'
+                'param'     => 'storeHolidaySearchCriteria'
             ),
             'output' => array('return'    => 'return_storeHolidayInformation')
         ),
@@ -1559,7 +1558,8 @@ class ServersController extends WebServicesController
             'year'      => 'xsd:int',
             'month'     => 'xsd:int',
             'day'       => 'xsd:int',
-            'KANZASHI_SALON_POS_ID' => 'xsd:int'
+            'KANZASHI_SALON_POS_ID' => 'xsd:int',
+            'KANZASHI_ENABLED' => 'xsd:boolean'
         )),
 
         'storeHolidayInformation' => array('struct' => array(
@@ -2136,7 +2136,7 @@ class ServersController extends WebServicesController
             'date'              => 'xsd:string',
             'PRIORITYTYPE'      => 'xsd:int',
             'KANZASHI_SALON_POS_ID' => 'xsd:int',
-            'kanzashienabled'   => 'xsd:boolean'
+            'KANZASHI_ENABLED'   => 'xsd:boolean'
         )),
 
         'return_dataOfTheDayInformation' => array('struct' => array(
@@ -2155,7 +2155,7 @@ class ServersController extends WebServicesController
         'transactionCalendarViewSearchCriteria' => array('struct' => array(
             'STORECODE'    => 'xsd:int',
             'KANZASHI_SALON_POS_ID' => 'xsd:int',
-            'kanzashienabled'   => 'xsd:boolean',
+            'KANZASHI_ENABLED'   => 'xsd:boolean',
             'year'         => 'xsd:int',
             'month'        => 'xsd:int'
         )),
@@ -4478,7 +4478,7 @@ class ServersController extends WebServicesController
             $extra = " AND StaffAssignToStore.STAFFCODE = " . $param['STAFFCODE'];
         }
 
-        if (!$param['kanzashienabled']) {
+        if (!$param['KANZASHI_ENABLED']) {
             $staff_rows_history_extra = " AND StaffRowsHistory.DATECHANGE <= '{$param['date']}'";
         }
         //----------------------------------------------------------------------------------------------------------------------------
@@ -5652,10 +5652,9 @@ class ServersController extends WebServicesController
      *
      * @param string $sessionid
      * @param array $param
-     * @param boolean $kanzashiEnabled
      * @return return_storeHolidayInformation
      */
-    function wsSearchStoreHoliday($sessionid, $param, $kanzashiEnabled)
+    function wsSearchStoreHoliday($sessionid, $param)
     {
         if ($param['ignoreSessionCheck'] <> 1) {
             //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
@@ -5670,7 +5669,7 @@ class ServersController extends WebServicesController
 
         $this->StoreHoliday->set_company_database($storeinfo['dbname'], $this->StoreHoliday);
 
-        if ($kanzashiEnabled){
+        if ($param['KANZASHI_ENABLED']){
             $tablename = "store_holiday_per_salon";
             $wherecond = "kanzashi_salon_pos_id = :kanzashisalonposid";
         }
@@ -5697,7 +5696,7 @@ class ServersController extends WebServicesController
             'month' => $param['month'],
             'day' => $param['day']
         );
-        if ($kanzashiEnabled){
+        if ($param['KANZASHI_ENABLED']){
             $params['kanzashisalonposid'] = $param['KANZASHI_SALON_POS_ID'];
         }
         $records = $this->StoreHoliday->query($query, $params, false);
@@ -5705,7 +5704,7 @@ class ServersController extends WebServicesController
         $arrHoliday['STORECODE']            = $param['storecode'];
         $arrHoliday['year']                 = $param['year'];
         $arrHoliday['month']                = $param['month'];
-        $arrHoliday['KANZASHI_ENABLED']      = $kanzashiEnabled;
+        $arrHoliday['KANZASHI_ENABLED']      = $param['KANZASHI_ENABLED'];
         $arrHoliday['KANZASHI_SALON_POS_ID']   = $param['KANZASHI_SALON_POS_ID'];
         $arrDays = $this->arrDays;
 
@@ -5729,7 +5728,7 @@ class ServersController extends WebServicesController
                 //- スタッフシフトの配列をループ処理　(Loops through the array of StoreHolidays)
                 for ($k = 0; $k < count($records); $k++) {
                     if ($date == $records[$k][$tablename]['YMD']) {
-                        $val = !$kanzashiEnabled ? $records[$k][$tablename]['REMARKS'] : "";
+                        $val = !$param['KANZASHI_ENABLED'] ? $records[$k][$tablename]['REMARKS'] : "";
                         if ($val == "") {
                             $val = 'whitespace';
                         }
@@ -9501,7 +9500,7 @@ class ServersController extends WebServicesController
             $ret['store'] = $arrReturn;
         }
 
-        $holiday = $this->wsSearchStoreHoliday($sessionid, $param, $param['kanzashienabled']);
+        $holiday = $this->wsSearchStoreHoliday($sessionid, $param);
         if ($holiday['record_count'] > 0) {
             $ret['holiday'] = $holiday['records']['day' . $param['day']];
         } else {
@@ -9601,7 +9600,7 @@ class ServersController extends WebServicesController
         $date = "{$param['year']}-{$param['month']}-01";
         $holidays = array();
 
-        if($param['kanzashienabled']) {
+        if($param['KANZASHI_ENABLED']) {
             $sql = "
                 SELECT *
                 FROM store_holiday_per_salon StoreHoliday
@@ -11271,6 +11270,7 @@ class ServersController extends WebServicesController
         $ymd = new DateTime($ymd);
 
         $param = array(
+            'KANZASHI_ENABLED' => true,
             'KANZASHI_SALON_POS_ID' => $kanzashisalonposid,
             'storecode' => $storecode,
             'year' => $ymd->format('Y'),
@@ -11278,7 +11278,7 @@ class ServersController extends WebServicesController
             'day' => 0
         );
         
-        $store_holiday = $this->wsSearchStoreHoliday($sessionid, $param, true);
+        $store_holiday = $this->wsSearchStoreHoliday($sessionid, $param);
         $result['store_holiday'] = $store_holiday['records'];
 
         $query = "
