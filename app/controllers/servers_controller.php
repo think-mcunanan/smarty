@@ -1054,7 +1054,7 @@ class ServersController extends WebServicesController
                 'store_holiday'    => 'tns:storeHolidayInformation',
                 'customers_limits' => 'tns:_kanzashiCustomersLimit'
             ),
-            'output' => array('return' => 'xsd:boolean')
+            'output' => array('return' => 'tns:return_updateKanzashiCustomersLimit')
         ),
         'wsPushKanzashiStylist' => array(
             'doc'    => 'かんざしスタイリストPUSH',
@@ -2404,6 +2404,17 @@ class ServersController extends WebServicesController
             'struct' => array(
                 'store_holiday'    => 'tns:storeHolidayInformation',
                 'customers_limits' => 'tns:_kanzashiCustomersLimit'
+            )
+        ),
+
+        // かんざし時間別予約可能数更新結果
+        '_dates' => array(
+            'array' => 'xsd:date'
+        ),
+        'return_updateKanzashiCustomersLimit' => array(
+            'struct' => array(
+                'error_dates' => 'tns:_dates',
+                'updated' => 'xsd:boolean'
             )
         )
 
@@ -11315,23 +11326,34 @@ class ServersController extends WebServicesController
      * @param int $storecode 店舗コード
      * @param storeHolidayInformation $store_holiday 店舗休日のオブジェクト
      * @param _kanzashiCustomersLimit $customers_limits かんざし時間別予約可能数のオブジェクト配列
+     * @return return_updateKanzashiCustomersLimit かんざし時間別予約可能数更新結果
      */
     function wsUpdateKanzashiCustomersLimit($sessionid, $ismainsalon, $kanzashisalonposid, $storecode, $store_holiday, $customers_limits)
     {
-        if ($kanzashisalonposid) {
-            $store_holiday['kanzashisalonposid'] = $kanzashisalonposid;
-        } 
-        if ($store_holiday['year'] && $store_holiday['month'] && $store_holiday['STORECODE']) {
-            $this->wsAddUpdateDeleteStoreHoliday($sessionid, $store_holiday, $ismainsalon);
-        } else {
-            $store_info = $this->YoyakuSession->Check($this);
+        $result = array('error_dates' => array(), 'updated' => false);
+        $storeinfo = $this->YoyakuSession->Check($this);
 
-            if (!$store_info) {
-                $this->_soap_server->fault(1, '', INVALID_SESSION);
-                return;
+        if (!$storeinfo) {
+            $this->_soap_server->fault(1, '', INVALID_SESSION);
+            return $result;
+        }
+
+        if ($store_holiday['year'] && $store_holiday['month'] && $store_holiday['STORECODE']) {
+            $result = $this->MiscFunction->CanUpdateKanzashiCustomersLimit($this, $storeinfo['dbname'], $kanzashisalonposid, $store_holiday, $customers_limits);
+            
+            if ($result['error_dates']) {
+                return $result;
             }
 
-            $this->StoreHoliday->set_company_database($store_info['dbname'], $this->StoreHoliday);
+            if ($kanzashisalonposid) {
+                $store_holiday['kanzashisalonposid'] = $kanzashisalonposid;
+            } 
+
+            if (!$this->wsAddUpdateDeleteStoreHoliday($sessionid, $store_holiday, $ismainsalon)) {
+                return $result;
+            }
+        } else {
+            $this->StoreHoliday->set_company_database($storeinfo['dbname'], $this->StoreHoliday);
         }
 
         $delete_values = array();
@@ -11392,12 +11414,13 @@ class ServersController extends WebServicesController
             }
             $source->commit();
             unset($source, $sqlstatements);
-            return true;
+            $result['updated'] = true;
         } catch (Exception $ex) {
             $source->rollback();
             unset($source, $sqlstatements);
-            return false;
         }
+
+        return $result;
     }
 
     /**
