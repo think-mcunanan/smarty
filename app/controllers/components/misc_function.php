@@ -2048,6 +2048,63 @@ class MiscFunctionComponent extends Object
     }
 
     /**
+     * かんざし時間別予約可能数更新可能可否
+     *
+     * @param controller $controller
+     * @param string $dbname
+     * @param int $kanzashisalonposid
+     * @param storeHolidayInformation $store_holiday 店舗休日のオブジェクト
+     * @param _kanzashiCustomersLimit $customers_limits かんざし時間別予約可能数のオブジェクト配列
+     * @return return_updateKanzashiCustomersLimit かんざし時間別予約可能数更新結果
+     */
+    function CanUpdateKanzashiCustomersLimit(&$controller, $dbname, $kanzashisalonposid, $store_holiday, $customers_limits)
+    {
+        $controller->StoreHoliday->set_company_database($dbname, $controller->StoreHoliday);
+        $result = array('error_dates' => array(), 'updated' => false);
+        $daily_times = array();
+
+        foreach ($customers_limits as $customers_limit) {
+            $date = $customers_limit['ymd'];
+            $daily_times[$date]["start_time"][] = substr($customers_limit['begin_time'], 0, 8);
+            $daily_times[$date]["end_time"][] = substr($customers_limit['end_time'], 0, 8);
+        }
+
+        $date_queries = array();
+
+        foreach ($daily_times as $date => $daily_time) {
+            $day = date('j', strtotime($date));
+            $is_holiday = var_export($store_holiday["day{$day}"] !== "", true);
+            $start_time = min($daily_time['start_time']);
+            $end_time = max($daily_time['end_time']);
+            $date_queries[] = "date = '{$date}' AND ({$is_holiday} OR start_time < '{$start_time}' OR end_time > '{$end_time}')";
+        }
+
+        $date_query = implode(' OR ', $date_queries);
+
+        $query = "
+            SELECT DISTINCT kr.date
+            FROM kanzashi_reservation kr
+            JOIN sipssbeauty_kanzashi.salon s
+            ON
+                s.pos_id = {$kanzashisalonposid} AND
+                s.kanzashi_id = kr.salon_id
+            WHERE
+                deletedate IS NULL AND
+                ({$date_query})
+            ORDER BY
+                kr.date
+        ";
+
+        $records = $controller->StoreHoliday->query($query);
+
+        foreach ($records as $record) {
+            $result['error_dates'][] = $record['kr']['date'];
+        }
+
+        return $result;
+    }
+
+    /**
      * Get the available Facilities
      *
      * @param controller &$controller
