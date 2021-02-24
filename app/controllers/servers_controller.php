@@ -11405,19 +11405,19 @@ class ServersController extends WebServicesController
         }
 
         $source = $this->StoreHoliday->getDataSource();
+        $source->begin();
+
         try {
-            $source->begin();
             foreach ($sqlstatements as $sqlstatement) {
-                if ($this->StoreHoliday->query($sqlstatement) === false) {
+                if (!$this->StoreHoliday->query($sqlstatement)) {
                     throw new Exception();
                 }
             }
+
             $source->commit();
-            unset($source, $sqlstatements);
             $result['updated'] = true;
         } catch (Exception $ex) {
             $source->rollback();
-            unset($source, $sqlstatements);
         }
 
         return $result;
