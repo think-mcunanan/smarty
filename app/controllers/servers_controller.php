@@ -11409,7 +11409,7 @@ class ServersController extends WebServicesController
 
         try {
             foreach ($sqlstatements as $sqlstatement) {
-                if (!$this->StoreHoliday->query($sqlstatement)) {
+                if ($this->StoreHoliday->query($sqlstatement) === false) {
                     throw new Exception();
                 }
             }
