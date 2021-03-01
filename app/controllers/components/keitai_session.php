@@ -836,39 +836,6 @@ class KeitaiSessionComponent extends Object
 
         $controller->ServiceList->set_company_database($dbname, $controller->ServiceList);
         $controller->StoreService->set_company_database($dbname, $controller->StoreService);
-/*
-        $v = $controller->ServiceList->find('all', array(
-                 'conditions' => array('StoreService.STORECODE' => $storecode,
-                                       'StoreService.SHOWONCELLPHONE' => 1,
-                                       'StoreService.GSCODE IS NOT NULL',
-                                       'StoreService.DELFLG IS NULL',
-                                       'ServiceList.DELFLG IS NULL'),
-                 'fields' => array('ServiceList.BUNRUINAME',
-                                   'StoreService.GCODE',
-                                   'StoreService.MENUNAME',
-                                   'StoreService.SERVICETIME',
-                                   'StoreService.SERVICETIME_MALE',
-                                   'StoreService.PRICE',
-                                   'StoreService.GDCODE'),
-                 'order' => array('StoreService.GDCODE','StoreService.DISPLAY_ORDER')
-        ));
-
-        if (empty($v)) {
-            return false;
-        }
-
-        $arrReturn = array();
-        foreach($v as $n) {
-            $daibunrui   = $n['ServiceList']['BUNRUINAME'];
-            $gcode       = $n['StoreService']['GCODE'];
-            $menuname    = $n['StoreService']['MENUNAME'];
-            $servicetime = ($sex == 0)?$n['StoreService']['SERVICETIME']:
-            $n['StoreService']['SERVICETIME_MALE'];
-            $price       = $n['StoreService']['PRICE'];
-            if($servicetime < 15) { $servicetime = 15; }
-            $arrReturn[$daibunrui][$gcode] = array($menuname, $servicetime, $price);
-        }
-        */
 
         //--------------------------------------------------------------------------------
         //担当者別メニュー時間を表示、利用時とそうでない場合の場合分け
