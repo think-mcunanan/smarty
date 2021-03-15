@@ -40,7 +40,7 @@
 
                                 <td align='left'>{$service_item[0]}</td>
                                 <td align='center'>
-                                    {if $service_item[2]}{$service_item[2]}円
+                                    {if $service_item[2]}{$service_item[2]}円（税込）
                                     {/if}
                                 </td>
                                 <td align='center'>{$service_item[1]}分</td>

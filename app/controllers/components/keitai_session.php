@@ -836,54 +836,37 @@ class KeitaiSessionComponent extends Object
 
         $controller->ServiceList->set_company_database($dbname, $controller->ServiceList);
         $controller->StoreService->set_company_database($dbname, $controller->StoreService);
-/*
-        $v = $controller->ServiceList->find('all', array(
-                 'conditions' => array('StoreService.STORECODE' => $storecode,
-                                       'StoreService.SHOWONCELLPHONE' => 1,
-                                       'StoreService.GSCODE IS NOT NULL',
-                                       'StoreService.DELFLG IS NULL',
-                                       'ServiceList.DELFLG IS NULL'),
-                 'fields' => array('ServiceList.BUNRUINAME',
-                                   'StoreService.GCODE',
-                                   'StoreService.MENUNAME',
-                                   'StoreService.SERVICETIME',
-                                   'StoreService.SERVICETIME_MALE',
-                                   'StoreService.PRICE',
-                                   'StoreService.GDCODE'),
-                 'order' => array('StoreService.GDCODE','StoreService.DISPLAY_ORDER')
-        ));
-
-        if (empty($v)) {
-            return false;
-        }
-
-        $arrReturn = array();
-        foreach($v as $n) {
-            $daibunrui   = $n['ServiceList']['BUNRUINAME'];
-            $gcode       = $n['StoreService']['GCODE'];
-            $menuname    = $n['StoreService']['MENUNAME'];
-            $servicetime = ($sex == 0)?$n['StoreService']['SERVICETIME']:
-            $n['StoreService']['SERVICETIME_MALE'];
-            $price       = $n['StoreService']['PRICE'];
-            if($servicetime < 15) { $servicetime = 15; }
-            $arrReturn[$daibunrui][$gcode] = array($menuname, $servicetime, $price);
-        }
-        */
 
         //--------------------------------------------------------------------------------
         //担当者別メニュー時間を表示、利用時とそうでない場合の場合分け
         $controller->StoreSettings->set_company_database($dbname, $controller->StoreSettings);
-        $option = $controller->StoreSettings->find('all',array( 'conditions' => array('STORECODE'  => $storecode,
-            'OPTIONNAME' => 'YOYAKU_MENU_TANTOU'),
-            'order'      => 'STORECODE ASC',
-            'limit'      => 1 ) );
+        $options = $controller->StoreSettings->find('all',
+            array(
+                'conditions' => array(
+                    'STORECODE'  => $storecode,
+                    array('OPTIONNAME IN ("YOYAKU_MENU_TANTOU", "TAX", "TAXOPTION")')
+                ))
+        );
 
         $use_staff_service_time = false;
-        if(!empty($option)) {
-            if($option[0]['StoreSettings']['OPTIONVALUEI'] > 0) {
-                $use_staff_service_time = true;
+        $normal_tax = 0;
+        $zei_option = 0;
+        if(!empty($options)) {
+            foreach ($options as $option) {
+                switch (strtoupper($option['StoreSettings']['OPTIONNAME'])) {
+                    case 'YOYAKU_MENU_TANTOU':
+                        $use_staff_service_time = $option['StoreSettings']['OPTIONVALUEI'] > 0;
+                        break;
+                    case 'TAX': 
+                        $normal_tax = +$option['StoreSettings']['OPTIONVALUEI'];
+                        break;
+                    case 'TAXOPTION': 
+                        $zei_option = +$option['StoreSettings']['OPTIONVALUEI'];
+                        break;
                 }
+            }
         }
+
        if($use_staff_service_time) {
             $service_time = "ifnull(yoyaku_staff_service_time.SERVICE_TIME,store_services.SERVICETIME) as SERVICE_TIME, ";
             $service_time_male = "ifnull(yoyaku_staff_service_time.SERVICE_TIME_MALE,store_services.SERVICETIME_MALE) as SERVICETIME_MALE, ";
@@ -892,36 +875,40 @@ class KeitaiSessionComponent extends Object
             $service_time_male = "store_services.SERVICETIME_MALE as SERVICETIME_MALE, ";
        }
         //--------------------------------------------------------------------------------
-
-
         $where_syscode = "";
         if($syscode != 0){
             $where_syscode = "and services.syscode = ". $syscode . " ";
         }
-        $query = "select ".
-		"services.BUNRUINAME as BUNRUINAME, ".
-		"store_services.GCODE as GCODE, ".
-		"store_services.MENUNAME as MENUNAME, ".
-		$service_time.
-		$service_time_male.
-		"store_services.PRICE as PRICE, ".
-		"store_services.GDCODE as GDCODE ".
-		"from services ".
-		"left join store_services on  ".
-		"services.GDCODE = store_services.GDCODE ".
-		"left join  ".
-		"yoyaku_staff_service_time on ".
-		"store_services.GCODE = yoyaku_staff_service_time.GCODE AND ".
-		"store_services.STORECODE = yoyaku_staff_service_time.STORECODE  ".
-		"AND yoyaku_staff_service_time.STAFFCODE = ? ".
-		"where  ".
-		"store_services.STORECODE = ? ".
-		"AND store_services.SHOWONCELLPHONE = 1 AND ".
-		"store_services.GSCODE IS NOT NULL AND ".
-		"store_services.DELFLG IS NULL AND ".
-		"services.DELFLG IS NULL ".
-                $where_syscode.
-		"order by store_services.GDCODE ,store_services.DISPLAY_ORDER,store_services.GCODE";
+
+        $query = "
+            SELECT 
+                services.BUNRUINAME as BUNRUINAME, 
+                store_services.GCODE as GCODE, 
+                store_services.MENUNAME as MENUNAME, 
+                {$service_time}
+                {$service_time_male}
+                store_services.PRICE as PRICE,
+                store_services.ZTYPE as TAXTYPE,
+                store_services.GDCODE as GDCODE 
+            FROM services 
+            LEFT JOIN store_services 
+                ON services.GDCODE = store_services.GDCODE 
+            LEFT JOIN yoyaku_staff_service_time 
+                ON store_services.GCODE = yoyaku_staff_service_time.GCODE AND 
+                store_services.STORECODE = yoyaku_staff_service_time.STORECODE AND 
+                yoyaku_staff_service_time.STAFFCODE = ? 
+            WHERE  
+                store_services.STORECODE = ? AND 
+                store_services.SHOWONCELLPHONE = 1 AND 
+                store_services.GSCODE IS NOT NULL AND 
+                store_services.DELFLG IS NULL AND 
+                services.DELFLG IS NULL 
+                {$where_syscode}
+            ORDER BY 
+                store_services.GDCODE,
+                store_services.DISPLAY_ORDER,
+                store_services.GCODE
+        ";
 
         $v = $controller->ServiceList->query($query,array($staffcode,$storecode));
         if (empty($v)) {
@@ -933,18 +920,54 @@ class KeitaiSessionComponent extends Object
             $daibunrui   = $n['services']['BUNRUINAME'];
             $gcode       = $n['store_services']['GCODE'];
             $menuname    = $n['store_services']['MENUNAME'];
-            //$servicetime = ($sex == 0)?$n[0]['SERVICE_TIME']:$n[0]['SERVICETIME_MALE'];
             if($use_staff_service_time){
                 $servicetime = ($sex == 0)?$n[0]['SERVICE_TIME']:$n[0]['SERVICETIME_MALE'];
             }else{
                 $servicetime = ($sex == 0)?$n['store_services']['SERVICE_TIME']:$n['store_services']['SERVICETIME_MALE'];
             }
-            $price       = $n['store_services']['PRICE'];
+
+            $price = (int)$n['store_services']['PRICE'];
+
+            if((int)$n['store_services']['TAXTYPE'] === 0) {
+                $current_tax = $price * ($normal_tax / 100);
+                $price += $this->computeTaxBasedOnZeiOption($current_tax, $zei_option);
+            } 
+            
             if($servicetime < 15) { $servicetime = 15; }
             $arrReturn[$daibunrui][$gcode] = array($menuname, $servicetime, $price);
         }
 
         return $arrReturn;
+    }
+
+    private function computeTaxBasedOnZeiOption($current_tax_amount, $zei_option) {
+        if($current_tax_amount === 0) {
+            return $current_tax_amount;
+        } 
+
+        $tax_amount = $current_tax_amount < 0 ? $current_tax_amount * -1 : $current_tax_amount;
+        $temp_remainder = $tax_amount - intval($tax_amount);
+        $remainder = $temp_remainder < 1 ? $temp_remainder * 10 : $temp_remainder * 1;
+        
+        switch (+$zei_option) {
+            case 0:
+                $tax_amount = intval($tax_amount);
+                break;
+            case 1:
+                if($remainder >= 1 && $remainder <= 4) {
+                    $tax_amount = intval($tax_amount);
+                } elseif($remainder >= 5 && $remainder <= 10) {
+                    $tax_amount = intval($tax_amount) + 1;
+                }
+                break;
+            case 2:
+                if($remainder >= 1 && $remainder <= 10) {
+                    $tax_amount = intval($tax_amount) + 1;
+                }
+                break;
+        }
+
+        return $current_tax_amount < 0 ? $tax_amount * -1 : $tax_amount;
     }
 
      /**
@@ -2946,4 +2969,3 @@ class KeitaiSessionComponent extends Object
     }
 
 }
-?>
