@@ -11339,18 +11339,17 @@ class ServersController extends WebServicesController
             return $result;
         }
 
-        if ($store_holiday['year'] && $store_holiday['month'] && $store_holiday['STORECODE']) {
+        $storecode = $store_holiday['STORECODE'];
+
+        if ($store_holiday['KANZASHI_ENABLED']) {
+             $kanzashisalonposid = $store_holiday['KANZASHI_SALON_POS_ID'];
+        } 
+
+        if ($store_holiday['year'] && $store_holiday['month']) {
+            // 設定されている場合、営業日のアップデートを行う。
             $result['error_dates'] = $this->MiscFunction->CheckUpdateKanzashiCustomersLimitErrorDates($this, $storeinfo['dbname'], $kanzashisalonposid, $store_holiday, $customers_limits);
             
-            if ($result['error_dates']) {
-                return $result;
-            }
-
-            if ($kanzashisalonposid) {
-                $store_holiday['kanzashisalonposid'] = $kanzashisalonposid;
-            } 
-
-            if (!$this->wsAddUpdateDeleteStoreHoliday($sessionid, $store_holiday, $ismainsalon)) {
+            if ($result['error_dates'] || !$this->wsAddUpdateDeleteStoreHoliday($sessionid, $store_holiday, $ismainsalon)) {
                 return $result;
             }
         } else {
