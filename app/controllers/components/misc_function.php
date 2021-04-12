@@ -2048,19 +2048,18 @@ class MiscFunctionComponent extends Object
     }
 
     /**
-     * かんざし時間別予約可能数更新可能可否
+     * かんざし時間別予約可能数更新でエラーとなる日付を確認する
      *
      * @param controller $controller
      * @param string $dbname
      * @param int $kanzashisalonposid
      * @param storeHolidayInformation $store_holiday 店舗休日のオブジェクト
      * @param _kanzashiCustomersLimit $customers_limits かんざし時間別予約可能数のオブジェクト配列
-     * @return return_updateKanzashiCustomersLimit かんざし時間別予約可能数更新結果
+     * @return array エラーとなる日付の配列
      */
-    function CanUpdateKanzashiCustomersLimit(&$controller, $dbname, $kanzashisalonposid, $store_holiday, $customers_limits)
+    function CheckUpdateKanzashiCustomersLimitErrorDates(&$controller, $dbname, $kanzashisalonposid, $store_holiday, $customers_limits)
     {
         $controller->StoreHoliday->set_company_database($dbname, $controller->StoreHoliday);
-        $result = array('error_dates' => array(), 'updated' => false);
         $daily_times = array();
 
         foreach ($customers_limits as $customers_limit) {
@@ -2096,9 +2095,10 @@ class MiscFunctionComponent extends Object
         ";
 
         $records = $controller->StoreHoliday->query($query);
+        $result = array();
 
         foreach ($records as $record) {
-            $result['error_dates'][] = $record['kr']['date'];
+            $result[] = $record['kr']['date'];
         }
 
         return $result;

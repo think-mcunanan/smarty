@@ -11339,7 +11339,7 @@ class ServersController extends WebServicesController
         }
 
         if ($store_holiday['year'] && $store_holiday['month'] && $store_holiday['STORECODE']) {
-            $result = $this->MiscFunction->CanUpdateKanzashiCustomersLimit($this, $storeinfo['dbname'], $kanzashisalonposid, $store_holiday, $customers_limits);
+            $result['error_dates'] = $this->MiscFunction->CheckUpdateKanzashiCustomersLimitErrorDates($this, $storeinfo['dbname'], $kanzashisalonposid, $store_holiday, $customers_limits);
             
             if ($result['error_dates']) {
                 return $result;
