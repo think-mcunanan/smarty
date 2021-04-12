@@ -2075,7 +2075,7 @@ class MiscFunctionComponent extends Object
             $is_holiday = var_export($store_holiday["day{$day}"] !== "", true);
             $start_time = min($daily_time['start_time']);
             $end_time = max($daily_time['end_time']);
-            $date_queries[] = "date = '{$date}' AND ({$is_holiday} OR start_time < '{$start_time}' OR end_time > '{$end_time}')";
+            $date_queries[] = "kr.date = '{$date}' AND ({$is_holiday} OR kr.start_time < '{$start_time}' OR kr.end_time > '{$end_time}')";
         }
 
         $date_query = implode(' OR ', $date_queries);
@@ -2088,7 +2088,7 @@ class MiscFunctionComponent extends Object
                 s.pos_id = {$kanzashisalonposid} AND
                 s.kanzashi_id = kr.salon_id
             WHERE
-                deletedate IS NULL AND
+                kr.deletedate IS NULL AND
                 ({$date_query})
             ORDER BY
                 kr.date
