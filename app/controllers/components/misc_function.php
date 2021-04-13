@@ -2048,16 +2048,16 @@ class MiscFunctionComponent extends Object
     }
 
     /**
-     * かんざし時間別予約可能数更新でエラーとなる日付を確認する
+     * 営業時間外となる予約が存在する日付の配列を取得する
      *
      * @param controller $controller
      * @param string $dbname
      * @param int $kanzashisalonposid
      * @param storeHolidayInformation $store_holiday 店舗休日のオブジェクト
      * @param _kanzashiCustomersLimit $customers_limits かんざし時間別予約可能数のオブジェクト配列
-     * @return array エラーとなる日付の配列
+     * @return array 営業時間外となる予約が存在する日付の配列
      */
-    function CheckUpdateKanzashiCustomersLimitErrorDates(&$controller, $dbname, $kanzashisalonposid, $store_holiday, $customers_limits)
+    function GetReservationDatesInOffHours(&$controller, $dbname, $kanzashisalonposid, $store_holiday, $customers_limits)
     {
         $controller->StoreHoliday->set_company_database($dbname, $controller->StoreHoliday);
         $daily_times = array();

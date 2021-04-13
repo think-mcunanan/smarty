@@ -11347,7 +11347,7 @@ class ServersController extends WebServicesController
 
         if ($store_holiday['year'] && $store_holiday['month']) {
             // 設定されている場合、営業日のアップデートを行う。
-            $result['error_dates'] = $this->MiscFunction->CheckUpdateKanzashiCustomersLimitErrorDates($this, $storeinfo['dbname'], $kanzashisalonposid, $store_holiday, $customers_limits);
+            $result['error_dates'] = $this->MiscFunction->GetReservationDatesInOffHours($this, $storeinfo['dbname'], $kanzashisalonposid, $store_holiday, $customers_limits);
             
             if ($result['error_dates'] || !$this->wsAddUpdateDeleteStoreHoliday($sessionid, $store_holiday, $ismainsalon)) {
                 return $result;
