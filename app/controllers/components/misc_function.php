@@ -2057,7 +2057,7 @@ class MiscFunctionComponent extends Object
      * @param _kanzashiCustomersLimit $customers_limits かんざし時間別予約可能数のオブジェクト配列
      * @return array 営業時間外となる予約が存在する日付の配列
      */
-    function GetReservationDatesInOffHours(&$controller, $dbname, $kanzashisalonposid, $store_holiday, $customers_limits)
+    function GetReservationDatesOutsideBusinessHours(&$controller, $dbname, $kanzashisalonposid, $store_holiday, $customers_limits)
     {
         $controller->StoreHoliday->set_company_database($dbname, $controller->StoreHoliday);
         $daily_times = array();
