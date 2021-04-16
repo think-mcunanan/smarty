@@ -2048,6 +2048,63 @@ class MiscFunctionComponent extends Object
     }
 
     /**
+     * 営業時間外となる予約が存在する日付の配列を取得する
+     *
+     * @param controller $controller
+     * @param string $dbname
+     * @param int $kanzashisalonposid
+     * @param storeHolidayInformation $store_holiday 店舗休日のオブジェクト
+     * @param _kanzashiCustomersLimit $customers_limits かんざし時間別予約可能数のオブジェクト配列
+     * @return array 営業時間外となる予約が存在する日付の配列
+     */
+    function GetReservationDatesOutsideBusinessHours(&$controller, $dbname, $kanzashisalonposid, $store_holiday, $customers_limits)
+    {
+        $controller->StoreHoliday->set_company_database($dbname, $controller->StoreHoliday);
+        $daily_times = array();
+
+        foreach ($customers_limits as $customers_limit) {
+            $date = $customers_limit['ymd'];
+            $daily_times[$date]["start_time"][] = substr($customers_limit['begin_time'], 0, 8);
+            $daily_times[$date]["end_time"][] = substr($customers_limit['end_time'], 0, 8);
+        }
+
+        $date_queries = array();
+
+        foreach ($daily_times as $date => $daily_time) {
+            $day = date('j', strtotime($date));
+            $is_holiday = var_export($store_holiday["day{$day}"] !== "", true);
+            $start_time = min($daily_time['start_time']);
+            $end_time = max($daily_time['end_time']);
+            $date_queries[] = "kr.date = '{$date}' AND ({$is_holiday} OR kr.start_time < '{$start_time}' OR kr.end_time > '{$end_time}')";
+        }
+
+        $date_query = implode(' OR ', $date_queries);
+
+        $query = "
+            SELECT DISTINCT kr.date
+            FROM kanzashi_reservation kr
+            JOIN sipssbeauty_kanzashi.salon s
+            ON
+                s.pos_id = {$kanzashisalonposid} AND
+                s.kanzashi_id = kr.salon_id
+            WHERE
+                kr.deletedate IS NULL AND
+                ({$date_query})
+            ORDER BY
+                kr.date
+        ";
+
+        $records = $controller->StoreHoliday->query($query);
+        $result = array();
+
+        foreach ($records as $record) {
+            $result[] = $record['kr']['date'];
+        }
+
+        return $result;
+    }
+
+    /**
      * Get the available Facilities
      *
      * @param controller &$controller
