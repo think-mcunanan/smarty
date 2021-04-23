@@ -853,17 +853,6 @@ class ServersController extends WebServicesController
         ),
         //- ############################################################
 
-        // GetShiftSimulationPassword -----------------------------------
-        'wsGetShiftSimulationPassword' => array(
-            'doc'    => 'wsGetShiftSimulationPassword',
-            'input'  => array(
-                'sessionid'    => 'xsd:string',
-                'storecode'    => 'xsd:int'
-            ),
-            'output' => array('pwd'          => 'xsd:string')
-        ),
-        //- ############################################################
-
         //wsGetYoyakuAllowTransToStore-------------------------------------
         'wsGetYoyakuAllowTransToStore'   => array(
             'doc'    => 'wsGetYoyakuAllowTransToStore',
@@ -10871,50 +10860,6 @@ class ServersController extends WebServicesController
                     WHERE oid = " . $oid;
         //-------------------------------------------------------------------------------------------
         $this->Staff->query($Sql);
-        //-------------------------------------------------------------------------------------------
-    } //end function
-    //</editor-fold>
-
-    //<editor-fold defaultstate="collapsed" desc="wsGetShiftSimulationPassword">
-    /**
-     * wsGetShiftSimulationPassword
-     * @author Marvin marvin@think-ahead.jp
-     * Date Created: 2012-06-26
-     * Updates:
-     *
-     * @param String $sessionid - session key
-     * @return String - Password
-     */
-    function wsGetShiftSimulationPassword($sessionid, $storecode)
-    {
-        //-------------------------------------------------------------------------------------------
-        $retval = "";
-        //-------------------------------------------------------------------------------------------
-        $storeinfo = $this->YoyakuSession->Check($this);
-        //-------------------------------------------------------------------------------------------
-        if ($storeinfo == false) {
-            $this->_soap_server->fault(1, '', INVALID_SESSION);
-            return;
-        } //end if
-        //-------------------------------------------------------------------------------------------
-        $this->Staff->set_company_database($storeinfo['dbname'], $this->Staff);
-        //-------------------------------------------------------------------------------------------
-        //Query
-        //-------------------------------------------------------------------------------------------
-        $Sql = "SELECT optionvalues
-                FROM store_settings
-                WHERE STORECODE = " . $storecode . "
-                        AND OPTIONNAME = 'SHIFT_SIMULATION_PASSWORD' ";
-        //-------------------------------------------------------------------------------------------
-        $GetData = $this->Staff->query($Sql);
-        //-------------------------------------------------------------------------------------------
-        if (count($GetData) > 0) {
-            //---------------------------------------------------------------------------------------
-            $retval = $GetData[0]['store_settings']['optionvalues'];
-            //---------------------------------------------------------------------------------------
-        } //end if
-        //-------------------------------------------------------------------------------------------
-        return $retval;
         //-------------------------------------------------------------------------------------------
     } //end function
     //</editor-fold>
