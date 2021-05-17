@@ -905,12 +905,10 @@ class YkController extends AppController {
 
     private function redirectIfNecessary($companyid, $storecode) 
     { 
-        if((int)$companyid !== 23 || (int)$storecode !== 29) {
-            return;
+        if((int)$companyid === 23 && (int)$storecode === 29) {
+            $this->redirect("https://web.sipss.jp/web/?store_id=26", 302, true);
+            exit;
         }
-
-        $this->redirect("https://web.sipss.jp/web/?store_id=26", 302, true);
-        exit;
     }
 
     /*業種区分選択　NEW0*/
