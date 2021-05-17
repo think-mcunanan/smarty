@@ -336,6 +336,8 @@ class YkController extends AppController {
             exit();
         }
 
+        $this->redirectHabenStore($session_info['companyid'], $session_info['storecode']);
+
         if($this->params['form']['p_cancel']) {
             $this->redirect('/yk/mypage/'.$session_info['companyid'].'/'.$session_info['storecode'].'/'.$sessionid);
             exit();
