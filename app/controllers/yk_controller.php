@@ -336,7 +336,7 @@ class YkController extends AppController {
             exit();
         }
 
-        $this->redirectHabenStore($session_info['companyid'], $session_info['storecode']);
+        $this->redirectIfNecessary($session_info['companyid'], $session_info['storecode']);
 
         if($this->params['form']['p_cancel']) {
             $this->redirect('/yk/mypage/'.$session_info['companyid'].'/'.$session_info['storecode'].'/'.$sessionid);
@@ -787,7 +787,7 @@ class YkController extends AppController {
      */
     function login($companyid = 0, $storecode = 0, $sessionid = "",$errcode =0) {
 
-        $this->redirectHabenStore($companyid, $storecode);
+        $this->redirectIfNecessary($companyid, $storecode);
 
         $top_message = "";
         $store_info = $this->KeitaiSession->GetStoreInfo($this, $companyid, $storecode);
@@ -903,7 +903,8 @@ class YkController extends AppController {
 
     }
 
-    private function redirectHabenStore($companyid, $storecode) { 
+    private function redirectIfNecessary($companyid, $storecode) 
+    { 
         if((int)$companyid !== 23 || (int)$storecode !== 29) {
             return;
         }
