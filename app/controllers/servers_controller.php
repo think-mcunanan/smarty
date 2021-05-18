@@ -1444,8 +1444,6 @@ class ServersController extends WebServicesController
             'RETIREDATE'            => 'xsd:string',
             'STARTTIME'             => 'xsd:string',
             'ENDTIME'               => 'xsd:string',
-            'SALARYTYPE'            => 'xsd:int',
-            'SALARYAMOUNT'          => 'xsd:int',
             'TRAVEL_ALLOWANCE'      => 'xsd:int',
             'KANZASHI_ENABLED'      => 'xsd:boolean',
             'KANZASHI_SALON_POS_ID' => 'xsd:int',
@@ -5281,8 +5279,6 @@ class ServersController extends WebServicesController
             $arrStaffShift[$i]['HIREDATE']   = $arrStaff[$i]['StaffAssignToStore']['HIREDATE'];
             $arrStaffShift[$i]['RETIREDATE'] = $arrStaff[$i]['StaffAssignToStore']['RETIREDATE'];
             //-----------------------------------------------------------------------------------
-            $arrStaffShift[$i]['SALARYTYPE'] = $arrStaff[$i]['StaffAssignToStore']['SALARYTYPE'];
-            $arrStaffShift[$i]['SALARYAMOUNT'] = $arrStaff[$i]['StaffAssignToStore']['SALARYAMOUNT'];
             $arrStaffShift[$i]['TRAVEL_ALLOWANCE'] = $arrStaff[$i]['StaffAssignToStore']['TRAVEL_ALLOWANCE'];
             //-----------------------------------------------------------------------------------
             $arrStaffShift[$i]['KANZASHI_ENABLED'] = $arrStaff[$i]['StaffAssignToStore']['KANZASHI_ENABLED'];

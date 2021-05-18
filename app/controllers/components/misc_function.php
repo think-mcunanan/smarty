@@ -113,35 +113,8 @@ class MiscFunctionComponent extends Object
     function SearchStaffAssignToStore(&$controller, $param)
     {
 
-        //$criteria['StaffAssignToStore.ASSIGN_YOYAKU'] = 1;
-        //$criteria['StaffAssignToStore.STORECODE'] = $param['storecode'];
-
         $startdate = $param['year'] . "-" . $param['month'] . "-" . "1";
         $enddate = $controller->enddate;
-
-        //$level2aa['OR'] = array('Staff.HIREDATE IS NULL',
-        //                        'Staff.HIREDATE <= ?' => array($enddate));
-        //$level2ab['OR'] = array('Staff.RETIREDATE IS NULL',
-        //                        'Staff.RETIREDATE >= ?' => array($enddate));
-
-        //$level2a['AND'] = array($level2aa, $level2ab);
-        //$level2b = array('Staff.HIREDATE BETWEEN ? AND ?' => array($startdate, $enddate));
-        //$level2c = array('Staff.RETIREDATE BETWEEN ? AND ?' => array($startdate, $enddate));
-
-        //$level['OR'] = array($level2a, $level2b, $level2c);
-
-        //$and_condition = array($level);
-
-        //$criteria_top = array($criteria,
-        //                      $and_condition,
-        //                      'StaffAssignToStore.STAFFCODE <> ?' => array(0),
-        //                      'Staff.DELFLG IS NULL');
-
-        //        //$orderby = array('StaffAssignToStore.STAFFCODE');
-        //        //$orderby = array('IF(Staff.STAFFCODE = 0, 0, IFNULL(StaffAssignToStore.DISPLAY_ORDER, 9999999)),
-        //        //                  Staff.STAFFCODE');
-
-        //$orderby = array('Staff.DISPLAY_ORDER, Staff.STAFFCODE');
 
         $Sql = "SELECT StaffAssignToStore.STORECODE,
                        StaffAssignToStore.STAFFCODE,
@@ -153,8 +126,6 @@ class MiscFunctionComponent extends Object
                        Staff.STAFFNAME,
                        Staff.HIREDATE,
                        Staff.RETIREDATE,
-                       Staff.SALARYTYPE,
-                       Staff.SALARYAMOUNT,
                        Staff.TRAVEL_ALLOWANCE,
                        Staff.DISPLAY_ORDER
                 FROM staff_assign_to_store StaffAssignToStore
@@ -181,8 +152,6 @@ class MiscFunctionComponent extends Object
             $arrStaff[$i]['StaffAssignToStore']['HIREDATE']   = $arrStaff[$i]['Staff']['HIREDATE'];
             $arrStaff[$i]['StaffAssignToStore']['RETIREDATE'] = $arrStaff[$i]['Staff']['RETIREDATE'];
             //---------------------------------------------------------------------------------------
-            $arrStaff[$i]['StaffAssignToStore']['SALARYTYPE'] = $arrStaff[$i]['Staff']['SALARYTYPE'];
-            $arrStaff[$i]['StaffAssignToStore']['SALARYAMOUNT'] = $arrStaff[$i]['Staff']['SALARYAMOUNT'];
             $arrStaff[$i]['StaffAssignToStore']['TRAVEL_ALLOWANCE'] = $arrStaff[$i]['Staff']['TRAVEL_ALLOWANCE'];
             //---------------------------------------------------------------------------------------
             $arrStaff[$i]['StaffAssignToStore']['KANZASHI_ENABLED'] = !is_null($arrStaff[$i]['StaffAssignToStore']['KANZASHI_SALON_POS_ID']);
