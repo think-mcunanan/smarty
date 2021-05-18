@@ -126,7 +126,6 @@ class MiscFunctionComponent extends Object
                        Staff.STAFFNAME,
                        Staff.HIREDATE,
                        Staff.RETIREDATE,
-                       Staff.TRAVEL_ALLOWANCE,
                        Staff.DISPLAY_ORDER
                 FROM staff_assign_to_store StaffAssignToStore
                        JOIN staff Staff
@@ -151,8 +150,6 @@ class MiscFunctionComponent extends Object
             $arrStaff[$i]['StaffAssignToStore']['STAFFNAME']  = $arrStaff[$i]['Staff']['STAFFNAME'];
             $arrStaff[$i]['StaffAssignToStore']['HIREDATE']   = $arrStaff[$i]['Staff']['HIREDATE'];
             $arrStaff[$i]['StaffAssignToStore']['RETIREDATE'] = $arrStaff[$i]['Staff']['RETIREDATE'];
-            //---------------------------------------------------------------------------------------
-            $arrStaff[$i]['StaffAssignToStore']['TRAVEL_ALLOWANCE'] = $arrStaff[$i]['Staff']['TRAVEL_ALLOWANCE'];
             //---------------------------------------------------------------------------------------
             $arrStaff[$i]['StaffAssignToStore']['KANZASHI_ENABLED'] = !is_null($arrStaff[$i]['StaffAssignToStore']['KANZASHI_SALON_POS_ID']);
             if ($arrStaff[$i]['StaffAssignToStore']['KANZASHI_ENABLED']){
