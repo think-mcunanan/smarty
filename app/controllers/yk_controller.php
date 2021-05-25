@@ -336,6 +336,8 @@ class YkController extends AppController {
             exit();
         }
 
+        $this->redirectIfNecessary($session_info['companyid'], $session_info['storecode']);
+
         if($this->params['form']['p_cancel']) {
             $this->redirect('/yk/mypage/'.$session_info['companyid'].'/'.$session_info['storecode'].'/'.$sessionid);
             exit();
@@ -784,6 +786,9 @@ class YkController extends AppController {
      * @param string $sessionid
      */
     function login($companyid = 0, $storecode = 0, $sessionid = "",$errcode =0) {
+
+        $this->redirectIfNecessary($companyid, $storecode);
+
         $top_message = "";
         $store_info = $this->KeitaiSession->GetStoreInfo($this, $companyid, $storecode);
 
@@ -896,6 +901,14 @@ class YkController extends AppController {
         //add_access log
         $this->KeitaiSession->SetAccesslog($this, $store_info['dbname'], "", "", $store_info['STORECODE'], "login",0);
 
+    }
+
+    private function redirectIfNecessary($companyid, $storecode) 
+    { 
+        if((int)$companyid === 23 && (int)$storecode === 29) {
+            $this->redirect("https://web.sipss.jp/web/?store_id=26", 302, true);
+            exit;
+        }
     }
 
     /*業種区分選択　NEW0*/

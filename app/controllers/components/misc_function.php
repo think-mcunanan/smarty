@@ -113,35 +113,8 @@ class MiscFunctionComponent extends Object
     function SearchStaffAssignToStore(&$controller, $param)
     {
 
-        //$criteria['StaffAssignToStore.ASSIGN_YOYAKU'] = 1;
-        //$criteria['StaffAssignToStore.STORECODE'] = $param['storecode'];
-
         $startdate = $param['year'] . "-" . $param['month'] . "-" . "1";
         $enddate = $controller->enddate;
-
-        //$level2aa['OR'] = array('Staff.HIREDATE IS NULL',
-        //                        'Staff.HIREDATE <= ?' => array($enddate));
-        //$level2ab['OR'] = array('Staff.RETIREDATE IS NULL',
-        //                        'Staff.RETIREDATE >= ?' => array($enddate));
-
-        //$level2a['AND'] = array($level2aa, $level2ab);
-        //$level2b = array('Staff.HIREDATE BETWEEN ? AND ?' => array($startdate, $enddate));
-        //$level2c = array('Staff.RETIREDATE BETWEEN ? AND ?' => array($startdate, $enddate));
-
-        //$level['OR'] = array($level2a, $level2b, $level2c);
-
-        //$and_condition = array($level);
-
-        //$criteria_top = array($criteria,
-        //                      $and_condition,
-        //                      'StaffAssignToStore.STAFFCODE <> ?' => array(0),
-        //                      'Staff.DELFLG IS NULL');
-
-        //        //$orderby = array('StaffAssignToStore.STAFFCODE');
-        //        //$orderby = array('IF(Staff.STAFFCODE = 0, 0, IFNULL(StaffAssignToStore.DISPLAY_ORDER, 9999999)),
-        //        //                  Staff.STAFFCODE');
-
-        //$orderby = array('Staff.DISPLAY_ORDER, Staff.STAFFCODE');
 
         $Sql = "SELECT StaffAssignToStore.STORECODE,
                        StaffAssignToStore.STAFFCODE,
@@ -153,9 +126,6 @@ class MiscFunctionComponent extends Object
                        Staff.STAFFNAME,
                        Staff.HIREDATE,
                        Staff.RETIREDATE,
-                       Staff.SALARYTYPE,
-                       Staff.SALARYAMOUNT,
-                       Staff.TRAVEL_ALLOWANCE,
                        Staff.DISPLAY_ORDER
                 FROM staff_assign_to_store StaffAssignToStore
                        JOIN staff Staff
@@ -180,10 +150,6 @@ class MiscFunctionComponent extends Object
             $arrStaff[$i]['StaffAssignToStore']['STAFFNAME']  = $arrStaff[$i]['Staff']['STAFFNAME'];
             $arrStaff[$i]['StaffAssignToStore']['HIREDATE']   = $arrStaff[$i]['Staff']['HIREDATE'];
             $arrStaff[$i]['StaffAssignToStore']['RETIREDATE'] = $arrStaff[$i]['Staff']['RETIREDATE'];
-            //---------------------------------------------------------------------------------------
-            $arrStaff[$i]['StaffAssignToStore']['SALARYTYPE'] = $arrStaff[$i]['Staff']['SALARYTYPE'];
-            $arrStaff[$i]['StaffAssignToStore']['SALARYAMOUNT'] = $arrStaff[$i]['Staff']['SALARYAMOUNT'];
-            $arrStaff[$i]['StaffAssignToStore']['TRAVEL_ALLOWANCE'] = $arrStaff[$i]['Staff']['TRAVEL_ALLOWANCE'];
             //---------------------------------------------------------------------------------------
             $arrStaff[$i]['StaffAssignToStore']['KANZASHI_ENABLED'] = !is_null($arrStaff[$i]['StaffAssignToStore']['KANZASHI_SALON_POS_ID']);
             if ($arrStaff[$i]['StaffAssignToStore']['KANZASHI_ENABLED']){
@@ -2042,6 +2008,63 @@ class MiscFunctionComponent extends Object
 
         foreach ($records as $record) {
             $result[] = $record['kanzashi_customers_limit'];
+        }
+
+        return $result;
+    }
+
+    /**
+     * 営業時間外となる予約が存在する日付の配列を取得する
+     *
+     * @param controller $controller
+     * @param string $dbname
+     * @param int $kanzashisalonposid
+     * @param storeHolidayInformation $store_holiday 店舗休日のオブジェクト
+     * @param _kanzashiCustomersLimit $customers_limits かんざし時間別予約可能数のオブジェクト配列
+     * @return array 営業時間外となる予約が存在する日付の配列
+     */
+    function GetReservationDatesOutsideBusinessHours(&$controller, $dbname, $kanzashisalonposid, $store_holiday, $customers_limits)
+    {
+        $controller->StoreHoliday->set_company_database($dbname, $controller->StoreHoliday);
+        $daily_times = array();
+
+        foreach ($customers_limits as $customers_limit) {
+            $date = $customers_limit['ymd'];
+            $daily_times[$date]["start_time"][] = substr($customers_limit['begin_time'], 0, 8);
+            $daily_times[$date]["end_time"][] = substr($customers_limit['end_time'], 0, 8);
+        }
+
+        $date_queries = array();
+
+        foreach ($daily_times as $date => $daily_time) {
+            $day = date('j', strtotime($date));
+            $is_holiday = var_export($store_holiday["day{$day}"] !== "", true);
+            $start_time = min($daily_time['start_time']);
+            $end_time = max($daily_time['end_time']);
+            $date_queries[] = "kr.date = '{$date}' AND ({$is_holiday} OR kr.start_time < '{$start_time}' OR kr.end_time > '{$end_time}')";
+        }
+
+        $date_query = implode(' OR ', $date_queries);
+
+        $query = "
+            SELECT DISTINCT kr.date
+            FROM kanzashi_reservation kr
+            JOIN sipssbeauty_kanzashi.salon s
+            ON
+                s.pos_id = {$kanzashisalonposid} AND
+                s.kanzashi_id = kr.salon_id
+            WHERE
+                kr.deletedate IS NULL AND
+                ({$date_query})
+            ORDER BY
+                kr.date
+        ";
+
+        $records = $controller->StoreHoliday->query($query);
+        $result = array();
+
+        foreach ($records as $record) {
+            $result[] = $record['kr']['date'];
         }
 
         return $result;
