@@ -137,7 +137,7 @@ class ViewTask extends Shell {
 						$adminDelete = $adminRoute.'_delete';
 					}
 					foreach ($methods as $method) {
-						if ($method{0} != '_' && !in_array($method, array('delete', $adminDelete))) {
+						if ($method[0] != '_' && !in_array($method, array('delete', $adminDelete))) {
 							$content = $this->getContent($method, $vars);
 							$this->bake($method, $content);
 						}
@@ -247,7 +247,7 @@ class ViewTask extends Shell {
 			$this->_stop();
 		}
 		$controllerClassName = $this->controllerName . 'Controller';
-		$controllerObj = & new $controllerClassName();
+		$controllerObj = new $controllerClassName();
 		$controllerObj->constructClasses();
 		$modelClass = $controllerObj->modelClass;
 		$modelObj =& ClassRegistry::getObject($controllerObj->modelKey);
@@ -290,7 +290,7 @@ class ViewTask extends Shell {
 			$content = $this->getContent();
 		}
 		$filename = $this->path . $this->controllerPath . DS . Inflector::underscore($action) . '.ctp';
-		$Folder =& new Folder($this->path . $this->controllerPath, true);
+		$Folder = new Folder($this->path . $this->controllerPath, true);
 		$errors = $Folder->errors();
 		if (empty($errors)) {
 			$path = $Folder->slashTerm($Folder->pwd());

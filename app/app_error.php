@@ -27,7 +27,7 @@ class AppError extends ErrorHandler {
      * @param Array $messages
      */
     function __construct($method, $messages) {
-        $this->controller =& new AppController();
+        $this->controller = new AppController();
     	$storeid = $messages[0]['url'];
         $this->controller->redirect(MOBASUTE_PATH.$storeid);
         exit();

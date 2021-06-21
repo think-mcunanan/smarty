@@ -369,21 +369,21 @@ class DboMysql extends DboMysqlBase {
     * @return array - return object
     */
     function getdbhost($config) {
-        $link = mysql_connect($config['host'], $config['login'], $config['password']);
-        if (!$link) {
-            die('Could not connect: ' . mysql_error());
+        $link = mysqli_connect($config['host'], $config['login'], $config['password']);
+        if (mysqli_connect_errno()) {
+            die('Could not connect: ' . mysqli_error());
         }
-        mysql_select_db("sipssbeauty_server", $link) or die(mysql_error());
+        mysqli_select_db($link, "sipssbeauty_server") or die(mysqli_error());
         $sql = "SELECT dbhostmaster AS dbhost, dbhostuser, dbhostpasswd
                 FROM company
                 WHERE dbname = '".$config['database']."'
                     AND delflg IS NULL";
-        $res = mysql_query($sql, $link);
-        while ($row = mysql_fetch_assoc($res)) {
+        $res = mysqli_query($link, $sql);
+        while ($row = mysqli_fetch_assoc($res)) {
             $retval = $row;
             break;
         }
-        mysql_close($link);
+        mysqli_close($link);
         unset($link);
         return $retval;
     }
@@ -419,12 +419,12 @@ class DboMysql extends DboMysqlBase {
         }
         //----------------------------------------------------------
         if (!$config['persistent']) {
-	        $this->connection = mysql_connect($dbhostip . ':' . $config['port'], $dbhostuser, $dbhostpasswd, true);
+	        $this->connection = mysqli_connect($dbhostip . ':' . $config['port'], $dbhostuser, $dbhostpasswd);
         } else {
 	        $this->connection = $connect($dbhostip . ':' . $config['port'], $dbhostuser, $dbhostpasswd);
         }
 
-        if (mysql_select_db($config['database'], $this->connection)) {
+        if (mysqli_select_db($this->connection, $config['database'])) {
 	        $this->connected = true;
         }
 
@@ -432,7 +432,7 @@ class DboMysql extends DboMysqlBase {
 	        $this->setEncoding($config['encoding']);
         }
 
-        $this->_useAlias = (bool)version_compare(mysql_get_server_info($this->connection), "4.1", ">=");
+        $this->_useAlias = (bool)version_compare(mysqli_get_server_info($this->connection), "4.1", ">=");
 
         //remove STRICT_TRANS_TABLES
         //Override connection sql_mode
@@ -449,9 +449,9 @@ class DboMysql extends DboMysqlBase {
  */
 	function disconnect() {
 		if (isset($this->results) && is_resource($this->results)) {
-			mysql_free_result($this->results);
+			mysqli_free_result($this->results);
 		}
-		$this->connected = !@mysql_close($this->connection);
+		$this->connected = !@mysqli_close($this->connection);
 		return !$this->connected;
 	}
 /**
@@ -462,7 +462,7 @@ class DboMysql extends DboMysqlBase {
  * @access protected
  */
 	function _execute($sql) {
-		return mysql_query($sql, $this->connection);
+		return mysqli_query($this->connection, $sql);
 	}
 /**
  * Returns an array of sources (tables) in the database.
@@ -481,7 +481,7 @@ class DboMysql extends DboMysqlBase {
 		} else {
 			$tables = array();
 
-			while ($line = mysql_fetch_array($result)) {
+			while ($line = mysqli_fetch_array($result)) {
 				$tables[] = $line[0];
 			}
 			parent::listSources($tables);
@@ -561,7 +561,7 @@ class DboMysql extends DboMysqlBase {
 						return $data;
 					}
 			default:
-				$data = "'" . mysql_real_escape_string($data, $this->connection) . "'";
+				$data = "'" . mysqli_real_escape_string($this->connection, $data) . "'";
 			break;
 		}
 		return $data;
@@ -572,8 +572,8 @@ class DboMysql extends DboMysqlBase {
  * @return string Error message with error number
  */
 	function lastError() {
-		if (mysql_errno($this->connection)) {
-			return mysql_errno($this->connection).': '.mysql_error($this->connection);
+		if (mysqli_errno($this->connection)) {
+			return mysqli_errno($this->connection).': '.mysqli_error($this->connection);
 		}
 		return null;
 	}
@@ -585,7 +585,7 @@ class DboMysql extends DboMysqlBase {
  */
 	function lastAffected() {
 		if ($this->_result) {
-			return mysql_affected_rows($this->connection);
+			return mysqli_affected_rows($this->connection);
 		}
 		return null;
 	}
@@ -597,7 +597,7 @@ class DboMysql extends DboMysqlBase {
  */
 	function lastNumRows() {
 		if ($this->hasResult()) {
-			return mysql_num_rows($this->_result);
+			return mysqli_num_rows($this->_result);
 		}
 		return null;
 	}
@@ -669,23 +669,20 @@ class DboMysql extends DboMysqlBase {
  */
 	function resultSet(&$results) {
 		if (isset($this->results) && is_resource($this->results) && $this->results != $results) {
-			mysql_free_result($this->results);
+			mysqli_free_result($this->results);
 		}
 		$this->results =& $results;
 		$this->map = array();
-		$numFields = mysql_num_fields($results);
+		$numFields = mysqli_num_fields($results);
 		$index = 0;
 		$j = 0;
 
-		while ($j < $numFields) {
-
-			$column = mysql_fetch_field($results,$j);
+		while ($column = mysqli_fetch_field($results)) {
 			if (!empty($column->table)) {
 				$this->map[$index++] = array($column->table, $column->name);
 			} else {
 				$this->map[$index++] = array(0, $column->name);
 			}
-			$j++;
 		}
 	}
 /**
@@ -694,7 +691,7 @@ class DboMysql extends DboMysqlBase {
  * @return unknown
  */
 	function fetchResult() {
-		if ($row = mysql_fetch_row($this->results)) {
+		if ($row = mysqli_fetch_row($this->results)) {
 			$resultRow = array();
 			$i = 0;
 			foreach ($row as $index => $field) {
@@ -713,7 +710,7 @@ class DboMysql extends DboMysqlBase {
  * @return string The database encoding
  */
 	function getEncoding() {
-		return mysql_client_encoding($this->connection);
+		return mysqli_character_set_name($this->connection);
 	}
 }
 ?>

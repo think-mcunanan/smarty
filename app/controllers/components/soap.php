@@ -11,7 +11,7 @@
 define('LOG_REQUEST', 1);
 define('LOG_ANSWER', 2);
 
-class SoapComponent extends Object
+class SoapComponent extends CakeObject
 {
 	var $controller  = null;
     var $error       = null;
@@ -138,8 +138,7 @@ class SoapComponent extends Object
     						'encoded', // use
     						$api['doc']);	// documentation
 
-		global $HTTP_RAW_POST_DATA;
-		$data = isset($HTTP_RAW_POST_DATA) ? $HTTP_RAW_POST_DATA : '';
+		$data = file_get_contents('php://input');
 		$server->service($data);
 	}
 }

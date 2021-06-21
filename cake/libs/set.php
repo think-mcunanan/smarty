@@ -30,7 +30,7 @@
  * @package       cake
  * @subpackage    cake.cake.libs
  */
-class Set extends Object {
+class Set extends CakeObject {
 /**
  * Deprecated
  *
@@ -554,7 +554,7 @@ class Set extends Object {
 
 			$val = $data[$key];
 
-			if ($op === '=' && $expected && $expected{0} === '/') {
+			if ($op === '=' && $expected && $expected[0] === '/') {
 				return preg_match($expected, $val);
 			}
 			if ($op === '=' && $val != $expected) {
@@ -605,7 +605,7 @@ class Set extends Object {
 			if (!class_exists('String')) {
 				App::import('Core', 'String');
 			}
-			$path = String::tokenize($path, '.', '{', '}');
+			$path = CakeString::tokenize($path, '.', '{', '}');
 		}
 		$tmp = array();
 

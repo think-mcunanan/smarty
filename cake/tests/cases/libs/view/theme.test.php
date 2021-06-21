@@ -123,7 +123,7 @@ class TestThemeView extends ThemeView {
  * @return void
  */
 	function cakeError($method, $messages) {
-		$error =& new ThemeViewTestErrorHandler($method, $messages);
+		$error = new ThemeViewTestErrorHandler($method, $messages);
 		return $error;
 	}
 }

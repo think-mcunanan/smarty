@@ -37,7 +37,7 @@ if (!class_exists('Object')) {
  * @package       cake
  * @subpackage    cake.cake.libs
  */
-class Router extends Object {
+class Router extends CakeObject {
 /**
  * Array of routes
  *
@@ -170,7 +170,7 @@ class Router extends Object {
 		static $instance = array();
 
 		if (!$instance) {
-			$instance[0] =& new Router();
+			$instance[0] = new Router();
 			$instance[0]->__admin = Configure::read('Routing.admin');
 		}
 		return $instance[0];
@@ -499,7 +499,7 @@ class Router extends Object {
 			return false;
 		} else {
 			foreach ($defaults as $key => $val) {
-				if ($key{0} === '[' && preg_match('/^\[(\w+)\]$/', $key, $header)) {
+				if ($key[0] === '[' && preg_match('/^\[(\w+)\]$/', $key, $header)) {
 					if (isset($this->__headerMap[$header[1]])) {
 						$header = $this->__headerMap[$header[1]];
 					} else {

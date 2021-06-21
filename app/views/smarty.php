@@ -61,7 +61,7 @@ class SmartyView extends View
     	App::import('Vendor', 'Smarty', array('file' => 'smarty'.DS.'Smarty.class.php'));
 
         parent::__construct($controller);
-        $this->Smarty = &new Smarty();
+        $this->Smarty = new Smarty();
         // requires views be in a 'smarty' subdirectory, you can remove this limitation if you aren't using other inherited views that use .tpl as the extension
         //$this->subDir = 'smarty'.DS;
         $this->ext= '.tpl';

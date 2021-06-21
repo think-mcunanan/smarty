@@ -35,14 +35,14 @@ error_reporting(E_ALL & ~E_DEPRECATED);
  * Configuration, directory layout and standard libraries
  */
 	if (!isset($bootstrap)) {
-		require CORE_PATH . 'cake' . DS . 'basics.php';
+		require_once CORE_PATH . 'cake' . DS . 'basics.php';
 		$TIME_START = getMicrotime();
-		require CORE_PATH . 'cake' . DS . 'config' . DS . 'paths.php';
-		require LIBS . 'object.php';
-		require LIBS . 'inflector.php';
-		require LIBS . 'configure.php';
+		require_once CORE_PATH . 'cake' . DS . 'config' . DS . 'paths.php';
+		require_once LIBS . 'object.php';
+		require_once LIBS . 'inflector.php';
+		require_once LIBS . 'configure.php';
 	}
-	require LIBS . 'cache.php';
+	require_once LIBS . 'cache.php';
 
 	Configure::getInstance();
 

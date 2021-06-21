@@ -39,7 +39,7 @@ if (!class_exists('Object')) {
  * @package       cake
  * @subpackage    cake.cake.libs
  */
-class Flay extends Object{
+class Flay extends CakeObject{
 /**
  * Text to be parsed.
  *
@@ -96,7 +96,7 @@ class Flay extends Object{
 		$text=preg_replace('#[\n]{1}#', "%LINEBREAK%", $text);
 		$out ='';
 
-		foreach (split('%PARAGRAPH%', $text)as $line) {
+		foreach (preg_split('/%PARAGRAPH%/', $text)as $line) {
 			if ($line) {
 				if (!$bare) {
 					$links = array();
@@ -109,9 +109,9 @@ class Flay extends Object{
 						}
 					}
 					// bold
-					$line = ereg_replace("\*([^\*]*)\*", "<strong>\\1</strong>", $line);
+					$line = preg_replace('/\*([^\*]*)\*/', '<strong>\\1</strong>', $line);
 					// italic
-					$line = ereg_replace("_([^_]*)_", "<em>\\1</em>", $line);
+					$line = preg_replace('/_([^_]*)_/', '<em>\\1</em>', $line);
 				}
 				// entities
 				$line = str_replace(' - ', ' &ndash; ', $line);

@@ -125,7 +125,7 @@ class CakeTestFixtureTest extends CakeTestCase {
  * @return void
  */
 	function setUp() {
-		$this->criticDb =& new FixtureMockDboSource();
+		$this->criticDb = new FixtureMockDboSource();
 		$this->criticDb->fullDebug = true;
 	}
 /**
@@ -144,23 +144,23 @@ class CakeTestFixtureTest extends CakeTestCase {
  * @return void
  */
 	function testInit() {
-		$Fixture =& new CakeTestFixtureTestFixture();
+		$Fixture = new CakeTestFixtureTestFixture();
 		unset($Fixture->table);
 		$Fixture->init();
 		$this->assertEqual($Fixture->table, 'fixture_tests');
 		$this->assertEqual($Fixture->primaryKey, 'id');
 
-		$Fixture =& new CakeTestFixtureTestFixture();
+		$Fixture = new CakeTestFixtureTestFixture();
 		$Fixture->primaryKey = 'my_random_key';
 		$Fixture->init();
 		$this->assertEqual($Fixture->primaryKey, 'my_random_key');
 
 		$this->_initDb();
-		$Source =& new CakeTestFixtureTestFixture();
+		$Source = new CakeTestFixtureTestFixture();
 		$Source->create($this->db);
 		$Source->insert($this->db);
 
-		$Fixture =& new CakeTestFixtureImportFixture();
+		$Fixture = new CakeTestFixtureImportFixture();
 		$expected = array('id', 'name', 'created');
 		$this->assertEqual(array_keys($Fixture->fields), $expected);
 
@@ -174,7 +174,7 @@ class CakeTestFixtureTest extends CakeTestCase {
 		$Fixture->init();
 		$this->assertEqual(count($Fixture->records), count($Source->records));
 
-		$Fixture =& new CakeTestFixtureImportFixture();
+		$Fixture = new CakeTestFixtureImportFixture();
 		$Fixture->fields = $Fixture->records = null;
 		$Fixture->import = array('model' => 'FixtureImportTestModel', 'connection' => 'test_suite');
 		$Fixture->init();
@@ -201,13 +201,13 @@ class CakeTestFixtureTest extends CakeTestCase {
 		ConnectionManager::create('new_test_suite', array_merge($testSuiteConfig, array('prefix' => 'new_' . $testSuiteConfig['prefix'])));
 		$newTestSuiteDb =& ConnectionManager::getDataSource('new_test_suite');
 
-		$Source =& new CakeTestFixtureTestFixture();
+		$Source = new CakeTestFixtureTestFixture();
 		$Source->create($newTestSuiteDb);
 		$Source->insert($newTestSuiteDb);
 
 		$defaultDb->config = $newTestSuiteDb->config;
 
-		$Fixture =& new CakeTestFixtureDefaultImportFixture();
+		$Fixture = new CakeTestFixtureDefaultImportFixture();
 		$Fixture->fields = $Fixture->records = null;
 		$Fixture->import = array('model' => 'FixtureImportTestModel', 'connection' => 'new_test_suite');
 		$Fixture->init();
@@ -227,7 +227,7 @@ class CakeTestFixtureTest extends CakeTestCase {
  * @return void
  */
 	function testCreate() {
-		$Fixture =& new CakeTestFixtureTestFixture();
+		$Fixture = new CakeTestFixtureTestFixture();
 		$this->criticDb->expectAtLeastOnce('execute');
 		$this->criticDb->expectAtLeastOnce('createSchema');
 		$return = $Fixture->create($this->criticDb);
@@ -245,7 +245,7 @@ class CakeTestFixtureTest extends CakeTestCase {
  * @return void
  */
 	function testInsert() {
-		$Fixture =& new CakeTestFixtureTestFixture();
+		$Fixture = new CakeTestFixtureTestFixture();
 		$this->criticDb->setReturnValue('insertMulti', true);
 		$this->criticDb->expectAtLeastOnce('insertMulti');
 
@@ -260,7 +260,7 @@ class CakeTestFixtureTest extends CakeTestCase {
  * @return void
  */
 	function testDrop() {
-		$Fixture =& new CakeTestFixtureTestFixture();
+		$Fixture = new CakeTestFixtureTestFixture();
 		$this->criticDb->setReturnValueAt(0, 'execute', true);
 		$this->criticDb->expectAtLeastOnce('execute');
 		$this->criticDb->expectAtLeastOnce('dropSchema');
@@ -280,7 +280,7 @@ class CakeTestFixtureTest extends CakeTestCase {
  * @return void
  */
 	function testTruncate() {
-		$Fixture =& new CakeTestFixtureTestFixture();
+		$Fixture = new CakeTestFixtureTestFixture();
 		$this->criticDb->expectAtLeastOnce('truncate');
 		$Fixture->truncate($this->criticDb);
 		$this->assertTrue($this->criticDb->fullDebug);

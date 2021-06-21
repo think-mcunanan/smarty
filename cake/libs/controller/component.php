@@ -28,7 +28,7 @@
  * @subpackage    cake.cake.libs.controller
  * @link          http://book.cakephp.org/view/62/Components
  */
-class Component extends Object {
+class Component extends CakeObject {
 /**
  * Contains various controller variable information (plugin, name, base).
  *
@@ -234,9 +234,9 @@ class Component extends Object {
 				}
 			} else {
 				if ($componentCn === 'SessionComponent') {
-					$object->{$component} =& new $componentCn($base);
+					$object->{$component} = new $componentCn($base);
 				} else {
-					$object->{$component} =& new $componentCn();
+					$object->{$component} = new $componentCn();
 				}
 				$object->{$component}->enabled = true;
 				$this->_loaded[$component] =& $object->{$component};

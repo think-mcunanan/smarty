@@ -63,21 +63,21 @@ class DboMysqli extends DboMysqlBase {
     * @return array - return object
     */
     function getdbhost($config) {
-        $link = mysql_connect($config['mainhost'], $config['login'], $config['password']);
+        $link = mysqli_connect($config['mainhost'], $config['login'], $config['password']);
         if (!$link) {
-            die('Could not connect: ' . mysql_error());
+            die('Could not connect: ' . mysqli_error());
         }
-        mysql_select_db("sipssbeauty_server", $link) or die(mysql_error());
+        mysqli_select_db($link, "sipssbeauty_server") or die(mysqli_error());
         $sql = "SELECT dbhostmaster AS dbhost, dbhostuser, dbhostpasswd
                 FROM company
                 WHERE dbname = '".$config['database']."'
                     AND delflg IS NULL";
-        $res = mysql_query($sql, $link);
-        while ($row = mysql_fetch_assoc($res)) {  
+        $res = mysqli_query($link, $sql);
+        while ($row = mysqli_fetch_assoc($res)) {  
             $retval = $row;
             break;
         }  
-        mysql_close($link);
+        mysqli_close($link);
         unset($link);
         return $retval;
     }

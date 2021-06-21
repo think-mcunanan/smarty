@@ -29,7 +29,7 @@ App::import('Model', 'ConnectionManager');
  * @package       cake
  * @subpackage    cake.cake.libs.model
  */
-class CakeSchema extends Object {
+class CakeSchema extends CakeObject {
 /**
  * Name of the App Schema
  *
@@ -158,7 +158,7 @@ class CakeSchema extends Object {
 		}
 
 		if (class_exists($class)) {
-			$Schema =& new $class($options);
+			$Schema = new $class($options);
 			return $Schema;
 		}
 
@@ -354,7 +354,7 @@ class CakeSchema extends Object {
 		$out .="}\n";
 
 
-		$File =& new File($path . DS . $file, true);
+		$File = new File($path . DS . $file, true);
 		$header = '$Id';
 		$content = "<?php \n/* SVN FILE: {$header}$ */\n/* {$name} schema generated on: " . date('Y-m-d H:m:s') . " : ". time() . "*/\n{$out}?>";
 		$content = $File->prepare($content);

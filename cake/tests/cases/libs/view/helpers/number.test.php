@@ -46,7 +46,7 @@ class NumberHelperTest extends CakeTestCase {
  * @return void
  */
 	function setUp() {
-		$this->Number =& new NumberHelper();
+		$this->Number = new NumberHelper();
 	}
 /**
  * tearDown method
