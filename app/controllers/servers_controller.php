@@ -2644,7 +2644,8 @@ class ServersController extends WebServicesController
             "customer_sns",
             "kanzashi_customer",
             "yoyakuapp_user",
-            "cti"
+            "cti",
+            "saloriza_customer"
         );
 
         if ($this->MiscFunction->IsPowerFlgOn($this)) {
