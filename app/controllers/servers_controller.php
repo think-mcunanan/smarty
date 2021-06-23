@@ -7958,7 +7958,7 @@ class ServersController extends WebServicesController
                             UNION ALL
 
                             SELECT
-                                11 origination,
+                                st.origination,
                                 '' route,
                                 '' reservation_system,
                                 date_format(st2.datetimecreated, '%Y-%m-%d %H:%i') as reserve_date,
@@ -7998,7 +7998,7 @@ class ServersController extends WebServicesController
                             JOIN yoyakuapp_reservation yr USING(transcode)
 
                             WHERE st.transdate = '" . $param['date'] . "'
-                            AND st.origination = 11
+                            AND st.origination IN (11, 13)
                             AND st.delflg IS NULL
                             " . $transconde . "
 
