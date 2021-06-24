@@ -8054,7 +8054,7 @@ class ServersController extends WebServicesController
                             SELECT
                                 14 origination,
                                 '' route,
-                                '' reservation_system,
+                                sr.via AS reservation_system,
                                 date_format(sr.created_date, '%Y-%m-%d %H:%i') AS reserve_date, 
                                 '' reserve_code,
                                 date_format(sr.start_datetime, '%Y-%m-%d') AS date,
