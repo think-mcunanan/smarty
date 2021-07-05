@@ -8074,7 +8074,7 @@ class ServersController extends WebServicesController
                                 0 visit_num,
                                 sr.customer_name AS name_sei,
                                 sr.customer_name_kana AS name_kn_sei,
-                                0 sex,
+                                sr.customer_sex AS sex,
                                 '' name_mei,
                                 '' name_kn_mei,
                                 sr.customer_telephone_number AS tel,
