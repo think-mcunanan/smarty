@@ -17,7 +17,7 @@
  */
 
 
-class MiscFunctionComponent extends Object
+class MiscFunctionComponent extends CakeObject
 {
 
     /**

@@ -249,7 +249,7 @@ class ModelTask extends Shell {
 
 			$skip = 1;
 			foreach ($options as $key => $option) {
-				if ($option{0} != '_' && strtolower($option) != 'getinstance') {
+				if ($option[0] != '_' && strtolower($option) != 'getinstance') {
 					$prompt .= "{$skip} - {$option}\n";
 					$choices[$skip] = strtolower($option);
 					$skip++;
@@ -338,7 +338,7 @@ class ModelTask extends Shell {
 		foreach ($this->__tables as $otherTable) {
 			App::import('Model');
 			$tmpModelName = $this->_modelName($otherTable);
-			$tempOtherModel = & new Model(array('name' => $tmpModelName, 'table' => $otherTable, 'ds' => $model->useDbConfig));
+			$tempOtherModel = new Model(array('name' => $tmpModelName, 'table' => $otherTable, 'ds' => $model->useDbConfig));
 			$modelFieldsTemp = $tempOtherModel->schema();
 
 			$offset = strpos($otherTable, $model->table . '_');

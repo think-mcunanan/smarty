@@ -983,7 +983,7 @@ class BehaviorTest extends CakeTestCase {
  * @return void
  */
 	function testBehaviorTrigger() {
-		$Apple =& new Apple();
+		$Apple = new Apple();
 		$Apple->Behaviors->attach('Test');
 		$Apple->Behaviors->attach('Test2');
 		$Apple->Behaviors->attach('Test3');
@@ -1057,7 +1057,7 @@ class BehaviorTest extends CakeTestCase {
  * @return void
  **/
 	function testBehaviorAttachAndDetach() {
-		$Sample =& new Sample();
+		$Sample = new Sample();
 		$Sample->actsAs = array('Test3' => array('bar'), 'Test2' => array('foo', 'bar'));
 		$Sample->Behaviors->init($Sample->alias, $Sample->actsAs);
 		$Sample->Behaviors->attach('Test2');

@@ -36,7 +36,7 @@ App::import(array('Router', 'Security'));
  * @package       cake
  * @subpackage    cake.cake.libs.controller.components
  */
-class AuthComponent extends Object {
+class AuthComponent extends CakeObject {
 /**
  * Maintains current user login state.
  *

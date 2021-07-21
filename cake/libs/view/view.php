@@ -34,7 +34,7 @@ App::import('Core', array('Helper', 'ClassRegistry'));
  * @package       cake
  * @subpackage    cake.cake.libs.view
  */
-class View extends Object {
+class View extends CakeObject {
 /**
  * Path parts for creating links in views.
  *
@@ -745,7 +745,7 @@ class View extends Object {
 						return false;
 					}
 				}
-				$loaded[$helper] =& new $helperCn($options);
+				$loaded[$helper] = new $helperCn($options);
 				$vars = array(
 					'base', 'webroot', 'here', 'params', 'action', 'data', 'themeWeb', 'plugin'
 				);
@@ -792,7 +792,7 @@ class View extends Object {
 		if (strpos($name, DS) === false && $name[0] !== '.') {
 			$name = $this->viewPath . DS . $subDir . Inflector::underscore($name);
 		} elseif (strpos($name, DS) !== false) {
-			if ($name{0} === DS || $name{1} === ':') {
+			if ($name[0] === DS || $name[1] === ':') {
 				if (is_file($name)) {
 					return $name;
 				}

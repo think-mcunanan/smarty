@@ -371,7 +371,7 @@ class DboMysqlTest extends CakeTestCase {
 	function testIndexOnMySQL4Output() {
 		$name = $this->db->fullTableName('simple');
 
-		$mockDbo =& new QueryMockDboMysql($this);
+		$mockDbo = new QueryMockDboMysql($this);
 		$columnData = array(
 			array('0' => array(
 				'Table' => 'with_compound_keys',
@@ -512,7 +512,7 @@ class DboMysqlTest extends CakeTestCase {
 		App::import('Core', 'Schema');
 		$this->db->cacheSources = $this->db->testing = false;
 
-		$schema1 =& new CakeSchema(array(
+		$schema1 = new CakeSchema(array(
 			'name' => 'AlterTest1',
 			'connection' => 'test_suite',
 			'altertest' => array(
@@ -523,7 +523,7 @@ class DboMysqlTest extends CakeTestCase {
 		)));
 		$this->db->query($this->db->createSchema($schema1));
 
-		$schema2 =& new CakeSchema(array(
+		$schema2 = new CakeSchema(array(
 			'name' => 'AlterTest2',
 			'connection' => 'test_suite',
 			'altertest' => array(
@@ -543,7 +543,7 @@ class DboMysqlTest extends CakeTestCase {
 		$this->assertEqual($schema2->tables['altertest']['indexes'], $indexes);
 
 		// Change three indexes, delete one and add another one
-		$schema3 =& new CakeSchema(array(
+		$schema3 = new CakeSchema(array(
 			'name' => 'AlterTest3',
 			'connection' => 'test_suite',
 			'altertest' => array(

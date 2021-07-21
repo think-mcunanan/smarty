@@ -460,7 +460,7 @@ class ShellDispatcher {
 		}
 		$params = str_replace('\\', '/', $params);
 
-		if (!empty($params['working']) && (!isset($this->args[0]) || isset($this->args[0]) && $this->args[0]{0} !== '.')) {
+		if (!empty($params['working']) && (!isset($this->args[0]) || isset($this->args[0]) && $this->args[0][0] !== '.')) {
 			if (empty($this->params['app']) && $params['working'] != $params['root']) {
 				$params['root'] = dirname($params['working']);
 				$params['app'] = basename($params['working']);
@@ -494,12 +494,12 @@ class ShellDispatcher {
 		$count = count($params);
 		for ($i = 0; $i < $count; $i++) {
 			if (isset($params[$i])) {
-				if ($params[$i]{0} === '-') {
+				if ($params[$i][0] === '-') {
 					$key = substr($params[$i], 1);
 					$this->params[$key] = true;
 					unset($params[$i]);
 					if (isset($params[++$i])) {
-						if ($params[$i]{0} !== '-') {
+						if ($params[$i][0] !== '-') {
 							$this->params[$key] = str_replace('"', '', $params[$i]);
 							unset($params[$i]);
 						} else {

@@ -37,7 +37,7 @@ App::import('Core', array('Router', 'Controller'));
  * @package       cake
  * @subpackage    cake.cake
  */
-class Dispatcher extends Object {
+class Dispatcher extends CakeObject {
 /**
  * Base URL
  *
@@ -456,7 +456,7 @@ class Dispatcher extends Object {
 				$params = $this->_restructureParams($params, true);
 			}
 			$this->params = $params;
-			$controller =& new $ctrlClass();
+			$controller = new $ctrlClass();
 		}
 		return $controller;
 	}
@@ -577,7 +577,7 @@ class Dispatcher extends Object {
 		} else {
 			$url = $_GET['url'];
 		}
-		if ($url{0} == '/') {
+		if ($url[0] == '/') {
 			$url = substr($url, 1);
 		}
 		return $url;
@@ -679,7 +679,7 @@ class Dispatcher extends Object {
 					App::import('Core', 'View');
 				}
 				$controller = null;
-				$view =& new View($controller, false);
+				$view = new View($controller, false);
 				return $view->renderCache($filename, getMicrotime());
 			}
 		}

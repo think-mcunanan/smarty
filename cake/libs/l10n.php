@@ -32,7 +32,7 @@
  * @package       cake
  * @subpackage    cake.cake.libs
  */
-class L10n extends Object {
+class L10n extends CakeObject {
 /**
  * The language for current locale
  *
@@ -393,7 +393,7 @@ class L10n extends Object {
  * @access private
  */
 	function __autoLanguage() {
-		$_detectableLanguages = split('[,;]', env('HTTP_ACCEPT_LANGUAGE'));
+		$_detectableLanguages = preg_split('/[,;]/', env('HTTP_ACCEPT_LANGUAGE'));
 		foreach ($_detectableLanguages as $key => $langKey) {
 			$langKey = strtolower($langKey);
 			if (strpos($langKey, '_') !== false) {

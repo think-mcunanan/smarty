@@ -136,7 +136,7 @@ class JsHelper extends Overloadable2 {
 		}
 
 		$func .= "'" . Router::url($url) . "'";
-		$ajax =& new AjaxHelper();
+		$ajax = new AjaxHelper();
 		$func .= ", " . $ajax->__optionsForAjax($options) . ")";
 
 		if (isset($options['before'])) {
@@ -335,7 +335,7 @@ class JsHelperObject {
 			case 'effect':
 			case 'visualEffect':
 
-				if (strpos($args[0], '_') || $args[0]{0} != strtoupper($args[0]{0})) {
+				if (strpos($args[0], '_') || $args[0][0] != strtoupper($args[0][0])) {
 					$args[0] = Inflector::camelize($args[0]);
 				}
 

@@ -31,7 +31,7 @@ if (!defined('QD_DS')) {
 }
 
 if ( defined('CAKE_CORE_INCLUDE_PATH') || defined('CAKE')) {
-	class QdmailBranch extends Object{
+	class QdmailBranch extends CakeObject{
 	}
 }else{
 	class QdmailBranch{
@@ -658,7 +658,7 @@ class QdmailBase extends QdmailBranch{
 
 			return $instance[0];
 		}
-		$instance[0] = & new Qdmail();
+		$instance[0] = new Qdmail();
 		return  $instance[0];
 	}
 	//--------------------------
@@ -3675,7 +3675,7 @@ EOF;
 		}elseif( !class_exists ( 'Qdsmtp' ) && !file_exists( 'qdsmtp.php' )){
 			return $this->errorGather('Plese load SMTP Program - Qdsmtp http://hal456.net/qdsmtp',__LINE__);
 		}
-		$this->smtp_object = & new Qdsmtp();
+		$this->smtp_object = new Qdsmtp();
 		return $this->smtp_object;
 	}
 	function setSmtpObject( & $obj ){
@@ -3769,7 +3769,7 @@ class QdmailComponent extends QdmailUserFunc{
 				return $this->errorGather('Qdmail<->CakePHP Component Load Error , the name is Qdsmtp',__LINE__);
 			}
 		}
-		$this->Qdsmtp = & new QdsmtpComponent();
+		$this->Qdsmtp = new QdsmtpComponent();
 		if( !is_object( $this->Qdsmtp ) ){
 				return $this->errorGather('Qdmail<->CakePHP Component making Instance Error , the name is QdsmtpComponent',__LINE__);
 		}
@@ -3818,7 +3818,7 @@ class QdmailComponent extends QdmailUserFunc{
 			}
 		}
 		$type = strtolower( $type );
-		$view = & new $this->Controller->view( $this->Controller , false );
+		$view = new $this->Controller->view( $this->Controller , false );
 		$view->layout = $this->layout;
 		$mess = null;
 		$content = $view->renderElement( $this->view_dir . DS . $type . DS . $this->template , array('content' => $content ) , true );
