@@ -2644,7 +2644,8 @@ class ServersController extends WebServicesController
             "customer_sns",
             "kanzashi_customer",
             "yoyakuapp_user",
-            "cti"
+            "cti",
+            "saloriza_customer"
         );
 
         if ($this->MiscFunction->IsPowerFlgOn($this)) {
@@ -7957,7 +7958,7 @@ class ServersController extends WebServicesController
                             UNION ALL
 
                             SELECT
-                                11 origination,
+                                st.origination,
                                 '' route,
                                 '' reservation_system,
                                 date_format(st2.datetimecreated, '%Y-%m-%d %H:%i') as reserve_date,
@@ -7997,7 +7998,7 @@ class ServersController extends WebServicesController
                             JOIN yoyakuapp_reservation yr USING(transcode)
 
                             WHERE st.transdate = '" . $param['date'] . "'
-                            AND st.origination = 11
+                            AND st.origination IN (11, 13)
                             AND st.delflg IS NULL
                             " . $transconde . "
 
@@ -8047,6 +8048,49 @@ class ServersController extends WebServicesController
                             AND st.delflg IS NULL
                             " . $transconde . "
                             AND kr.deletedate IS NULL
+
+                            UNION ALL
+
+                            SELECT
+                                14 origination,
+                                '' route,
+                                sr.via AS reservation_system,
+                                date_format(sr.created_date, '%Y-%m-%d %H:%i') AS reserve_date, 
+                                '' reserve_code,
+                                date_format(sr.start_datetime, '%Y-%m-%d') AS date,
+                                date_format(sr.start_datetime, '%H:%i') AS start,
+                                date_format(date_add(sr.start_datetime, INTERVAL sr.minutes MINUTE), '%H:%i') AS end,
+                                '' coupon_info,
+                                '' comment,
+                                '' shop_comment,
+                                sr.customer_id AS site_customer_id,
+                                '' demand,
+                                '' next_coming_comment,
+                                0 price,
+                                0 nomination_fee,
+                                0 total_price,
+                                0 use_point,
+                                0 grant_point,
+                                0 visit_num,
+                                sr.customer_name AS name_sei,
+                                sr.customer_name_kana AS name_kn_sei,
+                                sr.customer_sex AS sex,
+                                '' name_mei,
+                                '' name_kn_mei,
+                                sr.customer_telephone_number AS tel,
+                                '' zipcode,
+                                '' address,
+                                '' mail,
+                                '' staffname,
+                                menu_names AS menu_info,
+                                '' AS memo,
+                                st.transcode transcode,
+                                st.ccode ccode
+                            FROM store_transaction st
+                            JOIN saloriza_reservation sr USING(transcode)
+                            WHERE st.transdate = '" . $param['date'] . "'
+                            AND st.delflg IS NULL
+                            " . $transconde . "
                             ) as bmtble on bmtble.transcode = transaction.TRANSCODE and bmtble.origination = transaction.origination
                 LEFT JOIN drejimarketing
 					ON drejimarketing.TRANSCODE = `transaction`.TRANSCODE
