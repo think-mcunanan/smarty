@@ -7987,7 +7987,7 @@ class ServersController extends WebServicesController
                                 '' zipcode,
                                 '' address,
                                 '' mail,
-                                COALESCE(s.staffname, s.staffname2) staffname,
+                                s.staffname,
                                 yr.menuname menu_info,
                                 yr.memo,
                                 st.transcode transcode,
