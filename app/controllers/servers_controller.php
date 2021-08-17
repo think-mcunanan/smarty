@@ -1043,13 +1043,6 @@ class ServersController extends WebServicesController
             ),
             'output' => array('return' => 'tns:return_updateKanzashiCustomersLimit')
         ),
-        'wsPushKanzashiStylist' => array(
-            'doc'    => 'かんざしスタイリストPUSH',
-            'input'  => array(
-                'kanzashisalonid' => 'xsd:int'
-            ),
-            'output' => array('return' => 'xsd:string')
-        ),
         'wsPushKanzashiSalonDailyHours' => array(
             'doc'    => 'かんざしサロン営業時間PUSH',
             'input'  => array(
@@ -11404,18 +11397,6 @@ class ServersController extends WebServicesController
         }
 
         return $result;
-    }
-
-    /**
-     * かんざしスタイリストPUSH
-     *
-     * @param int $kanzashisalonid かんざしサロンID
-     * @return string かんざし側からのレスポンスを表すJSON
-     */
-    function wsPushKanzashiStylist($kanzashisalonid)
-    {
-        $url = KANZASHI_PATH . "/salons/{$kanzashisalonid}/stylists";
-        return $this->MiscFunction->CurlPost($url);
     }
 
     /**
