@@ -7987,7 +7987,7 @@ class ServersController extends WebServicesController
                                 '' zipcode,
                                 '' address,
                                 '' mail,
-                                '' staffname,
+                                s.staffname,
                                 yr.menuname menu_info,
                                 yr.memo,
                                 st.transcode transcode,
@@ -7996,7 +7996,8 @@ class ServersController extends WebServicesController
                             FROM store_transaction st
                             JOIN store_transaction2 as st2 USING(transcode)
                             JOIN yoyakuapp_reservation yr USING(transcode)
-
+                            LEFT JOIN staff s
+                                ON s.staffcode = yr.staffcode
                             WHERE st.transdate = '" . $param['date'] . "'
                             AND st.origination IN (11, 13)
                             AND st.delflg IS NULL
