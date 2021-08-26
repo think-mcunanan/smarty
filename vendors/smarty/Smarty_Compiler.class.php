@@ -263,11 +263,11 @@ class Smarty_Compiler extends Smarty {
 
         /* replace special blocks by "{php}" */
         $source_content = preg_replace_callback(
-            $search, 
-            function ($match) { 
-                return "{php}";
-            }, 
-            $source_content
+             $search, 
+             function ($match) { 
+                 return $this->_quote_replace($this->left_delimiter) . "php" . str_repeat("\n", substr_count($match[0], "\n")) . $this->_quote_replace($this->right_delimiter);
+             }, 
+             $source_content
         );
 
         /* Gather all template tags. */
