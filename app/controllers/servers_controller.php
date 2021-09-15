@@ -10044,7 +10044,7 @@ class ServersController extends WebServicesController
      * @param string $transcode
      * @return return_storeTransactionInformation
      */
-    function wsSearchJikaiYoyaku($sessionid, $storecode, $ccode, $transcode)
+    function wsSearchJikaiYoyaku($sessionid, $storecode, $ccode = null, $transcode = null)
     {
         if ($param['ignoreSessionCheck'] <> 1) {
             //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
