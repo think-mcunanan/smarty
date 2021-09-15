@@ -10046,17 +10046,12 @@ class ServersController extends WebServicesController
      */
     function wsSearchJikaiYoyaku($sessionid, $storecode, $ccode = null, $transcode = null)
     {
-        if ($param['ignoreSessionCheck'] <> 1) {
-            //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
-            $storeinfo = $this->YoyakuSession->Check($this);
-            if ($storeinfo == false) {
-                $this->_soap_server->fault(1, '', INVALID_SESSION);
-                return;
-            }
-        } else {
-            $storeinfo['dbname'] = $param['dbname'];
+        //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
+        $storeinfo = $this->YoyakuSession->Check($this);
+        if ($storeinfo == false) {
+            $this->_soap_server->fault(1, '', INVALID_SESSION);
+            return;
         }
-
 
         //-- 会社データベースを設定する (Set the Company Database)
         $this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction);
