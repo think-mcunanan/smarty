@@ -3547,6 +3547,8 @@ class ServersController extends WebServicesController
         }
         unset($param['free_customer']);
 
+        $remove_spaces = fn($str) => preg_replace("@[ 　]@u", '', $str);
+
         foreach ($param as $key => $val) {
             if ((!empty($val) || $val === '0') && $key != 'limit' && $key != 'page' && $key != 'orderby' && $key != 'SEARCHSHAREDSTORE') {
                 if ($key == "PHONE") {
@@ -3554,19 +3556,14 @@ class ServersController extends WebServicesController
                 } elseif ($key == "MAILADDRESS") {
                     $criteria['(MAILADDRESS1 LIKE ? OR MAILADDRESS2 LIKE ?)'] = array('%' . $val . '%', '%' . $val . '%');
                 } elseif ($key == "CNAME") {
-                    $val = preg_replace('/　/', '', $val);
-                    $val = preg_replace('/ /', '', $val);
+                    $val = $remove_spaces($val);
                     $criteria['(REPLACE(CNAME, "　", "") LIKE ? OR REPLACE(CNAME, " ", "") LIKE ?)'] = array('%' . $val . '%', '%' . $val . '%');
                 } elseif ($key == "CNAMEKANA") {
                     //--------------------------------------------------------------------------------------------------------------------
-                    $val = preg_replace('/　/', '', $val);
-                    $val = preg_replace(' ', '', $val);
-                    //--------------------------------------------------------------------------------------------------------------------
-                    $kanafull = preg_replace('/　/', '', $val);
-                    $kanafull = preg_replace(' ', '', $val);
+                    $val = $remove_spaces($val);
                     //--------------------------------------------------------------------------------------------------------------------
                     $val = mb_convert_kana($val, "kV", "UTF8");
-                    $kanafull = mb_convert_kana($kanafull, "KV", "UTF8");
+                    $kanafull = mb_convert_kana($val, "KV", "UTF8");
                     //--------------------------------------------------------------------------------------------------------------------
                     $criteria['(REPLACE(CNAMEKANA, "　", "") LIKE ?
                                 OR REPLACE(CNAMEKANA, " ", "") LIKE ?
