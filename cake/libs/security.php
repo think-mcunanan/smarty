@@ -163,6 +163,10 @@ class Security extends CakeObject {
 /**
  * Encrypts/Decrypts a text using the given key.
  *
+ * cipher function of cakephp version 1.2.5 was removed because it was unable to decrypt the value in php 7.
+ * Below is the cipher function copied from cakephp version 1.3.21
+ * https://github.com/cakephp/cakephp/blob/1.3.21/cake/libs/security.php#L171
+ * 
  * @param string $text Encrypted string to decrypt, normal string to encrypt
  * @param string $key Key to use
  * @return string Encrypted/Decrypted string
@@ -175,21 +179,18 @@ class Security extends CakeObject {
 			return '';
 		}
 
-		$_this =& Security::getInstance();
-		if (!defined('CIPHER_SEED')) {
-			//This is temporary will change later
-			define('CIPHER_SEED', '76859309657453542496749683645');
-		}
-		srand(CIPHER_SEED);
+		srand(Configure::read('Security.cipherSeed'));
 		$out = '';
-
-		for ($i = 0; $i < strlen($text); $i++) {
-			for ($j = 0; $j < ord(substr($key, $i % strlen($key), 1)); $j++) {
-				$toss = rand(0, 255);
+		$keyLength = strlen($key);
+		for ($i = 0, $textLength = strlen($text); $i < $textLength; $i++) {
+			$j = ord(substr($key, $i % $keyLength, 1));
+			while ($j--) {
+				rand(0, 255);
 			}
 			$mask = rand(0, 255);
 			$out .= chr(ord(substr($text, $i, 1)) ^ $mask);
 		}
+		srand();
 		return $out;
 	}
 }
