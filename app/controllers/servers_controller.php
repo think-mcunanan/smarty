@@ -2363,7 +2363,8 @@ class ServersController extends WebServicesController
         'storeReservationCounter'   => array('struct' => array(
             'wrkr' => 'xsd:int',
             'bmr' => 'xsd:int',
-            'kanzashi_undecided' => 'xsd:int'
+            'kanzashi_undecided' => 'xsd:int',
+            'log' => 'xsd:string',
         )),
         '_storeReservationCounter'  => array(
             'array' => 'storeReservationCounter'
@@ -2954,18 +2955,27 @@ class ServersController extends WebServicesController
      */
     function wsGetReservationCounter($sessionid, $strcode, $datefr, $dateto)
     {
-
+        $to_miliseconds = function($time) {
+            return round($time * 1000, 3) . ' miliseconds';
+        };
         //===================================================================================
         //(Verify Session and Get DB name)
         //-----------------------------------------------------------------------------------
+        $start_time = microtime(true);
         $storeinfo = $this->YoyakuSession->Check($this);
         if ($storeinfo == false) {
             $this->_soap_server->fault(1, '', INVALID_SESSION);
             return;
         }
-        $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
-        //===================================================================================
+        $end_time = microtime(true);
+        $log[] = "check_session_duration:". $to_miliseconds($end_time - $start_time);
 
+        $start_time = microtime(true);
+        $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
+        $end_time = microtime(true);
+        $log[] = "set_company_database_duration:". $to_miliseconds($end_time - $start_time);
+
+        //===================================================================================
         /*
         STORE_TRANSACTION ORIGINATION
         0: SIPSS店舗、もばすてPC予約、その他
@@ -3013,9 +3023,18 @@ class ServersController extends WebServicesController
                     ) tmptbl where yread = 0
                 ) as tblecount";
         //===================================================================================
+        $start_time = microtime(true);
         $GetData = $this->Customer->query($sql);
+        $end_time = microtime(true);
+        $log[] = "query_duration:". $to_miliseconds($end_time - $start_time);
+
+        $start_time = microtime(true);
         $arr_reservation = $this->ParseDataToObjectArray($GetData, 'tblecount');
+        $end_time = microtime(true);
         //===================================================================================
+        $log[] = "ParseDataToObjectArray_function_duration:". $to_miliseconds($end_time - $start_time);
+        $arr_reservation[0]['log'] = implode("\n", $log);
+
         $ret = array();
         $ret['records'] = $arr_reservation;
         //===================================================================================
