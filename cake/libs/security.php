@@ -192,5 +192,131 @@ class Security extends CakeObject {
 		}
 		return $out;
 	}
+
+	// The following AES Encrypt and Decrypt function was added from the cakephp 3.0.0
+	// https://github.com/cakephp/cakephp/blob/3.0.0/src/Utility/Security.php#L169
+	// AES encryption / decryption was added to system because cipher encryption didn't work properly in PHP 7.x and above
+
+	/**
+     * Encrypt a value using AES-256.
+     * 
+     * *Caveat* You cannot properly encrypt/decrypt data with trailing null bytes.
+     * Any trailing null bytes will be removed on decryption due to how PHP pads messages
+     * with nulls prior to encryption.
+     *
+     * @param string $plain The value to encrypt.
+     * @param string $key The 256 bit/32 byte key to use as a cipher key.
+     * @param string|null $hmacSalt The salt to use for the HMAC process. Leave null to use Security.salt.
+     * @return string Encrypted data.
+     * @throws \InvalidArgumentException On invalid data or key.
+     */
+    public static function encrypt($plain, $key, $hmacSalt = null)
+    {
+        self::_checkKey($key, 'encrypt()');
+
+        if ($hmacSalt === null) {
+            $hmacSalt = Configure::read('Security.salt');
+		}
+		
+        // Generate the encryption and hmac key.
+        $key = substr(hash('sha256', $key . $hmacSalt), 0, 32);
+		
+		if (!extension_loaded('openssl')) {
+			throw new InvalidArgumentException(
+				'No compatible crypto engine available. ' .
+				'Load the openssl extensions'
+			);
+		}
+
+		$ciphertext = self::aesEncrypt($plain, $key);
+        $hmac = hash_hmac('sha256', $ciphertext, $key);
+        return $hmac . $ciphertext;
+    }
+
+    /**
+     * Check the encryption key for proper length.
+     *
+     * @param string $key Key to check.
+     * @param string $method The method the key is being checked for.
+     * @return void
+     * @throws \InvalidArgumentException When key length is not 256 bit/32 bytes
+     */
+    protected static function _checkKey($key, $method)
+    {
+        if (strlen($key) < 32) {
+            throw new InvalidArgumentException(
+                sprintf('Invalid key for %s, key must be at least 256 bits (32 bytes) long.', $method)
+            );
+        }
+    }
+
+	public static function aesEncrypt($plain, $key, $hmacSalt = null)
+    {
+        $method = 'AES-256-CBC';
+        $ivSize = openssl_cipher_iv_length($method);
+
+        $iv = openssl_random_pseudo_bytes($ivSize);
+        return $iv . openssl_encrypt($plain, $method, $key, true, $iv);
+    }
+
+    /**
+     * Decrypt a value using AES-256.
+     *
+     * @param string $cipher The ciphertext to decrypt.
+     * @param string $key The 256 bit/32 byte key to use as a cipher key.
+     * @param string|null $hmacSalt The salt to use for the HMAC process. Leave null to use Security.salt.
+     * @return string Decrypted data. Any trailing null bytes will be removed.
+     * @throws InvalidArgumentException On invalid data or key.
+     */
+    public static function decrypt($cipher, $key, $hmacSalt = null)
+    {
+        self::_checkKey($key, 'decrypt()');
+        if (empty($cipher)) {
+            throw new InvalidArgumentException('The data to decrypt cannot be empty.');
+        }
+        if ($hmacSalt === null) {
+            $hmacSalt = Configure::read('Security.salt');
+        }
+
+        // Generate the encryption and hmac key.
+        $key = substr(hash('sha256', $key . $hmacSalt), 0, 32);
+
+        // Split out hmac for comparison
+        $macSize = 64;
+        $hmac = substr($cipher, 0, $macSize);
+        $cipher = substr($cipher, $macSize);
+
+        $compareHmac = hash_hmac('sha256', $cipher, $key);
+        if ($hmac !== $compareHmac) {
+            return false;
+        }
+
+		if (!extension_loaded('openssl')) {
+			throw new InvalidArgumentException(
+				'No compatible crypto engine available. ' .
+				'Load the openssl extensions'
+			);
+		}
+        return self::aesDecrypt($cipher, $key);
+	}
+
+    /**
+     * Decrypt a value using AES-256.
+     *
+     * @param string $cipher The ciphertext to decrypt.
+     * @param string $key The 256 bit/32 byte key to use as a cipher key.
+     * @return string Decrypted data. Any trailing null bytes will be removed.
+     * @throws \InvalidArgumentException On invalid data or key.
+     */
+    public static function aesDecrypt($cipher, $key)
+    {
+        $method = 'AES-256-CBC';
+        $ivSize = openssl_cipher_iv_length($method);
+
+        $iv = substr($cipher, 0, $ivSize);
+
+        $cipher = substr($cipher, $ivSize);
+        return openssl_decrypt($cipher, $method, $key, true, $iv);
+    }
 }
 ?>
