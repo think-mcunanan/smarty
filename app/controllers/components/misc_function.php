@@ -765,7 +765,6 @@ class MiscFunctionComponent extends Object
                 $arrList[$ctr]['shop_comment']        = '';
                 $arrList[$ctr]['next_coming_comment'] = '';
                 $arrList[$ctr]['demand']              = json_encode($json->demands);
-                $arrList[$ctr]['site_customer_id']    = $json->customer->customer_media_key->key;
                 $arrList[$ctr]['bmPrice']             = $json->price;
                 $arrList[$ctr]['nomination_fee']      = 0;
                 $arrList[$ctr]['bmTprice']            = $json->price;
@@ -802,12 +801,21 @@ class MiscFunctionComponent extends Object
                     foreach ($json->stylist_times as $stylist_time) {
                         $stylist_pos_ids[] = $stylist_time->stylist_pos_id !== 'フリー' ? $stylist_time->stylist_pos_id : 0;
                     }
+                    $customerMediaKey = "{$json->customer->customer_media_key->media}: {$json->customer->customer_media_key->key}\n";
+                    $customerId = ($json->customer->customer_media_key->media != "THK") ? $customerMediaKey : "\n";
+                    $arrList[$ctr]['site_customer_id'] = $customerId;
                 } else {
                     //KIREI
                     foreach ($json->staff_times as $staff_time) {
                         $stylist_pos_ids[] = $staff_time->staff_pos_id !== 'フリー' ? $staff_time->staff_pos_id : 0;
                     }
 
+                    foreach ($json->customer->customer_media_keys as $customer_media_key) {
+                        if ($customer_media_key->media == "THK"){
+                            continue;
+                        }
+                        $arrList[$ctr]['site_customer_id'] .= "{$customer_media_key->media}: {$customer_media_key->key}\n";
+                    }
                 }
 
                 $stylist_pos_ids_query = implode(',', $stylist_pos_ids);
