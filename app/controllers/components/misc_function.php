@@ -788,10 +788,26 @@ class MiscFunctionComponent extends Object
                 $reserve_date = new DateTime($json->media_acquired_at);
                 $arrList[$ctr]['reserve_date'] = $reserve_date->format('Y/m/d H:i:s');
 
-                $stylist_pos_ids = array();
+                $query = "  SELECT kanzashi_type
+                            FROM sipssbeauty_kanzashi.salon
+                            WHERE kanzashi_id = :kanzashiId
+                        ";
+                $param = array('kanzashiId' => $json->salon_id);
+                $result = $controller->StoreTransaction->query($query, $param, false);
+                $kanzashiType = $result[0]['salon']['kanzashi_type'];
+                unset($result);
 
-                foreach ($json->stylist_times as $stylist_time) {
-                    $stylist_pos_ids[] = $stylist_time->stylist_pos_id !== 'フリー' ? $stylist_time->stylist_pos_id : 0;
+                $stylist_pos_ids = array();
+                if ($kanzashiType == "HAIR"){
+                    foreach ($json->stylist_times as $stylist_time) {
+                        $stylist_pos_ids[] = $stylist_time->stylist_pos_id !== 'フリー' ? $stylist_time->stylist_pos_id : 0;
+                    }
+                } else {
+                    //KIREI
+                    foreach ($json->staff_times as $staff_time) {
+                        $stylist_pos_ids[] = $staff_time->staff_pos_id !== 'フリー' ? $staff_time->staff_pos_id : 0;
+                    }
+
                 }
 
                 $stylist_pos_ids_query = implode(',', $stylist_pos_ids);
