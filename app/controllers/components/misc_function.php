@@ -797,13 +797,28 @@ class MiscFunctionComponent extends Object
                 unset($result);
 
                 $stylist_pos_ids = array();
+
+                $reservationSystems = array("HPB" => "ホットペッパービューティー",
+                                            "VVV" => "楽天ビューティ",
+                                            "RKT" => "楽天ビューティ",
+                                            "OZM" => "OZmall",
+                                            "MNM" => "minimo",
+                                            "KMM" => "EPARKビューティー",
+                                            "MEZ" => "MEZON",
+                                            "MTR" => "MENTOR",
+                                            "LWS" => "Reserve Tech for LINEWORKS",
+                                            "RWG" => "Googleで予約",
+                                            "HAR" => "HAIR",
+                                            "BRK" => "美歴 (BIREKI)");
+
                 if ($kanzashiType == "HAIR"){
                     foreach ($json->stylist_times as $stylist_time) {
                         $stylist_pos_ids[] = $stylist_time->stylist_pos_id !== 'フリー' ? $stylist_time->stylist_pos_id : 0;
                     }
-                    $customerMediaKey = "{$json->customer->customer_media_key->media}: {$json->customer->customer_media_key->key}\n";
-                    $customerId = ($json->customer->customer_media_key->media != "THK") ? $customerMediaKey : "\n";
-                    $arrList[$ctr]['site_customer_id'] = $customerId;
+
+                    $media = strtr($json->customer->customer_media_key->media, $reservationSystems);
+                    $arrList[$ctr]['site_customer_id'] = ($json->customer->customer_media_key->media != "THK") ? 
+                                                        "{$media}: {$json->customer->customer_media_key->key}\n" : "\n";
                 } else {
                     //KIREI
                     foreach ($json->staff_times as $staff_time) {
@@ -814,7 +829,8 @@ class MiscFunctionComponent extends Object
                         if ($customer_media_key->media == "THK"){
                             continue;
                         }
-                        $arrList[$ctr]['site_customer_id'] .= "{$customer_media_key->media}: {$customer_media_key->key}\n";
+                        $media = strtr($customer_media_key->media, $reservationSystems);
+                        $arrList[$ctr]['site_customer_id'] .= "{$media}: {$customer_media_key->key}\n";
                     }
                 }
 
