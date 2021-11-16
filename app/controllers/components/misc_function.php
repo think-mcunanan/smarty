@@ -836,6 +836,9 @@ class MiscFunctionComponent extends Object
                             $media = strtr($customer_media_key->media, $reservationSystems);
                             $arrList[$ctr]['site_customer_id'] .= "{$media}: {$customer_media_key->key}\n";
                         }
+                        if (!isset($arrList[$ctr]['site_customer_id'])){
+                            $arrList[$ctr]['site_customer_id'] = "\n";
+                        }
                         break;
                 }
 
