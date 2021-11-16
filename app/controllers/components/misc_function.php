@@ -811,27 +811,29 @@ class MiscFunctionComponent extends Object
                                             "HAR" => "HAIR",
                                             "BRK" => "美歴 (BIREKI)");
 
-                if ($kanzashiType == "HAIR"){
-                    foreach ($json->stylist_times as $stylist_time) {
-                        $stylist_pos_ids[] = $stylist_time->stylist_pos_id !== 'フリー' ? $stylist_time->stylist_pos_id : 0;
-                    }
-
-                    $media = strtr($json->customer->customer_media_key->media, $reservationSystems);
-                    $arrList[$ctr]['site_customer_id'] = ($json->customer->customer_media_key->media != "THK") ? 
-                                                        "{$media}: {$json->customer->customer_media_key->key}\n" : "\n";
-                } else {
-                    //KIREI
-                    foreach ($json->staff_times as $staff_time) {
-                        $stylist_pos_ids[] = $staff_time->staff_pos_id !== 'フリー' ? $staff_time->staff_pos_id : 0;
-                    }
-
-                    foreach ($json->customer->customer_media_keys as $customer_media_key) {
-                        if ($customer_media_key->media == "THK"){
-                            continue;
+                switch ($kanzashiType){
+                    case "HAIR": 
+                        foreach ($json->stylist_times as $stylist_time) {
+                            $stylist_pos_ids[] = $stylist_time->stylist_pos_id !== 'フリー' ? $stylist_time->stylist_pos_id : 0;
                         }
-                        $media = strtr($customer_media_key->media, $reservationSystems);
-                        $arrList[$ctr]['site_customer_id'] .= "{$media}: {$customer_media_key->key}\n";
-                    }
+
+                        $media = strtr($json->customer->customer_media_key->media, $reservationSystems);
+                        $arrList[$ctr]['site_customer_id'] = ($json->customer->customer_media_key->media != "THK") ? 
+                                                            "{$media}: {$json->customer->customer_media_key->key}\n" : "\n";
+                        break;
+                    case "KIREI":
+                        foreach ($json->staff_times as $staff_time) {
+                            $stylist_pos_ids[] = $staff_time->staff_pos_id !== 'フリー' ? $staff_time->staff_pos_id : 0;
+                        }
+    
+                        foreach ($json->customer->customer_media_keys as $customer_media_key) {
+                            if ($customer_media_key->media == "THK"){
+                                continue;
+                            }
+                            $media = strtr($customer_media_key->media, $reservationSystems);
+                            $arrList[$ctr]['site_customer_id'] .= "{$media}: {$customer_media_key->key}\n";
+                        }
+                        break;
                 }
 
                 $stylist_pos_ids_query = implode(',', $stylist_pos_ids);
