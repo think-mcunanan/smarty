@@ -811,6 +811,9 @@ class MiscFunctionComponent extends Object
                                             "HAR" => "HAIR",
                                             "BRK" => "美歴 (BIREKI)");
 
+                $arrList[$ctr]['reservation_system']  = array_key_exists($json->original_media, $reservationSystems) ? 
+                                                        strtr($json->original_media, $reservationSystems) : "";
+                                                        
                 switch ($kanzashiType){
                     case "HAIR": 
                         foreach ($json->stylist_times as $stylist_time) {
