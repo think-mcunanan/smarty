@@ -765,7 +765,6 @@ class MiscFunctionComponent extends Object
                 $arrList[$ctr]['shop_comment']        = '';
                 $arrList[$ctr]['next_coming_comment'] = '';
                 $arrList[$ctr]['demand']              = json_encode($json->demands);
-                $arrList[$ctr]['site_customer_id']    = $json->customer->customer_media_key->key;
                 $arrList[$ctr]['bmPrice']             = $json->price;
                 $arrList[$ctr]['nomination_fee']      = 0;
                 $arrList[$ctr]['bmTprice']            = $json->price;
@@ -788,10 +787,59 @@ class MiscFunctionComponent extends Object
                 $reserve_date = new DateTime($json->media_acquired_at);
                 $arrList[$ctr]['reserve_date'] = $reserve_date->format('Y/m/d H:i:s');
 
+                $query = "  SELECT kanzashi_type
+                            FROM sipssbeauty_kanzashi.salon
+                            WHERE kanzashi_id = :kanzashiId
+                        ";
+                $param = array('kanzashiId' => $json->salon_id);
+                $result = $controller->StoreTransaction->query($query, $param, false);
+                $kanzashiType = $result[0]['salon']['kanzashi_type'];
+                unset($result);
+
                 $stylist_pos_ids = array();
 
-                foreach ($json->stylist_times as $stylist_time) {
-                    $stylist_pos_ids[] = $stylist_time->stylist_pos_id !== 'フリー' ? $stylist_time->stylist_pos_id : 0;
+                $reservationSystems = array("HPB" => "ホットペッパービューティー",
+                                            "VVV" => "楽天ビューティ",
+                                            "RKT" => "楽天ビューティ",
+                                            "OZM" => "OZmall",
+                                            "MNM" => "minimo",
+                                            "KMM" => "EPARKビューティー",
+                                            "MEZ" => "MEZON",
+                                            "MTR" => "MENTOR",
+                                            "LWS" => "Reserve Tech for LINEWORKS",
+                                            "RWG" => "Googleで予約",
+                                            "HAR" => "HAIR",
+                                            "BRK" => "美歴 (BIREKI)");
+
+                $arrList[$ctr]['reservation_system']  = array_key_exists($json->original_media, $reservationSystems) ? 
+                                                        strtr($json->original_media, $reservationSystems) : "";
+                                                        
+                switch ($kanzashiType){
+                    case "HAIR": 
+                        foreach ($json->stylist_times as $stylist_time) {
+                            $stylist_pos_ids[] = $stylist_time->stylist_pos_id !== 'フリー' ? $stylist_time->stylist_pos_id : 0;
+                        }
+
+                        $media = strtr($json->customer->customer_media_key->media, $reservationSystems);
+                        $arrList[$ctr]['site_customer_id'] = ($json->customer->customer_media_key->media != "THK") ? 
+                                                            "{$media}: {$json->customer->customer_media_key->key}\n" : "\n";
+                        break;
+                    case "KIREI":
+                        foreach ($json->staff_times as $staff_time) {
+                            $stylist_pos_ids[] = $staff_time->staff_pos_id !== 'フリー' ? $staff_time->staff_pos_id : 0;
+                        }
+    
+                        foreach ($json->customer->customer_media_keys as $customer_media_key) {
+                            if ($customer_media_key->media == "THK"){
+                                continue;
+                            }
+                            $media = strtr($customer_media_key->media, $reservationSystems);
+                            $arrList[$ctr]['site_customer_id'] .= "{$media}: {$customer_media_key->key}\n";
+                        }
+                        if (!isset($arrList[$ctr]['site_customer_id'])){
+                            $arrList[$ctr]['site_customer_id'] = "\n";
+                        }
+                        break;
                 }
 
                 $stylist_pos_ids_query = implode(',', $stylist_pos_ids);
