@@ -809,7 +809,8 @@ class MiscFunctionComponent extends Object
                                             "LWS" => "Reserve Tech for LINEWORKS",
                                             "RWG" => "Googleで予約",
                                             "HAR" => "HAIR",
-                                            "BRK" => "美歴 (BIREKI)");
+                                            "BRK" => "美歴 (BIREKI)",
+                                            "INS" => "Instagram");
 
                 $arrList[$ctr]['reservation_system']  = array_key_exists($json->original_media, $reservationSystems) ? 
                                                         strtr($json->original_media, $reservationSystems) : "";
