@@ -9643,6 +9643,7 @@ class ServersController extends WebServicesController
         } else {
             $criteria = array(
                 'StoreHoliday.STORECODE'  => $param['STORECODE'],
+                'StoreHoliday.DELFLG IS NULL',
                 'StoreHoliday.YMD BETWEEN ? AND LAST_DAY(DATE_ADD(?, INTERVAL 1 MONTH))'  => array($date, $date)
             );
     
