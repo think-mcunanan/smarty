@@ -32,7 +32,7 @@
  * @package       cake
  * @subpackage    cake.cake.libs.controller.components
  */
-class AclComponent extends Object {
+class AclComponent extends CakeObject {
 /**
  * Instance of an ACL class
  *
@@ -56,7 +56,7 @@ class AclComponent extends Object {
 				trigger_error(sprintf(__('Could not find %s.', true), $name), E_USER_WARNING);
 			}
 		}
-		$this->_Instance =& new $name();
+		$this->_Instance = new $name();
 		$this->_Instance->initialize($this);
 	}
 /**
@@ -157,7 +157,7 @@ class AclComponent extends Object {
  * @subpackage    cake.cake.libs.controller.components
  * @abstract
  */
-class AclBase extends Object {
+class AclBase extends CakeObject {
 /**
  * This class should never be instantiated, just subclassed.
  *
@@ -338,7 +338,7 @@ class DbAcl extends AclBase {
 			}
 			if (is_array($actions)) {
 				foreach ($actions as $action) {
-					if ($action{0} != '_') {
+					if ($action[0] != '_') {
 						$action = '_' . $action;
 					}
 					if (in_array($action, $permKeys)) {

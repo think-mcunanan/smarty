@@ -37,7 +37,7 @@ App::import('Core', 'Security');
  * @subpackage    cake.cake.libs.controller.components
  *
  */
-class CookieComponent extends Object {
+class CookieComponent extends CakeObject {
 /**
  * The name of the cookie.
  *
@@ -134,7 +134,7 @@ class CookieComponent extends Object {
  * @access private
  * @todo add additional encryption methods
  */
-	var $__type = 'cipher';
+	var $__type = 'aes';
 /**
  * Used to reset cookie time if $expire is passed to CookieComponent::write()
  *
@@ -392,7 +392,12 @@ class CookieComponent extends Object {
 
 		if ($this->__encrypted === true) {
 			$type = $this->__type;
-			$value = "Q2FrZQ==." .base64_encode(Security::$type($value, $this->key));
+			if ($type === 'aes'){
+				$encrypted = Security::encrypt($value, $this->key);
+			}else {
+				$encrypted = Security::$type($value, $this->key);
+			}
+			$value = "Q2FrZQ==." .base64_encode($encrypted);
 		}
 		return($value);
 	}
@@ -415,7 +420,12 @@ class CookieComponent extends Object {
 
 					if ($pos !== false) {
 						$val = substr($val, 8);
-						$decrypted[$name][$key] = $this->__explode(Security::$type(base64_decode($val), $this->key));
+						$decodedValue = base64_decode($val);
+						if ($type === 'aes'){
+							$decrypted[$name][$key] = $this->__explode(Security::decrypt($decodedValue, $this->key));
+						}else {
+							$decrypted[$name][$key] = $this->__explode(Security::$type($decodedValue, $this->key));
+						}
 					}
 				}
 			} else {
@@ -424,7 +434,14 @@ class CookieComponent extends Object {
 
 				if ($pos !== false) {
 					$value = substr($value, 8);
-					$decrypted[$name] = $this->__explode(Security::$type(base64_decode($value), $this->key));
+					$decodedValue = base64_decode($value);
+					$type = $this->__type;
+
+					if ($type === 'aes'){
+						$decrypted[$name] = $this->__explode(Security::decrypt($decodedValue, $this->key));
+					}else {
+						$decrypted[$name] = $this->__explode(Security::$type($decodedValue, $this->key));
+					}
 				}
 			}
 		}

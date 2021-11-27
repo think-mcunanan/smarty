@@ -17,7 +17,7 @@
  */
 
 
-class KeitaiSessionComponent extends Object
+class KeitaiSessionComponent extends CakeObject
 {
 
     /**

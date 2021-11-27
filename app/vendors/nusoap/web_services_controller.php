@@ -128,8 +128,7 @@ class WebServicesController extends AppController
 
 		$this->_buildComplexTypes();
 		// get the raw data, if not there this will be redirect to "wsdl" method
-		global $HTTP_RAW_POST_DATA;		    						
-		$data = isset($HTTP_RAW_POST_DATA) ? $HTTP_RAW_POST_DATA : '';
+		$data = file_get_contents('php://input');
 		$this->_soap_server->service($data);
 		exit();		
 	}

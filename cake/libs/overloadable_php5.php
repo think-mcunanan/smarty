@@ -30,7 +30,7 @@
  * @package       cake
  * @subpackage    cake.cake.libs
  */
-class Overloadable extends Object {
+class Overloadable extends CakeObject {
 /**
  * Overload implementation. No need for implementation in PHP5.
  *
@@ -60,7 +60,7 @@ class Overloadable extends Object {
  *
  * @package       cake
  */
-class Overloadable2 extends Object {
+class Overloadable2 extends CakeObject {
 /**
  * Overload implementation. No need for implementation in PHP5.
  *

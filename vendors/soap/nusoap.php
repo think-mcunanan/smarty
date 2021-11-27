@@ -3306,7 +3306,7 @@ class soap_transport_http extends nusoap_base {
 	 */
 	function parseCookie($cookie_str) {
 		$cookie_str = str_replace('; ', ';', $cookie_str) . ';';
-		$data = split(';', $cookie_str);
+		$data = preg_split('/;/', $cookie_str);
 		$value_str = $data[0];
 
 		$cookie_param = 'domain=';
@@ -7378,7 +7378,7 @@ class nusoap_client extends nusoap_base  {
 	 */
 	function loadWSDL() {
 		$this->debug('instantiating wsdl class with doc: '.$this->wsdlFile);
-		$this->wsdl =& new wsdl('',$this->proxyhost,$this->proxyport,$this->proxyusername,$this->proxypassword,$this->timeout,$this->response_timeout,$this->curl_options,$this->use_curl);
+		$this->wsdl = new wsdl('',$this->proxyhost,$this->proxyport,$this->proxyusername,$this->proxypassword,$this->timeout,$this->response_timeout,$this->curl_options,$this->use_curl);
 		$this->wsdl->setCredentials($this->username, $this->password, $this->authtype, $this->certRequest);
 		$this->wsdl->fetchWSDL($this->wsdlFile);
 		$this->checkWSDL();

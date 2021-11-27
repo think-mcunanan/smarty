@@ -224,10 +224,10 @@ class DbAclTest extends DbAcl {
  * @return void
  */
 	function __construct() {
-		$this->Aro =& new DbAroTest();
-		$this->Aro->Permission =& new DbPermissionTest();
-		$this->Aco =& new DbAcoTest();
-		$this->Aro->Permission =& new DbPermissionTest();
+		$this->Aro = new DbAroTest();
+		$this->Aro->Permission = new DbPermissionTest();
+		$this->Aco = new DbAcoTest();
+		$this->Aro->Permission = new DbPermissionTest();
 	}
 }
 /**

@@ -36,7 +36,7 @@ App::import('Core', 'l10n');
  * @package       cake
  * @subpackage    cake.cake.libs
  */
-class I18n extends Object {
+class I18n extends CakeObject {
 /**
  * Instance of the I10n class for localization
  *
@@ -106,8 +106,8 @@ class I18n extends Object {
 	function &getInstance() {
 		static $instance = array();
 		if (!$instance) {
-			$instance[0] =& new I18n();
-			$instance[0]->l10n =& new L10n();
+			$instance[0] = new I18n();
+			$instance[0]->l10n = new L10n();
 		}
 		return $instance[0];
 	}

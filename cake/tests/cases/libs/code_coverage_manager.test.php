@@ -158,7 +158,7 @@ class CodeCoverageManagerTest extends CakeTestCase {
  * @package       cake
  * @subpackage    cake.tests.cases.libs
  */
-		class Set extends Object {
+		class Set extends CakeObject {
 /**
 		 * Value of the Set object.
 		 *
@@ -315,7 +315,7 @@ PHP;
  * @package       cake
  * @subpackage    cake.tests.cases.libs
  */
-		class Set extends Object {
+		class Set extends CakeObject {
 /**
 		 * Value of the Set object.
 		 *
