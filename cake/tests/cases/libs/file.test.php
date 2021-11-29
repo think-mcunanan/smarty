@@ -47,7 +47,7 @@ class FileTest extends CakeTestCase {
  */
 	function testBasic() {
 		$file = __FILE__;
-		$this->File =& new File($file);
+		$this->File = new File($file);
 
 		$result = $this->File->pwd();
 		$expecting = $file;
@@ -209,7 +209,7 @@ class FileTest extends CakeTestCase {
  */
 	function testCreate() {
 		$tmpFile = TMP.'tests'.DS.'cakephp.file.test.tmp';
-		$File =& new File($tmpFile, true, 0777);
+		$File = new File($tmpFile, true, 0777);
 		$this->assertTrue($File->exists());
 	}
 /**
@@ -219,7 +219,7 @@ class FileTest extends CakeTestCase {
  * @return void
  */
 	function testOpeningNonExistantFileCreatesIt() {
-		$someFile =& new File(TMP . 'some_file.txt', false);
+		$someFile = new File(TMP . 'some_file.txt', false);
 		$this->assertTrue($someFile->open());
 		$this->assertEqual($someFile->read(), '');
 		$someFile->close();
@@ -252,7 +252,7 @@ class FileTest extends CakeTestCase {
  * @return void
  */
 	function testReadable() {
-		$someFile =& new File(TMP . 'some_file.txt', false);
+		$someFile = new File(TMP . 'some_file.txt', false);
 		$this->assertTrue($someFile->open());
 		$this->assertTrue($someFile->readable());
 		$someFile->close();
@@ -265,7 +265,7 @@ class FileTest extends CakeTestCase {
  * @return void
  */
 	function testWritable() {
-		$someFile =& new File(TMP . 'some_file.txt', false);
+		$someFile = new File(TMP . 'some_file.txt', false);
 		$this->assertTrue($someFile->open());
 		$this->assertTrue($someFile->writable());
 		$someFile->close();
@@ -278,7 +278,7 @@ class FileTest extends CakeTestCase {
  * @return void
  */
 	function testExecutable() {
-		$someFile =& new File(TMP . 'some_file.txt', false);
+		$someFile = new File(TMP . 'some_file.txt', false);
 		$this->assertTrue($someFile->open());
 		$this->assertFalse($someFile->executable());
 		$someFile->close();
@@ -291,7 +291,7 @@ class FileTest extends CakeTestCase {
  * @return void
  */
 	function testLastAccess() {
-		$someFile =& new File(TMP . 'some_file.txt', false);
+		$someFile = new File(TMP . 'some_file.txt', false);
 		$this->assertFalse($someFile->lastAccess());
 		$this->assertTrue($someFile->open());
 		$this->assertEqual($someFile->lastAccess(), time());
@@ -305,7 +305,7 @@ class FileTest extends CakeTestCase {
  * @return void
  */
 	function testLastChange() {
-		$someFile =& new File(TMP . 'some_file.txt', false);
+		$someFile = new File(TMP . 'some_file.txt', false);
 		$this->assertFalse($someFile->lastChange());
 		$this->assertTrue($someFile->open('r+'));
 		$this->assertEqual($someFile->lastChange(), time());
@@ -328,7 +328,7 @@ class FileTest extends CakeTestCase {
 			unlink($tmpFile);
 		}
 
-		$TmpFile =& new File($tmpFile);
+		$TmpFile = new File($tmpFile);
 		$this->assertFalse(file_exists($tmpFile));
 		$this->assertFalse(is_resource($TmpFile->handle));
 
@@ -358,7 +358,7 @@ class FileTest extends CakeTestCase {
 			unlink($tmpFile);
 		}
 
-		$TmpFile =& new File($tmpFile);
+		$TmpFile = new File($tmpFile);
 		$this->assertFalse(file_exists($tmpFile));
 
 		$fragments = array('CakePHP\'s', ' test suite', ' was here ...', '');
@@ -386,13 +386,13 @@ class FileTest extends CakeTestCase {
 		if (!file_exists($tmpFile)) {
 			touch($tmpFile);
 		}
-		$TmpFile =& new File($tmpFile);
+		$TmpFile = new File($tmpFile);
 		$this->assertTrue(file_exists($tmpFile));
 		$result = $TmpFile->delete();
 		$this->assertTrue($result);
 		$this->assertFalse(file_exists($tmpFile));
 
-		$TmpFile =& new File('/this/does/not/exist');
+		$TmpFile = new File('/this/does/not/exist');
 		$result = $TmpFile->delete();
 		$this->assertFalse($result);
 	}

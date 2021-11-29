@@ -16,7 +16,7 @@
  *
  */
 
-class YoyakuSessionComponent extends Object
+class YoyakuSessionComponent extends CakeObject
 {
 
 	/**

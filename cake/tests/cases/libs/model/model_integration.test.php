@@ -42,7 +42,7 @@ class ModelIntegrationTest extends BaseModelTest {
  */
 	function testPkInHabtmLinkModelArticleB() {
 		$this->loadFixtures('Article', 'Tag');
-		$TestModel2 =& new ArticleB();
+		$TestModel2 = new ArticleB();
 		$this->assertEqual($TestModel2->ArticlesTag->primaryKey, 'article_id');
 	}
 /**
@@ -73,22 +73,22 @@ class ModelIntegrationTest extends BaseModelTest {
 	function testPkInHabtmLinkModel() {
 		//Test Nonconformant Models
 		$this->loadFixtures('Content', 'ContentAccount', 'Account');
-		$TestModel =& new Content();
+		$TestModel = new Content();
 		$this->assertEqual($TestModel->ContentAccount->primaryKey, 'iContentAccountsId');
 
 		//test conformant models with no PK in the join table
 		$this->loadFixtures('Article', 'Tag');
-		$TestModel2 =& new Article();
+		$TestModel2 = new Article();
 		$this->assertEqual($TestModel2->ArticlesTag->primaryKey, 'article_id');
 
 		//test conformant models with PK in join table
 		$this->loadFixtures('Item', 'Portfolio', 'ItemsPortfolio');
-		$TestModel3 =& new Portfolio();
+		$TestModel3 = new Portfolio();
 		$this->assertEqual($TestModel3->ItemsPortfolio->primaryKey, 'id');
 
 		//test conformant models with PK in join table - join table contains extra field
 		$this->loadFixtures('JoinA', 'JoinB', 'JoinAB');
-		$TestModel4 =& new JoinA();
+		$TestModel4 = new JoinA();
 		$this->assertEqual($TestModel4->JoinAsJoinB->primaryKey, 'id');
 
 	}
@@ -100,7 +100,7 @@ class ModelIntegrationTest extends BaseModelTest {
  */
 	function testDynamicBehaviorAttachment() {
 		$this->loadFixtures('Apple');
-		$TestModel =& new Apple();
+		$TestModel = new Apple();
 		$this->assertEqual($TestModel->Behaviors->attached(), array());
 
 		$TestModel->Behaviors->attach('Tree', array('left' => 'left_field', 'right' => 'right_field'));
@@ -148,7 +148,7 @@ class ModelIntegrationTest extends BaseModelTest {
 		}
 
 		$this->loadFixtures('Article', 'Tag', 'ArticlesTag', 'User', 'Comment');
-		$TestModel =& new Article();
+		$TestModel = new Article();
 
 		$expected = array(
 			array(
@@ -535,7 +535,7 @@ class ModelIntegrationTest extends BaseModelTest {
  **/
 	function testDeconstructFieldsTime() {
 		$this->loadFixtures('Apple');
-		$TestModel =& new Apple();
+		$TestModel = new Apple();
 
 		$data = array();
 		$data['Apple']['mytime']['hour'] = '';
@@ -621,7 +621,7 @@ class ModelIntegrationTest extends BaseModelTest {
  */
 	function testDeconstructFieldsDateTime() {
 		$this->loadFixtures('Apple');
-		$TestModel =& new Apple();
+		$TestModel = new Apple();
 
 		//test null/empty values first
 		$data['Apple']['created']['year'] = '';
@@ -849,7 +849,7 @@ class ModelIntegrationTest extends BaseModelTest {
  * @return void
  */
 	function testInvalidAssociation() {
-		$TestModel =& new ValidationTest1();
+		$TestModel = new ValidationTest1();
 		$this->assertNull($TestModel->getAssociated('Foo'));
 	}
 /**
@@ -875,7 +875,7 @@ class ModelIntegrationTest extends BaseModelTest {
  **/
 	function testResetOfExistsOnCreate() {
 		$this->loadFixtures('Article');
-		$Article =& new Article();
+		$Article = new Article();
 		$Article->id = 1;
 		$Article->saveField('title', 'Reset me');
 		$Article->delete();
@@ -897,7 +897,7 @@ class ModelIntegrationTest extends BaseModelTest {
  */
 	function testPluginAssociations() {
 		$this->loadFixtures('TestPluginArticle', 'User', 'TestPluginComment');
-		$TestModel =& new TestPluginArticle();
+		$TestModel = new TestPluginArticle();
 
 		$result = $TestModel->find('all');
 		$expected = array(
@@ -1063,7 +1063,7 @@ class ModelIntegrationTest extends BaseModelTest {
  */
 	function testAutoConstructAssociations() {
 		$this->loadFixtures('User', 'ArticleFeatured');
-		$TestModel =& new AssociationTest1();
+		$TestModel = new AssociationTest1();
 
 		$result = $TestModel->hasAndBelongsToMany;
 		$expected = array('AssociationTest2' => array(
@@ -1079,8 +1079,8 @@ class ModelIntegrationTest extends BaseModelTest {
 		$this->assertEqual($result, $expected);
 
 		// Tests related to ticket https://trac.cakephp.org/ticket/5594
-		$TestModel =& new ArticleFeatured();
-		$TestFakeModel =& new ArticleFeatured(array('table' => false));
+		$TestModel = new ArticleFeatured();
+		$TestFakeModel = new ArticleFeatured(array('table' => false));
 
 		$expected = array(
 			'User' => array(
@@ -1195,7 +1195,7 @@ class ModelIntegrationTest extends BaseModelTest {
 		$this->assertEqual('test_suite', $TestModel->useDbConfig);
 
 		//deprecated but test it anyway
-		$NewVoid =& new TheVoid(null, false, 'other');
+		$NewVoid = new TheVoid(null, false, 'other');
 		$this->assertEqual('other', $NewVoid->useDbConfig);
 	}
 /**
@@ -1205,13 +1205,13 @@ class ModelIntegrationTest extends BaseModelTest {
  * @return void
  */
 	function testColumnTypeFetching() {
-		$model =& new Test();
+		$model = new Test();
 		$this->assertEqual($model->getColumnType('id'), 'integer');
 		$this->assertEqual($model->getColumnType('notes'), 'text');
 		$this->assertEqual($model->getColumnType('updated'), 'datetime');
 		$this->assertEqual($model->getColumnType('unknown'), null);
 
-		$model =& new Article();
+		$model = new Article();
 		$this->assertEqual($model->getColumnType('User.created'), 'datetime');
 		$this->assertEqual($model->getColumnType('Tag.id'), 'integer');
 		$this->assertEqual($model->getColumnType('Article.id'), 'integer');
@@ -1223,7 +1223,7 @@ class ModelIntegrationTest extends BaseModelTest {
  * @return void
  */
 	function testHabtmUniqueKey() {
-		$model =& new Item();
+		$model = new Item();
 		$this->assertFalse($model->hasAndBelongsToMany['Portfolio']['unique']);
 	}
 /**
@@ -1233,17 +1233,17 @@ class ModelIntegrationTest extends BaseModelTest {
  * @return void
  */
 	function testIdentity() {
-		$TestModel =& new Test();
+		$TestModel = new Test();
 		$result = $TestModel->alias;
 		$expected = 'Test';
 		$this->assertEqual($result, $expected);
 
-		$TestModel =& new TestAlias();
+		$TestModel = new TestAlias();
 		$result = $TestModel->alias;
 		$expected = 'TestAlias';
 		$this->assertEqual($result, $expected);
 
-		$TestModel =& new Test(array('alias' => 'AnotherTest'));
+		$TestModel = new Test(array('alias' => 'AnotherTest'));
 		$result = $TestModel->alias;
 		$expected = 'AnotherTest';
 		$this->assertEqual($result, $expected);
@@ -1256,7 +1256,7 @@ class ModelIntegrationTest extends BaseModelTest {
  */
 	function testWithAssociation() {
 		$this->loadFixtures('Something', 'SomethingElse', 'JoinThing');
-		$TestModel =& new Something();
+		$TestModel = new Something();
 		$result = $TestModel->SomethingElse->find('all');
 
 		$expected = array(
@@ -1508,7 +1508,7 @@ class ModelIntegrationTest extends BaseModelTest {
 	function testFindSelfAssociations() {
 		$this->loadFixtures('Person');
 
-		$TestModel =& new Person();
+		$TestModel = new Person();
 		$TestModel->recursive = 2;
 		$result = $TestModel->read(null, 1);
 		$expected = array(
@@ -1616,7 +1616,7 @@ class ModelIntegrationTest extends BaseModelTest {
  */
 	function testDynamicAssociations() {
 		$this->loadFixtures('Article', 'Comment');
-		$TestModel =& new Article();
+		$TestModel = new Article();
 
 		$TestModel->belongsTo = $TestModel->hasAndBelongsToMany = $TestModel->hasOne = array();
 		$TestModel->hasMany['Comment'] = array_merge($TestModel->hasMany['Comment'], array(
@@ -1723,11 +1723,11 @@ class ModelIntegrationTest extends BaseModelTest {
  */
 	function testCreation() {
 		$this->loadFixtures('Article');
-		$TestModel =& new Test();
+		$TestModel = new Test();
 		$result = $TestModel->create();
 		$expected = array('Test' => array('notes' => 'write some notes here'));
 		$this->assertEqual($result, $expected);
-		$TestModel =& new User();
+		$TestModel = new User();
 		$result = $TestModel->schema();
 
 		if (isset($this->db->columns['primary_key']['length'])) {
@@ -1777,12 +1777,12 @@ class ModelIntegrationTest extends BaseModelTest {
 
 		$this->assertEqual($result, $expected);
 
-		$TestModel =& new Article();
+		$TestModel = new Article();
 		$result = $TestModel->create();
 		$expected = array('Article' => array('published' => 'N'));
 		$this->assertEqual($result, $expected);
 
-		$FeaturedModel =& new Featured();
+		$FeaturedModel = new Featured();
 		$data = array(
 			'article_featured_id' => 1,
 			'category_id' => 1,

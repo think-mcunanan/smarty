@@ -34,7 +34,7 @@
  * @package       cake
  * @subpackage    cake.cake.libs
  */
-class Object {
+class CakeObject {
 /**
  * Log object
  *

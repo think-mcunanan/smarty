@@ -95,7 +95,7 @@ class ModelWriteTest extends BaseModelTest {
 	function testSaveDateAsFirstEntry() {
 		$this->loadFixtures('Article');
 
-		$Article =& new Article();
+		$Article = new Article();
 
 		$data = array(
 			'Article' => array(
@@ -124,7 +124,7 @@ class ModelWriteTest extends BaseModelTest {
  */
 	function testUnderscoreFieldSave() {
 		$this->loadFixtures('UnderscoreField');
-		$UnderscoreField =& new UnderscoreField();
+		$UnderscoreField = new UnderscoreField();
 
 		$currentCount = $UnderscoreField->find('count');
 		$this->assertEqual($currentCount, 3);
@@ -152,7 +152,7 @@ class ModelWriteTest extends BaseModelTest {
 		$this->skipIf($this->db->config['driver'] == 'sqlite');
 
 		$this->loadFixtures('Uuid');
-		$TestModel =& new Uuid();
+		$TestModel = new Uuid();
 
 		$TestModel->save(array('title' => 'Test record'));
 		$result = $TestModel->findByTitle('Test record');
@@ -174,7 +174,7 @@ class ModelWriteTest extends BaseModelTest {
 			'%s SQLite uses loose typing, this operation is unsupported'
 		);
 		$this->loadFixtures('DataTest');
-		$TestModel =& new DataTest();
+		$TestModel = new DataTest();
 
 		$TestModel->create(array());
 		$TestModel->save();
@@ -190,7 +190,7 @@ class ModelWriteTest extends BaseModelTest {
  */
 	function testNonNumericHabtmJoinKey() {
 		$this->loadFixtures('Post', 'Tag', 'PostsTag');
-		$Post =& new Post();
+		$Post = new Post();
 		$Post->bind('Tag', array('type' => 'hasAndBelongsToMany'));
 		$Post->Tag->primaryKey = 'tag';
 
@@ -287,7 +287,7 @@ class ModelWriteTest extends BaseModelTest {
  * @return void
  */
 	function testAllowSimulatedFields() {
-		$TestModel =& new ValidationTest1();
+		$TestModel = new ValidationTest1();
 
 		$TestModel->create(array(
 			'title' => 'foo',
@@ -316,7 +316,7 @@ class ModelWriteTest extends BaseModelTest {
 		Configure::write('Cache.disable', false);
 
 		$this->loadFixtures('OverallFavorite');
-		$OverallFavorite =& new OverallFavorite();
+		$OverallFavorite = new OverallFavorite();
 
 		touch(CACHE . 'views' . DS . 'some_dir_overallfavorites_index.php');
 		touch(CACHE . 'views' . DS . 'some_dir_overall_favorites_index.php');
@@ -345,8 +345,8 @@ class ModelWriteTest extends BaseModelTest {
  */
 	function testSaveWithCounterCache() {
 		$this->loadFixtures('Syfile', 'Item');
-		$TestModel =& new Syfile();
-		$TestModel2 =& new Item();
+		$TestModel = new Syfile();
+		$TestModel2 = new Item();
 
 		$result = $TestModel->findById(1);
 		$this->assertIdentical($result['Syfile']['item_count'], null);
@@ -486,11 +486,11 @@ class ModelWriteTest extends BaseModelTest {
 
 		$this->loadFixtures('CategoryThread');
 		$this->db->query('ALTER TABLE '. $this->db->fullTableName('category_threads') . " ADD COLUMN child_count INTEGER");
-		$Category =& new CategoryThread();
+		$Category = new CategoryThread();
 		$result = $Category->updateAll(array('CategoryThread.name' => "'updated'"), array('CategoryThread.parent_id' => 5));
 		$this->assertTrue($result);
 
-		$Category =& new CategoryThread();
+		$Category = new CategoryThread();
 		$Category->belongsTo['ParentCategory']['counterCache'] = 'child_count';
 		$Category->updateCounterCache(array('parent_id' => 5));
 		$result = Set::extract($Category->find('all', array('conditions' => array('CategoryThread.id' => 5))), '{n}.CategoryThread.child_count');
@@ -505,8 +505,8 @@ class ModelWriteTest extends BaseModelTest {
  */
 	function testSaveWithCounterCacheScope() {
 		$this->loadFixtures('Syfile', 'Item');
-		$TestModel =& new Syfile();
-		$TestModel2 =& new Item();
+		$TestModel = new Syfile();
+		$TestModel2 = new Item();
 		$TestModel2->belongsTo['Syfile']['counterCache'] = true;
 		$TestModel2->belongsTo['Syfile']['counterScope'] = array('published' => true);
 
@@ -543,7 +543,7 @@ class ModelWriteTest extends BaseModelTest {
  * @return void
  */
 	function testValidatesBackwards() {
-		$TestModel =& new TestValidate();
+		$TestModel = new TestValidate();
 
 		$TestModel->validate = array(
 			'user_id' => VALID_NUMBER,
@@ -608,7 +608,7 @@ class ModelWriteTest extends BaseModelTest {
  * @return void
  */
 	function testValidates() {
-		$TestModel =& new TestValidate();
+		$TestModel = new TestValidate();
 
 		$TestModel->validate = array(
 			'user_id' => 'numeric',
@@ -961,7 +961,7 @@ class ModelWriteTest extends BaseModelTest {
  */
 	function testSaveField() {
 		$this->loadFixtures('Article');
-		$TestModel =& new Article();
+		$TestModel = new Article();
 
 		$TestModel->id = 1;
 		$result = $TestModel->saveField('title', 'New First Article');
@@ -1012,7 +1012,7 @@ class ModelWriteTest extends BaseModelTest {
 		$this->assertFalse($result);
 
 		$this->loadFixtures('Node', 'Dependency');
-		$Node =& new Node();
+		$Node = new Node();
 		$Node->set('id', 1);
 		$result = $Node->read();
 		$this->assertEqual(Set::extract('/ParentNode/name', $result), array('Second'));
@@ -1037,7 +1037,7 @@ class ModelWriteTest extends BaseModelTest {
 			'ArticlesTag',
 			'Attachment'
 		);
-		$TestModel =& new User();
+		$TestModel = new User();
 
 		$data = array('User' => array(
 			'user' => 'user',
@@ -1047,7 +1047,7 @@ class ModelWriteTest extends BaseModelTest {
 		$this->assertFalse($result);
 		$this->assertTrue(!empty($TestModel->validationErrors));
 
-		$TestModel =& new Article();
+		$TestModel = new Article();
 
 		$data = array('Article' => array(
 			'user_id' => '',
@@ -1250,7 +1250,7 @@ class ModelWriteTest extends BaseModelTest {
  */
 	function testSaveWithSet() {
 		$this->loadFixtures('Article');
-		$TestModel =& new Article();
+		$TestModel = new Article();
 
 		// Create record we will be updating later
 
@@ -1377,7 +1377,7 @@ class ModelWriteTest extends BaseModelTest {
  */
 	function testSaveWithNonExistentFields() {
 		$this->loadFixtures('Article');
-		$TestModel =& new Article();
+		$TestModel = new Article();
 		$TestModel->recursive = -1;
 
 		$data = array(
@@ -1445,7 +1445,7 @@ class ModelWriteTest extends BaseModelTest {
  */
 	function testSaveHabtm() {
 		$this->loadFixtures('Article', 'User', 'Comment', 'Tag', 'ArticlesTag');
-		$TestModel =& new Article();
+		$TestModel = new Article();
 
 		$result = $TestModel->findById(2);
 		$expected = array(
@@ -1916,7 +1916,7 @@ class ModelWriteTest extends BaseModelTest {
  */
 	function testSaveHabtmCustomKeys() {
 		$this->loadFixtures('Story', 'StoriesTag', 'Tag');
-		$Story =& new Story();
+		$Story = new Story();
 
 		$data = array(
 			'Story' => array('story' => '1'),
@@ -1966,7 +1966,7 @@ class ModelWriteTest extends BaseModelTest {
  */
 	function testHabtmSaveKeyResolution() {
 		$this->loadFixtures('Apple', 'Device', 'ThePaperMonkies');
-		$ThePaper =& new ThePaper();
+		$ThePaper = new ThePaper();
 
 		$ThePaper->id = 1;
 		$ThePaper->save(array('Monkey' => array(2, 3)));
@@ -2055,7 +2055,7 @@ class ModelWriteTest extends BaseModelTest {
  */
 	function testCreationOfEmptyRecord() {
 		$this->loadFixtures('Author');
-		$TestModel =& new Author();
+		$TestModel = new Author();
 		$this->assertEqual($TestModel->find('count'), 4);
 
 		$TestModel->deleteAll(true, false, false);
@@ -2073,7 +2073,7 @@ class ModelWriteTest extends BaseModelTest {
  * @return void
  */
 	function testCreateWithPKFiltering() {
-		$TestModel =& new Article();
+		$TestModel = new Article();
 		$data = array(
 			'id' => 5,
 			'user_id' => 2,
@@ -2170,8 +2170,8 @@ class ModelWriteTest extends BaseModelTest {
  */
 	function testCreationWithMultipleData() {
 		$this->loadFixtures('Article', 'Comment');
-		$Article =& new Article();
-		$Comment =& new Comment();
+		$Article = new Article();
+		$Comment = new Comment();
 
 		$articles = $Article->find('all', array(
 			'fields' => array('id','title'),
@@ -2341,8 +2341,8 @@ class ModelWriteTest extends BaseModelTest {
  */
 	function testCreationWithMultipleDataSameModel() {
 		$this->loadFixtures('Article');
-		$Article =& new Article();
-		$SecondaryArticle =& new Article();
+		$Article = new Article();
+		$SecondaryArticle = new Article();
 
 		$result = $Article->field('title', array('id' => 1));
 		$this->assertEqual($result, 'First Article');
@@ -2399,8 +2399,8 @@ class ModelWriteTest extends BaseModelTest {
  */
 	function testCreationWithMultipleDataSameModelManualInstances() {
 		$this->loadFixtures('PrimaryModel');
-		$Primary =& new PrimaryModel();
-		$Secondary =& new PrimaryModel();
+		$Primary = new PrimaryModel();
+		$Secondary = new PrimaryModel();
 
 		$result = $Primary->field('primary_name', array('id' => 1));
 		$this->assertEqual($result, 'Primary Name Existing');
@@ -2437,7 +2437,7 @@ class ModelWriteTest extends BaseModelTest {
  */
 	function testRecordExists() {
 		$this->loadFixtures('User');
-		$TestModel =& new User();
+		$TestModel = new User();
 
 		$this->assertFalse($TestModel->exists());
 		$TestModel->read(null, 1);
@@ -2447,7 +2447,7 @@ class ModelWriteTest extends BaseModelTest {
 		$TestModel->id = 4;
 		$this->assertTrue($TestModel->exists());
 
-		$TestModel =& new TheVoid();
+		$TestModel = new TheVoid();
 		$this->assertFalse($TestModel->exists());
 		$TestModel->id = 5;
 		$this->assertFalse($TestModel->exists());
@@ -2460,7 +2460,7 @@ class ModelWriteTest extends BaseModelTest {
  */
 	function testUpdateExisting() {
 		$this->loadFixtures('User', 'Article', 'Comment');
-		$TestModel =& new User();
+		$TestModel = new User();
 		$TestModel->create();
 
 		$TestModel->save(array(
@@ -2481,8 +2481,8 @@ class ModelWriteTest extends BaseModelTest {
 		$this->assertEqual($result['User']['user'], 'updated user');
 		$this->assertEqual($result['User']['password'], 'some password');
 
-		$Article =& new Article();
-		$Comment =& new Comment();
+		$Article = new Article();
+		$Comment = new Comment();
 		$data = array(
 			'Comment' => array(
 				'id' => 1,
@@ -2507,7 +2507,7 @@ class ModelWriteTest extends BaseModelTest {
  */
 	function testUpdateMultiple() {
 		$this->loadFixtures('Comment', 'Article', 'User', 'CategoryThread');
-		$TestModel =& new Comment();
+		$TestModel = new Comment();
 		$result = Set::extract($TestModel->find('all'), '{n}.Comment.user_id');
 		$expected = array('2', '4', '1', '1', '1', '2');
 		$this->assertEqual($result, $expected);
@@ -2540,7 +2540,7 @@ class ModelWriteTest extends BaseModelTest {
  */
 	function testHabtmUuidWithUuidId() {
 		$this->loadFixtures('Uuidportfolio', 'Uuiditem', 'UuiditemsUuidportfolio');
-		$TestModel =& new Uuidportfolio();
+		$TestModel = new Uuidportfolio();
 
 		$data = array('Uuidportfolio' => array('name' => 'Portfolio 3'));
 		$data['Uuiditem']['Uuiditem'] = array('483798c8-c7cc-430e-8cf9-4fcc40cf8569');
@@ -2558,7 +2558,7 @@ class ModelWriteTest extends BaseModelTest {
  **/
 	function testHabtmSavingWithNoPrimaryKeyUuidJoinTable() {
 		$this->loadFixtures('UuidTag', 'Fruit', 'FruitsUuidTag');
-		$Fruit =& new Fruit();
+		$Fruit = new Fruit();
 		$data = array(
 			'Fruit' => array(
 				'color' => 'Red',
@@ -2581,7 +2581,7 @@ class ModelWriteTest extends BaseModelTest {
  **/
 	function testHabtmSavingWithNoPrimaryKeyUuidJoinTableNoWith() {
 		$this->loadFixtures('UuidTag', 'Fruit', 'FruitsUuidTag');
-		$Fruit =& new FruitNoWith();
+		$Fruit = new FruitNoWith();
 		$data = array(
 			'Fruit' => array(
 				'color' => 'Red',
@@ -2606,7 +2606,7 @@ class ModelWriteTest extends BaseModelTest {
  */
 	function testHabtmUuidWithNumericId() {
 		$this->loadFixtures('Uuidportfolio', 'Uuiditem', 'UuiditemsUuidportfolioNumericid');
-		$TestModel =& new Uuiditem();
+		$TestModel = new Uuiditem();
 
 		$data = array('Uuiditem' => array('name' => 'Item 7', 'published' => 0));
 		$data['Uuidportfolio']['Uuidportfolio'] = array('480af662-eb8c-47d3-886b-230540cf8569');
@@ -2742,7 +2742,7 @@ class ModelWriteTest extends BaseModelTest {
  */
 	function testSaveAll() {
 		$this->loadFixtures('Post', 'Author', 'Comment', 'Attachment');
-		$TestModel =& new Post();
+		$TestModel = new Post();
 
 		$result = $TestModel->find('all');
 		$this->assertEqual(count($result), 3);
@@ -2827,7 +2827,7 @@ class ModelWriteTest extends BaseModelTest {
 		)));
 		$this->assertEqual($result, $expected);
 
-		$TestModel =& new Comment();
+		$TestModel = new Comment();
 		$ts = date('Y-m-d H:i:s');
 		$result = $TestModel->saveAll(array(
 			'Comment' => array(
@@ -2894,7 +2894,7 @@ class ModelWriteTest extends BaseModelTest {
 					'comment' => 'Article comment',
 					'user_id' => 1
 		)));
-		$Article =& new Article();
+		$Article = new Article();
 		$result = $Article->saveAll($data);
 		$this->assertTrue($result);
 
@@ -2927,7 +2927,7 @@ class ModelWriteTest extends BaseModelTest {
 			)
 		);
 
-		$Something =& new Something();
+		$Something = new Something();
 		$result = $Something->saveAll($data);
 		$this->assertTrue($result);
 		$result = $Something->read();
@@ -3079,7 +3079,7 @@ class ModelWriteTest extends BaseModelTest {
  */
 	function testSaveAllAtomic() {
 		$this->loadFixtures('Article', 'User');
-		$TestModel =& new Article();
+		$TestModel = new Article();
 
 		$result = $TestModel->saveAll(array(
 			'Article' => array(
@@ -3152,7 +3152,7 @@ class ModelWriteTest extends BaseModelTest {
  */
 	function testSaveAllHasMany() {
 		$this->loadFixtures('Article', 'Comment');
-		$TestModel =& new Article();
+		$TestModel = new Article();
 		$TestModel->belongsTo = $TestModel->hasAndBelongsToMany = array();
 
 		$result = $TestModel->saveAll(array(
@@ -3228,7 +3228,7 @@ class ModelWriteTest extends BaseModelTest {
  */
 	function testSaveAllHasManyValidation() {
 		$this->loadFixtures('Article', 'Comment');
-		$TestModel =& new Article();
+		$TestModel = new Article();
 		$TestModel->belongsTo = $TestModel->hasAndBelongsToMany = array();
 		$TestModel->Comment->validate = array('comment' => 'notEmpty');
 
@@ -3268,7 +3268,7 @@ class ModelWriteTest extends BaseModelTest {
  */
 	function testSaveAllTransaction() {
 		$this->loadFixtures('Post', 'Author', 'Comment', 'Attachment');
-		$TestModel =& new Post();
+		$TestModel = new Post();
 
 		$TestModel->validate = array('title' => 'notEmpty');
 		$data = array(
@@ -3465,7 +3465,7 @@ class ModelWriteTest extends BaseModelTest {
  */
 	function testSaveAllValidation() {
 		$this->loadFixtures('Post', 'Author', 'Comment', 'Attachment');
-		$TestModel =& new Post();
+		$TestModel = new Post();
 
 		$data = array(
 			array(
@@ -3656,7 +3656,7 @@ class ModelWriteTest extends BaseModelTest {
  * @return void
  */
 	function testSaveAllValidationOnly() {
-		$TestModel =& new Comment();
+		$TestModel = new Comment();
 		$TestModel->Attachment->validate = array('attachment' => 'notEmpty');
 
 		$data = array(
@@ -3671,7 +3671,7 @@ class ModelWriteTest extends BaseModelTest {
 		$result = $TestModel->saveAll($data, array('validate' => 'only'));
 		$this->assertFalse($result);
 
-		$TestModel =& new Article();
+		$TestModel = new Article();
 		$TestModel->validate = array('title' => 'notEmpty');
 		$result = $TestModel->saveAll(
 			array(
@@ -3708,7 +3708,7 @@ class ModelWriteTest extends BaseModelTest {
  * @return void
  */
 	function testSaveAllValidateFirst() {
-		$model =& new Article();
+		$model = new Article();
 		$model->deleteAll(true);
 
 		$model->Comment->validate = array('comment' => 'notEmpty');
@@ -3787,7 +3787,7 @@ class ModelWriteTest extends BaseModelTest {
  */
 	function testUpdateWithCalculation() {
 		$this->loadFixtures('DataTest');
-		$model =& new DataTest();
+		$model = new DataTest();
 		$result = $model->saveAll(array(
 			array('count' => 5, 'float' => 1.1),
 			array('count' => 3, 'float' => 1.2),
@@ -3815,7 +3815,7 @@ class ModelWriteTest extends BaseModelTest {
  */
 	function testSaveAllHasManyValidationOnly() {
 		$this->loadFixtures('Article', 'Comment');
-		$TestModel =& new Article();
+		$TestModel = new Article();
 		$TestModel->belongsTo = $TestModel->hasAndBelongsToMany = array();
 		$TestModel->Comment->validate = array('comment' => 'notEmpty');
 
@@ -3892,7 +3892,7 @@ class ModelWriteTest extends BaseModelTest {
  */
 	function testFindAllForeignKey() {
 		$this->loadFixtures('ProductUpdateAll', 'GroupUpdateAll');
-		$ProductUpdateAll =& new ProductUpdateAll();
+		$ProductUpdateAll = new ProductUpdateAll();
 
 		$conditions = array('Group.name' => 'group one');
 
@@ -3956,7 +3956,7 @@ class ModelWriteTest extends BaseModelTest {
  */
     function testProductUpdateAll() {
 		$this->loadFixtures('ProductUpdateAll', 'GroupUpdateAll');
-		$ProductUpdateAll =& new ProductUpdateAll();
+		$ProductUpdateAll = new ProductUpdateAll();
 
 		$conditions = array('Group.name' => 'group one');
 
@@ -4002,7 +4002,7 @@ class ModelWriteTest extends BaseModelTest {
  */
     function testProductUpdateAllWithoutForeignKey() {
 		$this->loadFixtures('ProductUpdateAll', 'GroupUpdateAll');
-		$ProductUpdateAll =& new ProductUpdateAll();
+		$ProductUpdateAll = new ProductUpdateAll();
 
 		$conditions = array('Group.name' => 'group one');
 

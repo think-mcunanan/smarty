@@ -2891,7 +2891,7 @@ class ServersController extends WebServicesController
 
         try {
 
-            $source->begin();
+            $source->begin($this->Customer);
 
             foreach ($sqlstatements as $sqlstatement) {
 
@@ -2900,7 +2900,7 @@ class ServersController extends WebServicesController
                 }
             }
 
-            $source->commit();
+            $source->commit($this->Customer);
             unset($source, $sqlstatements);
 
             //====================================================================================
@@ -2934,7 +2934,7 @@ class ServersController extends WebServicesController
 
             return $this->MiscFunction->GetTransactionUpdateDate($this->Customer,  $transcode, $keyno);
         } catch (Exception $ex) {
-            $source->rollback();
+            $source->rollback($this->Customer);
             unset($source, $sqlstatements);
             return null;
         }
@@ -2954,7 +2954,6 @@ class ServersController extends WebServicesController
      */
     function wsGetReservationCounter($sessionid, $strcode, $datefr, $dateto)
     {
-
         //===================================================================================
         //(Verify Session and Get DB name)
         //-----------------------------------------------------------------------------------
@@ -2963,9 +2962,9 @@ class ServersController extends WebServicesController
             $this->_soap_server->fault(1, '', INVALID_SESSION);
             return;
         }
+
         $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
         //===================================================================================
-
         /*
         STORE_TRANSACTION ORIGINATION
         0: SIPSS店舗、もばすてPC予約、その他
@@ -3547,6 +3546,8 @@ class ServersController extends WebServicesController
         }
         unset($param['free_customer']);
 
+        $remove_spaces = fn($str) => preg_replace("@[ 　]@u", '', $str);
+
         foreach ($param as $key => $val) {
             if ((!empty($val) || $val === '0') && $key != 'limit' && $key != 'page' && $key != 'orderby' && $key != 'SEARCHSHAREDSTORE') {
                 if ($key == "PHONE") {
@@ -3554,19 +3555,14 @@ class ServersController extends WebServicesController
                 } elseif ($key == "MAILADDRESS") {
                     $criteria['(MAILADDRESS1 LIKE ? OR MAILADDRESS2 LIKE ?)'] = array('%' . $val . '%', '%' . $val . '%');
                 } elseif ($key == "CNAME") {
-                    $val = ereg_replace("　", "", $val);
-                    $val = ereg_replace(" ", "", $val);
+                    $val = $remove_spaces($val);
                     $criteria['(REPLACE(CNAME, "　", "") LIKE ? OR REPLACE(CNAME, " ", "") LIKE ?)'] = array('%' . $val . '%', '%' . $val . '%');
                 } elseif ($key == "CNAMEKANA") {
                     //--------------------------------------------------------------------------------------------------------------------
-                    $val = ereg_replace("　", "", $val);
-                    $val = ereg_replace(" ", "", $val);
-                    //--------------------------------------------------------------------------------------------------------------------
-                    $kanafull = ereg_replace("　", "", $val);
-                    $kanafull = ereg_replace(" ", "", $val);
+                    $val = $remove_spaces($val);
                     //--------------------------------------------------------------------------------------------------------------------
                     $val = mb_convert_kana($val, "kV", "UTF8");
-                    $kanafull = mb_convert_kana($kanafull, "KV", "UTF8");
+                    $kanafull = mb_convert_kana($val, "KV", "UTF8");
                     //--------------------------------------------------------------------------------------------------------------------
                     $criteria['(REPLACE(CNAMEKANA, "　", "") LIKE ?
                                 OR REPLACE(CNAMEKANA, " ", "") LIKE ?
@@ -3748,7 +3744,7 @@ class ServersController extends WebServicesController
                 $Sql = "SELECT f_get_last_staffcodename(" . $storeinfo['storecode'] . ", " . "'" . $rec['CCODE'] . "') AS laststaffcodename";
                 $datarec = $this->Customer->query($Sql);
                 if (count($datarec) > 0) {
-                    list($laststaffcode, $laststaffname) = split('[#]', $datarec[0][0]["laststaffcodename"]);
+                    list($laststaffcode, $laststaffname) = preg_split('/[#]/', $datarec[0][0]["laststaffcodename"]);
                     $ret['records'][$ctr] = array_merge($rec, array(
                         'LASTSTAFFCODE' => (int)$laststaffcode,
                         'LASTSTAFFNAME' => $laststaffname
@@ -4691,7 +4687,7 @@ class ServersController extends WebServicesController
         $source = $this->StaffRowsHistory->getDataSource();
 
         try {
-            $source->begin();
+            $source->begin($this->StaffRowsHistory);
 
             if ($pre_delete) {
                 $query =
@@ -4729,10 +4725,10 @@ class ServersController extends WebServicesController
                 }
             }
 
-            $source->commit();
+            $source->commit($this->StaffRowsHistory);
             return true;
         } catch (Exception $ex) {
-            $source->rollback();
+            $source->rollback($this->StaffRowsHistory);
             return false;
         }
     }
@@ -5807,7 +5803,7 @@ class ServersController extends WebServicesController
             if (checkdate($param['month'], $day, $param['year']) && $param[$arrDays[$i]] <> "" ) {
 
                 //'whitespace'削除　(Removed 'whitespace' string)
-                $param[$arrDays[$i]] = ereg_replace('whitespace', '', $param[$arrDays[$i]]);
+                $param[$arrDays[$i]] = preg_replace('/whitespace/', '', $param[$arrDays[$i]]);
                 $param[$arrDays[$i]] = addslashes($param[$arrDays[$i]]);
 
                 //準備INSERT SQLステートメント (Prepare INSERT Sql Statement)
@@ -5836,17 +5832,17 @@ class ServersController extends WebServicesController
         }
         $source = $this->StoreHoliday->getDataSource();
         try {
-            $source->begin();
+            $source->begin($this->StoreHoliday);
             for ($ctr = 0; $ctr < count($sqlstatements); $ctr++) {
                 if ($this->StoreHoliday->query($sqlstatements[$ctr], $params[$ctr], false) === false) {
                     throw new Exception();
                 }
             }
-            $source->commit();
+            $source->commit($this->StoreHoliday);
             unset($source, $sqlstatements);
             return true;
         } catch (Exception $ex) {
-            $source->rollback();
+            $source->rollback($this->StoreHoliday);
             unset($source, $sqlstatements);
             return false;
         }
@@ -8274,7 +8270,7 @@ class ServersController extends WebServicesController
 
         //---------------------------------------------------------------------------
         //-- 開始のデータベーストランザクション (Starts Database Transaction)
-        $this->StoreTransaction->begin();
+        $this->StoreTransaction->begin($this->StoreTransaction);
         $sqlctr = 0;
 
         //---------------------------------------------------------------------------
@@ -8360,7 +8356,7 @@ class ServersController extends WebServicesController
             $roop = true;
             while ($roop) {
                 $subparam['storecode'] =  $param['STORECODE'];  //$storeinfo['storecode'];
-                $subparam['date']      = ereg_replace("-", "", $param['TRANSDATE']);
+                $subparam['date']      = preg_replace('/-/', '', $param['TRANSDATE']);
                 $subparam['idno']      = $idno;
 
                 //存在する場合、idnoに＋1をして再チェックを繰り返す add 20160308
@@ -8884,7 +8880,7 @@ class ServersController extends WebServicesController
 
 
         if ($error <> "true") {
-            $this->StoreTransaction->commit();      //-- トランザクションをコミット (Commit Transactions)
+            $this->StoreTransaction->commit($this->StoreTransaction);      //-- トランザクションをコミット (Commit Transactions)
             #------------------------------------------------------------------------------------------------------------------------
             # ADDED BY MARVINC - 2015-07-27
             # Note: Add condition for syscode
@@ -8912,10 +8908,10 @@ class ServersController extends WebServicesController
                                                     WHERE CMRD.transcode = CMR.transcode
                                                    )";
             $this->StoreTransaction->query($del_mailsql_d);
-            $this->StoreTransaction->commit();
+            $this->StoreTransaction->commit($this->StoreTransaction);
             #------------------------------------------------------------------------------------------------------------------------
         } else {
-            $this->StoreTransaction->rollback();    //-- トランザクションをロールバック (Rollback Transactions)
+            $this->StoreTransaction->rollback($this->StoreTransaction);    //-- トランザクションをロールバック (Rollback Transactions)
             //$this->_soap_server->fault(1, '', ROLLBACK_MSG);
         }
         //---------------------------------------------------------------------------
@@ -9244,7 +9240,7 @@ class ServersController extends WebServicesController
 
         //-- 会社データベースを設定する (Set the Company Database)
         $this->BreakTime->set_company_database($storeinfo['dbname'], $this->BreakTime);
-        $this->BreakTime->begin();
+        $this->BreakTime->begin($this->BreakTime);
 
         //-- BREAKIDは設定してない場合、新規BREAKIDを作成 (Check BREAKID, create new if none)
         if (empty($param['BREAKID'])) {
@@ -9266,11 +9262,11 @@ class ServersController extends WebServicesController
             $query = "insert into break_time_log(BREAKID,STAFFCODE,STORECODE,DATE,STARTTIME,ENDTIME,PRIORITY,REMARKS,STATUS ,CREATEDATE )
             select BREAKID,STAFFCODE,STORECODE,DATE,STARTTIME,ENDTIME,PRIORITY,REMARKS,1 as STATUS ,now() as CREATEDATE from break_time where breakid = {$param['BREAKID']}";
             $this->BreakTime->query($query);
-            $this->BreakTime->commit();
+            $this->BreakTime->commit($this->BreakTime);
 
             return $this->BreakTime->id;
         } else {
-            $this->BreakTime->rollback();
+            $this->BreakTime->rollback($this->BreakTime);
             $this->_soap_server->fault(1, '', 'Error Processing Data');
         }
     }
@@ -9296,7 +9292,7 @@ class ServersController extends WebServicesController
         //-- 会社データベースを設定する (Set the Company Database)
         $ret = true;
         $this->BreakTime->set_company_database($storeinfo['dbname'], $this->BreakTime);
-        $this->BreakTime->begin();
+        $this->BreakTime->begin($this->BreakTime);
 
         //削除ログの挿入
         $query = "insert into break_time_log(BREAKID,STAFFCODE,STORECODE,DATE,STARTTIME,ENDTIME,PRIORITY,REMARKS,STATUS ,CREATEDATE )
@@ -9309,9 +9305,9 @@ class ServersController extends WebServicesController
             $this->BreakTime->query($query);
         }
         if ($ret !== false) {
-            $this->BreakTime->commit();
+            $this->BreakTime->commit($this->BreakTime);
         } else {
-            $this->BreakTime->rollback();
+            $this->BreakTime->rollback($this->BreakTime);
         }
 
         return true;
@@ -9584,7 +9580,7 @@ class ServersController extends WebServicesController
                     $prioritytypenxt = $transactions[$key3 + 1]["PRIORITYTYPE"];
                     if ($endtime > $startime && $startime != null && $prioritytypecur == $prioritytypenxt) {
                         $conflict = true;
-                        $priority = split("-", $transactions[$key3 + 1]["PRIORITYTYPE"]);
+                        $priority = preg_split('/-/', $transactions[$key3 + 1]["PRIORITYTYPE"]);
                         $starttime_s = $transactions[$key3 + 1]["YOYAKUTIME"];
                         $endtime_s = $transactions[$key3 + 1]["ADJUSTED_ENDTIME"];
                         $transcode = $transactions[$key3 + 1]["TRANSCODE"];
@@ -10044,19 +10040,14 @@ class ServersController extends WebServicesController
      * @param string $transcode
      * @return return_storeTransactionInformation
      */
-    function wsSearchJikaiYoyaku($sessionid, $storecode, $ccode, $transcode)
+    function wsSearchJikaiYoyaku($sessionid, $storecode, $ccode = null, $transcode = null)
     {
-        if ($param['ignoreSessionCheck'] <> 1) {
-            //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
-            $storeinfo = $this->YoyakuSession->Check($this);
-            if ($storeinfo == false) {
-                $this->_soap_server->fault(1, '', INVALID_SESSION);
-                return;
-            }
-        } else {
-            $storeinfo['dbname'] = $param['dbname'];
+        //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
+        $storeinfo = $this->YoyakuSession->Check($this);
+        if ($storeinfo == false) {
+            $this->_soap_server->fault(1, '', INVALID_SESSION);
+            return;
         }
-
 
         //-- 会社データベースを設定する (Set the Company Database)
         $this->StoreTransaction->set_company_database($storeinfo['dbname'], $this->StoreTransaction);
@@ -11388,7 +11379,7 @@ class ServersController extends WebServicesController
         }
 
         $source = $this->StoreHoliday->getDataSource();
-        $source->begin();
+        $source->begin($this->StoreHoliday);
 
         try {
             foreach ($sqlstatements as $sqlstatement) {
@@ -11397,10 +11388,10 @@ class ServersController extends WebServicesController
                 }
             }
 
-            $source->commit();
+            $source->commit($this->StoreHoliday);
             $result['updated'] = true;
         } catch (Exception $ex) {
-            $source->rollback();
+            $source->rollback($this->StoreHoliday);
         }
 
         return $result;
@@ -11652,10 +11643,10 @@ class ServersController extends WebServicesController
                 }
             }
 
-            $source->commit();
+            $source->commit($this->BreakTime);
             return $facility_programs;
         } catch (Exception $ex) {
-            $source->rollback();
+            $source->rollback($this->BreakTime);
             return;
         }
     }

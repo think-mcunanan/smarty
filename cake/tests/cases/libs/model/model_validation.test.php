@@ -40,7 +40,7 @@ class ModelValidationTest extends BaseModelTest {
  * @return void
  */
 	function testValidationParams() {
-		$TestModel =& new ValidationTest1();
+		$TestModel = new ValidationTest1();
 		$TestModel->validate['title'] = array(
 			'rule' => 'customValidatorWithParams',
 			'required' => true
@@ -81,7 +81,7 @@ class ModelValidationTest extends BaseModelTest {
  * @return void
  */
 	function testInvalidFieldsWithFieldListParams() {
-		$TestModel =& new ValidationTest1();
+		$TestModel = new ValidationTest1();
 		$TestModel->validate = $validate = array(
 			'title' => array(
 				'rule' => 'customValidator',

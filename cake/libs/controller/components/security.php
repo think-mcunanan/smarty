@@ -32,7 +32,7 @@
  * @package       cake
  * @subpackage    cake.cake.libs.controller.components
  */
-class SecurityComponent extends Object {
+class SecurityComponent extends CakeObject {
 /**
  * The controller method that will be called if this request is black-hole'd
  *
@@ -666,7 +666,7 @@ class SecurityComponent extends Object {
 			'type' => 'basic',
 			'realm' => env('SERVER_NAME'),
 			'qop' => 'auth',
-			'nonce' => String::uuid()
+			'nonce' => CakeString::uuid()
 		), array_filter($options));
 		$options = array_merge(array('opaque' => md5($options['realm'])), $options);
 	}

@@ -1121,7 +1121,7 @@ class FormHelper extends AppHelper {
 				$this->_parseAttributes($options, null, '', ' ')
 			));
 		} elseif (preg_match('/\.(jpg|jpe|jpeg|gif|png|ico)$/', $caption)) {
-			if ($caption{0} !== '/') {
+			if ($caption[0] !== '/') {
 				$url = $this->webroot(IMAGES_URL . $caption);
 			} else {
 				$caption = trim($caption, '/');
