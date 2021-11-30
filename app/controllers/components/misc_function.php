@@ -797,23 +797,6 @@ class MiscFunctionComponent extends CakeObject
                 unset($result);
 
                 $stylist_pos_ids = array();
-
-                $reservationSystems = array("HPB" => "ホットペッパービューティー",
-                                            "VVV" => "楽天ビューティ",
-                                            "RKT" => "楽天ビューティ",
-                                            "OZM" => "OZmall",
-                                            "MNM" => "minimo",
-                                            "KMM" => "EPARKビューティー",
-                                            "MEZ" => "MEZON",
-                                            "MTR" => "MENTOR",
-                                            "LWS" => "Reserve Tech for LINEWORKS",
-                                            "RWG" => "Googleで予約",
-                                            "HAR" => "HAIR",
-                                            "BRK" => "美歴 (BIREKI)",
-                                            "INS" => "Instagram");
-
-                $arrList[$ctr]['reservation_system']  = array_key_exists($json->original_media, $reservationSystems) ? 
-                                                        strtr($json->original_media, $reservationSystems) : "";
                                                         
                 switch ($kanzashiType){
                     case "HAIR": 
@@ -821,9 +804,12 @@ class MiscFunctionComponent extends CakeObject
                             $stylist_pos_ids[] = $stylist_time->stylist_pos_id !== 'フリー' ? $stylist_time->stylist_pos_id : 0;
                         }
 
-                        $media = strtr($json->customer->customer_media_key->media, $reservationSystems);
-                        $arrList[$ctr]['site_customer_id'] = ($json->customer->customer_media_key->media != "THK") ? 
-                                                            "{$media}: {$json->customer->customer_media_key->key}\n" : "\n";
+                        if ($json->customer->customer_media_key->media == "THK") {
+                            break;
+                        }
+                        $customer_media_key = array();
+                        $customer_media_key[$json->customer->customer_media_key->media] = $json->customer->customer_media_key->key;
+                        $arrList[$ctr]['site_customer_id'] = json_encode($customer_media_key);
                         break;
                     case "KIREI":
                         foreach ($json->staff_times as $staff_time) {
@@ -834,12 +820,10 @@ class MiscFunctionComponent extends CakeObject
                             if ($customer_media_key->media == "THK"){
                                 continue;
                             }
-                            $media = strtr($customer_media_key->media, $reservationSystems);
-                            $arrList[$ctr]['site_customer_id'] .= "{$media}: {$customer_media_key->key}\n";
+                            $customer_media_keys[$customer_media_key->media] = $customer_media_key->key;
                         }
-                        if (!isset($arrList[$ctr]['site_customer_id'])){
-                            $arrList[$ctr]['site_customer_id'] = "\n";
-                        }
+                        
+                        $arrList[$ctr]['site_customer_id'] = json_encode($customer_media_keys);
                         break;
                 }
 
