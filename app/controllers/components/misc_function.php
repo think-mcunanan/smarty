@@ -807,6 +807,10 @@ class MiscFunctionComponent extends CakeObject
                         if ($json->customer->customer_media_key->media == "THK") {
                             break;
                         }
+                        if (is_null($json->customer->customer_media_key->key) || empty($json->customer->customer_media_key->key)) {
+                            $arrList[$ctr]['site_customer_id'] = "";
+                            break;
+                        }
                         $customer_media_key = array();
                         $customer_media_key[$json->customer->customer_media_key->media] = $json->customer->customer_media_key->key;
                         $arrList[$ctr]['site_customer_id'] = json_encode($customer_media_key);
@@ -816,13 +820,17 @@ class MiscFunctionComponent extends CakeObject
                             $stylist_pos_ids[] = $staff_time->staff_pos_id !== 'フリー' ? $staff_time->staff_pos_id : 0;
                         }
     
+                        $customer_media_keys = array();
                         foreach ($json->customer->customer_media_keys as $customer_media_key) {
-                            if ($customer_media_key->media == "THK"){
+                            if ($customer_media_key->media == "THK" || is_null($customer_media_key->key) || empty($customer_media_key->key)){
                                 continue;
                             }
                             $customer_media_keys[$customer_media_key->media] = $customer_media_key->key;
                         }
-                        
+                        if (is_null($customer_media_keys) || empty($customer_media_keys)) {
+                            $arrList[$ctr]['site_customer_id'] = "";
+                            break;
+                        }
                         $arrList[$ctr]['site_customer_id'] = json_encode($customer_media_keys);
                         break;
                 }
