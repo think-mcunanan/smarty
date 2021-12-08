@@ -796,45 +796,29 @@ class MiscFunctionComponent extends CakeObject
                 $kanzashiType = $result[0]['salon']['kanzashi_type'];
                 unset($result);
 
-                $stylist_pos_ids = array();
-                                                        
+                $stylist_pos_ids = [];
+                $customer_media_keys = [];                                 
                 switch ($kanzashiType){
                     case "HAIR": 
                         foreach ($json->stylist_times as $stylist_time) {
                             $stylist_pos_ids[] = $stylist_time->stylist_pos_id !== 'フリー' ? $stylist_time->stylist_pos_id : 0;
                         }
-
-                        if ($json->customer->customer_media_key->media == "THK") {
-                            break;
+                        if (!in_array($json->customer->customer_media_key->media, ['', 'THK'], true)) {
+                            $customer_media_keys[$json->customer->customer_media_key->media] = $json->customer->customer_media_key->key;
                         }
-                        if (is_null($json->customer->customer_media_key->key) || empty($json->customer->customer_media_key->key)) {
-                            $arrList[$ctr]['site_customer_id'] = "";
-                            break;
-                        }
-                        $customer_media_key = array();
-                        $customer_media_key[$json->customer->customer_media_key->media] = $json->customer->customer_media_key->key;
-                        $arrList[$ctr]['site_customer_id'] = json_encode($customer_media_key);
                         break;
                     case "KIREI":
                         foreach ($json->staff_times as $staff_time) {
                             $stylist_pos_ids[] = $staff_time->staff_pos_id !== 'フリー' ? $staff_time->staff_pos_id : 0;
                         }
-    
-                        $customer_media_keys = array();
                         foreach ($json->customer->customer_media_keys as $customer_media_key) {
-                            if ($customer_media_key->media == "THK" || is_null($customer_media_key->key) || empty($customer_media_key->key)){
-                                continue;
+                            if (!in_array($customer_media_key->media, ['', 'THK'], true)) {
+                                $customer_media_keys[$customer_media_key->media] = $customer_media_key->key;
                             }
-                            $customer_media_keys[$customer_media_key->media] = $customer_media_key->key;
                         }
-                        if (is_null($customer_media_keys) || empty($customer_media_keys)) {
-                            $arrList[$ctr]['site_customer_id'] = "";
-                            break;
-                        }
-                        $arrList[$ctr]['site_customer_id'] = json_encode($customer_media_keys);
                         break;
                 }
-
+                $arrList[$ctr]['site_customer_id'] = json_encode((object)$customer_media_keys);
                 $stylist_pos_ids_query = implode(',', $stylist_pos_ids);
 
                 $query = "
