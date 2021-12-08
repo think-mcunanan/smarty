@@ -803,7 +803,7 @@ class MiscFunctionComponent extends CakeObject
                         foreach ($json->stylist_times as $stylist_time) {
                             $stylist_pos_ids[] = $stylist_time->stylist_pos_id !== 'フリー' ? $stylist_time->stylist_pos_id : 0;
                         }
-                        if (!in_array($json->customer->customer_media_key->media, ['', 'THK'], true)) {
+                        if (!in_array($json->customer->customer_media_key->media, ['', 'THK', null], true)) {
                             $customer_media_keys[$json->customer->customer_media_key->media] = $json->customer->customer_media_key->key;
                         }
                         break;
@@ -812,7 +812,7 @@ class MiscFunctionComponent extends CakeObject
                             $stylist_pos_ids[] = $staff_time->staff_pos_id !== 'フリー' ? $staff_time->staff_pos_id : 0;
                         }
                         foreach ($json->customer->customer_media_keys as $customer_media_key) {
-                            if (!in_array($customer_media_key->media, ['', 'THK'], true)) {
+                            if (!in_array($customer_media_key->media, ['', 'THK', null], true)) {
                                 $customer_media_keys[$customer_media_key->media] = $customer_media_key->key;
                             }
                         }
