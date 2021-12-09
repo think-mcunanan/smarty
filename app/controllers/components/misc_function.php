@@ -796,37 +796,29 @@ class MiscFunctionComponent extends CakeObject
                 $kanzashiType = $result[0]['salon']['kanzashi_type'];
                 unset($result);
 
-                $stylist_pos_ids = array();
-                                                        
+                $stylist_pos_ids = [];
+                $customer_media_keys = [];                                 
                 switch ($kanzashiType){
                     case "HAIR": 
                         foreach ($json->stylist_times as $stylist_time) {
                             $stylist_pos_ids[] = $stylist_time->stylist_pos_id !== 'フリー' ? $stylist_time->stylist_pos_id : 0;
                         }
-
-                        if ($json->customer->customer_media_key->media == "THK") {
-                            break;
+                        if (!in_array($json->customer->customer_media_key->media, ['', 'THK', null], true)) {
+                            $customer_media_keys[$json->customer->customer_media_key->media] = $json->customer->customer_media_key->key;
                         }
-                        $customer_media_key = array();
-                        $customer_media_key[$json->customer->customer_media_key->media] = $json->customer->customer_media_key->key;
-                        $arrList[$ctr]['site_customer_id'] = json_encode($customer_media_key);
                         break;
                     case "KIREI":
                         foreach ($json->staff_times as $staff_time) {
                             $stylist_pos_ids[] = $staff_time->staff_pos_id !== 'フリー' ? $staff_time->staff_pos_id : 0;
                         }
-    
                         foreach ($json->customer->customer_media_keys as $customer_media_key) {
-                            if ($customer_media_key->media == "THK"){
-                                continue;
+                            if (!in_array($customer_media_key->media, ['', 'THK', null], true)) {
+                                $customer_media_keys[$customer_media_key->media] = $customer_media_key->key;
                             }
-                            $customer_media_keys[$customer_media_key->media] = $customer_media_key->key;
                         }
-                        
-                        $arrList[$ctr]['site_customer_id'] = json_encode($customer_media_keys);
                         break;
                 }
-
+                $arrList[$ctr]['site_customer_id'] = json_encode((object)$customer_media_keys);
                 $stylist_pos_ids_query = implode(',', $stylist_pos_ids);
 
                 $query = "
