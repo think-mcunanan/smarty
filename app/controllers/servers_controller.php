@@ -2650,6 +2650,9 @@ class ServersController extends WebServicesController
 
                 // enable trigger
                 $sqlstatements[] = "Update dbsettings set dbvalue = 0 where dbset = 'DISABLE_TRIGGER'";
+            } else if ($tablename == 'customer_mail_reservation' || $tablename == 'customer_mail_reservation_details') {
+                $sqlstatements[] = "DELETE FROM {$tablename} WHERE ccode = '{$toccode}'";
+                $sqlstatements[] = "UPDATE {$tablename} SET ccode = '{$toccode}' WHERE ccode = '{$fromccode}'";
             } else {
                 //update ccode for the following table
                 $sqlstatements[] = "Update {$tablename} set ccode = '{$toccode}' where ccode = '{$fromccode}'";
