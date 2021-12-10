@@ -10610,7 +10610,7 @@ class ServersController extends WebServicesController
         $storecode,
         $ymd,
         $time,
-        $ccode
+        $ccode = null
     ) {
         //-------------------------------------------------------------------------------------------
         $storeinfo = $this->YoyakuSession->Check($this);
