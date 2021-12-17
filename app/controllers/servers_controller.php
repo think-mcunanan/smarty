@@ -2651,12 +2651,12 @@ class ServersController extends WebServicesController
                 // enable trigger
                 $sqlstatements[] = "Update dbsettings set dbvalue = 0 where dbset = 'DISABLE_TRIGGER'";
             } else if ($tablename == 'customer_mail_reservation' || $tablename == 'customer_mail_reservation_details') {
-                $query = "SELECT count(*)
+                $query = "SELECT *
                             FROM {$tablename} c1
-                            WHERE c1.ccode = '{$fromccode}' AND EXISTS ( SELECT count(*) 
+                            WHERE c1.ccode = '{$fromccode}' AND EXISTS ( SELECT *
                                                                             FROM {$tablename} c2 
                                                                             WHERE c2.ccode = '{$toccode}')";
-                $duplicate_key_exist = (int)$this->Customer->query($query)[0][0]["count(*)"];
+                $duplicate_key_exist = $this->Customer->query($query);
 
                 if ($duplicate_key_exist){
                     $sqlstatements[] = "DELETE FROM {$tablename} WHERE ccode = '{$toccode}'";
