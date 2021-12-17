@@ -2651,20 +2651,17 @@ class ServersController extends WebServicesController
                 // enable trigger
                 $sqlstatements[] = "Update dbsettings set dbvalue = 0 where dbset = 'DISABLE_TRIGGER'";
             } else if ($tablename == 'customer_mail_reservation' || $tablename == 'customer_mail_reservation_details') {
-                $query = "SELECT *
+                $query = "SELECT count(*) AS customer_count
                             FROM {$tablename} c1
-                            WHERE c1.ccode = '{$fromccode}' AND EXISTS ( SELECT *
+                            WHERE c1.ccode = '{$fromccode}' AND EXISTS ( SELECT NULL
                                                                             FROM {$tablename} c2 
                                                                             WHERE c2.ccode = '{$toccode}')";
-                $duplicate_key_exist = $this->Customer->query($query);
+                $duplicate_key_exist = (int)$this->Customer->query($query)[0][0]["customer_count"];
 
                 if ($duplicate_key_exist){
                     $sqlstatements[] = "DELETE FROM {$tablename} WHERE ccode = '{$toccode}'";
-                    $sqlstatements[] = "UPDATE {$tablename} SET ccode = '{$toccode}' WHERE ccode = '{$fromccode}'";
-                } else {
-                    $sqlstatements[] = "UPDATE {$tablename} SET ccode = '{$toccode}' WHERE ccode = '{$fromccode}'";
-                }
-                
+                } 
+                $sqlstatements[] = "UPDATE {$tablename} SET ccode = '{$toccode}' WHERE ccode = '{$fromccode}'";
             } else {
                 //update ccode for the following table
                 $sqlstatements[] = "Update {$tablename} set ccode = '{$toccode}' where ccode = '{$fromccode}'";
