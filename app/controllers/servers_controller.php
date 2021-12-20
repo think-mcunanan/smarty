@@ -2653,15 +2653,23 @@ class ServersController extends WebServicesController
             } else if ($tablename == 'customer_mail_reservation' || $tablename == 'customer_mail_reservation_details') {
                 $query = "SELECT count(*) AS customer_count
                             FROM {$tablename} c1
-                            WHERE c1.ccode = '{$fromccode}' AND EXISTS ( SELECT NULL
-                                                                            FROM {$tablename} c2 
-                                                                            WHERE c2.ccode = '{$toccode}')";
+                            WHERE c1.storecode = {$newstorecode} 
+                            AND c1.ccode = '{$fromccode}'
+                            AND EXISTS ( SELECT NULL
+                                           FROM {$tablename} c2 
+                                           WHERE c2.storecode = {$newstorecode}
+                                           AND c2.ccode = '{$toccode}')";
                 $duplicate_key_exist = (int)$this->Customer->query($query)[0][0]["customer_count"];
 
                 if ($duplicate_key_exist){
-                    $sqlstatements[] = "DELETE FROM {$tablename} WHERE ccode = '{$toccode}'";
+                    $sqlstatements[] = "DELETE FROM {$tablename} 
+                                        WHERE storecode = {$newstorecode} 
+                                        AND ccode = '{$toccode}'";
                 } 
-                $sqlstatements[] = "UPDATE {$tablename} SET ccode = '{$toccode}' WHERE ccode = '{$fromccode}'";
+                $sqlstatements[] = "UPDATE {$tablename} 
+                                    SET ccode = '{$toccode}' 
+                                    WHERE storecode = {$newstorecode} 
+                                    AND ccode = '{$fromccode}'";
             } else {
                 //update ccode for the following table
                 $sqlstatements[] = "Update {$tablename} set ccode = '{$toccode}' where ccode = '{$fromccode}'";
