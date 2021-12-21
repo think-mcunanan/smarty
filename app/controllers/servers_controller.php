@@ -2549,13 +2549,18 @@ class ServersController extends WebServicesController
         $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
         //===================================================================================
 
-        $sql = "SELECT cstorecode FROM customer WHERE ccode = '{$toccode}'";
+        $sql = "SELECT
+                    ( SELECT cstorecode FROM customer WHERE ccode = '{$fromccode}' ) AS oldStorecode,
+                    ( SELECT cstorecode FROM customer WHERE ccode = '{$toccode}' ) AS newStorecode 
+                FROM customer 
+                LIMIT 1";
         $data = $this->Customer->query($sql);
 
         $newstorecode = 0;
 
         if (count($data) > 0) {
-            $newstorecode = (int)$data[0]["customer"]["cstorecode"];
+            $newstorecode = (int)$data[0][0]["newStorecode"];
+            $oldstorecode = (int)$data[0][0]["oldStorecode"];
         } else {
             return false;
         }
@@ -2653,22 +2658,22 @@ class ServersController extends WebServicesController
             } else if ($tablename == 'customer_mail_reservation' || $tablename == 'customer_mail_reservation_details') {
                 $query = "SELECT count(*) AS customer_count
                             FROM {$tablename} c1
-                            WHERE c1.storecode = {$newstorecode} 
+                            WHERE c1.storecode = {$oldstorecode}
                             AND c1.ccode = '{$fromccode}'
                             AND EXISTS ( SELECT NULL
                                            FROM {$tablename} c2 
-                                           WHERE c2.storecode = {$newstorecode}
+                                           WHERE c2.storecode = {$oldstorecode}
                                            AND c2.ccode = '{$toccode}')";
                 $duplicate_key_exist = (int)$this->Customer->query($query)[0][0]["customer_count"];
 
                 if ($duplicate_key_exist){
                     $sqlstatements[] = "DELETE FROM {$tablename} 
-                                        WHERE storecode = {$newstorecode} 
+                                        WHERE storecode = {$oldstorecode} 
                                         AND ccode = '{$toccode}'";
                 } 
                 $sqlstatements[] = "UPDATE {$tablename} 
-                                    SET ccode = '{$toccode}' 
-                                    WHERE storecode = {$newstorecode} 
+                                    SET ccode = '{$toccode}'
+                                    WHERE storecode = {$oldstorecode} 
                                     AND ccode = '{$fromccode}'";
             } else {
                 //update ccode for the following table
