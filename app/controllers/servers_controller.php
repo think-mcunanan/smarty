@@ -2673,8 +2673,7 @@ class ServersController extends WebServicesController
                 } 
                 $sqlstatements[] = "UPDATE {$tablename} 
                                     SET ccode = '{$toccode}'
-                                    WHERE storecode = {$oldstorecode} 
-                                    AND ccode = '{$fromccode}'";
+                                    WHERE ccode = '{$fromccode}'";
             } else {
                 //update ccode for the following table
                 $sqlstatements[] = "Update {$tablename} set ccode = '{$toccode}' where ccode = '{$fromccode}'";
