@@ -2651,21 +2651,25 @@ class ServersController extends WebServicesController
                 // enable trigger
                 $sqlstatements[] = "Update dbsettings set dbvalue = 0 where dbset = 'DISABLE_TRIGGER'";
             } else if ($tablename == 'customer_mail_reservation' || $tablename == 'customer_mail_reservation_details') {
-                $query = "SELECT count(*) AS customer_count
-                            FROM {$tablename} c1
-                            WHERE c1.storecode = {$oldstorecode}
-                            AND c1.ccode = '{$fromccode}'
+                $query = "SELECT storecode, ccode
+                            FROM {$tablename} AS c1
+                            WHERE c1.ccode = '{$toccode}'
                             AND EXISTS ( SELECT NULL
-                                           FROM {$tablename} c2 
-                                           WHERE c2.storecode = {$oldstorecode}
-                                           AND c2.ccode = '{$toccode}')";
-                $duplicate_key_exist = (int)$this->Customer->query($query)[0][0]["customer_count"];
+                                           FROM {$tablename} AS c2 
+                                           WHERE c2.storecode = c1.storecode
+                                           AND c2.ccode = '{$fromccode}')";
+                $duplicate_records = $this->Customer->query($query);
 
-                if ($duplicate_key_exist){
-                    $sqlstatements[] = "DELETE FROM {$tablename} 
-                                        WHERE storecode = {$oldstorecode} 
-                                        AND ccode = '{$toccode}'";
-                } 
+                if ($duplicate_records){
+                    foreach($duplicate_records as $record){
+                        $storecode = $record["c1"]["storecode"];
+                        $ccode = $record["c1"]["ccode"];
+                        $sqlstatements[] = "DELETE FROM {$tablename} 
+                                            WHERE storecode = {$storecode} 
+                                            AND ccode = '{$ccode}'";
+                    }
+                    
+                }
                 $sqlstatements[] = "UPDATE {$tablename} 
                                     SET ccode = '{$toccode}'
                                     WHERE ccode = '{$fromccode}'";
