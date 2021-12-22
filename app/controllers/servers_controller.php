@@ -2549,18 +2549,13 @@ class ServersController extends WebServicesController
         $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
         //===================================================================================
 
-        $sql = "SELECT
-                    ( SELECT cstorecode FROM customer WHERE ccode = '{$fromccode}' ) AS oldStorecode,
-                    ( SELECT cstorecode FROM customer WHERE ccode = '{$toccode}' ) AS newStorecode 
-                FROM customer 
-                LIMIT 1";
+        $sql = "SELECT cstorecode FROM customer WHERE ccode = '{$toccode}' ";
         $data = $this->Customer->query($sql);
 
         $newstorecode = 0;
 
         if (count($data) > 0) {
-            $newstorecode = (int)$data[0][0]["newStorecode"];
-            $oldstorecode = (int)$data[0][0]["oldStorecode"];
+            $newstorecode = (int)$data[0]["customer"]["cstorecode"];
         } else {
             return false;
         }
