@@ -1043,27 +1043,12 @@ class ServersController extends WebServicesController
             ),
             'output' => array('return' => 'tns:return_updateKanzashiCustomersLimit')
         ),
-        'wsPushKanzashiStylist' => array(
-            'doc'    => 'かんざしスタイリストPUSH',
-            'input'  => array(
-                'kanzashisalonid' => 'xsd:int'
-            ),
-            'output' => array('return' => 'xsd:string')
-        ),
         'wsPushKanzashiSalonDailyHours' => array(
             'doc'    => 'かんざしサロン営業時間PUSH',
             'input'  => array(
                 'kanzashisalonid' => 'xsd:int',
                 'year' => 'xsd:int',
                 'month' => 'xsd:int'
-            ),
-            'output' => array('return' => 'xsd:string')
-        ),
-        'wsPushKanzashiStylistInitialData' => array(
-            'doc'    => 'かんざしスタイリスト初回PUSH',
-            'input'  => array(
-                'kanzashisalonid' => 'xsd:int',
-                'staffid'         => 'xsd:int'
             ),
             'output' => array('return' => 'xsd:string')
         ),
@@ -9654,6 +9639,7 @@ class ServersController extends WebServicesController
         } else {
             $criteria = array(
                 'StoreHoliday.STORECODE'  => $param['STORECODE'],
+                'StoreHoliday.DELFLG IS NULL',
                 'StoreHoliday.YMD BETWEEN ? AND LAST_DAY(DATE_ADD(?, INTERVAL 1 MONTH))'  => array($date, $date)
             );
     
@@ -10624,7 +10610,7 @@ class ServersController extends WebServicesController
         $storecode,
         $ymd,
         $time,
-        $ccode
+        $ccode = null
     ) {
         //-------------------------------------------------------------------------------------------
         $storeinfo = $this->YoyakuSession->Check($this);
@@ -11395,31 +11381,6 @@ class ServersController extends WebServicesController
         }
 
         return $result;
-    }
-
-    /**
-     * かんざしスタイリストPUSH
-     *
-     * @param int $kanzashisalonid かんざしサロンID
-     * @return string かんざし側からのレスポンスを表すJSON
-     */
-    function wsPushKanzashiStylist($kanzashisalonid)
-    {
-        $url = KANZASHI_PATH . "/salons/{$kanzashisalonid}/stylists";
-        return $this->MiscFunction->CurlPost($url);
-    }
-
-    /**
-     * かんざしスタイリスト初回PUSH
-     *
-     * @param int $kanzashisalonid かんざしサロンID
-     * @param int $staffid スタッフID
-     * @return string かんざし側からのレスポンスを表すJSON
-     */
-    function wsPushKanzashiStylistInitialData($kanzashisalonid, $staffid)
-    {
-        $url = KANZASHI_PATH . "/salons/{$kanzashisalonid}/stylists/{$staffid}/initial-push";
-        return $this->MiscFunction->CurlPost($url);
     }
 
     /**

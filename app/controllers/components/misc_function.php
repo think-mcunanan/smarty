@@ -765,7 +765,6 @@ class MiscFunctionComponent extends CakeObject
                 $arrList[$ctr]['shop_comment']        = '';
                 $arrList[$ctr]['next_coming_comment'] = '';
                 $arrList[$ctr]['demand']              = json_encode($json->demands);
-                $arrList[$ctr]['site_customer_id']    = $json->customer->customer_media_key->key;
                 $arrList[$ctr]['bmPrice']             = $json->price;
                 $arrList[$ctr]['nomination_fee']      = 0;
                 $arrList[$ctr]['bmTprice']            = $json->price;
@@ -788,12 +787,38 @@ class MiscFunctionComponent extends CakeObject
                 $reserve_date = new DateTime($json->media_acquired_at);
                 $arrList[$ctr]['reserve_date'] = $reserve_date->format('Y/m/d H:i:s');
 
-                $stylist_pos_ids = array();
+                $query = "  SELECT kanzashi_type
+                            FROM sipssbeauty_kanzashi.salon
+                            WHERE kanzashi_id = :kanzashiId
+                        ";
+                $param = array('kanzashiId' => $json->salon_id);
+                $result = $controller->StoreTransaction->query($query, $param, false);
+                $kanzashiType = $result[0]['salon']['kanzashi_type'];
+                unset($result);
 
-                foreach ($json->stylist_times as $stylist_time) {
-                    $stylist_pos_ids[] = $stylist_time->stylist_pos_id !== 'フリー' ? $stylist_time->stylist_pos_id : 0;
+                $stylist_pos_ids = [];
+                $customer_media_keys = [];                                 
+                switch ($kanzashiType){
+                    case "HAIR": 
+                        foreach ($json->stylist_times as $stylist_time) {
+                            $stylist_pos_ids[] = $stylist_time->stylist_pos_id !== 'フリー' ? $stylist_time->stylist_pos_id : 0;
+                        }
+                        if (!in_array($json->customer->customer_media_key->media, ['', 'THK', null], true)) {
+                            $customer_media_keys[$json->customer->customer_media_key->media] = $json->customer->customer_media_key->key;
+                        }
+                        break;
+                    case "KIREI":
+                        foreach ($json->staff_times as $staff_time) {
+                            $stylist_pos_ids[] = $staff_time->staff_pos_id !== 'フリー' ? $staff_time->staff_pos_id : 0;
+                        }
+                        foreach ($json->customer->customer_media_keys as $customer_media_key) {
+                            if (!in_array($customer_media_key->media, ['', 'THK', null], true)) {
+                                $customer_media_keys[$customer_media_key->media] = $customer_media_key->key;
+                            }
+                        }
+                        break;
                 }
-
+                $arrList[$ctr]['site_customer_id'] = json_encode((object)$customer_media_keys);
                 $stylist_pos_ids_query = implode(',', $stylist_pos_ids);
 
                 $query = "
@@ -1887,7 +1912,6 @@ class MiscFunctionComponent extends CakeObject
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_SSL_VERIFYHOST => false,
-            CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_TIMEOUT => 0,
             CURLOPT_URL => $url
         );
