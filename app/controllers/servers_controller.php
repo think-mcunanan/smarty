@@ -2651,7 +2651,7 @@ class ServersController extends WebServicesController
                 // enable trigger
                 $sqlstatements[] = "Update dbsettings set dbvalue = 0 where dbset = 'DISABLE_TRIGGER'";
             } else if ($tablename == 'customer_mail_reservation' || $tablename == 'customer_mail_reservation_details') {
-                $query = "SELECT storecode, ccode
+                $query = "SELECT GROUP_CONCAT(storecode) AS storecodes
                             FROM {$tablename} AS c1
                             WHERE c1.ccode = '{$toccode}'
                             AND EXISTS ( SELECT NULL
@@ -2661,14 +2661,10 @@ class ServersController extends WebServicesController
                 $duplicate_records = $this->Customer->query($query);
 
                 if ($duplicate_records){
-                    foreach($duplicate_records as $record){
-                        $storecode = $record["c1"]["storecode"];
-                        $ccode = $record["c1"]["ccode"];
+                        $storecodes = $duplicate_records[0][0]["storecodes"];
                         $sqlstatements[] = "DELETE FROM {$tablename} 
-                                            WHERE storecode = {$storecode} 
-                                            AND ccode = '{$ccode}'";
-                    }
-                    
+                                            WHERE storecode IN ({$storecodes}) 
+                                            AND ccode = '{$toccode}'";
                 }
                 $sqlstatements[] = "UPDATE {$tablename} 
                                     SET ccode = '{$toccode}'
