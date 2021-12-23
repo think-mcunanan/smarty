@@ -2658,13 +2658,12 @@ class ServersController extends WebServicesController
                                            FROM {$tablename} AS c2 
                                            WHERE c2.storecode = c1.storecode
                                            AND c2.ccode = '{$fromccode}')";
-                $duplicate_records = $this->Customer->query($query);
+                $storecodes = $this->Customer->query($query)[0][0]["storecodes"];
 
-                if ($duplicate_records){
-                        $storecodes = $duplicate_records[0][0]["storecodes"];
-                        $sqlstatements[] = "DELETE FROM {$tablename} 
-                                            WHERE storecode IN ({$storecodes}) 
-                                            AND ccode = '{$toccode}'";
+                if ($storecodes){
+                    $sqlstatements[] = "DELETE FROM {$tablename} 
+                                        WHERE storecode IN ({$storecodes}) 
+                                        AND ccode = '{$toccode}'";
                 }
                 $sqlstatements[] = "UPDATE {$tablename} 
                                     SET ccode = '{$toccode}'
