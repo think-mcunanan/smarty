@@ -2549,7 +2549,7 @@ class ServersController extends WebServicesController
         $this->Customer->set_company_database($storeinfo['dbname'], $this->Customer);
         //===================================================================================
 
-        $sql = "SELECT cstorecode FROM customer WHERE ccode = '{$toccode}'";
+        $sql = "SELECT cstorecode FROM customer WHERE ccode = '{$toccode}' ";
         $data = $this->Customer->query($sql);
 
         $newstorecode = 0;
@@ -2650,6 +2650,24 @@ class ServersController extends WebServicesController
 
                 // enable trigger
                 $sqlstatements[] = "Update dbsettings set dbvalue = 0 where dbset = 'DISABLE_TRIGGER'";
+            } else if ($tablename == 'customer_mail_reservation' || $tablename == 'customer_mail_reservation_details') {
+                $query = "SELECT GROUP_CONCAT(storecode) AS storecodes
+                            FROM {$tablename} AS c1
+                            WHERE c1.ccode = '{$toccode}'
+                            AND EXISTS ( SELECT NULL
+                                           FROM {$tablename} AS c2 
+                                           WHERE c2.storecode = c1.storecode
+                                           AND c2.ccode = '{$fromccode}')";
+                $storecodes = $this->Customer->query($query)[0][0]["storecodes"];
+
+                if ($storecodes){
+                    $sqlstatements[] = "DELETE FROM {$tablename} 
+                                        WHERE storecode IN ({$storecodes}) 
+                                        AND ccode = '{$toccode}'";
+                }
+                $sqlstatements[] = "UPDATE {$tablename} 
+                                    SET ccode = '{$toccode}'
+                                    WHERE ccode = '{$fromccode}'";
             } else {
                 //update ccode for the following table
                 $sqlstatements[] = "Update {$tablename} set ccode = '{$toccode}' where ccode = '{$fromccode}'";
