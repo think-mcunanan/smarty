@@ -4108,16 +4108,6 @@ class ServersController extends WebServicesController
         if ($param['CSTORECODE'] == 0) $param['CSTORECODE'] = $storeinfo['storecode'];
         //----------------------------------------------------------------------------
 
-        //-- Generates CNUMBER for customers who do not have
-        //        if (empty($param['CNUMBER'])) {
-        //            $sc = $param['CSTORECODE'];
-        //            $querty_txt = "select ".
-        //                          "f_get_sequence_key('cnumber', ".$sc.", '') as cnumber";
-        //            $tmp_data = $this->Customer->query($querty_txt);
-        //            $param['CNUMBER'] = sprintf("%03s%07s", $param['CSTORECODE'], $tmp_data[0][0]['cnumber']);
-        //        }
-
-
         //-- 顧客情報を準備する (prepare customer information)
         foreach ($param as $key => $val) {
             if ($key != 'CID' || $mode == "insert") {
