@@ -4117,7 +4117,6 @@ class ServersController extends WebServicesController
         //            $param['CNUMBER'] = sprintf("%03s%07s", $param['CSTORECODE'], $tmp_data[0][0]['cnumber']);
         //        }
 
-        $param['ADDRESS1_1'] = $param['KEN1'] . $param['SITYO1'] . $param['MANSIONMEI'] . $param['ADDRESS1'];
 
         //-- 顧客情報を準備する (prepare customer information)
         foreach ($param as $key => $val) {
