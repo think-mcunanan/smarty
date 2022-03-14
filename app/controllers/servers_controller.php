@@ -8091,8 +8091,8 @@ class ServersController extends WebServicesController
                     " . $trantype1 . $condition . $storecond . "
                 GROUP BY transaction.transcode, details.rowno
                 ORDER BY " . $misc_order . " transaction.TRANSCODE,
-                           details.STAFFCODE,
                            details.STARTTIME,
+                           details.STAFFCODE,
                            details.ROWNO,
                            transaction.PRIORITYTYPE,
                            transaction.TRANSCODE, " . $order_trantype . " details.ROWNO";
