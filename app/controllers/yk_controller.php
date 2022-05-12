@@ -2039,7 +2039,6 @@ class YkController extends AppController {
 
         //送信ボタンクリック時
         if($this->params['form']['p_sendmail']) {
-            //$this->KeitaiSession->UpdateStatus($this, $session_info['session_no'], "60","",$session_info);
             //顧客情報
             $customer_info = $this->KeitaiSession->GetCustomerInfo($this,
             $session_info['companyid'],
@@ -2073,7 +2072,6 @@ class YkController extends AppController {
 
                 $email_address = (strlen($customer_info['MAILADDRESS1']) > 5) ? $customer_info['MAILADDRESS1']: "";
                 $email_address2 = (strlen($customer_info['MAILADDRESS2']) > 5) ? $customer_info['MAILADDRESS2']:"";
-                //echo "<pre style=\"border-style: dashed;\">";var_dump($session_info);echo "</pre>"; exit;
                 $yk_date = substr($session_info['y_date'],0,4)."年".
                 substr($session_info['y_date'],4,2)."月".
                 substr($session_info['y_date'],6,2)."日";
@@ -2089,21 +2087,7 @@ class YkController extends AppController {
                 $body .= "担当者：".$yk_staff."\n";
                 $body .= "技術：".$service_list."\n\n";
                 $body .= $store_info['MailFooter']."\n";
-                //                        #redmine #1287
-                //                        $this->Email->lineLength = 10000;
-                //                        $this->Email->from    = $store_info['STORENAME'].' <'.$store_info['storeid'].'@'.EMAIL_DOMAIN.'>';
-                //                        $this->Email->replyTo = 'err_'.$store_info['storeid'].'@'.EMAIL_DOMAIN;
-                //
-                //                        $this->Email->to      = $email_address;
-                //                        $this->Email->subject = $store_info['STORENAME'].'予約登録';
-                //                        $this->Email->delivery = 'smtp';
-                //                        $this->Email->smtpOptions = array('port' => MAILSERVER_PORT,
-                //                                                      'host' => MAILSERVER_ADDRESS);
-                //                        $this->Email->send($body);
-
-                //mailto address fixed 2016-05-24;
                 $to = $email_address.",".$email_address2;
-
                 $content = $body;
                 $title =  $store_info['STORENAME'].'予約内容確認メール';
 
@@ -2122,29 +2106,24 @@ class YkController extends AppController {
                 $send_mail = mb_send_mail($to, $title, $content, $header);
 
                 $this->KeitaiSession->UpdateStatus($this, $session_info['session_no'], "61","",$session_info);
-                //$this->set('smtperrors', $this->Email->smtpError); //DEBUG CODE,,, SMTP ERORR OUTPUT
                 $mail_send = 1;
                 $top_message = "";
                 if($send_mail){
                     $top_message = "メールを送信しました。";
                 }
             }
-            //------------------------------//
-            //$this->redirect('/yk/mypage/'.$session_info['companyid'].'/'.$session_info['storecode'].'/'.$sessionid);
-            //exit();
         }
 
         $this->pageTitle = $store_info['STORENAME'];
         $this->set('top_message', $top_message);
         $this->set('mail_send',$mail_send);
         $this->set('complete',false);
-        $this->set('companyid',$session_info['companyid']); //cid
-        $this->set('storecode',$session_info['storecode']); //scd
+        $this->set('companyid',$session_info['companyid']); 
+        $this->set('storecode',$session_info['storecode']); 
         $this->set('setLogoutButton', true);
         $this->set('logoutpath',  "mypage/".$session_info['companyid']."/".$session_info['storecode']."/".$sessionid."/logout");
         $this->set('privacypath', "privacy/".$session_info['companyid']."/".$session_info['storecode']);
         $this->set('form_action', MAIN_PATH."yk/yoyakumail/".$sessionid."/");
-        //add_access log sendmail->110/ nosendmail->100
         $this->KeitaiSession->SetAccesslog($this, $session_info['dbname'], $sessionid, $session_info['ccode'], $session_info['storecode'], "yoyakumail",($mail_send*10) + 100);
         $this->prepare_carrier_output($session_info['carrier'], $store_info['storeid']);
     }
