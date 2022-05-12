@@ -515,7 +515,6 @@ class YkController extends AppController {
 
                 // メールヘッダを作成
                 $header  = "From: ".mb_encode_mimeheader($store_info['STORENAME']).' <'.$store_info['storeid'].'@'.EMAIL_DOMAIN.'>'."\n";
-                $header .= 'Bcc: yoyakumaillog@think-ahead.jp' ."\n";
                 $header .= "Reply-To: ".'err_'.$store_info['storeid'].'@'.EMAIL_DOMAIN;
 
                 //送信ポート及び送信先サーバーの設定
@@ -2113,7 +2112,6 @@ class YkController extends AppController {
 
                 // メールヘッダを作成
                 $header  = "From: ".mb_encode_mimeheader($store_info['STORENAME']).' <'.$store_info['storeid'].'@'.EMAIL_DOMAIN.'>'."\n";
-                $header .= 'Bcc: yoyakumaillog@think-ahead.jp' ."\n";
                 $header .= "Reply-To: ".'err_'.$store_info['storeid'].'@'.EMAIL_DOMAIN;
 
                 //送信ポート及び送信先サーバーの設定
