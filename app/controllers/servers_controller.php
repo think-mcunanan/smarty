@@ -1170,25 +1170,34 @@ class ServersController extends WebServicesController
         ),
 
         'KanzashiSalon' => array('struct' => array(
-            'SalonId'                                   => 'xsd:int',
-            'KanzashiId'                                => 'xsd:int',
-            'Name'                                      => 'xsd:string',
-            'KanzashiType'                              => 'xsd:string',
-            'Status'                                    => 'xsd:int',
-            'SyncKanzashiEnabledStaffReservationOnly'   => 'xsd:boolean',
-            'FreeStaffcode'                             => 'xsd:int',
-            'IsMainSalon'                               => 'xsd:boolean',
-            'ReservationPayEnabled'                     => 'xsd:boolean',
-            'ReservationPayDefaultPriceType'            => 'xsd:int',
-            'YoyakuStart'                               => 'xsd:time',
-            'YoyakuStartSatSun'                         => 'xsd:time',
-            'YoyakuEnd'                                 => 'xsd:time',
-            'YoyakuEndSatSun'                           => 'xsd:time',
-            'YoyakuCustomersLimit'                      => 'xsd:int',
-            'SlideReservation'                          => 'xsd:boolean'
+            'SalonId'                                 => 'xsd:int',
+            'KanzashiId'                              => 'xsd:int',
+            'Name'                                    => 'xsd:string',
+            'KanzashiType'                            => 'xsd:string',
+            'Status'                                  => 'xsd:int',
+            'SyncKanzashiEnabledStaffReservationOnly' => 'xsd:boolean',
+            'FreeStaffcode'                           => 'xsd:int',
+            'IsMainSalon'                             => 'xsd:boolean',
+            'ReservationPayEnabled'                   => 'xsd:boolean',
+            'ReservationPayDefaultPriceType'          => 'xsd:int',
+            'SlideReservation'                        => 'xsd:boolean',
+            'DailyHoursArray'                         => 'tns:KanzashiSalonDailyHoursArray'
         )),
+
         'KanzashiSalons' => array(
             'array' => 'KanzashiSalon'
+        ),
+
+        'KanzashiSalonDailyHours' => array('struct' => array(
+            'DayType'        => 'xsd:string',
+            'StartTime'      => 'xsd:time',
+            'EndTime'        => 'xsd:time',
+            'CustomersLimit' => 'xsd:int',
+            'IsNonWorkDay'   => 'xsd:boolean'
+        )),
+
+        'KanzashiSalonDailyHoursArray' => array(
+            'array' => 'KanzashiSalonDailyHours'
         ),
 
         'KanzashiConfig' => array(
@@ -7290,18 +7299,13 @@ class ServersController extends WebServicesController
                 $this->StoreSettings->query($SqlSTime);
                 //-----------------------------------------------------------------------------------
             } //end if
-            
-            foreach ($param['KANZASHI_SALONS'] as $record) {
+
+            foreach ($param['KANZASHI_SALONS'] as $kanzashi_salon) {
                 $query = '
                     UPDATE sipssbeauty_kanzashi.salon
                     SET
                         reservation_pay_enabled = ?,
                         reservation_pay_default_price_type = ?,
-                        yoyaku_start = ?,
-                        yoyaku_start_sat_sun = ?,
-                        yoyaku_end = ?,
-                        yoyaku_end_sat_sun = ?,
-                        yoyaku_customers_limit = ?,
                         slide_reservation = ?
                     WHERE
                         companyid = ? AND
@@ -7309,22 +7313,42 @@ class ServersController extends WebServicesController
                         pos_id = ?
                 ';
 
-                $param = array(
-                    $record['ReservationPayEnabled'],
-                    $record['ReservationPayDefaultPriceType'],
-                    $record['YoyakuStart'],
-                    $record['YoyakuStartSatSun'],
-                    $record['YoyakuEnd'],
-                    $record['YoyakuEndSatSun'],
-                    $record['YoyakuCustomersLimit'],
-                    $record['SlideReservation'],
+                $param = [
+                    $kanzashi_salon['ReservationPayEnabled'],
+                    $kanzashi_salon['ReservationPayDefaultPriceType'],
+                    $kanzashi_salon['SlideReservation'],
                     $storeinfo['companyid'], 
                     $storeinfo['storecode'],
-                    $record['SalonId']
-                );
-                $this->StoreSettings->query($query, $param, false);
-            }
+                    $kanzashi_salon['SalonId']
+                ];
 
+                $this->StoreSettings->query($query, $param, false);
+
+                foreach ($kanzashi_salon['DailyHoursArray'] as $dailyHours) {
+                    $query = '
+                        UPDATE sipssbeauty_kanzashi.salon_daily_hours
+                        SET
+                            start_time = ?,
+                            end_time = ?,
+                            customers_limit = ?,
+                            is_non_work_day = ?
+                        WHERE
+                            salon_pos_id = ? AND
+                            day_type = ?
+                    ';
+
+                    $param = [
+                        $dailyHours['StartTime'],
+                        $dailyHours['EndTime'],
+                        $dailyHours['CustomersLimit'],
+                        $dailyHours['IsNonWorkDay'],
+                        $kanzashi_salon['SalonId'],
+                        $dailyHours['DayType']
+                    ];
+
+                    $this->StoreSettings->query($query, $param, false);
+                }
+            }
 
             return true;
         } else {
