@@ -1247,7 +1247,6 @@ class ServersController extends WebServicesController
             'SI1'           => 'xsd:string',
             'TYO1'          => 'xsd:string',
             'ADDRESS1'      => 'xsd:string',
-            'ADDRESS1_1'    => 'xsd:string',
             'TEL1'          => 'xsd:string',
             'TEL2'          => 'xsd:string',
             'BIRTHDATE'     => 'xsd:string',
@@ -3578,7 +3577,7 @@ class ServersController extends WebServicesController
                     );
                     //--------------------------------------------------------------------------------------------------------------------
                 } elseif ($key == "ADDRESS") {
-                    $criteria['(ADDRESS1_1 LIKE ? OR concat(KEN1, SITYO1, MANSIONMEI, ADDRESS1) LIKE ?)'] = array('%' . $val . '%', '%' . $val . '%');
+                    $criteria['concat(KEN1, SITYO1, MANSIONMEI, ADDRESS1) LIKE ?'] = array('%' . $val . '%');
                 } elseif ($key == "keyword") {
                     $kword['(TEL1 LIKE ? OR TEL2 LIKE ?)'] = array('%' . $val . '%', '%' . $val . '%');
                     $kword['(MAILADDRESS1 LIKE ? OR MAILADDRESS2 LIKE ?)'] = array('%' . $val . '%', '%' . $val . '%');
@@ -3593,7 +3592,7 @@ class ServersController extends WebServicesController
                         '%' . $kanafull . '%'
                     );
                     //--------------------------------------------------------------------------------------------------------------------
-                    $kword['(ADDRESS1_1 LIKE ? OR concat(KEN1, SITYO1, MANSIONMEI, ADDRESS1) LIKE ?)'] = array('%' . $val . '%', '%' . $val . '%');
+                    $kword['concat(KEN1, SITYO1, MANSIONMEI, ADDRESS1) LIKE ?'] = array('%' . $val . '%');
                     $kword['IF(CONVERT(?, SIGNED INTEGER) > 0, (CSTORECODE = ?), "")'] = array($val, $val);
                     $keyword['OR'] = $kword;
                     $criteria[] = $keyword;
@@ -3617,7 +3616,7 @@ class ServersController extends WebServicesController
         $fields = array(
             'CCODE', 'CNUMBER', 'CID', 'CSTORECODE', 'CNAME', 'CNAMEKANA',
             'SEX', 'ZIPCODE1', 'KEN1', 'SITYO1', 'MANSIONMEI', 'SI1', 'REGULAR',
-            'TYO1', 'ADDRESS1', 'ADDRESS1_1', 'TEL1', 'TEL2', 'BIRTHDATE', 'MEMBERSCATEGORY',
+            'TYO1', 'ADDRESS1', 'TEL1', 'TEL2', 'BIRTHDATE', 'MEMBERSCATEGORY',
             'CHRISTIAN_ERA', 'AGERANGE', 'MAILADDRESS1', 'MAILADDRESS2', 'MAILKUBUN', 'FIRSTDATE',
             'HOWKNOWSCODE',
             'BLOODTYPE', 'MEMBER_CODE', 'SMOKING', 'DMKUBUN', 'JOBINDUSTRYCODE', 'CREATEDFROMCODE', //add by albert 2016-07-15 --> redmine 0650
@@ -4107,17 +4106,6 @@ class ServersController extends WebServicesController
         $param['CSTORECODE'] = (int)substr($param['CCODE'], 0, 3);
         if ($param['CSTORECODE'] == 0) $param['CSTORECODE'] = $storeinfo['storecode'];
         //----------------------------------------------------------------------------
-
-        //-- Generates CNUMBER for customers who do not have
-        //        if (empty($param['CNUMBER'])) {
-        //            $sc = $param['CSTORECODE'];
-        //            $querty_txt = "select ".
-        //                          "f_get_sequence_key('cnumber', ".$sc.", '') as cnumber";
-        //            $tmp_data = $this->Customer->query($querty_txt);
-        //            $param['CNUMBER'] = sprintf("%03s%07s", $param['CSTORECODE'], $tmp_data[0][0]['cnumber']);
-        //        }
-
-        $param['ADDRESS1_1'] = $param['KEN1'] . $param['SITYO1'] . $param['MANSIONMEI'] . $param['ADDRESS1'];
 
         //-- 顧客情報を準備する (prepare customer information)
         foreach ($param as $key => $val) {
@@ -8103,8 +8091,8 @@ class ServersController extends WebServicesController
                     " . $trantype1 . $condition . $storecond . "
                 GROUP BY transaction.transcode, details.rowno
                 ORDER BY " . $misc_order . " transaction.TRANSCODE,
-                           details.STAFFCODE,
                            details.STARTTIME,
+                           details.STAFFCODE,
                            details.ROWNO,
                            transaction.PRIORITYTYPE,
                            transaction.TRANSCODE, " . $order_trantype . " details.ROWNO";
