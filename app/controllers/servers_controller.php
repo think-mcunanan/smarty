@@ -1181,14 +1181,14 @@ class ServersController extends WebServicesController
             'ReservationPayEnabled'                   => 'xsd:boolean',
             'ReservationPayDefaultPriceType'          => 'xsd:int',
             'SlideReservation'                        => 'xsd:boolean',
-            'DailyHoursArray'                         => 'tns:KanzashiSalonDailyHoursArray'
+            'DefaultDailyHoursArray'                  => 'tns:KanzashiSalonDefaultDailyHoursArray'
         )),
 
         'KanzashiSalons' => array(
             'array' => 'KanzashiSalon'
         ),
 
-        'KanzashiSalonDailyHours' => array('struct' => array(
+        'KanzashiSalonDefaultDailyHours' => array('struct' => array(
             'DayType'        => 'xsd:string',
             'StartTime'      => 'xsd:time',
             'EndTime'        => 'xsd:time',
@@ -1196,8 +1196,8 @@ class ServersController extends WebServicesController
             'IsNonWorkDay'   => 'xsd:boolean'
         )),
 
-        'KanzashiSalonDailyHoursArray' => array(
-            'array' => 'KanzashiSalonDailyHours'
+        'KanzashiSalonDefaultDailyHoursArray' => array(
+            'array' => 'KanzashiSalonDefaultDailyHours'
         ),
 
         'KanzashiConfig' => array(
@@ -7324,9 +7324,9 @@ class ServersController extends WebServicesController
 
                 $this->StoreSettings->query($query, $param, false);
 
-                foreach ($kanzashi_salon['DailyHoursArray'] as $dailyHours) {
+                foreach ($kanzashi_salon['DefaultDailyHoursArray'] as $defaultDailyHours) {
                     $query = '
-                        UPDATE sipssbeauty_kanzashi.salon_daily_hours
+                        UPDATE sipssbeauty_kanzashi.salon_default_daily_hours
                         SET
                             start_time = ?,
                             end_time = ?,
@@ -7338,12 +7338,12 @@ class ServersController extends WebServicesController
                     ';
 
                     $param = [
-                        $dailyHours['StartTime'],
-                        $dailyHours['EndTime'],
-                        $dailyHours['CustomersLimit'],
-                        $dailyHours['IsNonWorkDay'],
+                        $defaultDailyHours['StartTime'],
+                        $defaultDailyHours['EndTime'],
+                        $defaultDailyHours['CustomersLimit'],
+                        $defaultDailyHours['IsNonWorkDay'],
                         $kanzashi_salon['SalonId'],
-                        $dailyHours['DayType']
+                        $defaultDailyHours['DayType']
                     ];
 
                     $this->StoreSettings->query($query, $param, false);
