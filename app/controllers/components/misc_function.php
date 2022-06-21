@@ -2182,15 +2182,15 @@ class MiscFunctionComponent extends CakeObject
                 salon.reservation_pay_enabled ReservationPayEnabled,
                 salon.reservation_pay_default_price_type ReservationPayDefaultPriceType,
                 salon.slide_reservation SlideReservation,
-                sdh.day_type DayType,
-                sdh.start_time StartTime,
-                sdh.end_time EndTime,
-                sdh.customers_limit CustomersLimit,
-                sdh.is_non_work_day IsNonWorkDay
+                sddh.day_type DayType,
+                sddh.start_time StartTime,
+                sddh.end_time EndTime,
+                sddh.customers_limit CustomersLimit,
+                sddh.is_non_work_day IsNonWorkDay
             FROM sipssbeauty_kanzashi.salon
-            JOIN sipssbeauty_kanzashi.salon_daily_hours sdh
+            JOIN sipssbeauty_kanzashi.salon_default_daily_hours sddh
             ON
-                sdh.salon_pos_id = salon.pos_id
+                sddh.salon_pos_id = salon.pos_id
             JOIN sipssbeauty_kanzashi.store
             USING (companyid, storecode)
             WHERE
@@ -2199,7 +2199,7 @@ class MiscFunctionComponent extends CakeObject
                 salon.status IN (5, 6, 7, 8, 9, 10, 11, 101, 102)
             ORDER BY
                 salon.pos_id,
-                sdh.day_type
+                sddh.day_type
         ";
 
         $param = compact('companyid', 'storecode');
@@ -2215,7 +2215,7 @@ class MiscFunctionComponent extends CakeObject
                 $salons[$i]['SyncKanzashiEnabledStaffReservationOnly'] = $record['store']['SyncKanzashiEnabledStaffReservationOnly'];
             }
 
-            $salons[$i]['DailyHoursArray'][] = $record['sdh'];
+            $salons[$i]['DefaultDailyHoursArray'][] = $record['sddh'];
         }
 
         return $salons;
