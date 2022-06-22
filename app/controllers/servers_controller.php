@@ -123,15 +123,6 @@ class ServersController extends WebServicesController
             'output' => array('return'    => 'return_staffInformation')
         ),
 
-        'wsSearchAvailableStaff' => array(
-            'doc'    => '有効スタッフ検索',
-            'input'  => array(
-                'sessionid' => 'xsd:string',
-                'param'     => 'availableStaffSearchCriteria'
-            ),
-            'output' => array('return'    => 'return_staffInformation')
-        ),
-
         'wsAddUpdateStaff' => array(
             'doc'    => 'スタッフの追加・アップデート',
             'input'  => array(
@@ -1314,15 +1305,6 @@ class ServersController extends WebServicesController
             'limit'         => 'xsd:int',
             'page'          => 'xsd:int',
             'syscode'       => 'xsd:int'
-        )),
-
-        'availableStaffSearchCriteria' => array('struct' => array(
-            'STORECODE'     => 'xsd:int',
-            'STAFFCODE'     => 'xsd:int',
-            'date'          => 'xsd:string',
-            'orderby'       => 'xsd:string',
-            'limit'         => 'xsd:int',
-            'page'          => 'xsd:int'
         )),
 
         'staffInformation' => array('struct' => array(
