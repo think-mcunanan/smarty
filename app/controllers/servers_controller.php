@@ -544,17 +544,6 @@ class ServersController extends WebServicesController
             'output' => array('return'    => 'xsd:boolean')
         ),
 
-
-        // BREAK TIME FUNCTIONS ----------------------------------------
-        'wsSearchBreakTime' => array(
-            'doc'    => '外出検索',
-            'input'  => array(
-                'sessionid' => 'xsd:string',
-                'param'     => 'breakTimeSearchCriteria'
-            ),
-            'output' => array('return'    => 'return_breakTimeInformation')
-        ),
-
         'wsAddUpdateBreakTime' => array(
             'doc'    => '外出の追加・アップデート',
             'input'  => array(
@@ -2060,13 +2049,6 @@ class ServersController extends WebServicesController
             'record_count' => 'xsd:int'
         )),
         //- ####################################################
-
-        // BREAK TIME ------------------------------------------
-        'breakTimeSearchCriteria' => array('struct' => array(
-            'STORECODE'   => 'xsd:int',
-            'STAFFCODE'   => 'xsd:int',
-            'date'        => 'xsd:string'
-        )),
 
         'breakTimeInformation' => array('struct' => array(
             'BREAKID'          => 'xsd:int',
