@@ -934,26 +934,6 @@ class ServersController extends WebServicesController
         ),
 
         //--------------------------------------------------------------
-        //customer search listing for Ingtegration
-        //by albert 2015-11-18
-        //==============================================================
-
-        //--------------------------------------------------------------
-        // GET STORE EMAIL DOMAIN
-        // Added by: MarvinC - 2015-12-05 14:34
-        //--------------------------------------------------------------
-        'wsGetMailDomain' => array(
-            'doc'    => 'wsGetMailDomain',
-            'input'  => array(
-                'sessionid'  => 'xsd:string',
-                'companyid'  => 'xsd:int',
-                'storecode'  => 'xsd:int'
-            ),
-            'output' => array('return'     => 'xsd:string')
-        ),
-        //- ############################################################
-
-        //--------------------------------------------------------------
         // GET STORE EMAIL DOMAIN
         // Added by: MarvinC - 2015-12-05 14:34
         //--------------------------------------------------------------
@@ -11032,43 +11012,6 @@ class ServersController extends WebServicesController
         } // End If (!is_null($transcode) && !is_null($uketsukedate) && $uketsukestaff <> -1)
         //===================================================================================
         return $RetVal;
-        //===================================================================================
-    }
-    //</editor-fold>
-
-
-    //<editor-fold defaultstate="collapsed" desc="wsGetMailDomain">
-    /**
-     * @author MCUNANAN :mcunanan@think-ahead.jp
-     * Date: 2015-12-05 14:34
-     * @uses Get Mail Domain
-     * @param type $sessionid
-     * @param type $companyid
-     * @param type $storecode
-     */
-    function wsGetMailDomain($sessionid, $companyid, $storecode)
-    {
-
-        //-------------------------------------------------------------------------------------------
-        $storeinfo = $this->YoyakuSession->Check($this);
-        //-------------------------------------------------------------------------------------------
-        if ($storeinfo == false) {
-            $this->_soap_server->fault(1, '', INVALID_SESSION);
-            return;
-        } //end if
-
-        #-------------------------------------------------------------------
-        # ADDED BY: MARVINC - 2015-12-05 14:34
-        #-------------------------------------------------------------------
-        $Sql = "SELECT WSA.storeid
-                FROM sipssbeauty_server.webyan_store_accounts WSA
-                WHERE WSA.companyid = " . $companyid . "
-                    AND WSA.storecode = " . $storecode;
-        $emailadd = $this->Store->query($Sql);
-        $arrReturn = $emailadd[0]["WSA"]["storeid"] . "@" . EMAIL_DOMAIN;
-        #-------------------------------------------------------------------
-        //===================================================================================
-        return $arrReturn;
         //===================================================================================
     }
     //</editor-fold>
