@@ -607,19 +607,6 @@ class ServersController extends WebServicesController
         ),
         //- ############################################################
 
-
-        // Get Store Menu Service Time -------------------------
-        'wsGetStoreMenuServiceTime' => array(
-            'doc'    => 'wsGetStoreMenuServiceTime',
-            'input'  => array(
-                'sessionid'   => 'xsd:string',
-                'storecode'   => 'xsd:int'
-            ),
-            'output' => array('return'      => '_storeMenuServiceTime')
-        ),
-        //- ############################################################
-
-
         // STAFF TAB FUNCTIONS -----------------------------------------
         'wsGetAllOnStaffTab' => array(
             'doc'    => '位置とサブレベルのと店舗リストデータを取得',
@@ -1487,20 +1474,7 @@ class ServersController extends WebServicesController
             'records'      => 'tns:_storeInformation',
             'record_count' => 'xsd:int'
         )),
-
-        'storeMenuServiceTime'        => array('struct' => array(
-            'staffcode'        => 'xsd:int',
-            'gcode'            => 'xsd:int',
-            'female_time'      => 'xsd:int',
-            'male_time'        => 'xsd:int'
-        )),
-        '_storeMenuServiceTime'       => array(
-            'array'            => 'storeMenuServiceTime'
-        ),
-
         //- ####################################################
-
-
 
         // STORE HOLIDAY ---------------------------------------
         'storeHolidaySearchCriteria' => array('struct' => array(
@@ -10961,57 +10935,6 @@ class ServersController extends WebServicesController
         //-------------------------------------------------------------------------------------------
     }
     //</editor-fold>
-
-    //<editor-fold defaultstate="collapsed" desc="wsGetStoreMenuServiceTime">
-    /**
-     * @uses Get Store Menu Services Time for each Staff
-     * @author Homer Pasamba Email: homer.pasamba@think-ahead.jp
-     * @param <String> $sessionid
-     * @param <Integer> $storecode
-     * @return Array - Object Array results
-     */
-    function wsGetStoreMenuServiceTime($sessionid, $storecode)
-    {
-        //===================================================================================
-        //(Verify Session and Get DB name)
-        //-----------------------------------------------------------------------------------
-        $storeinfo = $this->YoyakuSession->Check($this);
-        //-----------------------------------------------------------------------------------
-        if ($storeinfo == false) {
-            $this->_soap_server->fault(1, '', INVALID_SESSION);
-            return;
-        } // End if
-        //-----------------------------------------------------------------------------------
-        $this->Store->set_company_database($storeinfo['dbname'], $this->Store);
-        //===================================================================================
-        // Get StoreMenuServiceTime Data
-        //-----------------------------------------------------------------------------------
-        $Sql = "SELECT *
-                FROM(SELECT staffcode,
-						    gcode,
-						    IFNULL(service_time, 0) AS female_time,
-						    IFNULL(service_time_male, 0) AS male_time
-		            FROM yoyaku_staff_service_time
-				        JOIN (SELECT S.STAFFCODE, S.STAFFNAME
-							  FROM staff_assign_to_store as SATS
-							    INNER JOIN staff as S
-								   ON SATS.STAFFCODE = S.STAFFCODE
-								      AND S.DELFLG IS NULL
-			                    WHERE SATS.STORECODE = {$storecode}
-								    AND SATS.ASSIGN_YOYAKU = 1
-						    ) yoyakustaffs USING (STAFFCODE)
-		            WHERE storecode = {$storecode}
-				        AND GCODE > 0) as tblresult";
-        //-----------------------------------------------------------------------------------
-        $GetData = $this->Store->query($Sql);
-        //-----------------------------------------------------------------------------------
-        $retdata =  $this->ParseDataToObjectArray($GetData, 'tblresult');
-        //-----------------------------------------------------------------------------------
-        return ($retdata);
-        //===================================================================================
-    } // End Function
-    //</editor-fold>
-
 
     //<editor-fold defaultstate="collapsed" desc="wsGetTransactionByTransCode">
     /**
