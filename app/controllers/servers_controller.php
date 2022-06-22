@@ -153,17 +153,6 @@ class ServersController extends WebServicesController
             'output' => array('return'     => 'xsd:boolean')
         ),
 
-        'wsDeleteStaffRowsHistory' => array(
-            'doc'    => 'スタッフ予約列削除',
-            'input'  => array(
-                'sessionid'   => 'xsd:string',
-                'storecode'   => 'xsd:int',
-                'staffcode'   => 'xsd:int',
-                'datechanges' => 'SOAP-ENC:Array'
-            ),
-            'output' => array('return'      => 'xsd:boolean')
-        ),
-
         'wsSearchStaffRowsHistory' => array(
             'doc'    => 'スタッフ予約列検索',
             'input'  => array(
@@ -4635,51 +4624,6 @@ class ServersController extends WebServicesController
             return false;
         }
     }
-
-
-    /**
-     * スタッフ予約列数削除
-     * Delete StaffRowsHistory
-     *
-     * @param string $sessionid
-     * @param int $storecode
-     * @param int $staffcode
-     * @param array $datechanges
-     * @return bool
-     */
-    function wsDeleteStaffRowsHistory($sessionid, $storecode, $staffcode, $datechanges)
-    {
-        $storeinfo = $this->YoyakuSession->Check($this);
-
-        if (!$storeinfo) {
-            $this->_soap_server->fault(1, '', INVALID_SESSION);
-            return false;
-        }
-
-        $this->StaffRowsHistory->set_company_database($storeinfo['dbname'], $this->StaffRowsHistory);
-
-        $where_query = array(
-            "STORECODE = {$storecode}",
-            "STAFFCODE = {$staffcode}"
-        );
-
-        if (count($datechanges) > 0) {
-            for ($i = 0; $i < count($datechanges); $i++) {
-                $datechanges[$i] = "'{$datechanges[$i]}'";
-            }
-
-            $where_query[] = "DATECHANGE IN(" . implode(',', $datechanges) . ")";
-        }
-
-        $where_query = implode(' AND ', $where_query);
-
-        $query =
-            "DELETE FROM staffrowshistory " .
-            "WHERE {$where_query} ";
-
-        return $this->StaffRowsHistory->query($query) !== false;
-    }
-
 
     /**
      * スタッフ予約列数検索
