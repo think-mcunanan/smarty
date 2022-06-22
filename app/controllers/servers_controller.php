@@ -932,22 +932,7 @@ class ServersController extends WebServicesController
             ),
             'output' => array('return'      => 'xsd:int')
         ),
-
-        //--------------------------------------------------------------
-        // GET STORE EMAIL DOMAIN
-        // Added by: MarvinC - 2015-12-05 14:34
-        //--------------------------------------------------------------
-        'wsVerifyStaffPassword' => array(
-            'doc'    => 'wsGetMailDomain',
-            'input'  => array(
-                'sessionid'  => 'xsd:string',
-                'staffcode'  => 'xsd:int',
-                'password'   => 'xsd:string'
-            ),
-            'output' => array('return'     => 'xsd:int')
-        ),
         //- ############################################################
-
         //--------------------------------------------------------------
         // GET POWERS SETTINGS
         // Added by: MarvinC - 2015-12-28 16:35
@@ -11026,42 +11011,6 @@ class ServersController extends WebServicesController
     function wsGetReturningCustomerCountAll($sessionid)
     {
         return $this->MiscFunction->GetReturningCustomerCountAll($this);
-    }
-    //</editor-fold>
-
-    //<editor-fold defaultstate="collapsed" desc="wsGetMailDomain">
-    /**
-     * @author MCUNANAN :mcunanan@think-ahead.jp
-     * Date: 2016-12-19 15:13
-     * @uses Get Mail Domain
-     * @param string $sessionid
-     * @param integer $staffcode
-     * @param string $password
-     * @return mixed
-     */
-    function wsVerifyStaffPassword($sessionid, $staffcode, $password)
-    {
-
-        //-------------------------------------------------------------------------------------------
-        $storeinfo = $this->YoyakuSession->Check($this);
-        //-------------------------------------------------------------------------------------------
-        if ($storeinfo == false) {
-            $this->_soap_server->fault(1, '', INVALID_SESSION);
-            return null;
-        } //end if
-
-        $this->Staff->set_company_database($storeinfo['dbname'], $this->Staff);
-
-        $Sql = "SELECT staff_password as password FROM staff WHERE staffcode = {$staffcode} limit 1";
-        $res = $this->Staff->query($Sql);
-
-        if (isset($res{
-            0})) {
-            if ($res[0]['staff']['password'] == $password) {
-                return 1;
-            }
-        }
-        return 0;
     }
     //</editor-fold>
 
