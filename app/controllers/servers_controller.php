@@ -300,18 +300,6 @@ class ServersController extends WebServicesController
             'output' => array('return'    => 'xsd:int')
         ),
 
-        'wsDeleteService' => array(
-            'doc'    => '技術削除',
-            'input'  => array(
-                'sessionid' => 'xsd:string',
-                'gdcode'    => 'xsd:int'
-            ),
-            'output' => array('return'    => 'xsd:boolean')
-        ),
-        //- ############################################################
-
-
-
         // SHIFT FUNCTIONS ---------------------------------------------
         'wsSearchShift' => array(
             'doc'    => 'シフト検索',
@@ -5864,39 +5852,6 @@ class ServersController extends WebServicesController
             $this->_soap_server->fault(1, '', 'Error Processing Data');
         }
     }
-
-
-    /**
-     * 技術大分の削除機能
-     * Deletes a service
-     *
-     * @param string $sessionid
-     * @param int $gdcode
-     * @return boolean
-     */
-    function wsDeleteService($sessionid, $gdcode)
-    {
-        //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
-        $storeinfo = $this->YoyakuSession->Check($this);
-        if ($storeinfo == false) {
-            $this->_soap_server->fault(1, '', INVALID_SESSION);
-            return;
-        }
-
-        //-- 会社データベースを設定する (Set the Company Database)
-        $this->Service->set_company_database($storeinfo['dbname'], $this->Service);
-
-        //-- 技術大分を削除フラグを設定 (Set Delete flag on Service)
-        $this->Service->set('GDCODE', $gdcode);
-        $this->Service->set('DELFLG', date('Y-m-d h:i:s'));
-        $this->Service->save();
-
-        return true;
-    }
-    //- #############################################################################
-
-
-
 
     // STORE SERVICE FUNCTIONS ------------------------------------------------------
     /**
