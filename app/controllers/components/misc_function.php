@@ -2170,38 +2170,55 @@ class MiscFunctionComponent extends CakeObject
     public function GetKanzashiSalons(&$controller, $companyid, $storecode)
     {
         $sql = "
-        SELECT
-            salon.*
-        FROM (SELECT pos_id AS SalonId,
-                    sl.kanzashi_id AS KanzashiId,
-                    sl.pos_name AS Name,
-                    sl.kanzashi_type AS KanzashiType,
-                    sl.status AS Status,
-                    CONVERT(st.sync_kanzashi_enabled_staff_reservation_only, UNSIGNED) AS SyncKanzashiEnabledStaffReservationOnly,
-                    sl.free_staffcode AS FreeStaffcode,
-                    sl.is_main_salon AS IsMainSalon,
-                    sl.reservation_pay_enabled AS ReservationPayEnabled,
-                    sl.reservation_pay_default_price_type AS ReservationPayDefaultPriceType,
-                    sl.yoyaku_start AS YoyakuStart,
-                    sl.yoyaku_start_sat_sun AS YoyakuStartSatSun,
-                    sl.yoyaku_end AS YoyakuEnd,
-                    sl.yoyaku_end_sat_sun AS YoyakuEndSatSun,
-                    sl.yoyaku_customers_limit AS YoyakuCustomersLimit,
-                    CONVERT(sl.slide_reservation, UNSIGNED) AS SlideReservation
-                FROM sipssbeauty_kanzashi.salon AS sl
-                JOIN sipssbeauty_kanzashi.store AS st
-                    USING(companyid, storecode)
-                WHERE
-                    sl.companyid = :companyid AND
-                    sl.storecode = :storecode AND
-                    sl.status IN (5, 6, 7, 8, 9, 10, 11, 101, 102)
-        )AS salon
+            SELECT
+                pos_id SalonId,
+                salon.kanzashi_id KanzashiId,
+                salon.pos_name Name,
+                salon.kanzashi_type KanzashiType,
+                salon.status Status,
+                store.sync_kanzashi_enabled_staff_reservation_only SyncKanzashiEnabledStaffReservationOnly,
+                salon.free_staffcode FreeStaffcode,
+                salon.is_main_salon IsMainSalon,
+                salon.reservation_pay_enabled ReservationPayEnabled,
+                salon.reservation_pay_default_price_type ReservationPayDefaultPriceType,
+                salon.slide_reservation SlideReservation,
+                sddh.day_type DayType,
+                sddh.start_time StartTime,
+                sddh.end_time EndTime,
+                sddh.customers_limit CustomersLimit,
+                sddh.is_non_work_day IsNonWorkDay
+            FROM sipssbeauty_kanzashi.salon
+            JOIN sipssbeauty_kanzashi.salon_default_daily_hours sddh
+            ON
+                sddh.salon_pos_id = salon.pos_id
+            JOIN sipssbeauty_kanzashi.store
+            USING (companyid, storecode)
+            WHERE
+                salon.companyid = :companyid AND
+                salon.storecode = :storecode AND
+                salon.status IN (5, 6, 7, 8, 9, 10, 11, 101, 102)
+            ORDER BY
+                salon.pos_id,
+                sddh.day_type
         ";
 
         $param = compact('companyid', 'storecode');
-        $rs = $controller->StoreSettings->query($sql, $param, false);
-        $set = new Set();
-        return $set->extract($rs, '{n}.salon');
+        $records = $controller->StoreSettings->query($sql, $param, false);
+        $salons = [];
+        
+        foreach ($records as $record) {
+            $i = count($salons) - 1;
+
+            if ($i < 0 || $salons[$i]['SalonId'] !== $record['salon']['SalonId']) {
+                $i++;
+                $salons[] = $record['salon'];
+                $salons[$i]['SyncKanzashiEnabledStaffReservationOnly'] = $record['store']['SyncKanzashiEnabledStaffReservationOnly'];
+            }
+
+            $salons[$i]['DefaultDailyHoursArray'][] = $record['sddh'];
+        }
+
+        return $salons;
     }
 
     /**
