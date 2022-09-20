@@ -123,15 +123,6 @@ class ServersController extends WebServicesController
             'output' => array('return'    => 'return_staffInformation')
         ),
 
-        'wsSearchAvailableStaff' => array(
-            'doc'    => '有効スタッフ検索',
-            'input'  => array(
-                'sessionid' => 'xsd:string',
-                'param'     => 'availableStaffSearchCriteria'
-            ),
-            'output' => array('return'    => 'return_staffInformation')
-        ),
-
         'wsAddUpdateStaff' => array(
             'doc'    => 'スタッフの追加・アップデート',
             'input'  => array(
@@ -160,17 +151,6 @@ class ServersController extends WebServicesController
                 'pre_delete' => 'xsd:boolean'
             ),
             'output' => array('return'     => 'xsd:boolean')
-        ),
-
-        'wsDeleteStaffRowsHistory' => array(
-            'doc'    => 'スタッフ予約列削除',
-            'input'  => array(
-                'sessionid'   => 'xsd:string',
-                'storecode'   => 'xsd:int',
-                'staffcode'   => 'xsd:int',
-                'datechanges' => 'SOAP-ENC:Array'
-            ),
-            'output' => array('return'      => 'xsd:boolean')
         ),
 
         'wsSearchStaffRowsHistory' => array(
@@ -319,18 +299,6 @@ class ServersController extends WebServicesController
             ),
             'output' => array('return'    => 'xsd:int')
         ),
-
-        'wsDeleteService' => array(
-            'doc'    => '技術削除',
-            'input'  => array(
-                'sessionid' => 'xsd:string',
-                'gdcode'    => 'xsd:int'
-            ),
-            'output' => array('return'    => 'xsd:boolean')
-        ),
-        //- ############################################################
-
-
 
         // SHIFT FUNCTIONS ---------------------------------------------
         'wsSearchShift' => array(
@@ -553,17 +521,6 @@ class ServersController extends WebServicesController
             'output' => array('return'    => 'xsd:boolean')
         ),
 
-
-        // BREAK TIME FUNCTIONS ----------------------------------------
-        'wsSearchBreakTime' => array(
-            'doc'    => '外出検索',
-            'input'  => array(
-                'sessionid' => 'xsd:string',
-                'param'     => 'breakTimeSearchCriteria'
-            ),
-            'output' => array('return'    => 'return_breakTimeInformation')
-        ),
-
         'wsAddUpdateBreakTime' => array(
             'doc'    => '外出の追加・アップデート',
             'input'  => array(
@@ -626,19 +583,6 @@ class ServersController extends WebServicesController
             )
         ),
         //- ############################################################
-
-
-        // Get Store Menu Service Time -------------------------
-        'wsGetStoreMenuServiceTime' => array(
-            'doc'    => 'wsGetStoreMenuServiceTime',
-            'input'  => array(
-                'sessionid'   => 'xsd:string',
-                'storecode'   => 'xsd:int'
-            ),
-            'output' => array('return'      => '_storeMenuServiceTime')
-        ),
-        //- ############################################################
-
 
         // STAFF TAB FUNCTIONS -----------------------------------------
         'wsGetAllOnStaffTab' => array(
@@ -965,42 +909,7 @@ class ServersController extends WebServicesController
             ),
             'output' => array('return'      => 'xsd:int')
         ),
-
-        //--------------------------------------------------------------
-        //customer search listing for Ingtegration
-        //by albert 2015-11-18
-        //==============================================================
-
-        //--------------------------------------------------------------
-        // GET STORE EMAIL DOMAIN
-        // Added by: MarvinC - 2015-12-05 14:34
-        //--------------------------------------------------------------
-        'wsGetMailDomain' => array(
-            'doc'    => 'wsGetMailDomain',
-            'input'  => array(
-                'sessionid'  => 'xsd:string',
-                'companyid'  => 'xsd:int',
-                'storecode'  => 'xsd:int'
-            ),
-            'output' => array('return'     => 'xsd:string')
-        ),
         //- ############################################################
-
-        //--------------------------------------------------------------
-        // GET STORE EMAIL DOMAIN
-        // Added by: MarvinC - 2015-12-05 14:34
-        //--------------------------------------------------------------
-        'wsVerifyStaffPassword' => array(
-            'doc'    => 'wsGetMailDomain',
-            'input'  => array(
-                'sessionid'  => 'xsd:string',
-                'staffcode'  => 'xsd:int',
-                'password'   => 'xsd:string'
-            ),
-            'output' => array('return'     => 'xsd:int')
-        ),
-        //- ############################################################
-
         //--------------------------------------------------------------
         // GET POWERS SETTINGS
         // Added by: MarvinC - 2015-12-28 16:35
@@ -1316,15 +1225,6 @@ class ServersController extends WebServicesController
             'syscode'       => 'xsd:int'
         )),
 
-        'availableStaffSearchCriteria' => array('struct' => array(
-            'STORECODE'     => 'xsd:int',
-            'STAFFCODE'     => 'xsd:int',
-            'date'          => 'xsd:string',
-            'orderby'       => 'xsd:string',
-            'limit'         => 'xsd:int',
-            'page'          => 'xsd:int'
-        )),
-
         'staffInformation' => array('struct' => array(
             'STAFFCODE'        => 'xsd:int',
             'STAFFNAME'        => 'xsd:string',
@@ -1516,20 +1416,7 @@ class ServersController extends WebServicesController
             'records'      => 'tns:_storeInformation',
             'record_count' => 'xsd:int'
         )),
-
-        'storeMenuServiceTime'        => array('struct' => array(
-            'staffcode'        => 'xsd:int',
-            'gcode'            => 'xsd:int',
-            'female_time'      => 'xsd:int',
-            'male_time'        => 'xsd:int'
-        )),
-        '_storeMenuServiceTime'       => array(
-            'array'            => 'storeMenuServiceTime'
-        ),
-
         //- ####################################################
-
-
 
         // STORE HOLIDAY ---------------------------------------
         'storeHolidaySearchCriteria' => array('struct' => array(
@@ -2078,13 +1965,6 @@ class ServersController extends WebServicesController
             'record_count' => 'xsd:int'
         )),
         //- ####################################################
-
-        // BREAK TIME ------------------------------------------
-        'breakTimeSearchCriteria' => array('struct' => array(
-            'STORECODE'   => 'xsd:int',
-            'STAFFCODE'   => 'xsd:int',
-            'date'        => 'xsd:string'
-        )),
 
         'breakTimeInformation' => array('struct' => array(
             'BREAKID'          => 'xsd:int',
@@ -4733,51 +4613,6 @@ class ServersController extends WebServicesController
         }
     }
 
-
-    /**
-     * スタッフ予約列数削除
-     * Delete StaffRowsHistory
-     *
-     * @param string $sessionid
-     * @param int $storecode
-     * @param int $staffcode
-     * @param array $datechanges
-     * @return bool
-     */
-    function wsDeleteStaffRowsHistory($sessionid, $storecode, $staffcode, $datechanges)
-    {
-        $storeinfo = $this->YoyakuSession->Check($this);
-
-        if (!$storeinfo) {
-            $this->_soap_server->fault(1, '', INVALID_SESSION);
-            return false;
-        }
-
-        $this->StaffRowsHistory->set_company_database($storeinfo['dbname'], $this->StaffRowsHistory);
-
-        $where_query = array(
-            "STORECODE = {$storecode}",
-            "STAFFCODE = {$staffcode}"
-        );
-
-        if (count($datechanges) > 0) {
-            for ($i = 0; $i < count($datechanges); $i++) {
-                $datechanges[$i] = "'{$datechanges[$i]}'";
-            }
-
-            $where_query[] = "DATECHANGE IN(" . implode(',', $datechanges) . ")";
-        }
-
-        $where_query = implode(' AND ', $where_query);
-
-        $query =
-            "DELETE FROM staffrowshistory " .
-            "WHERE {$where_query} ";
-
-        return $this->StaffRowsHistory->query($query) !== false;
-    }
-
-
     /**
      * スタッフ予約列数検索
      * Search StaffRowsHistory
@@ -6017,39 +5852,6 @@ class ServersController extends WebServicesController
             $this->_soap_server->fault(1, '', 'Error Processing Data');
         }
     }
-
-
-    /**
-     * 技術大分の削除機能
-     * Deletes a service
-     *
-     * @param string $sessionid
-     * @param int $gdcode
-     * @return boolean
-     */
-    function wsDeleteService($sessionid, $gdcode)
-    {
-        //-- セッションを確認してデータベース名を取り込む (Verify Session and Get DB name)
-        $storeinfo = $this->YoyakuSession->Check($this);
-        if ($storeinfo == false) {
-            $this->_soap_server->fault(1, '', INVALID_SESSION);
-            return;
-        }
-
-        //-- 会社データベースを設定する (Set the Company Database)
-        $this->Service->set_company_database($storeinfo['dbname'], $this->Service);
-
-        //-- 技術大分を削除フラグを設定 (Set Delete flag on Service)
-        $this->Service->set('GDCODE', $gdcode);
-        $this->Service->set('DELFLG', date('Y-m-d h:i:s'));
-        $this->Service->save();
-
-        return true;
-    }
-    //- #############################################################################
-
-
-
 
     // STORE SERVICE FUNCTIONS ------------------------------------------------------
     /**
@@ -10998,57 +10800,6 @@ class ServersController extends WebServicesController
     }
     //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc="wsGetStoreMenuServiceTime">
-    /**
-     * @uses Get Store Menu Services Time for each Staff
-     * @author Homer Pasamba Email: homer.pasamba@think-ahead.jp
-     * @param <String> $sessionid
-     * @param <Integer> $storecode
-     * @return Array - Object Array results
-     */
-    function wsGetStoreMenuServiceTime($sessionid, $storecode)
-    {
-        //===================================================================================
-        //(Verify Session and Get DB name)
-        //-----------------------------------------------------------------------------------
-        $storeinfo = $this->YoyakuSession->Check($this);
-        //-----------------------------------------------------------------------------------
-        if ($storeinfo == false) {
-            $this->_soap_server->fault(1, '', INVALID_SESSION);
-            return;
-        } // End if
-        //-----------------------------------------------------------------------------------
-        $this->Store->set_company_database($storeinfo['dbname'], $this->Store);
-        //===================================================================================
-        // Get StoreMenuServiceTime Data
-        //-----------------------------------------------------------------------------------
-        $Sql = "SELECT *
-                FROM(SELECT staffcode,
-						    gcode,
-						    IFNULL(service_time, 0) AS female_time,
-						    IFNULL(service_time_male, 0) AS male_time
-		            FROM yoyaku_staff_service_time
-				        JOIN (SELECT S.STAFFCODE, S.STAFFNAME
-							  FROM staff_assign_to_store as SATS
-							    INNER JOIN staff as S
-								   ON SATS.STAFFCODE = S.STAFFCODE
-								      AND S.DELFLG IS NULL
-			                    WHERE SATS.STORECODE = {$storecode}
-								    AND SATS.ASSIGN_YOYAKU = 1
-						    ) yoyakustaffs USING (STAFFCODE)
-		            WHERE storecode = {$storecode}
-				        AND GCODE > 0) as tblresult";
-        //-----------------------------------------------------------------------------------
-        $GetData = $this->Store->query($Sql);
-        //-----------------------------------------------------------------------------------
-        $retdata =  $this->ParseDataToObjectArray($GetData, 'tblresult');
-        //-----------------------------------------------------------------------------------
-        return ($retdata);
-        //===================================================================================
-    } // End Function
-    //</editor-fold>
-
-
     //<editor-fold defaultstate="collapsed" desc="wsGetTransactionByTransCode">
     /**
      * @author Homer Pasamba Email:homer.pasamba@think-ahead.jp
@@ -11149,43 +10900,6 @@ class ServersController extends WebServicesController
     }
     //</editor-fold>
 
-
-    //<editor-fold defaultstate="collapsed" desc="wsGetMailDomain">
-    /**
-     * @author MCUNANAN :mcunanan@think-ahead.jp
-     * Date: 2015-12-05 14:34
-     * @uses Get Mail Domain
-     * @param type $sessionid
-     * @param type $companyid
-     * @param type $storecode
-     */
-    function wsGetMailDomain($sessionid, $companyid, $storecode)
-    {
-
-        //-------------------------------------------------------------------------------------------
-        $storeinfo = $this->YoyakuSession->Check($this);
-        //-------------------------------------------------------------------------------------------
-        if ($storeinfo == false) {
-            $this->_soap_server->fault(1, '', INVALID_SESSION);
-            return;
-        } //end if
-
-        #-------------------------------------------------------------------
-        # ADDED BY: MARVINC - 2015-12-05 14:34
-        #-------------------------------------------------------------------
-        $Sql = "SELECT WSA.storeid
-                FROM sipssbeauty_server.webyan_store_accounts WSA
-                WHERE WSA.companyid = " . $companyid . "
-                    AND WSA.storecode = " . $storecode;
-        $emailadd = $this->Store->query($Sql);
-        $arrReturn = $emailadd[0]["WSA"]["storeid"] . "@" . EMAIL_DOMAIN;
-        #-------------------------------------------------------------------
-        //===================================================================================
-        return $arrReturn;
-        //===================================================================================
-    }
-    //</editor-fold>
-
     //<editor-fold defaultstate="collapsed" desc="wsGetReturningCustomerCountAll">
     /**
      * @author MCUNANAN :mcunanan@think-ahead.jp
@@ -11196,42 +10910,6 @@ class ServersController extends WebServicesController
     function wsGetReturningCustomerCountAll($sessionid)
     {
         return $this->MiscFunction->GetReturningCustomerCountAll($this);
-    }
-    //</editor-fold>
-
-    //<editor-fold defaultstate="collapsed" desc="wsGetMailDomain">
-    /**
-     * @author MCUNANAN :mcunanan@think-ahead.jp
-     * Date: 2016-12-19 15:13
-     * @uses Get Mail Domain
-     * @param string $sessionid
-     * @param integer $staffcode
-     * @param string $password
-     * @return mixed
-     */
-    function wsVerifyStaffPassword($sessionid, $staffcode, $password)
-    {
-
-        //-------------------------------------------------------------------------------------------
-        $storeinfo = $this->YoyakuSession->Check($this);
-        //-------------------------------------------------------------------------------------------
-        if ($storeinfo == false) {
-            $this->_soap_server->fault(1, '', INVALID_SESSION);
-            return null;
-        } //end if
-
-        $this->Staff->set_company_database($storeinfo['dbname'], $this->Staff);
-
-        $Sql = "SELECT staff_password as password FROM staff WHERE staffcode = {$staffcode} limit 1";
-        $res = $this->Staff->query($Sql);
-
-        if (isset($res{
-            0})) {
-            if ($res[0]['staff']['password'] == $password) {
-                return 1;
-            }
-        }
-        return 0;
     }
     //</editor-fold>
 
