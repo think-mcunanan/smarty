@@ -5608,7 +5608,7 @@ class ServersController extends WebServicesController
             );
         }
         if ($param['KANZASHI_ENABLED']) {
-            $non_holidays = array();
+            $non_holidays = array(0); // 0 is placeholder
             foreach ($param as $key => $value) {
                 if (empty($value)) {
                     $non_holidays[] = substr($key, 3, 2);
