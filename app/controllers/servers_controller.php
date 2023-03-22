@@ -5608,20 +5608,25 @@ class ServersController extends WebServicesController
             );
         }
         if ($param['KANZASHI_ENABLED']) {
-            $non_holidays = array(0); // 0 is placeholder
+            $non_holidays = array();
             foreach ($param as $key => $value) {
                 if (empty($value)) {
                     $non_holidays[] = substr($key, 3, 2);
                 }
             }
-            $non_holidays = implode(', ', $non_holidays);
+
+            if ($non_holidays) {
+                $non_holidays = implode(', ', $non_holidays);
+                $non_holidays_statement = "AND day(ymd) IN ({$non_holidays})";
+            }
+
             $sqlstatements[] = "
                     UPDATE store_holiday_per_salon
                     SET delflg = CURRENT_TIMESTAMP()
                     WHERE kanzashi_salon_pos_id  = :kanzashisalonposid
                         AND YEAR(ymd)  = :year
                         AND MONTH(ymd) = :month
-                        AND day(ymd) IN ({$non_holidays})";
+                        {$non_holidays_statement}";
             $params[] = array(
                 'kanzashisalonposid' => $param['KANZASHI_SALON_POS_ID'],
                 'year' => $param['year'],
